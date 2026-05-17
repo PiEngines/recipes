@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.auth.password import hash_password
@@ -30,6 +31,9 @@ def seed_admin() -> None:
         db.add(admin)
         db.commit()
         logger.info("Admin user created: %s", settings.admin_email)
+    except ProgrammingError:
+        db.rollback()
+        logger.info("Seed skipped — database tables not yet created (run migrations first)")
     except Exception:
         db.rollback()
         logger.exception("Failed to seed admin user")
