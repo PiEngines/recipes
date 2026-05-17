@@ -94,12 +94,14 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
   const inputRef = useRef(null)
   const pollTimers = useRef({})
 
-  // Sync from parent on mount only; after that we own state
+  // Sync existingMedia wenn es sich von leer auf gefüllt ändert (z.B. async geladen)
+  const didSyncRef = useRef(false)
   useEffect(() => {
-    if (existingMedia.length > 0 && mediaList.length === 0) {
+    if (!didSyncRef.current && existingMedia.length > 0) {
+      didSyncRef.current = true
       setMediaList(existingMedia)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [existingMedia])
 
   // Start polling for processing videos
   useEffect(() => {

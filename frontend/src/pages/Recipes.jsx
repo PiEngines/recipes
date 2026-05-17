@@ -54,96 +54,91 @@ function SunIcon() {
 // ── Recipe card ───────────────────────────────────────────────────────────────
 // Items 6, 7, 8: gleiche Höhe + warme Farben + kein doppelter Titel
 
-function RecipeCard({ recipe }) {
+function RecipeCard({ recipe, primaryImage }) {
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
   const color = recipe.difficulty ? diffColor(recipe.difficulty) : null
   const isDraft = recipe.status === 'draft'
 
+  const draftBadge = isDraft && (
+    <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(0,0,0,0.45)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', zIndex: 2 }}>
+      Entwurf
+    </span>
+  )
+
+  const titleSpan = (
+    <span style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 600, textShadow: '0 1px 6px rgba(0,0,0,0.45)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      {recipe.title}
+    </span>
+  )
+
   return (
-    // height: 100% damit alle Karten in einer Reihe gleich hoch sind (Item 6)
     <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Gradient-Bereich mit Titel darin (Item 8: nur einmal) */}
-        <div style={{
-          background: gradient,
-          height: '180px',
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          padding: '0.875rem 1rem',
-          position: 'relative',
-        }}>
-          {isDraft && (
-            <span style={{
-              position: 'absolute',
-              top: '0.625rem',
-              right: '0.625rem',
-              padding: '0.2rem 0.55rem',
-              background: 'rgba(0,0,0,0.45)',
-              color: '#fff',
-              borderRadius: 'var(--radius-pill)',
-              fontSize: '0.68rem',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-            }}>Entwurf</span>
+        {/* Bild-Bereich */}
+        <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+          {primaryImage ? (
+            <>
+              {/* Foto-Hintergrund mit scale-Transition über CSS-Klasse */}
+              <div
+                className="card-image-bg"
+                style={{
+                  position: 'absolute', inset: 0,
+                  backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  transition: 'transform 0.4s ease',
+                }}
+              />
+              {/* Dunkles Overlay */}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.65) 100%)' }} />
+              {/* Titel + Badge */}
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem' }}>
+                {draftBadge}
+                {titleSpan}
+                {/* Meta-Pills unter dem Titel im Overlay */}
+                {(recipe.cook_time || recipe.prep_time) && (
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
+                    {recipe.prep_time && (
+                      <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>⏱ {recipe.prep_time} min</span>
+                    )}
+                    {recipe.cook_time && (
+                      <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>🍳 {recipe.cook_time} min</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* Gradient-Fallback — unverändert */
+            <div style={{ background: gradient, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
+              {draftBadge}
+              {titleSpan}
+            </div>
           )}
-          <span style={{
-            color: 'rgba(255,255,255,0.95)',
-            fontFamily: 'Playfair Display, serif',
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            textShadow: '0 1px 6px rgba(0,0,0,0.4)',
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>{recipe.title}</span>
         </div>
 
-        {/* Karten-Unterbereich: flex: 1, column, space-between (Item 6) */}
-        <div style={{
-          padding: '1rem',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          gap: '0.625rem',
-        }}>
-          {/* Beschreibung statt Titel-Wiederholung (Item 8) */}
+        {/* Karten-Unterbereich */}
+        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
           <div style={{ flex: 1 }}>
             {recipe.description ? (
-              <p style={{
-                margin: 0,
-                fontSize: '0.85rem',
-                color: 'var(--subtext)',
-                lineHeight: 1.5,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}>{recipe.description}</p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {recipe.description}
+              </p>
             ) : (
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--border-input)' }}>&nbsp;</p>
             )}
           </div>
 
           <div>
-            {/* Zeit-Pills */}
-            {(recipe.prep_time || recipe.cook_time) && (
+            {/* Zeit-Pills (nur bei Gradient-Kacheln; bei Foto-Kacheln bereits im Overlay) */}
+            {!primaryImage && (recipe.prep_time || recipe.cook_time) && (
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
                 {recipe.prep_time && (
-                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                    ⏱ {recipe.prep_time} min
-                  </span>
+                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>⏱ {recipe.prep_time} min</span>
                 )}
                 {recipe.cook_time && (
-                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: 'var(--secondary)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                    🍳 {recipe.cook_time} min
-                  </span>
+                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: 'var(--secondary)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>🍳 {recipe.cook_time} min</span>
                 )}
               </div>
             )}
@@ -228,6 +223,7 @@ export default function Recipes() {
   const isAdmin = user?.role === 'admin'
 
   const [recipes, setRecipes]         = useState([])
+  const [primaryImages, setPrimaryImages] = useState({}) // { recipeId: mediaObj | null }
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
   const [page, setPage]               = useState(1)
@@ -254,7 +250,23 @@ export default function Recipes() {
     const params = { page, page_size: PAGE_SIZE }
     if (search) params.search = search
     client.get('/api/recipes', { params })
-      .then(res => { setRecipes(res.data.items); setTotal(res.data.total) })
+      .then(res => {
+        const items = res.data.items
+        setRecipes(items)
+        setTotal(res.data.total)
+        // Primärbilder parallel laden
+        Promise.all(
+          items.map(r =>
+            client.get(`/api/media/entity/recipe/${r.id}`)
+              .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
+              .catch(() => ({ id: r.id, primary: null }))
+          )
+        ).then(results => {
+          const map = {}
+          results.forEach(({ id, primary }) => { map[id] = primary })
+          setPrimaryImages(map)
+        })
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [page, search])
@@ -319,7 +331,7 @@ export default function Recipes() {
           <EmptyState search={search} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-            {recipes.map(r => <RecipeCard key={r.id} recipe={r} />)}
+            {recipes.map(r => <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} />)}
           </div>
         )}
 

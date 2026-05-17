@@ -94,7 +94,7 @@ function useTimers() {
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ recipe, media }) {
+function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const primary = media.find(m => m.is_primary && m.media_type === 'image')
   const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready')
@@ -102,14 +102,30 @@ function HeroSection({ recipe, media }) {
   return (
     <>
       {/* Hero */}
-      <div style={{ borderRadius: 'var(--radius-card)', overflow: 'hidden', marginBottom: '1.5rem', position: 'relative', height: '280px', background: primary ? undefined : gradient }}>
-        {primary && (
-          <img src={primary.url} alt={recipe.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        )}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '1.5rem' }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 600, color: '#fff', margin: '0 0 0.5rem', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.25 }}>{recipe.title}</h1>
+      <div style={{
+        borderRadius: 'var(--radius-card)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem',
+        position: 'relative',
+        height: '280px',
+        background: primary ? undefined : gradient,
+        backgroundImage: primary ? `url(${primary.url})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
+          display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+          padding: '1.5rem',
+        }}>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 600, color: '#fff', margin: '0 0 0.5rem', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.25 }}>
+            {recipe.title}
+          </h1>
           {recipe.description && (
-            <p style={{ color: 'rgba(255,255,255,0.85)', margin: 0, fontSize: '0.95rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.description}</p>
+            <p style={{ color: 'rgba(255,255,255,0.85)', margin: 0, fontSize: '0.95rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {recipe.description}
+            </p>
           )}
         </div>
       </div>
@@ -118,7 +134,27 @@ function HeroSection({ recipe, media }) {
       {gallery.length > 0 && (
         <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', marginBottom: '1.5rem', paddingBottom: '0.25rem' }}>
           {gallery.map(m => (
-            <img key={m.id} src={m.url} alt="" style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', flexShrink: 0 }} />
+            <div key={m.id} style={{ position: 'relative', flexShrink: 0 }}>
+              <img
+                src={m.url}
+                alt=""
+                style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block' }}
+              />
+              {canEdit && (
+                <>
+                  <button
+                    onClick={() => onSetPrimary(m.id)}
+                    title="Als Titelbild setzen"
+                    style={{ position: 'absolute', top: '4px', left: '4px', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
+                  >★ Titelbild</button>
+                  <button
+                    onClick={() => onDeleteMedia(m.id)}
+                    title="Löschen"
+                    style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+                  >×</button>
+                </>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -678,6 +714,22 @@ export default function RecipeDetail() {
   const activeStep = recipe.steps[activeStepIdx]
   const activeIds = new Set((activeStep ? stepIngredients[activeStep.id] : [])?.map(i => i.id) ?? [])
   const baseServings = recipe.servings || 4
+  const canEdit = isAdmin || (user && recipe.created_by === user.id)
+
+  const handleSetPrimaryMedia = async (mediaId) => {
+    try {
+      await client.patch(`/api/media/${mediaId}/set-primary`)
+      const { data } = await client.get(`/api/media/entity/recipe/${id}`)
+      setRecipeMedia(data)
+    } catch {}
+  }
+
+  const handleDeleteMedia = async (mediaId) => {
+    try {
+      await client.delete(`/api/media/${mediaId}`)
+      setRecipeMedia(prev => prev.filter(m => m.id !== mediaId))
+    } catch {}
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
@@ -748,7 +800,7 @@ export default function RecipeDetail() {
               </button>
             </div>
 
-            <HeroSection recipe={recipe} media={recipeMedia} />
+            <HeroSection recipe={recipe} media={recipeMedia} canEdit={canEdit} onSetPrimary={handleSetPrimaryMedia} onDeleteMedia={handleDeleteMedia} />
             <MetaBar recipe={recipe} />
 
             {/* Steps */}

@@ -72,6 +72,12 @@ async def upload_image(
     storage.save_file(webp_bytes, storage_path)
     storage.save_file(thumbnail_bytes, thumb_path)
 
+    is_first = db.query(Media).filter(
+        Media.entity_type == entity_type,
+        Media.entity_id == entity_id,
+        Media.deleted_at.is_(None),
+    ).count() == 0
+
     media = Media(
         entity_type=entity_type,
         entity_id=entity_id,
@@ -83,6 +89,7 @@ async def upload_image(
         width=width,
         height=height,
         processing_status="ready",
+        is_primary=is_first,
         storage_path=storage_path,
         thumbnail_path=thumb_path,
         uploaded_by=current_user.id,
@@ -124,6 +131,12 @@ async def upload_video(
     storage_path = f"{entity_type}/{entity_id}/videos/{media_uuid}.mp4"
     thumb_path = f"{entity_type}/{entity_id}/videos/thumbnails/{media_uuid}.webp"
 
+    is_first = db.query(Media).filter(
+        Media.entity_type == entity_type,
+        Media.entity_id == entity_id,
+        Media.deleted_at.is_(None),
+    ).count() == 0
+
     media = Media(
         entity_type=entity_type,
         entity_id=entity_id,
@@ -133,6 +146,7 @@ async def upload_video(
         mime_type="video/mp4",
         size_bytes=size,
         processing_status="processing",
+        is_primary=is_first,
         storage_path=storage_path,
         uploaded_by=current_user.id,
     )

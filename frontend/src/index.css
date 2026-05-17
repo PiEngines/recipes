@@ -97,6 +97,10 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
+.recipe-card:hover .card-image-bg {
+  transform: scale(1.05);
+}
+
 /* ── Skeleton ────────────────────────────────────────────────────────────── */
 
 @keyframes pulse {
