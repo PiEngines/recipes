@@ -142,11 +142,11 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
       const isVideo = file.type.startsWith('video/')
       if (isVideo && !allowVideo) continue
 
-      const endpoint = isVideo ? '/api/media/upload/video' : '/api/media/upload/image'
+      const endpoint = isVideo
+        ? `/api/media/upload/video?entity_type=${entityType}&entity_id=${entityId}`
+        : `/api/media/upload/image?entity_type=${entityType}&entity_id=${entityId}`
       const form = new FormData()
       form.append('file', file)
-      form.append('entity_type', entityType)
-      form.append('entity_id', String(entityId))
 
       try {
         const { data } = await client.post(endpoint, form, {
