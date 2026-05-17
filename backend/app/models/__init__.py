@@ -12,6 +12,7 @@ from app.models.recipe import (
     RecipeVersion,
     RecipeVideo,
 )
+from app.models.media import Media
 from app.models.user import User, UserRole
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "recipe_tags",
     "recipe_diet_labels",
     "recipe_allergens",
+    "Media",
 ]

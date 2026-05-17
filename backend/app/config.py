@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     backend_cors_origins: str = ""
     admin_email: str = "admin@example.com"
     admin_password: str = "changeme123"
+    media_root: str = "/app/media"
 
     @property
     def cors_origins(self) -> list[str]:

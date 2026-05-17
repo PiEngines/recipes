@@ -94,51 +94,35 @@ function useTimers() {
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ recipe }) {
+function HeroSection({ recipe, media }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
-  const primary = recipe.images?.find(i => i.is_primary) ?? recipe.images?.[0]
+  const primary = media.find(m => m.is_primary && m.media_type === 'image')
+  const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready')
+
   return (
-    <div style={{
-      borderRadius: 'var(--radius-card)',
-      overflow: 'hidden',
-      marginBottom: '1.5rem',
-      position: 'relative',
-      height: '280px',
-      background: primary ? undefined : gradient,
-    }}>
-      {primary && (
-        <img src={primary.file_path} alt={recipe.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      )}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)',
-        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-        padding: '1.5rem',
-      }}>
-        <h1 style={{
-          fontFamily: 'Playfair Display, serif',
-          fontSize: 'clamp(1.5rem, 4vw, 2.25rem)',
-          fontWeight: 600,
-          color: '#fff',
-          margin: '0 0 0.5rem',
-          textShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          lineHeight: 1.25,
-        }}>{recipe.title}</h1>
-        {recipe.description && (
-          <p style={{
-            color: 'rgba(255,255,255,0.85)',
-            margin: 0,
-            fontSize: '0.95rem',
-            lineHeight: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>{recipe.description}</p>
+    <>
+      {/* Hero */}
+      <div style={{ borderRadius: 'var(--radius-card)', overflow: 'hidden', marginBottom: '1.5rem', position: 'relative', height: '280px', background: primary ? undefined : gradient }}>
+        {primary && (
+          <img src={primary.url} alt={recipe.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         )}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '1.5rem' }}>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 600, color: '#fff', margin: '0 0 0.5rem', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.25 }}>{recipe.title}</h1>
+          {recipe.description && (
+            <p style={{ color: 'rgba(255,255,255,0.85)', margin: 0, fontSize: '0.95rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.description}</p>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Galerie */}
+      {gallery.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', marginBottom: '1.5rem', paddingBottom: '0.25rem' }}>
+          {gallery.map(m => (
+            <img key={m.id} src={m.url} alt="" style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', flexShrink: 0 }} />
+          ))}
+        </div>
+      )}
+    </>
   )
 }
 
@@ -359,7 +343,7 @@ function MobileDrawer({ recipe, servings, baseServings, onServingsChange, active
 
 // ── Step card ─────────────────────────────────────────────────────────────────
 
-const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer }, ref) {
+const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages }, ref) {
   return (
     <div
       ref={ref}
@@ -407,6 +391,15 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
             fontSize: '0.95rem',
             color: 'var(--text)',
           }}>{step.instruction}</p>
+
+          {/* Step images */}
+          {stepImages?.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+              {stepImages.map(m => (
+                <img key={m.id} src={m.url} alt="" style={{ height: '80px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover' }} />
+              ))}
+            </div>
+          )}
 
           {/* Timer button */}
           {step.timer_seconds && (
@@ -591,17 +584,41 @@ export default function RecipeDetail() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [timerExpanded, setTimerExpanded] = useState(false)
   const [widgetPos, setWidgetPos] = useState(null)
+  const [recipeMedia, setRecipeMedia] = useState([])
+  const [stepMedia, setStepMedia] = useState({}) // { stepId: [media] }
 
   const stepRefs = useRef({})
   const widgetRef = useRef(null)
   const dragState = useRef(null)
   const lastTimerClick = useRef(null)
 
-  // Fetch recipe
+  // Fetch recipe + media
   useEffect(() => {
     setLoading(true)
     client.get(`/api/recipes/${id}`)
-      .then(res => { setRecipe(res.data); setServings(res.data.servings || 4) })
+      .then(res => {
+        const r = res.data
+        setRecipe(r)
+        setServings(r.servings || 4)
+        // Load recipe media
+        client.get(`/api/media/entity/recipe/${id}`)
+          .then(m => setRecipeMedia(m.data))
+          .catch(() => {})
+        // Load step media in parallel
+        if (r.steps?.length) {
+          Promise.all(
+            r.steps.map(s =>
+              client.get(`/api/media/entity/step/${s.id}`)
+                .then(m => ({ stepId: s.id, media: m.data }))
+                .catch(() => ({ stepId: s.id, media: [] }))
+            )
+          ).then(results => {
+            const map = {}
+            results.forEach(({ stepId, media }) => { map[stepId] = media })
+            setStepMedia(map)
+          })
+        }
+      })
       .catch(() => navigate('/'))
       .finally(() => setLoading(false))
   }, [id])
@@ -731,7 +748,7 @@ export default function RecipeDetail() {
               </button>
             </div>
 
-            <HeroSection recipe={recipe} />
+            <HeroSection recipe={recipe} media={recipeMedia} />
             <MetaBar recipe={recipe} />
 
             {/* Steps */}
@@ -752,6 +769,7 @@ export default function RecipeDetail() {
                   onClick={() => setActiveStepIdx(idx)}
                   onAddTimer={() => addTimer(idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
+                  stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready')}
                 />
               ))
             )}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
+import MediaUpload from '../components/MediaUpload'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -32,7 +33,7 @@ function diffColor(d) {
 }
 
 const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '' })
-const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: false })
+const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, dbId: null, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: false })
 
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 
@@ -477,7 +478,7 @@ export default function RecipeForm() {
             ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '' }))
             : [mkIng()],
           steps: sps.length
-            ? sps.map(s => ({ _key: `step_${s.id}`, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false }))
+            ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false }))
             : [mkStep()],
         }
         applySnapshot(snap)
@@ -540,6 +541,16 @@ export default function RecipeForm() {
       if (targetStatus) { setStatus(targetStatus); stateRef.current.status = targetStatus }
       setSavedAt(new Date())
       setIsDirty(false)
+      // Map DB step IDs back into form state
+      const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
+      setSteps(prev => {
+        let saveIdx = 0
+        return prev.map(step => {
+          if (!step.instruction.trim()) return step
+          const dbStep = savedSteps[saveIdx++]
+          return dbStep ? { ...step, dbId: dbStep.id } : step
+        })
+      })
       return result.data
     } catch {
       setSaveError('Fehler beim Speichern. Bitte erneut versuchen.')
@@ -728,13 +739,40 @@ export default function RecipeForm() {
         {/* 4. Schritte */}
         <SectionCard title="Zubereitung" icon="👨‍🍳">
           {steps.map((step, idx) => (
-            <StepRow key={step._key} item={step} index={idx} total={steps.length}
-              onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
-              onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-              onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-            />
+            <div key={step._key}>
+              <StepRow item={step} index={idx} total={steps.length}
+                onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
+                onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+                onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+              />
+              {/* Schritt-Medien (nur nach erstem Speichern) */}
+              {step.dbId ? (
+                <div style={{ paddingLeft: '3.5rem', marginBottom: '0.75rem', marginTop: '-0.375rem' }}>
+                  <MediaUpload entityType="step" entityId={step.dbId} allowVideo={false} />
+                </div>
+              ) : step.instruction.trim() ? (
+                <p style={{ paddingLeft: '3.5rem', marginBottom: '0.75rem', marginTop: '-0.375rem', fontSize: '0.75rem', color: 'var(--subtext)', fontStyle: 'italic' }}>
+                  Erst speichern, um Fotos hochzuladen.
+                </p>
+              ) : null}
+            </div>
           ))}
           <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
+        </SectionCard>
+
+        {/* 5. Medien */}
+        <SectionCard title="Medien" icon="📸">
+          {recipeId ? (
+            <MediaUpload
+              entityType="recipe"
+              entityId={recipeId}
+              allowVideo={true}
+            />
+          ) : (
+            <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
+              Speichere das Rezept zuerst, um Medien hochzuladen.
+            </p>
+          )}
         </SectionCard>
       </main>
 
