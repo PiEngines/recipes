@@ -421,14 +421,14 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
 
           {/* Step images */}
           {stepImages?.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto', width: '100%', minHeight: '180px' }}>
               {stepImages.map(m => (
                 <img
                   key={m.id}
                   src={m.url}
                   alt=""
                   onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-                  style={{ height: '180px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+                  style={{ height: '180px', width: 'auto', minWidth: '120px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
                 />
               ))}
             </div>

@@ -21,12 +21,11 @@ function Spinner() {
 
 // ── Media thumbnail card ───────────────────────────────────────────────────────
 
-function MediaCard({ media, index, total, onSetPrimary, onDelete, onMoveLeft, onMoveRight }) {
+function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveLeft, onMoveRight }) {
   const isProcessing = media.processing_status === 'processing'
   const isError = media.processing_status === 'error'
   const isPrimary = media.is_primary
   const imageCount = total
-  const [confirming, setConfirming] = useState(false)
 
   return (
     <div style={{
@@ -67,32 +66,10 @@ function MediaCard({ media, index, total, onSetPrimary, onDelete, onMoveLeft, on
 
       {/* Delete button (top right) */}
       <button
-        onClick={() => setConfirming(true)}
+        onClick={() => onRequestDelete(media.id)}
         title="Löschen"
         style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
       >×</button>
-
-      {/* Inline delete confirmation overlay */}
-      {confirming && (
-        <div
-          onClick={e => { e.stopPropagation(); setConfirming(false) }}
-          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.78)', borderRadius: 'var(--radius-input)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', zIndex: 10 }}
-        >
-          <span style={{ color: '#fff', fontSize: '0.68rem', textAlign: 'center', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, userSelect: 'none' }}>
-            Bild wirklich löschen?
-          </span>
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(media.id) }}
-              style={{ padding: '0.25rem 0.5rem', background: '#C8602A', border: 'none', borderRadius: '4px', color: '#fff', fontSize: '0.65rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
-            >Löschen</button>
-            <button
-              onClick={e => { e.stopPropagation(); setConfirming(false) }}
-              style={{ padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '4px', color: '#fff', fontSize: '0.65rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-            >Abbrechen</button>
-          </div>
-        </div>
-      )}
 
       {/* Set primary button (images only, not already primary, only if >1 image) */}
       {media.media_type === 'image' && !isPrimary && !isProcessing && !isError && imageCount > 1 && (
@@ -133,8 +110,43 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [uploadToast, setUploadToast] = useState(null)
+  const [uploadToastFading, setUploadToastFading] = useState(false)
   const inputRef = useRef(null)
   const pollTimers = useRef({})
+  const toastAutoTimer = useRef(null)
+  const toastFadeTimer = useRef(null)
+
+  const dismissUploadToast = useCallback(() => {
+    clearTimeout(toastAutoTimer.current)
+    clearTimeout(toastFadeTimer.current)
+    setUploadToastFading(true)
+    toastFadeTimer.current = setTimeout(() => {
+      setUploadToast(null)
+      setUploadToastFading(false)
+    }, 300)
+  }, [])
+
+  const showUploadToast = useCallback((msg) => {
+    clearTimeout(toastAutoTimer.current)
+    clearTimeout(toastFadeTimer.current)
+    setUploadToast(msg)
+    setUploadToastFading(false)
+    toastAutoTimer.current = setTimeout(dismissUploadToast, 4000)
+  }, [dismissUploadToast])
+
+  useEffect(() => {
+    if (!uploadToast || uploadToastFading) return
+    const handler = () => dismissUploadToast()
+    window.addEventListener('click', handler)
+    return () => window.removeEventListener('click', handler)
+  }, [uploadToast, uploadToastFading, dismissUploadToast])
+
+  useEffect(() => () => {
+    clearTimeout(toastAutoTimer.current)
+    clearTimeout(toastFadeTimer.current)
+  }, [])
 
   // Sync existingMedia wenn es sich von leer auf gefüllt ändert (z.B. async geladen)
   const didSyncRef = useRef(false)
@@ -209,6 +221,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
         onMediaChange?.(updated)
         return updated
       })
+      showUploadToast('Bild gespeichert')
     }
     setUploading(false)
   }, [entityType, entityId, allowVideo, onMediaChange])
@@ -269,7 +282,11 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
 
   return (
     <div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes mu-toast-in  { from { opacity: 0; transform: translateX(-50%) translateY(-8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes mu-toast-out { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
+      `}</style>
 
       {/* Drop zone */}
       <div
@@ -325,11 +342,51 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
               index={i}
               total={mediaList.length}
               onSetPrimary={handleSetPrimary}
-              onDelete={handleDelete}
+              onRequestDelete={setConfirmDeleteId}
               onMoveLeft={idx => handleMove(idx, idx - 1)}
               onMoveRight={idx => handleMove(idx, idx + 1)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Delete confirmation toast */}
+      {confirmDeleteId !== null && (
+        <div style={{
+          position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(44,44,42,0.92)', color: '#fff',
+          borderRadius: '8px', padding: '12px 24px',
+          fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500,
+          zIndex: 1001, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '1rem',
+          animation: 'mu-toast-in 0.2s ease',
+        }}>
+          <span>Bild wirklich löschen?</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => { handleDelete(confirmDeleteId); setConfirmDeleteId(null) }}
+              style={{ padding: '0.3rem 0.875rem', background: '#C8602A', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+            >Löschen</button>
+            <button
+              onClick={() => setConfirmDeleteId(null)}
+              style={{ padding: '0.3rem 0.875rem', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+            >Abbrechen</button>
+          </div>
+        </div>
+      )}
+
+      {/* Upload success toast */}
+      {uploadToast && (
+        <div style={{
+          position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(44,44,42,0.92)', color: '#fff',
+          borderRadius: '8px', padding: '12px 24px',
+          fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500,
+          zIndex: 1000, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          whiteSpace: 'nowrap', pointerEvents: 'none',
+          animation: uploadToastFading ? 'mu-toast-out 0.3s ease forwards' : 'mu-toast-in 0.2s ease',
+        }}>
+          {uploadToast}
         </div>
       )}
     </div>
