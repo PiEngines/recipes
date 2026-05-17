@@ -66,6 +66,7 @@ class IngredientResponse(BaseModel):
 # ── Steps ─────────────────────────────────────────────────────────────────────
 
 class RecipeStepCreate(BaseModel):
+    id: int | None = None
     sort_order: int
     title: str | None = None
     instruction: str

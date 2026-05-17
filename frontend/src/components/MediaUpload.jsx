@@ -25,7 +25,8 @@ function MediaCard({ media, index, total, onSetPrimary, onDelete, onMoveLeft, on
   const isProcessing = media.processing_status === 'processing'
   const isError = media.processing_status === 'error'
   const isPrimary = media.is_primary
-  const imageCount = total // nur für "Als Titelbild" Bedingung übergeben
+  const imageCount = total
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <div style={{
@@ -66,10 +67,32 @@ function MediaCard({ media, index, total, onSetPrimary, onDelete, onMoveLeft, on
 
       {/* Delete button (top right) */}
       <button
-        onClick={() => onDelete(media.id)}
+        onClick={() => setConfirming(true)}
         title="Löschen"
         style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
       >×</button>
+
+      {/* Inline delete confirmation overlay */}
+      {confirming && (
+        <div
+          onClick={e => { e.stopPropagation(); setConfirming(false) }}
+          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.78)', borderRadius: 'var(--radius-input)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', zIndex: 10 }}
+        >
+          <span style={{ color: '#fff', fontSize: '0.68rem', textAlign: 'center', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, userSelect: 'none' }}>
+            Bild wirklich löschen?
+          </span>
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(media.id) }}
+              style={{ padding: '0.25rem 0.5rem', background: '#C8602A', border: 'none', borderRadius: '4px', color: '#fff', fontSize: '0.65rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+            >Löschen</button>
+            <button
+              onClick={e => { e.stopPropagation(); setConfirming(false) }}
+              style={{ padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '4px', color: '#fff', fontSize: '0.65rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+            >Abbrechen</button>
+          </div>
+        </div>
+      )}
 
       {/* Set primary button (images only, not already primary, only if >1 image) */}
       {media.media_type === 'image' && !isPrimary && !isProcessing && !isError && imageCount > 1 && (

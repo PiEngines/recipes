@@ -267,7 +267,23 @@ def update_recipe(
         recipe.ingredients = [Ingredient(**ing.model_dump()) for ing in body.ingredients]
 
     if body.steps is not None:
-        recipe.steps = [RecipeStep(**step.model_dump()) for step in body.steps]
+        existing = {s.id: s for s in recipe.steps}
+        new_steps = []
+        for step_data in body.steps:
+            d = step_data.model_dump()
+            step_id = d.pop('id', None)
+            if step_id and step_id in existing:
+                s = existing[step_id]
+                for k, v in d.items():
+                    setattr(s, k, v)
+                new_steps.append(s)
+            else:
+                new_steps.append(RecipeStep(**d, recipe_id=recipe.id))
+        new_ids = {s.id for s in new_steps if s.id}
+        for old_id, old_step in existing.items():
+            if old_id not in new_ids:
+                db.delete(old_step)
+        recipe.steps = new_steps
 
     db.commit()
     return _load_full(recipe_id, db)

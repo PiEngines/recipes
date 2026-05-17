@@ -627,6 +627,7 @@ export default function RecipeForm() {
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({
+          id: st.dbId || null,
           sort_order: idx + 1,
           title: st.title || null,
           instruction: st.instruction,
