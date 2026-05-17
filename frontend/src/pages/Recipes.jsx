@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
@@ -245,6 +245,8 @@ function PageBtn({ onClick, disabled, children }) {
 export default function Recipes() {
   const { user, logout } = useAuth()
   const { theme, toggle } = useTheme()
+  const navigate = useNavigate()
+  const isAdmin = user?.role === 'admin'
 
   const [recipes, setRecipes]       = useState([])
   const [loading, setLoading]       = useState(true)
@@ -320,6 +322,29 @@ export default function Recipes() {
 
         {/* Right controls */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/recipes/new')}
+              style={{
+                padding: '0.45rem 1rem',
+                background: 'var(--accent)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                transition: 'var(--transition)',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
+            >
+              + Neues Rezept
+            </button>
+          )}
           <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
             {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
           </IconBtn>

@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
 
@@ -566,6 +567,8 @@ function LoadingScreen() {
 export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const { timers, add: addTimer, remove: removeTimer, addTime } = useTimers()
 
   const [recipe, setRecipe] = useState(null)
@@ -651,7 +654,7 @@ export default function RecipeDetail() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       {/* Back nav */}
-      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <button onClick={() => navigate('/')} style={{
           background: 'none', border: 'none', cursor: 'pointer',
           color: 'var(--accent)', fontFamily: 'Inter, sans-serif',
@@ -660,6 +663,30 @@ export default function RecipeDetail() {
         }}>
           ← Alle Rezepte
         </button>
+        {isAdmin && recipe && (
+          <button
+            onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
+            style={{
+              padding: '0.4rem 1rem',
+              border: '1.5px solid var(--accent)',
+              borderRadius: 'var(--radius-pill)',
+              background: 'none',
+              color: 'var(--accent)',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              transition: 'var(--transition)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+          >
+            ✏ Bearbeiten
+          </button>
+        )}
       </div>
 
       {/* Content */}

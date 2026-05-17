@@ -4,9 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
+from app.categories.router import router as categories_router
 from app.config import settings
 from app.recipes.router import router as recipes_router
 from app.seed import seed_admin
+from app.tags.router import router as tags_router
 
 
 @asynccontextmanager
@@ -27,6 +29,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(recipes_router)
+app.include_router(categories_router)
+app.include_router(tags_router)
 
 
 @app.get("/api/health")
