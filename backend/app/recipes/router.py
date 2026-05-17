@@ -1,11 +1,12 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
 from app.auth.dependencies import get_current_user, get_optional_user, require_admin
 from app.database import get_db
-from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User
+from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
 from app.recipes.schemas import (
     PaginatedRecipes,
@@ -79,11 +80,23 @@ def list_recipes(
 
     if current_user is None:
         q = q.filter(Recipe.status == RecipeStatus.published)
-    elif status_filter is not None:
-        try:
-            q = q.filter(Recipe.status == RecipeStatus(status_filter))
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+    elif current_user.role == UserRole.admin:
+        if status_filter is not None:
+            try:
+                q = q.filter(Recipe.status == RecipeStatus(status_filter))
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+    else:
+        # Non-admin: published recipes + own drafts
+        own_or_published = (Recipe.status == RecipeStatus.published) | (Recipe.created_by == current_user.id)
+        if status_filter is not None:
+            try:
+                sf = RecipeStatus(status_filter)
+                q = q.filter(own_or_published & (Recipe.status == sf))
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+        else:
+            q = q.filter(own_or_published)
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
@@ -124,8 +137,11 @@ def get_recipe(
     recipe = _load_full(recipe_id, db)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    if recipe.status != RecipeStatus.published and current_user is None:
-        raise HTTPException(status_code=404, detail="Recipe not found")
+    if recipe.status != RecipeStatus.published:
+        if current_user is None:
+            raise HTTPException(status_code=404, detail="Recipe not found")
+        if current_user.role != UserRole.admin and recipe.created_by != current_user.id:
+            raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
 
 
@@ -286,3 +302,22 @@ def toggle_status(
     )
     db.commit()
     return _load_full(recipe_id, db)
+
+
+# ── Ingredient suggestions ────────────────────────────────────────────────────
+
+@router.get("/ingredients/suggestions", response_model=list[str])
+def ingredient_suggestions(
+    search: str = Query(..., min_length=1),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    rows = (
+        db.query(Ingredient.name)
+        .filter(Ingredient.name.ilike(f"%{search}%"))
+        .group_by(Ingredient.name)
+        .order_by(func.count(Ingredient.name).desc(), Ingredient.name)
+        .limit(10)
+        .all()
+    )
+    return [r.name for r in rows]

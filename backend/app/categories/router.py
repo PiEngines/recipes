@@ -64,14 +64,14 @@ def create_category(
     if existing:
         raise HTTPException(
             status_code=409,
-            detail={"message": "Kategorie existiert bereits", "suggestion": existing.name},
+            detail={"message": "Kategorie existiert bereits", "suggestion": existing.name, "suggestion_id": existing.id},
         )
 
     for cat in db.query(Category).all():
         if _levenshtein(name, cat.name) <= 2:
             raise HTTPException(
                 status_code=409,
-                detail={"message": "Ähnliche Kategorie gefunden", "suggestion": cat.name},
+                detail={"message": "Ähnliche Kategorie gefunden", "suggestion": cat.name, "suggestion_id": cat.id},
             )
 
     obj = Category(name=name, slug=_slugify(name))

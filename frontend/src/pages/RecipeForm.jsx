@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useBlocker, useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Stück', 'Prise', 'Bund', 'Scheibe', 'Dose', 'Packung', 'nach Geschmack']
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -28,138 +32,65 @@ function diffColor(d) {
 }
 
 const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '' })
-const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, instruction: '', timer_minutes: '' })
+const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: false })
+
+// ── Confirm dialog ────────────────────────────────────────────────────────────
+
+function ConfirmDialog({ message, onConfirm, onCancel, confirmLabel = 'Fortfahren', confirmDanger = false }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        <p style={{ margin: '0 0 1.5rem', color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+          <button onClick={onCancel} style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
+            Abbrechen
+          </button>
+          <button onClick={onConfirm} style={{ padding: '0.5rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: confirmDanger ? '#C84444' : 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
 function FieldLabel({ children, required }) {
   return (
-    <label style={{
-      display: 'block',
-      fontSize: '0.775rem',
-      fontWeight: 600,
-      color: 'var(--subtext)',
-      marginBottom: '0.35rem',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-    }}>
+    <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
       {children}
       {required && <span style={{ color: 'var(--accent)', marginLeft: 2 }}>*</span>}
     </label>
   )
 }
 
-function StyledInput({ value, onChange, type = 'text', placeholder, min, max, autoFocus, style: extra }) {
+function StyledInput({ value, onChange, type = 'text', placeholder, min, max, autoFocus }) {
   const [focused, setFocused] = useState(false)
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      placeholder={placeholder}
-      min={min}
-      max={max}
-      autoFocus={autoFocus}
-      style={{
-        width: '100%',
-        padding: '0.625rem 0.875rem',
-        border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-        borderRadius: 'var(--radius-input)',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-        fontSize: '0.95rem',
-        fontFamily: 'Inter, sans-serif',
-        outline: 'none',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-        boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
-        boxSizing: 'border-box',
-        ...extra,
-      }}
-    />
+    <input type={type} value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} min={min} max={max} autoFocus={autoFocus} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none', boxSizing: 'border-box' }} />
   )
 }
 
 function StyledTextarea({ value, onChange, placeholder, rows = 4 }) {
   const [focused, setFocused] = useState(false)
   return (
-    <textarea
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      placeholder={placeholder}
-      rows={rows}
-      style={{
-        width: '100%',
-        padding: '0.625rem 0.875rem',
-        border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-        borderRadius: 'var(--radius-input)',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-        fontSize: '0.95rem',
-        fontFamily: 'Inter, sans-serif',
-        outline: 'none',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-        boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
-        boxSizing: 'border-box',
-        resize: 'vertical',
-      }}
-    />
+    <textarea value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} rows={rows} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none', boxSizing: 'border-box', resize: 'vertical' }} />
   )
 }
 
-function SmallInput({ value, onChange, placeholder }) {
+function SmallInput({ value, onChange, placeholder, onFocus, onBlur }) {
   const [focused, setFocused] = useState(false)
   return (
-    <input
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      placeholder={placeholder}
-      style={{
-        width: '100%',
-        padding: '0.45rem 0.625rem',
-        border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-        borderRadius: 'var(--radius-input)',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-        fontSize: '0.875rem',
-        fontFamily: 'Inter, sans-serif',
-        outline: 'none',
-        boxSizing: 'border-box',
-        transition: 'border-color 0.15s ease',
-        minWidth: 0,
-      }}
-    />
+    <input value={value} onChange={e => onChange(e.target.value)} onFocus={() => { setFocused(true); onFocus?.() }} onBlur={() => { setFocused(false); onBlur?.() }} placeholder={placeholder} style={{ width: '100%', padding: '0.45rem 0.625rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s ease', minWidth: 0 }} />
   )
 }
 
 function SectionCard({ title, icon, children }) {
   return (
-    <div style={{
-      background: 'var(--card)',
-      borderRadius: 'var(--radius-card)',
-      boxShadow: 'var(--shadow)',
-      padding: '1.5rem',
-      marginBottom: '1.5rem',
-    }}>
-      <h2 style={{
-        fontFamily: 'Playfair Display, serif',
-        fontSize: '1.2rem',
-        fontWeight: 600,
-        color: 'var(--text)',
-        margin: '0 0 1.25rem',
-        paddingBottom: '0.625rem',
-        borderBottom: '1.5px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-      }}>
-        {icon && <span>{icon}</span>}
-        {title}
+    <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+      <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text)', margin: '0 0 1.25rem', paddingBottom: '0.625rem', borderBottom: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {icon && <span>{icon}</span>}{title}
       </h2>
       {children}
     </div>
@@ -168,90 +99,22 @@ function SectionCard({ title, icon, children }) {
 
 function Pill({ label, onRemove }) {
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '0.375rem',
-      padding: '0.3rem 0.625rem 0.3rem 0.875rem',
-      background: 'rgba(200,96,42,0.1)',
-      color: 'var(--accent)',
-      borderRadius: 'var(--radius-pill)',
-      fontSize: '0.85rem',
-      fontWeight: 500,
-    }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.3rem 0.625rem 0.3rem 0.875rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.85rem', fontWeight: 500 }}>
       {label}
-      <button
-        onClick={onRemove}
-        style={{
-          background: 'rgba(200,96,42,0.15)',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--accent)',
-          width: '18px',
-          height: '18px',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '0.8rem',
-          padding: 0,
-          fontWeight: 700,
-          flexShrink: 0,
-        }}
-      >×</button>
+      <button onClick={onRemove} style={{ background: 'rgba(200,96,42,0.15)', border: 'none', cursor: 'pointer', color: 'var(--accent)', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', padding: 0, fontWeight: 700, flexShrink: 0 }}>×</button>
     </span>
   )
 }
 
 function MoveBtn({ onClick, disabled, title, children }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      style={{
-        width: '26px',
-        height: '26px',
-        border: '1.5px solid var(--border-input)',
-        borderRadius: '6px',
-        background: disabled ? 'transparent' : 'var(--card)',
-        color: disabled ? 'var(--border-input)' : 'var(--subtext)',
-        cursor: disabled ? 'default' : 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '0.75rem',
-        padding: 0,
-        transition: 'var(--transition)',
-        flexShrink: 0,
-      }}
-    >{children}</button>
+    <button onClick={onClick} disabled={disabled} title={title} style={{ width: '26px', height: '26px', border: '1.5px solid var(--border-input)', borderRadius: '6px', background: disabled ? 'transparent' : 'var(--card)', color: disabled ? 'var(--border-input)' : 'var(--subtext)', cursor: disabled ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', padding: 0, transition: 'var(--transition)', flexShrink: 0 }}>{children}</button>
   )
 }
 
 function AddRowBtn({ onClick, children }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.5rem 1rem',
-        border: '1.5px dashed var(--border-input)',
-        borderRadius: 'var(--radius-input)',
-        background: 'none',
-        cursor: 'pointer',
-        color: 'var(--accent)',
-        fontSize: '0.9rem',
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 500,
-        marginTop: '0.375rem',
-        transition: 'border-color 0.15s ease',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)' }}
-    >
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, marginTop: '0.375rem', transition: 'border-color 0.15s ease' }} onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)' }}>
       {children}
     </button>
   )
@@ -262,7 +125,7 @@ function AddRowBtn({ onClick, children }) {
 function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder }) {
   const [input, setInput] = useState('')
   const [suggestions, setSuggestions] = useState([])
-  const [duplicate, setDuplicate] = useState(null)
+  const [duplicate, setDuplicate] = useState(null) // { id, name } | null
   const [open, setOpen] = useState(false)
   const [focused, setFocused] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -284,10 +147,7 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
         const { data } = await client.get(apiPath, { params: { search: input } })
         const filtered = data.filter(item => !selectedRef.current.some(s => s.id === item.id))
         setSuggestions(filtered)
-        const near = filtered.find(s => {
-          const d = levenshtein(input, s.name)
-          return d > 0 && d <= 2
-        })
+        const near = filtered.find(s => { const d = levenshtein(input, s.name); return d > 0 && d <= 2 })
         setDuplicate(near || null)
         setOpen(true)
       } catch {}
@@ -300,8 +160,7 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
   const showDropdown = open && (suggestions.length > 0 || canCreate)
 
   const pick = item => {
-    onAdd(item)
-    setInput(''); setSuggestions([]); setDuplicate(null); setOpen(false)
+    onAdd(item); setInput(''); setSuggestions([]); setDuplicate(null); setOpen(false)
   }
 
   const handleCreate = async () => {
@@ -313,7 +172,11 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
     } catch (err) {
       if (err.response?.status === 409) {
         const detail = err.response.data?.detail
-        if (detail?.suggestion) setDuplicate({ id: null, name: detail.suggestion })
+        if (detail?.suggestion) {
+          // Close dropdown, show prominent warning
+          setOpen(false)
+          setDuplicate({ id: detail.suggestion_id ?? null, name: detail.suggestion })
+        }
       }
     } finally {
       setCreating(false)
@@ -326,93 +189,20 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
 
       {selected.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.625rem' }}>
-          {selected.map(item => (
-            <Pill key={item.id} label={item.name} onRemove={() => onRemove(item.id)} />
-          ))}
+          {selected.map(item => <Pill key={item.id} label={item.name} onRemove={() => onRemove(item.id)} />)}
         </div>
       )}
 
       <div ref={wrapRef} style={{ position: 'relative' }}>
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onFocus={() => { setFocused(true); if (suggestions.length > 0) setOpen(true) }}
-          onBlur={() => setFocused(false)}
-          placeholder={placeholder}
-          style={{
-            width: '100%',
-            padding: '0.625rem 0.875rem',
-            border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-            borderRadius: showDropdown ? 'var(--radius-input) var(--radius-input) 0 0' : 'var(--radius-input)',
-            background: 'var(--bg)',
-            color: 'var(--text)',
-            fontSize: '0.9rem',
-            fontFamily: 'Inter, sans-serif',
-            outline: 'none',
-            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-            boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
-            boxSizing: 'border-box',
-          }}
-        />
+        <input type="text" value={input} onChange={e => setInput(e.target.value)} onFocus={() => { setFocused(true); if (suggestions.length > 0) setOpen(true) }} onBlur={() => setFocused(false)} placeholder={placeholder} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: showDropdown ? 'var(--radius-input) var(--radius-input) 0 0' : 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none', boxSizing: 'border-box' }} />
 
         {showDropdown && (
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: 'var(--card)',
-            border: '1.5px solid var(--accent)',
-            borderTop: 'none',
-            borderRadius: '0 0 var(--radius-input) var(--radius-input)',
-            boxShadow: 'var(--shadow-hover)',
-            zIndex: 100,
-            maxHeight: '180px',
-            overflowY: 'auto',
-          }}>
+          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 100, maxHeight: '180px', overflowY: 'auto' }}>
             {suggestions.map((s, i) => (
-              <button
-                key={s.id}
-                onMouseDown={e => { e.preventDefault(); pick(s) }}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.875rem',
-                  background: 'none',
-                  border: 'none',
-                  borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  color: 'var(--text)',
-                  fontSize: '0.9rem',
-                  fontFamily: 'Inter, sans-serif',
-                  display: 'block',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-              >{s.name}</button>
+              <button key={s.id} onMouseDown={e => { e.preventDefault(); pick(s) }} style={{ width: '100%', padding: '0.5rem 0.875rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>{s.name}</button>
             ))}
             {canCreate && (
-              <button
-                onMouseDown={e => { e.preventDefault(); handleCreate() }}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.875rem',
-                  background: 'none',
-                  border: 'none',
-                  borderTop: suggestions.length > 0 ? '1px solid var(--border)' : 'none',
-                  textAlign: 'left',
-                  cursor: creating ? 'wait' : 'pointer',
-                  color: 'var(--accent)',
-                  fontSize: '0.875rem',
-                  fontFamily: 'Inter, sans-serif',
-                  fontStyle: 'italic',
-                  fontWeight: 500,
-                  display: 'block',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.08)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-              >
+              <button onMouseDown={e => { e.preventDefault(); handleCreate() }} style={{ width: '100%', padding: '0.5rem 0.875rem', background: 'none', border: 'none', borderTop: suggestions.length > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: creating ? 'wait' : 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontStyle: 'italic', fontWeight: 500, display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.08)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>
                 {creating ? '⏳ Erstelle …' : `+ Neu: „${input.trim()}"`}
               </button>
             )}
@@ -420,36 +210,88 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
         )}
       </div>
 
+      {/* 409 / Levenshtein duplicate warning */}
       {duplicate && (
-        <div style={{
-          marginTop: '0.5rem',
-          padding: '0.5rem 0.75rem',
-          background: 'rgba(200,160,32,0.1)',
-          border: '1px solid rgba(200,160,32,0.35)',
-          borderRadius: 'var(--radius-input)',
-          fontSize: '0.85rem',
-          color: '#A68000',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-        }}>
-          <span>⚠ Meintest du:</span>
+        <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(200,160,32,0.1)', border: '1px solid rgba(200,160,32,0.35)', borderRadius: 'var(--radius-input)', fontSize: '0.85rem', color: '#A68000', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span>⚠ Bereits vorhanden. Meintest du:</span>
           {duplicate.id != null ? (
-            <button
-              onClick={() => {
-                if (!selectedRef.current.some(s => s.id === duplicate.id)) pick(duplicate)
-                else { setInput(''); setDuplicate(null) }
-              }}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: '#A68000', fontWeight: 700, textDecoration: 'underline',
-                fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', padding: 0,
-              }}
-            >{duplicate.name}?</button>
+            <button onClick={() => { if (!selectedRef.current.some(s => s.id === duplicate.id)) pick(duplicate); else { setInput(''); setDuplicate(null) } }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A68000', fontWeight: 700, textDecoration: 'underline', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', padding: 0 }}>
+              {duplicate.name}?
+            </button>
           ) : (
             <strong>{duplicate.name}?</strong>
           )}
+          <button onClick={() => setDuplicate(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#A68000', fontSize: '0.85rem', padding: 0 }}>✕</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── IngredientNameInput ───────────────────────────────────────────────────────
+
+function IngredientNameInput({ value, onChange }) {
+  const [suggestions, setSuggestions] = useState([])
+  const [open, setOpen] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const wrapRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const h = e => { if (!wrapRef.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [open])
+
+  useEffect(() => {
+    if (!value.trim() || value.length < 2) { setSuggestions([]); setOpen(false); return }
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await client.get('/api/recipes/ingredients/suggestions', { params: { search: value } })
+        setSuggestions(data.filter(s => s.toLowerCase() !== value.toLowerCase()))
+        setOpen(data.length > 0)
+      } catch {}
+    }, 250)
+    return () => clearTimeout(t)
+  }, [value])
+
+  return (
+    <div ref={wrapRef} style={{ flex: '2 1 100px', minWidth: 0, position: 'relative' }}>
+      <input value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="Name *" style={{ width: '100%', padding: '0.45rem 0.625rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: open && suggestions.length > 0 ? 'var(--radius-input) var(--radius-input) 0 0' : 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s ease', minWidth: 0 }} />
+      {open && suggestions.length > 0 && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 50, maxHeight: '130px', overflowY: 'auto' }}>
+          {suggestions.map((s, i) => (
+            <button key={s} onMouseDown={e => { e.preventDefault(); onChange(s); setOpen(false) }} style={{ width: '100%', padding: '0.35rem 0.625rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>{s}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── UnitCombobox ──────────────────────────────────────────────────────────────
+
+function UnitCombobox({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const wrapRef = useRef(null)
+  const filtered = UNITS.filter(u => !value || u.toLowerCase().includes(value.toLowerCase()))
+
+  useEffect(() => {
+    if (!open) return
+    const h = e => { if (!wrapRef.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [open])
+
+  return (
+    <div ref={wrapRef} style={{ flex: '1 1 60px', minWidth: 0, position: 'relative' }}>
+      <input value={value} onChange={e => { onChange(e.target.value); setOpen(true) }} onFocus={() => { setFocused(true); setOpen(true) }} onBlur={() => setFocused(false)} placeholder="Einheit" style={{ width: '100%', padding: '0.45rem 0.625rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: open && filtered.length > 0 ? 'var(--radius-input) var(--radius-input) 0 0' : 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s ease', minWidth: 0 }} />
+      {open && filtered.length > 0 && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 50, maxHeight: '160px', overflowY: 'auto' }}>
+          {filtered.map((u, i) => (
+            <button key={u} onMouseDown={e => { e.preventDefault(); onChange(u); setOpen(false) }} style={{ width: '100%', padding: '0.35rem 0.625rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>{u}</button>
+          ))}
         </div>
       )}
     </div>
@@ -460,47 +302,23 @@ function TaxonomyField({ label, apiPath, selected, onAdd, onRemove, placeholder 
 
 function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
   return (
-    <div style={{
-      padding: '0.625rem',
-      border: '1.5px solid var(--border-input)',
-      borderRadius: 'var(--radius-input)',
-      background: 'var(--bg)',
-      marginBottom: '0.5rem',
-    }}>
+    <div style={{ padding: '0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', marginBottom: '0.5rem' }}>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' }}>
         <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
           <MoveBtn onClick={() => onMove(-1)} disabled={index === 0} title="Nach oben">↑</MoveBtn>
           <MoveBtn onClick={() => onMove(1)} disabled={index === total - 1} title="Nach unten">↓</MoveBtn>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <SmallInput
-            value={item.component_label}
-            onChange={v => onChange('component_label', v)}
-            placeholder="Komponente (optional)"
-          />
+          <SmallInput value={item.component_label} onChange={v => onChange('component_label', v)} placeholder="Komponente (optional)" />
         </div>
-        <button
-          onClick={onRemove}
-          title="Entfernen"
-          style={{
-            width: '28px', height: '28px', borderRadius: '50%',
-            background: 'none', border: '1.5px solid var(--border-input)',
-            cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 0, flexShrink: 0,
-          }}
-        >×</button>
+        <button onClick={onRemove} title="Entfernen" style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'none', border: '1.5px solid var(--border-input)', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>×</button>
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', paddingLeft: '3.5rem' }}>
-        <div style={{ flex: '2 1 100px', minWidth: 0 }}>
-          <SmallInput value={item.name} onChange={v => onChange('name', v)} placeholder="Name *" />
-        </div>
+        <IngredientNameInput value={item.name} onChange={v => onChange('name', v)} />
         <div style={{ flex: '1 1 60px', minWidth: 0 }}>
           <SmallInput value={item.amount} onChange={v => onChange('amount', v)} placeholder="Menge" />
         </div>
-        <div style={{ flex: '1 1 60px', minWidth: 0 }}>
-          <SmallInput value={item.unit} onChange={v => onChange('unit', v)} placeholder="Einheit" />
-        </div>
+        <UnitCombobox value={item.unit} onChange={v => onChange('unit', v)} />
       </div>
     </div>
   )
@@ -509,106 +327,48 @@ function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
 // ── StepRow ───────────────────────────────────────────────────────────────────
 
 function StepRow({ item, index, total, onChange, onMove, onRemove }) {
-  const [focused, setFocused] = useState(false)
+  const [instrFocused, setInstrFocused] = useState(false)
+  const effectiveTimerLabel = item.timer_label_use_title ? item.title : item.timer_label
+
   return (
-    <div style={{
-      padding: '0.875rem',
-      border: '1.5px solid var(--border-input)',
-      borderRadius: 'var(--radius-input)',
-      background: 'var(--bg)',
-      marginBottom: '0.75rem',
-    }}>
+    <div style={{ padding: '0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', marginBottom: '0.75rem' }}>
+      {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
-        <span style={{
-          flexShrink: 0,
-          width: '28px', height: '28px',
-          borderRadius: '50%',
-          background: 'var(--accent)',
-          color: '#fff',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.8rem', fontWeight: 700,
-        }}>{index + 1}</span>
+        <span style={{ flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>{index + 1}</span>
         <MoveBtn onClick={() => onMove(-1)} disabled={index === 0} title="Nach oben">↑</MoveBtn>
         <MoveBtn onClick={() => onMove(1)} disabled={index === total - 1} title="Nach unten">↓</MoveBtn>
         <div style={{ flex: 1 }} />
-        <button
-          onClick={onRemove}
-          style={{
-            padding: '0.25rem 0.625rem',
-            border: '1.5px solid var(--border-input)',
-            borderRadius: 'var(--radius-input)',
-            background: 'none',
-            cursor: 'pointer',
-            color: 'var(--subtext)',
-            fontSize: '0.8rem',
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >Entfernen</button>
+        <button onClick={onRemove} style={{ padding: '0.25rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif' }}>Entfernen</button>
       </div>
 
-      <textarea
-        value={item.instruction}
-        onChange={e => onChange('instruction', e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="Schritt beschreiben …"
-        rows={3}
-        style={{
-          width: '100%',
-          padding: '0.5rem 0.75rem',
-          border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-          borderRadius: 'var(--radius-input)',
-          background: 'var(--card)',
-          color: 'var(--text)',
-          fontSize: '0.9rem',
-          fontFamily: 'Inter, sans-serif',
-          outline: 'none',
-          resize: 'vertical',
-          boxSizing: 'border-box',
-          transition: 'border-color 0.15s ease',
-          marginBottom: '0.625rem',
-        }}
-      />
+      {/* Step title (optional heading) */}
+      <div style={{ marginBottom: '0.5rem' }}>
+        <SmallInput value={item.title} onChange={v => onChange('title', v)} placeholder="Überschrift (optional)" />
+      </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      {/* Instruction */}
+      <textarea value={item.instruction} onChange={e => onChange('instruction', e.target.value)} onFocus={() => setInstrFocused(true)} onBlur={() => setInstrFocused(false)} placeholder="Schritt beschreiben …" rows={3} style={{ width: '100%', padding: '0.5rem 0.75rem', border: `1.5px solid ${instrFocused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--card)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box', transition: 'border-color 0.15s ease', marginBottom: '0.625rem' }} />
+
+      {/* Footer: timer + label + photo placeholder */}
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>⏱ Timer (min):</span>
-          <input
-            type="number"
-            min="1"
-            value={item.timer_minutes}
-            onChange={e => onChange('timer_minutes', e.target.value)}
-            placeholder="—"
-            style={{
-              width: '70px',
-              padding: '0.3rem 0.5rem',
-              border: '1.5px solid var(--border-input)',
-              borderRadius: 'var(--radius-input)',
-              background: 'var(--bg)',
-              color: 'var(--text)',
-              fontSize: '0.875rem',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
+          <input type="number" min="1" value={item.timer_minutes} onChange={e => onChange('timer_minutes', e.target.value)} placeholder="—" style={{ width: '70px', padding: '0.3rem 0.5rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }} />
         </div>
-        <button
-          title="Foto/Video Upload – Kommt bald"
-          style={{
-            padding: '0.3rem 0.75rem',
-            border: '1.5px dashed var(--border-input)',
-            borderRadius: 'var(--radius-input)',
-            background: 'none',
-            cursor: 'default',
-            color: 'var(--subtext)',
-            fontSize: '0.8rem',
-            fontFamily: 'Inter, sans-serif',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-          }}
-        >
+
+        {item.timer_minutes && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: '1 1 180px', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input type="text" value={effectiveTimerLabel} onChange={e => { if (!item.timer_label_use_title) onChange('timer_label', e.target.value) }} disabled={item.timer_label_use_title} placeholder="Timer-Bezeichnung (optional)" style={{ flex: 1, minWidth: 0, padding: '0.3rem 0.5rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: item.timer_label_use_title ? 'var(--border-input)' : 'var(--bg)', color: 'var(--text)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', opacity: item.timer_label_use_title ? 0.6 : 1 }} />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: 'var(--subtext)', cursor: 'pointer', userSelect: 'none' }}>
+              <input type="checkbox" checked={item.timer_label_use_title} onChange={e => onChange('timer_label_use_title', e.target.checked)} style={{ accentColor: 'var(--accent)', width: '13px', height: '13px' }} />
+              Wie Schritt-Überschrift
+            </label>
+          </div>
+        )}
+
+        <button title="Foto/Video Upload – Kommt bald" style={{ padding: '0.3rem 0.75rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'default', color: 'var(--subtext)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: '0.375rem', flexShrink: 0 }}>
           📷 Foto/Video <span style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>(Kommt bald)</span>
         </button>
       </div>
@@ -625,6 +385,10 @@ export default function RecipeForm() {
 
   const [loadError, setLoadError] = useState(null)
   const [loadingRecipe, setLoadingRecipe] = useState(isEdit)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+
+  // Snapshot for discard
+  const [savedSnapshot, setSavedSnapshot] = useState(null)
 
   // Form fields
   const [title, setTitle] = useState('')
@@ -644,7 +408,7 @@ export default function RecipeForm() {
   const [recipeId, setRecipeId] = useState(id ? parseInt(id) : null)
   const [savedAt, setSavedAt] = useState(null)
   const [isDirty, setIsDirty] = useState(false)
-  const [savingAs, setSavingAs] = useState(null) // 'draft' | 'published' | null
+  const [savingAs, setSavingAs] = useState(null)
   const [saveError, setSaveError] = useState(null)
 
   const savingRef = useRef(false)
@@ -662,36 +426,63 @@ export default function RecipeForm() {
 
   const markDirty = useCallback(() => setIsDirty(true), [])
 
+  // React Router blocker for unsaved changes on SPA navigation
+  const blocker = useBlocker(
+    useCallback(({ currentLocation, nextLocation }) => {
+      return isDirty && !savingRef.current && currentLocation.pathname !== nextLocation.pathname
+    }, [isDirty])
+  )
+
+  // Capture snapshot from loaded recipe data
+  const applySnapshot = useCallback((snap) => {
+    setTitle(snap.title)
+    setDescription(snap.description)
+    setPrepTime(snap.prepTime)
+    setCookTime(snap.cookTime)
+    setServings(snap.servings)
+    setDifficulty(snap.difficulty)
+    setSource(snap.source)
+    setStatus(snap.status)
+    setSelectedCats(snap.selectedCats)
+    setSelectedTags(snap.selectedTags)
+    setIngredients(snap.ingredients)
+    setSteps(snap.steps)
+    setIsDirty(false)
+  }, [])
+
   // Load existing recipe in edit mode
   useEffect(() => {
     if (!isEdit) return
     client.get(`/api/recipes/${id}`)
       .then(({ data: r }) => {
-        setTitle(r.title || '')
-        setDescription(r.description || '')
-        setPrepTime(r.prep_time != null ? String(r.prep_time) : '')
-        setCookTime(r.cook_time != null ? String(r.cook_time) : '')
-        setServings(r.servings != null ? String(r.servings) : '')
-        setDifficulty(r.difficulty ?? 5)
-        setSource(r.source || '')
-        setStatus(r.status)
-        setSelectedCats(r.categories)
-        setSelectedTags(r.tags)
         const ings = [...r.ingredients].sort((a, b) => a.sort_order - b.sort_order)
-        setIngredients(ings.length
-          ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '' }))
-          : [mkIng()])
         const sps = [...r.steps].sort((a, b) => a.sort_order - b.sort_order)
-        setSteps(sps.length
-          ? sps.map(s => ({ _key: `step_${s.id}`, instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '' }))
-          : [mkStep()])
-        setIsDirty(false)
+        const snap = {
+          title: r.title || '',
+          description: r.description || '',
+          prepTime: r.prep_time != null ? String(r.prep_time) : '',
+          cookTime: r.cook_time != null ? String(r.cook_time) : '',
+          servings: r.servings != null ? String(r.servings) : '',
+          difficulty: r.difficulty ?? 5,
+          source: r.source || '',
+          status: r.status,
+          selectedCats: r.categories,
+          selectedTags: r.tags,
+          ingredients: ings.length
+            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '' }))
+            : [mkIng()],
+          steps: sps.length
+            ? sps.map(s => ({ _key: `step_${s.id}`, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false }))
+            : [mkStep()],
+        }
+        applySnapshot(snap)
+        setSavedSnapshot(snap)
       })
       .catch(() => setLoadError('Rezept konnte nicht geladen werden.'))
       .finally(() => setLoadingRecipe(false))
-  }, [id, isEdit])
+  }, [id, isEdit, applySnapshot])
 
-  // Build API payload from stateRef (safe to call from any callback)
+  // Build API payload from stateRef
   const buildPayload = useCallback((targetStatus) => {
     const s = stateRef.current
     return {
@@ -707,19 +498,15 @@ export default function RecipeForm() {
       tag_ids: s.selectedTags.map(t => t.id),
       ingredients: s.ingredients
         .filter(i => i.name.trim())
-        .map((i, idx) => ({
-          component_label: i.component_label || null,
-          name: i.name,
-          amount: i.amount || null,
-          unit: i.unit || null,
-          sort_order: idx,
-        })),
+        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name, amount: i.amount || null, unit: i.unit || null, sort_order: idx })),
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({
           sort_order: idx + 1,
+          title: st.title || null,
           instruction: st.instruction,
           timer_seconds: st.timer_minutes ? parseInt(st.timer_minutes) * 60 : null,
+          timer_label: st.timer_label_use_title ? null : (st.timer_label || null),
         })),
     }
   }, [])
@@ -745,10 +532,7 @@ export default function RecipeForm() {
         stateRef.current.recipeId = newId
         navigate(`/recipes/${newId}/edit`, { replace: true })
       }
-      if (targetStatus) {
-        setStatus(targetStatus)
-        stateRef.current.status = targetStatus
-      }
+      if (targetStatus) { setStatus(targetStatus); stateRef.current.status = targetStatus }
       setSavedAt(new Date())
       setIsDirty(false)
       return result.data
@@ -766,20 +550,19 @@ export default function RecipeForm() {
     const s = stateRef.current
     if (!s.title.trim()) return false
     const chars =
-      (s.description || '').length +
-      (s.source || '').length +
+      (s.description || '').length + (s.source || '').length +
       s.ingredients.reduce((n, i) => n + i.name.length + (i.amount || '').length, 0) +
       s.steps.reduce((n, st) => n + st.instruction.length, 0)
     return chars >= 80
   }, [])
 
-  // 30-second autosave interval
+  // 30-second autosave
   useEffect(() => {
     const iv = setInterval(() => { if (canAutosave()) doSave() }, 30_000)
     return () => clearInterval(iv)
   }, [canAutosave, doSave])
 
-  // Autosave on browser close / navigation away
+  // beforeunload autosave
   useEffect(() => {
     const handler = () => {
       if (!canAutosave()) return
@@ -790,67 +573,36 @@ export default function RecipeForm() {
       const base = import.meta.env.VITE_API_BASE_URL || ''
       const url = rid ? `${base}/api/recipes/${rid}` : `${base}/api/recipes`
       const token = localStorage.getItem('access_token')
-      fetch(url, {
-        method: rid ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(payload),
-        keepalive: true,
-      }).catch(() => {})
+      fetch(url, { method: rid ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), keepalive: true }).catch(() => {})
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [buildPayload, canAutosave])
 
-  // Button handlers (autosave runs as part of the action)
-  const handleDraft = async () => {
-    if (savingRef.current || !title.trim()) return
-    await doSave('draft')
-  }
-
-  const handlePublish = async () => {
-    if (savingRef.current || !title.trim()) return
-    await doSave('published')
+  const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await doSave('draft') }
+  const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await doSave('published') }
+  const handleDiscard = () => setShowDiscardConfirm(true)
+  const handleDiscardConfirm = () => {
+    setShowDiscardConfirm(false)
+    if (savedSnapshot) applySnapshot(savedSnapshot)
+    else navigate(recipeId ? `/recipes/${recipeId}` : '/')
   }
 
   // Save status display
-  const saveStatusText = savingAs
-    ? 'Speichert …'
-    : saveError
-    ? saveError
-    : isDirty
-    ? 'Nicht gespeichert'
-    : savedAt
-    ? `Gespeichert um ${fmtTime(savedAt)}`
-    : ''
+  const saveStatusText = savingAs ? 'Speichert …' : saveError ? saveError : isDirty ? 'Nicht gespeichert' : savedAt ? `Gespeichert um ${fmtTime(savedAt)}` : ''
+  const saveStatusColor = saveError ? '#C84444' : isDirty ? '#C8A020' : savingAs ? 'var(--subtext)' : 'var(--secondary)'
 
-  const saveStatusColor = saveError
-    ? '#C84444'
-    : isDirty
-    ? '#C8A020'
-    : savingAs
-    ? 'var(--subtext)'
-    : 'var(--secondary)'
-
-  // ── Loading / error states ────────────────────────────────────────────────
+  // ── Loading / error ────────────────────────────────────────────────────────
 
   if (loadingRecipe) {
-    return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--subtext)' }}>
-        Lade Rezept …
-      </div>
-    )
+    return <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--subtext)' }}>Lade Rezept …</div>
   }
 
   if (loadError) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', color: 'var(--subtext)' }}>
         <p>{loadError}</p>
-        <button onClick={() => navigate('/')} style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
-          ← Zurück zur Übersicht
-        </button>
+        <button onClick={() => navigate('/')} style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>← Zurück zur Übersicht</button>
       </div>
     )
   }
@@ -860,47 +612,38 @@ export default function RecipeForm() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '96px' }}>
 
+      {/* Blocker dialog for unsaved SPA navigation */}
+      {blocker.state === 'blocked' && (
+        <ConfirmDialog
+          message="Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren."
+          onConfirm={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+          confirmLabel="Seite verlassen"
+          confirmDanger
+        />
+      )}
+
+      {/* Discard confirm dialog */}
+      {showDiscardConfirm && (
+        <ConfirmDialog
+          message="Alle ungespeicherten Änderungen gehen verloren. Fortfahren?"
+          onConfirm={handleDiscardConfirm}
+          onCancel={() => setShowDiscardConfirm(false)}
+          confirmLabel="Verwerfen"
+          confirmDanger
+        />
+      )}
+
       {/* Sticky top bar */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        background: 'var(--card)',
-        boxShadow: 'var(--shadow)',
-        padding: '0.75rem 1.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-      }}>
-        <button
-          onClick={() => navigate(recipeId ? `/recipes/${recipeId}` : '/')}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--accent)', fontFamily: 'Inter, sans-serif',
-            fontWeight: 500, fontSize: '0.9rem', padding: 0,
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            flexShrink: 0, whiteSpace: 'nowrap',
-          }}
-        >
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button onClick={() => navigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
           ← {isEdit ? 'Zur Detailseite' : 'Übersicht'}
         </button>
-        <h1 style={{
-          fontFamily: 'Playfair Display, serif',
-          fontSize: '1.15rem',
-          fontWeight: 600,
-          margin: 0,
-          color: 'var(--text)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          flex: 1,
-        }}>
+        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
           {isEdit ? (title || 'Rezept bearbeiten') : 'Neues Rezept'}
         </h1>
         {saveStatusText && (
-          <span style={{ fontSize: '0.78rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>
-            {saveStatusText}
-          </span>
+          <span style={{ fontSize: '0.78rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
         )}
       </header>
 
@@ -911,100 +654,34 @@ export default function RecipeForm() {
         <SectionCard title="Grunddaten" icon="📋">
           <div style={{ marginBottom: '1.25rem' }}>
             <FieldLabel required>Titel</FieldLabel>
-            <StyledInput
-              value={title}
-              onChange={v => { setTitle(v); markDirty() }}
-              placeholder="Rezepttitel …"
-              autoFocus={!isEdit}
-            />
+            <StyledInput value={title} onChange={v => { setTitle(v); markDirty() }} placeholder="Rezepttitel …" autoFocus={!isEdit} />
           </div>
-
           <div style={{ marginBottom: '1.25rem' }}>
             <FieldLabel>Beschreibung</FieldLabel>
-            <StyledTextarea
-              value={description}
-              onChange={v => { setDescription(v); markDirty() }}
-              placeholder="Kurze Beschreibung des Rezepts …"
-              rows={3}
-            />
+            <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung des Rezepts …" rows={3} />
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ marginBottom: '1.25rem' }}>
-            <div>
-              <FieldLabel>Vorbereitung (min)</FieldLabel>
-              <StyledInput type="number" min="0" value={prepTime} onChange={v => { setPrepTime(v); markDirty() }} placeholder="z.B. 15" />
-            </div>
-            <div>
-              <FieldLabel>Kochzeit (min)</FieldLabel>
-              <StyledInput type="number" min="0" value={cookTime} onChange={v => { setCookTime(v); markDirty() }} placeholder="z.B. 30" />
-            </div>
-            <div>
-              <FieldLabel>Portionen</FieldLabel>
-              <StyledInput type="number" min="1" value={servings} onChange={v => { setServings(v); markDirty() }} placeholder="z.B. 4" />
-            </div>
+            <div><FieldLabel>Vorbereitung (min)</FieldLabel><StyledInput type="number" min="0" value={prepTime} onChange={v => { setPrepTime(v); markDirty() }} placeholder="z.B. 15" /></div>
+            <div><FieldLabel>Kochzeit (min)</FieldLabel><StyledInput type="number" min="0" value={cookTime} onChange={v => { setCookTime(v); markDirty() }} placeholder="z.B. 30" /></div>
+            <div><FieldLabel>Portionen</FieldLabel><StyledInput type="number" min="1" value={servings} onChange={v => { setServings(v); markDirty() }} placeholder="z.B. 4" /></div>
           </div>
-
           <div style={{ marginBottom: '1.25rem' }}>
             <FieldLabel>Schwierigkeit</FieldLabel>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.375rem' }}>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={difficulty}
-                onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }}
-                style={{ flex: 1, accentColor: diffColor(difficulty) }}
-              />
-              <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>
-                {difficulty}/10
-              </span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
-                {difficulty <= 3 ? 'Einfach' : difficulty <= 6 ? 'Mittel' : 'Schwer'}
-              </span>
+              <input type="range" min="1" max="10" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
+              <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/10</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>{difficulty <= 3 ? 'Einfach' : difficulty <= 6 ? 'Mittel' : 'Schwer'}</span>
             </div>
             <div style={{ display: 'flex', gap: '3px' }}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <span key={i} style={{
-                  width: '8px', height: '8px', borderRadius: '50%',
-                  background: i < difficulty ? diffColor(difficulty) : 'var(--border-input)',
-                  display: 'inline-block',
-                }} />
-              ))}
+              {Array.from({ length: 10 }).map((_, i) => <span key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < difficulty ? diffColor(difficulty) : 'var(--border-input)', display: 'inline-block' }} />)}
             </div>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <FieldLabel>Quelle / Inspiration</FieldLabel>
-              <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
-            </div>
+            <div><FieldLabel>Quelle / Inspiration</FieldLabel><StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" /></div>
             <div>
               <FieldLabel>Status</FieldLabel>
-              <button
-                onClick={() => { setStatus(s => s === 'draft' ? 'published' : 'draft'); markDirty() }}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem 0.875rem',
-                  border: `1.5px solid ${status === 'published' ? 'var(--secondary)' : 'var(--border-input)'}`,
-                  borderRadius: 'var(--radius-input)',
-                  background: status === 'published' ? 'rgba(107,124,78,0.08)' : 'transparent',
-                  color: status === 'published' ? 'var(--secondary)' : 'var(--subtext)',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 500,
-                  textAlign: 'left',
-                  transition: 'var(--transition)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <span style={{
-                  width: '10px', height: '10px', borderRadius: '50%',
-                  background: status === 'published' ? 'var(--secondary)' : 'var(--border-input)',
-                  display: 'inline-block', flexShrink: 0,
-                }} />
+              <button onClick={() => { setStatus(s => s === 'draft' ? 'published' : 'draft'); markDirty() }} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${status === 'published' ? 'var(--secondary)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: status === 'published' ? 'rgba(107,124,78,0.08)' : 'transparent', color: status === 'published' ? 'var(--secondary)' : 'var(--subtext)', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textAlign: 'left', transition: 'var(--transition)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: status === 'published' ? 'var(--secondary)' : 'var(--border-input)', display: 'inline-block', flexShrink: 0 }} />
                 {status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
               </button>
             </div>
@@ -1014,161 +691,55 @@ export default function RecipeForm() {
         {/* 2. Kategorien & Tags */}
         <SectionCard title="Kategorien & Tags" icon="🏷️">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <TaxonomyField
-              label="Kategorien"
-              apiPath="/api/categories"
-              selected={selectedCats}
-              onAdd={cat => { setSelectedCats(prev => prev.some(c => c.id === cat.id) ? prev : [...prev, cat]); markDirty() }}
-              onRemove={catId => { setSelectedCats(prev => prev.filter(c => c.id !== catId)); markDirty() }}
-              placeholder="Kategorie suchen oder erstellen …"
-            />
-            <TaxonomyField
-              label="Tags"
-              apiPath="/api/tags"
-              selected={selectedTags}
-              onAdd={tag => { setSelectedTags(prev => prev.some(t => t.id === tag.id) ? prev : [...prev, tag]); markDirty() }}
-              onRemove={tagId => { setSelectedTags(prev => prev.filter(t => t.id !== tagId)); markDirty() }}
-              placeholder="Tag suchen oder erstellen …"
-            />
+            <TaxonomyField label="Kategorien" apiPath="/api/categories" selected={selectedCats} onAdd={cat => { setSelectedCats(prev => prev.some(c => c.id === cat.id) ? prev : [...prev, cat]); markDirty() }} onRemove={catId => { setSelectedCats(prev => prev.filter(c => c.id !== catId)); markDirty() }} placeholder="Kategorie suchen oder erstellen …" />
+            <TaxonomyField label="Tags" apiPath="/api/tags" selected={selectedTags} onAdd={tag => { setSelectedTags(prev => prev.some(t => t.id === tag.id) ? prev : [...prev, tag]); markDirty() }} onRemove={tagId => { setSelectedTags(prev => prev.filter(t => t.id !== tagId)); markDirty() }} placeholder="Tag suchen oder erstellen …" />
           </div>
         </SectionCard>
 
         {/* 3. Zutaten */}
         <SectionCard title="Zutaten" icon="🥕">
           {ingredients.map((ing, idx) => (
-            <IngredientRow
-              key={ing._key}
-              item={ing}
-              index={idx}
-              total={ingredients.length}
-              onChange={(field, val) => {
-                setIngredients(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it))
-                markDirty()
-              }}
-              onMove={dir => {
-                setIngredients(prev => {
-                  const arr = [...prev]
-                  const t = idx + dir
-                  if (t < 0 || t >= arr.length) return arr
-                  ;[arr[idx], arr[t]] = [arr[t], arr[idx]]
-                  return arr
-                })
-                markDirty()
-              }}
-              onRemove={() => {
-                setIngredients(prev => prev.filter((_, i) => i !== idx))
-                markDirty()
-              }}
+            <IngredientRow key={ing._key} item={ing} index={idx} total={ingredients.length}
+              onChange={(field, val) => { setIngredients(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it)); markDirty() }}
+              onMove={dir => { setIngredients(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+              onRemove={() => { setIngredients(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
             />
           ))}
-          <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>
-            + Zutat hinzufügen
-          </AddRowBtn>
+          <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>+ Zutat hinzufügen</AddRowBtn>
         </SectionCard>
 
         {/* 4. Schritte */}
         <SectionCard title="Zubereitung" icon="👨‍🍳">
           {steps.map((step, idx) => (
-            <StepRow
-              key={step._key}
-              item={step}
-              index={idx}
-              total={steps.length}
-              onChange={(field, val) => {
-                setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s))
-                markDirty()
-              }}
-              onMove={dir => {
-                setSteps(prev => {
-                  const arr = [...prev]
-                  const t = idx + dir
-                  if (t < 0 || t >= arr.length) return arr
-                  ;[arr[idx], arr[t]] = [arr[t], arr[idx]]
-                  return arr
-                })
-                markDirty()
-              }}
-              onRemove={() => {
-                setSteps(prev => prev.filter((_, i) => i !== idx))
-                markDirty()
-              }}
+            <StepRow key={step._key} item={step} index={idx} total={steps.length}
+              onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
+              onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+              onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
             />
           ))}
-          <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>
-            + Schritt hinzufügen
-          </AddRowBtn>
+          <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
         </SectionCard>
       </main>
 
-      {/* Sticky footer with save buttons */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'var(--card)',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
-        padding: '0.875rem 1.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        zIndex: 200,
-        flexWrap: 'wrap',
-      }}>
-        <span style={{
-          fontSize: '0.825rem',
-          color: saveStatusColor,
-          flex: '1 1 auto',
-          minWidth: '100px',
-        }}>
-          {saveStatusText || (!title.trim() && (
-            <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Titel eingeben zum Speichern</span>
-          ))}
+      {/* Sticky footer */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', padding: '0.875rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', zIndex: 200, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.825rem', color: saveStatusColor, flex: '1 1 auto', minWidth: '100px' }}>
+          {saveStatusText || (!title.trim() && <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Titel eingeben zum Speichern</span>)}
         </span>
 
-        <button
-          onClick={handleDraft}
-          disabled={!!savingAs || !title.trim()}
-          style={{
-            padding: '0.625rem 1.25rem',
-            border: '1.5px solid var(--border-input)',
-            borderRadius: 'var(--radius-input)',
-            background: 'var(--bg)',
-            color: savingAs || !title.trim() ? 'var(--subtext)' : 'var(--text)',
-            cursor: savingAs || !title.trim() ? 'default' : 'pointer',
-            fontSize: '0.9rem',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 500,
-            transition: 'var(--transition)',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            opacity: !title.trim() ? 0.5 : 1,
-          }}
-        >
+        {isEdit && (
+          <button onClick={handleDiscard} style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            Verwerfen
+          </button>
+        )}
+
+        <button onClick={handleDraft} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: savingAs || !title.trim() ? 'var(--subtext)' : 'var(--text)', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}>
           {savingAs === 'draft' ? 'Speichert …' : 'Als Entwurf speichern'}
         </button>
 
-        <button
-          onClick={handlePublish}
-          disabled={!!savingAs || !title.trim()}
-          style={{
-            padding: '0.625rem 1.5rem',
-            border: 'none',
-            borderRadius: 'var(--radius-input)',
-            background: savingAs || !title.trim() ? 'var(--border-input)' : 'var(--accent)',
-            color: '#fff',
-            cursor: savingAs || !title.trim() ? 'default' : 'pointer',
-            fontSize: '0.9rem',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 600,
-            transition: 'var(--transition)',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            opacity: !title.trim() ? 0.5 : 1,
-          }}
+        <button onClick={handlePublish} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: savingAs || !title.trim() ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}
           onMouseEnter={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent-hover)' }}
-          onMouseLeave={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent)' }}
-        >
+          onMouseLeave={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent)' }}>
           {savingAs === 'published' ? 'Veröffentlicht …' : 'Veröffentlichen'}
         </button>
       </div>

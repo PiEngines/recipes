@@ -56,14 +56,14 @@ def create_tag(
     if existing:
         raise HTTPException(
             status_code=409,
-            detail={"message": "Tag existiert bereits", "suggestion": existing.name},
+            detail={"message": "Tag existiert bereits", "suggestion": existing.name, "suggestion_id": existing.id},
         )
 
     for tag in db.query(Tag).all():
         if _levenshtein(name, tag.name) <= 2:
             raise HTTPException(
                 status_code=409,
-                detail={"message": "Ähnlichen Tag gefunden", "suggestion": tag.name},
+                detail={"message": "Ähnlichen Tag gefunden", "suggestion": tag.name, "suggestion_id": tag.id},
             )
 
     obj = Tag(name=name)

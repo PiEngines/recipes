@@ -390,8 +390,19 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
           {index + 1}
         </div>
         <div style={{ flex: 1 }}>
+          {/* Item 2: optionale Schritt-Überschrift */}
+          {step.title && (
+            <h3 style={{
+              fontFamily: 'Playfair Display, serif',
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: 'var(--accent)',
+              margin: '0 0 0.375rem',
+              lineHeight: 1.3,
+            }}>{step.title}</h3>
+          )}
           <p style={{
-            margin: '0.2rem 0 0',
+            margin: step.title ? '0' : '0.2rem 0 0',
             lineHeight: 1.65,
             fontSize: '0.95rem',
             color: 'var(--text)',
@@ -739,7 +750,7 @@ export default function RecipeDetail() {
                   index={idx}
                   isActive={idx === activeStepIdx}
                   onClick={() => setActiveStepIdx(idx)}
-                  onAddTimer={() => addTimer(idx, `Schritt ${idx + 1}`, step.timer_seconds)}
+                  onAddTimer={() => addTimer(idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
                 />
               ))

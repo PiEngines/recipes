@@ -70,8 +70,10 @@ class RecipeStep(Base):
     id = Column(Integer, primary_key=True)
     recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
     sort_order = Column(Integer, nullable=False)
+    title = Column(String(255), nullable=True)
     instruction = Column(Text, nullable=False)
     timer_seconds = Column(Integer)
+    timer_label = Column(String(255), nullable=True)
     image_path = Column(String(500))
     video_path = Column(String(500))
     ingredient_ids = Column(JSONB, nullable=True)  # manual override; None = use auto-detection

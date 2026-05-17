@@ -87,6 +87,9 @@ body {
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /* Item 6: gleiche Höhe in Grid-Reihen */
+  display: flex;
+  flex-direction: column;
 }
 
 .recipe-card:hover {

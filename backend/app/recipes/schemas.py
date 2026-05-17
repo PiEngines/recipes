@@ -67,8 +67,10 @@ class IngredientResponse(BaseModel):
 
 class RecipeStepCreate(BaseModel):
     sort_order: int
+    title: str | None = None
     instruction: str
     timer_seconds: int | None = None
+    timer_label: str | None = None
     image_path: str | None = None
     video_path: str | None = None
     ingredient_ids: list[int] | None = None
@@ -77,8 +79,10 @@ class RecipeStepCreate(BaseModel):
 class RecipeStepResponse(BaseModel):
     id: int
     sort_order: int
+    title: str | None
     instruction: str
     timer_seconds: int | None
+    timer_label: str | None
     image_path: str | None
     video_path: str | None
     ingredient_ids: list[int] | None
