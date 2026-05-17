@@ -1,0 +1,141 @@
+import enum
+
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.database import Base
+from app.models.associations import (
+    recipe_allergens,
+    recipe_categories,
+    recipe_diet_labels,
+    recipe_tags,
+)
+
+
+class RecipeStatus(str, enum.Enum):
+    draft = "draft"
+    published = "published"
+
+
+class Recipe(Base):
+    __tablename__ = "recipes"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(500), nullable=False)
+    description = Column(Text)
+    prep_time = Column(Integer)
+    cook_time = Column(Integer)
+    servings = Column(Integer)
+    difficulty = Column(Integer)  # 1–10
+    status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.draft)
+    source = Column(String(500))
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
+    steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
+    ingredients = relationship("Ingredient", back_populates="recipe", order_by="Ingredient.sort_order", cascade="all, delete-orphan")
+    images = relationship("RecipeImage", back_populates="recipe", cascade="all, delete-orphan")
+    videos = relationship("RecipeVideo", back_populates="recipe", cascade="all, delete-orphan")
+    versions = relationship("RecipeVersion", back_populates="recipe", cascade="all, delete-orphan")
+    cooked_logs = relationship("CookedLog", back_populates="recipe", cascade="all, delete-orphan")
+    collection_entries = relationship("CollectionRecipe", back_populates="recipe", cascade="all, delete-orphan")
+
+    categories = relationship("Category", secondary=recipe_categories, back_populates="recipes")
+    tags = relationship("Tag", secondary=recipe_tags, back_populates="recipes")
+    diet_labels = relationship("DietLabel", secondary=recipe_diet_labels, back_populates="recipes")
+    allergens = relationship("Allergen", secondary=recipe_allergens, back_populates="recipes")
+
+    # This recipe acts as parent (contains other recipes as components)
+    child_components = relationship(
+        "RecipeComponent",
+        foreign_keys="RecipeComponent.parent_recipe_id",
+        back_populates="parent_recipe",
+        cascade="all, delete-orphan",
+    )
+    # This recipe appears as a component inside other recipes
+    parent_components = relationship(
+        "RecipeComponent",
+        foreign_keys="RecipeComponent.child_recipe_id",
+        back_populates="child_recipe",
+    )
+
+
+class RecipeStep(Base):
+    __tablename__ = "recipe_steps"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+    sort_order = Column(Integer, nullable=False)
+    instruction = Column(Text, nullable=False)
+    timer_seconds = Column(Integer)
+    image_path = Column(String(500))
+    video_path = Column(String(500))
+
+    recipe = relationship("Recipe", back_populates="steps")
+
+
+class Ingredient(Base):
+    __tablename__ = "ingredients"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+    component_label = Column(String(255))  # e.g. "For the sauce"
+    name = Column(String(255), nullable=False)
+    amount = Column(String(100))           # string to support "½", "a pinch", etc.
+    unit = Column(String(100))
+    sort_order = Column(Integer, nullable=False, default=0)
+
+    recipe = relationship("Recipe", back_populates="ingredients")
+
+
+class RecipeImage(Base):
+    __tablename__ = "recipe_images"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+    file_path = Column(String(500), nullable=False)
+    is_primary = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    recipe = relationship("Recipe", back_populates="images")
+
+
+class RecipeVideo(Base):
+    __tablename__ = "recipe_videos"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+    file_path = Column(String(500), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    recipe = relationship("Recipe", back_populates="videos")
+
+
+class RecipeComponent(Base):
+    """Self-referential M2M: a recipe that embeds other recipes as sub-recipes."""
+
+    __tablename__ = "recipe_components"
+
+    parent_recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True)
+    child_recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True)
+    sort_order = Column(Integer, nullable=False, default=0)
+    flatten_into_parent = Column(Boolean, nullable=False, default=False)
+
+    parent_recipe = relationship("Recipe", foreign_keys=[parent_recipe_id], back_populates="child_components")
+    child_recipe = relationship("Recipe", foreign_keys=[child_recipe_id], back_populates="parent_components")
+
+
+class RecipeVersion(Base):
+    __tablename__ = "recipe_versions"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_number = Column(Integer, nullable=False)
+    snapshot = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    recipe = relationship("Recipe", back_populates="versions")

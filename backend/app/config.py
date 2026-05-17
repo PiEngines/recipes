@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     secret_key: str
     environment: str = "production"
     backend_cors_origins: str = ""
+    admin_email: str = "admin@example.com"
+    admin_password: str = "changeme123"
 
     @property
     def cors_origins(self) -> list[str]:
