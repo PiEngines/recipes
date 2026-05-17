@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import MediaLightbox from '../components/MediaLightbox'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ function useTimers() {
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia }) {
+function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia, onImageClick }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const primary = media.find(m => m.is_primary && m.media_type === 'image')
   const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready')
@@ -102,17 +103,21 @@ function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia }) {
   return (
     <>
       {/* Hero */}
-      <div style={{
-        borderRadius: 'var(--radius-card)',
-        overflow: 'hidden',
-        marginBottom: '1.5rem',
-        position: 'relative',
-        height: '280px',
-        background: primary ? undefined : gradient,
-        backgroundImage: primary ? `url(${primary.url})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
+      <div
+        onClick={primary ? () => onImageClick?.(primary.url) : undefined}
+        style={{
+          borderRadius: 'var(--radius-card)',
+          overflow: 'hidden',
+          marginBottom: '1.5rem',
+          position: 'relative',
+          height: '280px',
+          background: primary ? undefined : gradient,
+          backgroundImage: primary ? `url(${primary.url})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          cursor: primary ? 'zoom-in' : 'default',
+        }}
+      >
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
@@ -138,7 +143,8 @@ function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia }) {
               <img
                 src={m.url}
                 alt=""
-                style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block' }}
+                onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
+                style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
               />
               {canEdit && (
                 <>
@@ -379,7 +385,7 @@ function MobileDrawer({ recipe, servings, baseServings, onServingsChange, active
 
 // ── Step card ─────────────────────────────────────────────────────────────────
 
-const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages }, ref) {
+const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages, onImageClick }, ref) {
   return (
     <div
       ref={ref}
@@ -430,9 +436,15 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
 
           {/* Step images */}
           {stepImages?.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto' }}>
               {stepImages.map(m => (
-                <img key={m.id} src={m.url} alt="" style={{ height: '80px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover' }} />
+                <img
+                  key={m.id}
+                  src={m.url}
+                  alt=""
+                  onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
+                  style={{ maxHeight: '200px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+                />
               ))}
             </div>
           )}
@@ -471,7 +483,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
 const TimerWidget = forwardRef(function TimerWidget({ timers, expanded, onToggleExpand, onTimerClick, onAddTime, onRemove, pos, onDragStart }, ref) {
   const style = pos
     ? { position: 'fixed', left: pos.left, top: pos.top, bottom: 'auto', right: 'auto' }
-    : { position: 'fixed', bottom: '1.5rem', right: '1.5rem' }
+    : { position: 'fixed', bottom: '1.5rem', left: '1.5rem' }
 
   return (
     <div
@@ -622,6 +634,8 @@ export default function RecipeDetail() {
   const [widgetPos, setWidgetPos] = useState(null)
   const [recipeMedia, setRecipeMedia] = useState([])
   const [stepMedia, setStepMedia] = useState({}) // { stepId: [media] }
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const stepRefs = useRef({})
   const widgetRef = useRef(null)
@@ -716,6 +730,27 @@ export default function RecipeDetail() {
   const baseServings = recipe.servings || 4
   const canEdit = isAdmin || (user && recipe.created_by === user.id)
 
+  // Flache Lightbox-Bilderliste: Rezept-Bilder + Schritt-Bilder mit Beschriftung
+  const lightboxImages = [
+    ...recipeMedia
+      .filter(m => m.media_type === 'image' && m.processing_status === 'ready')
+      .map(m => ({ url: m.url, caption: '' })),
+    ...recipe.steps.flatMap((step, idx) =>
+      (stepMedia[step.id] || [])
+        .filter(m => m.media_type === 'image' && m.processing_status === 'ready')
+        .map(m => ({
+          url: m.url,
+          caption: step.title ? `Schritt ${idx + 1}: ${step.title}` : `Schritt ${idx + 1}`,
+        }))
+    ),
+  ]
+
+  const openLightbox = (url) => {
+    const i = lightboxImages.findIndex(img => img.url === url)
+    setLightboxIndex(i >= 0 ? i : 0)
+    setLightboxOpen(true)
+  }
+
   const handleSetPrimaryMedia = async (mediaId) => {
     try {
       await client.patch(`/api/media/${mediaId}/set-primary`)
@@ -800,7 +835,7 @@ export default function RecipeDetail() {
               </button>
             </div>
 
-            <HeroSection recipe={recipe} media={recipeMedia} canEdit={canEdit} onSetPrimary={handleSetPrimaryMedia} onDeleteMedia={handleDeleteMedia} />
+            <HeroSection recipe={recipe} media={recipeMedia} canEdit={canEdit} onSetPrimary={handleSetPrimaryMedia} onDeleteMedia={handleDeleteMedia} onImageClick={openLightbox} />
             <MetaBar recipe={recipe} />
 
             {/* Steps */}
@@ -822,6 +857,7 @@ export default function RecipeDetail() {
                   onAddTimer={() => addTimer(idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
                   stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready')}
+                  onImageClick={openLightbox}
                 />
               ))
             )}
@@ -853,6 +889,15 @@ export default function RecipeDetail() {
           onRemove={removeTimer}
           pos={widgetPos}
           onDragStart={handleDragStart}
+        />
+      )}
+
+      {/* Lightbox */}
+      {lightboxOpen && lightboxImages.length > 0 && (
+        <MediaLightbox
+          images={lightboxImages}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
         />
       )}
     </div>

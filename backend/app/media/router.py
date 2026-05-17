@@ -166,6 +166,31 @@ async def upload_video(
     return media
 
 
+# ── Update (sort_order) ───────────────────────────────────────────────────────
+
+from pydantic import BaseModel as _Base
+
+class _MediaUpdate(_Base):
+    sort_order: int | None = None
+
+@router.patch("/{media_id}", response_model=MediaOut)
+def update_media(
+    media_id: int,
+    body: _MediaUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    media = db.query(Media).filter(Media.id == media_id, Media.deleted_at.is_(None)).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="Medium nicht gefunden")
+    _check_owner(media.entity_type, media.entity_id, current_user, db)
+    if body.sort_order is not None:
+        media.sort_order = body.sort_order
+    db.commit()
+    db.refresh(media)
+    return media
+
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 @router.get("/status/{media_id}", response_model=MediaStatusOut)

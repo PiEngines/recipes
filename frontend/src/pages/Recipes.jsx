@@ -71,57 +71,40 @@ function RecipeCard({ recipe, primaryImage }) {
     </span>
   )
 
-  // ── Magazine Card (Foto vorhanden) ──────────────────────────────────────────
-  if (primaryImage) {
-    return (
-      <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
-        <div className="recipe-card" style={{ position: 'relative', overflow: 'hidden', height: '100%', minHeight: '280px' }}>
-          {/* Hintergrundbild */}
-          <div
-            className="card-image-bg"
-            style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              transition: 'transform 0.3s ease',
-            }}
-          />
-          {/* Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)' }} />
-          {/* Entwurf-Badge */}
-          {draftBadge}
-          {/* Titel + Pills unten */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem' }}>
-            {titleSpan}
-            {(recipe.prep_time || recipe.cook_time) && (
-              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                {recipe.prep_time && (
-                  <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.18)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>
-                    ⏱ {recipe.prep_time} min
-                  </span>
-                )}
-                {recipe.cook_time && (
-                  <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.18)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>
-                    🍳 {recipe.cook_time} min
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </Link>
-    )
-  }
+  // Oberer Bild-Bereich: gleiche Höhe (180px) wie Gradient-Kacheln.
+  // Unterer weißer Bereich: identische Struktur wie Gradient-Kacheln.
+  const topArea = primaryImage ? (
+    // ── Split Card: Foto-Hintergrund ──────────────────────────────────────────
+    <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+      <div
+        className="card-image-bg"
+        style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          transition: 'transform 0.3s ease',
+        }}
+      />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 58%)' }} />
+      {draftBadge}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.875rem 1rem' }}>
+        {titleSpan}
+      </div>
+    </div>
+  ) : (
+    // ── Gradient Card: unverändert ────────────────────────────────────────────
+    <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
+      {draftBadge}
+      {titleSpan}
+    </div>
+  )
 
-  // ── Gradient Card (kein Foto) — unverändert ──────────────────────────────────
   return (
     <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
-          {draftBadge}
-          {titleSpan}
-        </div>
+        {topArea}
+        {/* Weißer Infobereich – gleich für beide Varianten */}
         <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
           <div style={{ flex: 1 }}>
             {recipe.description ? (

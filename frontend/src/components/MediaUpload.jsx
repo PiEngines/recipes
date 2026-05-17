@@ -21,10 +21,11 @@ function Spinner() {
 
 // ── Media thumbnail card ───────────────────────────────────────────────────────
 
-function MediaCard({ media, onSetPrimary, onDelete }) {
+function MediaCard({ media, index, total, onSetPrimary, onDelete, onMoveLeft, onMoveRight }) {
   const isProcessing = media.processing_status === 'processing'
   const isError = media.processing_status === 'error'
   const isPrimary = media.is_primary
+  const imageCount = total // nur für "Als Titelbild" Bedingung übergeben
 
   return (
     <div style={{
@@ -63,22 +64,40 @@ function MediaCard({ media, onSetPrimary, onDelete }) {
         </span>
       )}
 
-      {/* Delete button */}
+      {/* Delete button (top right) */}
       <button
         onClick={() => onDelete(media.id)}
         title="Löschen"
         style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
       >×</button>
 
-      {/* Set primary button (images only, not already primary) */}
-      {media.media_type === 'image' && !isPrimary && !isProcessing && !isError && (
+      {/* Set primary button (images only, not already primary, only if >1 image) */}
+      {media.media_type === 'image' && !isPrimary && !isProcessing && !isError && imageCount > 1 && (
         <button
           onClick={() => onSetPrimary(media.id)}
           title="Als Titelbild setzen"
           style={{ position: 'absolute', top: '4px', left: '4px', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
-        >
-          ★ Titelbild
-        </button>
+        >★ Titelbild</button>
+      )}
+
+      {/* Move left / right arrows (bottom, only if not first/last) */}
+      {(index > 0 || index < total - 1) && (
+        <div style={{ position: 'absolute', bottom: isPrimary ? '1.2rem' : '4px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '2px' }}>
+          {index > 0 && (
+            <button
+              onClick={e => { e.stopPropagation(); onMoveLeft(index) }}
+              title="Nach links"
+              style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+            >←</button>
+          )}
+          {index < total - 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); onMoveRight(index) }}
+              title="Nach rechts"
+              style={{ width: '20px', height: '20px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+            >→</button>
+          )}
+        </div>
       )}
     </div>
   )
@@ -180,6 +199,21 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
     uploadFiles(arr)
   }, [uploadFiles, allowVideo])
 
+  const handleMove = async (fromIdx, toIdx) => {
+    setMediaList(prev => {
+      const arr = [...prev]
+      ;[arr[fromIdx], arr[toIdx]] = [arr[toIdx], arr[fromIdx]]
+      const updated = arr.map((m, i) => ({ ...m, sort_order: i }))
+      onMediaChange?.(updated)
+      // Persist new sort_orders for the two swapped items
+      Promise.all([
+        client.patch(`/api/media/${updated[fromIdx].id}`, { sort_order: fromIdx }),
+        client.patch(`/api/media/${updated[toIdx].id}`, { sort_order: toIdx }),
+      ]).catch(() => {})
+      return updated
+    })
+  }
+
   const handleSetPrimary = async (mediaId) => {
     try {
       const { data } = await client.patch(`/api/media/${mediaId}/set-primary`)
@@ -261,8 +295,17 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
       {/* Thumbnail grid */}
       {mediaList.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: '0.5rem' }}>
-          {mediaList.map(m => (
-            <MediaCard key={m.id} media={m} onSetPrimary={handleSetPrimary} onDelete={handleDelete} />
+          {mediaList.map((m, i) => (
+            <MediaCard
+              key={m.id}
+              media={m}
+              index={i}
+              total={mediaList.length}
+              onSetPrimary={handleSetPrimary}
+              onDelete={handleDelete}
+              onMoveLeft={idx => handleMove(idx, idx - 1)}
+              onMoveRight={idx => handleMove(idx, idx + 1)}
+            />
           ))}
         </div>
       )}
