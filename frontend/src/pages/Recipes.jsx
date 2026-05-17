@@ -71,54 +71,57 @@ function RecipeCard({ recipe, primaryImage }) {
     </span>
   )
 
+  // ── Magazine Card (Foto vorhanden) ──────────────────────────────────────────
+  if (primaryImage) {
+    return (
+      <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
+        <div className="recipe-card" style={{ position: 'relative', overflow: 'hidden', height: '100%', minHeight: '280px' }}>
+          {/* Hintergrundbild */}
+          <div
+            className="card-image-bg"
+            style={{
+              position: 'absolute', inset: 0,
+              backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              transition: 'transform 0.3s ease',
+            }}
+          />
+          {/* Overlay */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)' }} />
+          {/* Entwurf-Badge */}
+          {draftBadge}
+          {/* Titel + Pills unten */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem' }}>
+            {titleSpan}
+            {(recipe.prep_time || recipe.cook_time) && (
+              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
+                {recipe.prep_time && (
+                  <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.18)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>
+                    ⏱ {recipe.prep_time} min
+                  </span>
+                )}
+                {recipe.cook_time && (
+                  <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.18)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>
+                    🍳 {recipe.cook_time} min
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  // ── Gradient Card (kein Foto) — unverändert ──────────────────────────────────
   return (
     <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-
-        {/* Bild-Bereich */}
-        <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-          {primaryImage ? (
-            <>
-              {/* Foto-Hintergrund mit scale-Transition über CSS-Klasse */}
-              <div
-                className="card-image-bg"
-                style={{
-                  position: 'absolute', inset: 0,
-                  backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  transition: 'transform 0.4s ease',
-                }}
-              />
-              {/* Dunkles Overlay */}
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.65) 100%)' }} />
-              {/* Titel + Badge */}
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem' }}>
-                {draftBadge}
-                {titleSpan}
-                {/* Meta-Pills unter dem Titel im Overlay */}
-                {(recipe.cook_time || recipe.prep_time) && (
-                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                    {recipe.prep_time && (
-                      <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>⏱ {recipe.prep_time} min</span>
-                    )}
-                    {recipe.cook_time && (
-                      <span style={{ padding: '0.15rem 0.45rem', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 500, whiteSpace: 'nowrap', backdropFilter: 'blur(4px)' }}>🍳 {recipe.cook_time} min</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            /* Gradient-Fallback — unverändert */
-            <div style={{ background: gradient, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
-              {draftBadge}
-              {titleSpan}
-            </div>
-          )}
+        <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
+          {draftBadge}
+          {titleSpan}
         </div>
-
-        {/* Karten-Unterbereich */}
         <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
           <div style={{ flex: 1 }}>
             {recipe.description ? (
@@ -129,10 +132,8 @@ function RecipeCard({ recipe, primaryImage }) {
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--border-input)' }}>&nbsp;</p>
             )}
           </div>
-
           <div>
-            {/* Zeit-Pills (nur bei Gradient-Kacheln; bei Foto-Kacheln bereits im Overlay) */}
-            {!primaryImage && (recipe.prep_time || recipe.cook_time) && (
+            {(recipe.prep_time || recipe.cook_time) && (
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
                 {recipe.prep_time && (
                   <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>⏱ {recipe.prep_time} min</span>
@@ -142,8 +143,6 @@ function RecipeCard({ recipe, primaryImage }) {
                 )}
               </div>
             )}
-
-            {/* Schwierigkeitspunkte */}
             {recipe.difficulty && (
               <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
                 {Array.from({ length: 10 }).map((_, i) => (
