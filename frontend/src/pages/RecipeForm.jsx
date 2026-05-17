@@ -327,7 +327,7 @@ function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
 
 // ── StepRow ───────────────────────────────────────────────────────────────────
 
-function StepRow({ item, index, total, onChange, onMove, onRemove }) {
+function StepRow({ item, index, total, onChange, onMove, onRemove, onMediaChange }) {
   const [instrFocused, setInstrFocused] = useState(false)
   const effectiveTimerLabel = item.timer_label_use_title ? item.title : item.timer_label
 
@@ -369,10 +369,24 @@ function StepRow({ item, index, total, onChange, onMove, onRemove }) {
           </div>
         )}
 
-        <button title="Foto/Video Upload – Kommt bald" style={{ padding: '0.3rem 0.75rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'default', color: 'var(--subtext)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: '0.375rem', flexShrink: 0 }}>
-          📷 Foto/Video <span style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>(Kommt bald)</span>
-        </button>
       </div>
+
+      {/* Schritt-Fotos */}
+      {item.dbId ? (
+        <div style={{ marginTop: '0.75rem' }}>
+          <MediaUpload
+            entityType="step"
+            entityId={item.dbId}
+            existingMedia={item.media || []}
+            onMediaChange={media => onMediaChange?.(media)}
+            allowVideo={false}
+          />
+        </div>
+      ) : (
+        <button disabled style={{ marginTop: '0.5rem', padding: '0.3rem 0.75rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'default', color: 'var(--subtext)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+          📷 Fotos <span style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>(nach erstem Speichern)</span>
+        </button>
+      )}
     </div>
   )
 }
@@ -407,6 +421,9 @@ export default function RecipeForm() {
   const [ingredients, setIngredients] = useState([mkIng()])
   const [steps, setSteps] = useState([mkStep()])
 
+  // Media state (managed independently of recipe API payload)
+  const [recipeMedia, setRecipeMedia] = useState([])
+
   // Save state
   const [recipeId, setRecipeId] = useState(id ? parseInt(id) : null)
   const [savedAt, setSavedAt] = useState(null)
@@ -428,6 +445,10 @@ export default function RecipeForm() {
   })
 
   const markDirty = useCallback(() => setIsDirty(true), [])
+
+  const updateStepMedia = useCallback((stepKey, media) => {
+    setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
+  }, [])
 
   // Guarded navigation: show confirm dialog when there are unsaved changes
   const guardedNavigate = useCallback((path) => {
@@ -739,38 +760,29 @@ export default function RecipeForm() {
         {/* 4. Schritte */}
         <SectionCard title="Zubereitung" icon="👨‍🍳">
           {steps.map((step, idx) => (
-            <div key={step._key}>
-              <StepRow item={step} index={idx} total={steps.length}
-                onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
-                onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-                onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-              />
-              {/* Schritt-Medien (nur nach erstem Speichern) */}
-              {step.dbId ? (
-                <div style={{ paddingLeft: '3.5rem', marginBottom: '0.75rem', marginTop: '-0.375rem' }}>
-                  <MediaUpload entityType="step" entityId={step.dbId} allowVideo={false} />
-                </div>
-              ) : step.instruction.trim() ? (
-                <p style={{ paddingLeft: '3.5rem', marginBottom: '0.75rem', marginTop: '-0.375rem', fontSize: '0.75rem', color: 'var(--subtext)', fontStyle: 'italic' }}>
-                  Erst speichern, um Fotos hochzuladen.
-                </p>
-              ) : null}
-            </div>
+            <StepRow key={step._key} item={step} index={idx} total={steps.length}
+              onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
+              onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+              onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+              onMediaChange={media => updateStepMedia(step._key, media)}
+            />
           ))}
           <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
         </SectionCard>
 
-        {/* 5. Medien */}
-        <SectionCard title="Medien" icon="📸">
+        {/* 5. Fotos & Videos */}
+        <SectionCard title="Fotos & Videos" icon="📷">
           {recipeId ? (
             <MediaUpload
               entityType="recipe"
               entityId={recipeId}
+              existingMedia={recipeMedia}
+              onMediaChange={setRecipeMedia}
               allowVideo={true}
             />
           ) : (
             <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
-              Speichere das Rezept zuerst, um Medien hochzuladen.
+              Speichere das Rezept zuerst, um Fotos und Videos hochzuladen.
             </p>
           )}
         </SectionCard>
