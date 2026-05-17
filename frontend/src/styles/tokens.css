@@ -1,0 +1,30 @@
+:root {
+  --bg:           #FAF7F2;
+  --card:         #FFFFFF;
+  --text:         #2C2C2A;
+  --subtext:      #6B6B68;
+  --accent:       #C8602A;
+  --accent-hover: #A84E22;
+  --secondary:    #6B7C4E;
+  --border:       rgba(0, 0, 0, 0.08);
+  --border-input: #D8D4CD;
+
+  --radius-card:  12px;
+  --radius-input: 8px;
+  --radius-pill:  999px;
+
+  --shadow:       0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --transition:   all 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --bg:           #1C1C1A;
+  --card:         #2A2A27;
+  --text:         #F0EDE8;
+  --subtext:      #9A9A95;
+  --border:       rgba(255, 255, 255, 0.08);
+  --border-input: #3A3A37;
+  --shadow:       0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.50);
+}

@@ -1,1 +1,109 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+}
+
+/* ── Floating-label input ────────────────────────────────────────────────── */
+
+.float-group {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.float-group input {
+  width: 100%;
+  padding: 1.2rem 0.875rem 0.45rem;
+  border: 1.5px solid var(--border-input);
+  border-radius: var(--radius-input);
+  background: transparent;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.float-group input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200, 96, 42, 0.15);
+}
+
+.float-group label {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--subtext);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: var(--transition);
+}
+
+.float-group input:focus ~ label,
+.float-group input:not(:placeholder-shown) ~ label {
+  top: 0.45rem;
+  transform: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+
+/* ── Shake animation ─────────────────────────────────────────────────────── */
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-8px); }
+  30%       { transform: translateX(7px); }
+  45%       { transform: translateX(-6px); }
+  60%       { transform: translateX(5px); }
+  75%       { transform: translateX(-3px); }
+  90%       { transform: translateX(2px); }
+}
+
+.shake { animation: shake 0.5s ease; }
+
+/* ── Recipe card ─────────────────────────────────────────────────────────── */
+
+.recipe-card {
+  background: var(--card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.skeleton { animation: pulse 1.6s ease-in-out infinite; pointer-events: none; }
+
+.skeleton-block {
+  background: var(--border-input);
+  border-radius: 4px;
+}
