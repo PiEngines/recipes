@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export default function MediaLightbox({ images, startIndex = 0, onClose }) {
   const [idx, setIdx] = useState(startIndex)
+  const touchStartX = useRef(null)
 
   const prev = useCallback(() => setIdx(i => (i - 1 + images.length) % images.length), [images.length])
   const next = useCallback(() => setIdx(i => (i + 1) % images.length), [images.length])
@@ -30,6 +31,12 @@ export default function MediaLightbox({ images, startIndex = 0, onClose }) {
   return (
     <div
       onClick={onClose}
+      onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
+      onTouchEnd={e => {
+        const delta = e.changedTouches[0].clientX - touchStartX.current
+        if (delta > 50) prev()
+        else if (delta < -50) next()
+      }}
       style={{
         position: 'fixed', inset: 0,
         background: 'rgba(0,0,0,0.92)',

@@ -430,6 +430,7 @@ export default function RecipeForm() {
   const [isDirty, setIsDirty] = useState(false)
   const [savingAs, setSavingAs] = useState(null)
   const [saveError, setSaveError] = useState(null)
+  const [toast, setToast] = useState(null)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -562,6 +563,7 @@ export default function RecipeForm() {
       if (targetStatus) { setStatus(targetStatus); stateRef.current.status = targetStatus }
       setSavedAt(new Date())
       setIsDirty(false)
+      if (targetStatus) setToast(targetStatus === 'published' ? 'Veröffentlicht' : 'Als Entwurf gespeichert')
       // Map DB step IDs back into form state
       const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
       setSteps(prev => {
@@ -598,6 +600,13 @@ export default function RecipeForm() {
     const iv = setInterval(() => { if (canAutosave()) doSave() }, 30_000)
     return () => clearInterval(iv)
   }, [canAutosave, doSave])
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 3000)
+    return () => clearTimeout(t)
+  }, [toast])
 
   // beforeunload autosave
   useEffect(() => {
@@ -801,15 +810,42 @@ export default function RecipeForm() {
         )}
 
         <button onClick={handleDraft} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: savingAs || !title.trim() ? 'var(--subtext)' : 'var(--text)', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}>
-          {savingAs === 'draft' ? 'Speichert …' : 'Als Entwurf speichern'}
+          {savingAs === 'draft' ? 'Wird gespeichert …' : 'Als Entwurf speichern'}
         </button>
 
         <button onClick={handlePublish} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: savingAs || !title.trim() ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}
           onMouseEnter={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent-hover)' }}
           onMouseLeave={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent)' }}>
-          {savingAs === 'published' ? 'Veröffentlicht …' : 'Veröffentlichen'}
+          {savingAs === 'published' ? 'Wird gespeichert …' : 'Veröffentlichen'}
         </button>
       </div>
+
+      {/* Save toast */}
+      {toast && (
+        <>
+          <style>{`@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
+          <div style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(44,44,42,0.92)',
+            color: '#fff',
+            borderRadius: '8px',
+            padding: '12px 24px',
+            fontSize: '0.9rem',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 500,
+            zIndex: 1000,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            animation: 'toast-in 0.2s ease',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}>
+            {toast}
+          </div>
+        </>
+      )}
     </div>
   )
 }

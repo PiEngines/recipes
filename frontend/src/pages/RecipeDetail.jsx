@@ -443,7 +443,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
                   src={m.url}
                   alt=""
                   onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-                  style={{ maxHeight: '200px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+                  style={{ maxHeight: '180px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
                 />
               ))}
             </div>
@@ -762,7 +762,8 @@ export default function RecipeDetail() {
   const handleDeleteMedia = async (mediaId) => {
     try {
       await client.delete(`/api/media/${mediaId}`)
-      setRecipeMedia(prev => prev.filter(m => m.id !== mediaId))
+      const { data } = await client.get(`/api/media/entity/recipe/${id}`)
+      setRecipeMedia(data)
     } catch {}
   }
 
