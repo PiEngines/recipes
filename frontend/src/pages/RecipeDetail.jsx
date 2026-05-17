@@ -95,10 +95,10 @@ function useTimers() {
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia, onImageClick }) {
+function HeroSection({ recipe, media, onImageClick }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const primary = media.find(m => m.is_primary && m.media_type === 'image')
-  const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready')
+  const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
 
   return (
     <>
@@ -139,28 +139,13 @@ function HeroSection({ recipe, media, canEdit, onSetPrimary, onDeleteMedia, onIm
       {gallery.length > 0 && (
         <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', marginBottom: '1.5rem', paddingBottom: '0.25rem' }}>
           {gallery.map(m => (
-            <div key={m.id} style={{ position: 'relative', flexShrink: 0 }}>
-              <img
-                src={m.url}
-                alt=""
-                onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-                style={{ height: '100px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
-              />
-              {canEdit && (
-                <>
-                  <button
-                    onClick={() => onSetPrimary(m.id)}
-                    title="Als Titelbild setzen"
-                    style={{ position: 'absolute', top: '4px', left: '4px', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
-                  >★ Titelbild</button>
-                  <button
-                    onClick={() => onDeleteMedia(m.id)}
-                    title="Löschen"
-                    style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
-                  >×</button>
-                </>
-              )}
-            </div>
+            <img
+              key={m.id}
+              src={m.url}
+              alt=""
+              onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
+              style={{ height: '80px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block', cursor: 'zoom-in', flexShrink: 0 }}
+            />
           ))}
         </div>
       )}
@@ -443,7 +428,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
                   src={m.url}
                   alt=""
                   onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-                  style={{ maxHeight: '180px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+                  style={{ height: '180px', width: 'auto', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
                 />
               ))}
             </div>
@@ -728,16 +713,15 @@ export default function RecipeDetail() {
   const activeStep = recipe.steps[activeStepIdx]
   const activeIds = new Set((activeStep ? stepIngredients[activeStep.id] : [])?.map(i => i.id) ?? [])
   const baseServings = recipe.servings || 4
-  const canEdit = isAdmin || (user && recipe.created_by === user.id)
-
-  // Flache Lightbox-Bilderliste: Rezept-Bilder + Schritt-Bilder mit Beschriftung
+  // Lightbox: Rezept-Bilder (Primary zuerst) + Schritt-Bilder mit Caption
   const lightboxImages = [
     ...recipeMedia
-      .filter(m => m.media_type === 'image' && m.processing_status === 'ready')
+      .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+      .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
       .map(m => ({ url: m.url, caption: '' })),
     ...recipe.steps.flatMap((step, idx) =>
       (stepMedia[step.id] || [])
-        .filter(m => m.media_type === 'image' && m.processing_status === 'ready')
+        .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
         .map(m => ({
           url: m.url,
           caption: step.title ? `Schritt ${idx + 1}: ${step.title}` : `Schritt ${idx + 1}`,
@@ -749,22 +733,6 @@ export default function RecipeDetail() {
     const i = lightboxImages.findIndex(img => img.url === url)
     setLightboxIndex(i >= 0 ? i : 0)
     setLightboxOpen(true)
-  }
-
-  const handleSetPrimaryMedia = async (mediaId) => {
-    try {
-      await client.patch(`/api/media/${mediaId}/set-primary`)
-      const { data } = await client.get(`/api/media/entity/recipe/${id}`)
-      setRecipeMedia(data)
-    } catch {}
-  }
-
-  const handleDeleteMedia = async (mediaId) => {
-    try {
-      await client.delete(`/api/media/${mediaId}`)
-      const { data } = await client.get(`/api/media/entity/recipe/${id}`)
-      setRecipeMedia(data)
-    } catch {}
   }
 
   return (
@@ -836,7 +804,7 @@ export default function RecipeDetail() {
               </button>
             </div>
 
-            <HeroSection recipe={recipe} media={recipeMedia} canEdit={canEdit} onSetPrimary={handleSetPrimaryMedia} onDeleteMedia={handleDeleteMedia} onImageClick={openLightbox} />
+            <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openLightbox} />
             <MetaBar recipe={recipe} />
 
             {/* Steps */}
@@ -857,7 +825,7 @@ export default function RecipeDetail() {
                   onClick={() => setActiveStepIdx(idx)}
                   onAddTimer={() => addTimer(idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
-                  stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready')}
+                  stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)}
                   onImageClick={openLightbox}
                 />
               ))

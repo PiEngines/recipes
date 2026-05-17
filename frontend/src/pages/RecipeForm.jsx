@@ -327,7 +327,7 @@ function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
 
 // ── StepRow ───────────────────────────────────────────────────────────────────
 
-function StepRow({ item, index, total, onChange, onMove, onRemove, onMediaChange }) {
+function StepRow({ item, index, total, onChange, onMove, onRemove, onMediaChange, onStepMediaReload }) {
   const [instrFocused, setInstrFocused] = useState(false)
   const effectiveTimerLabel = item.timer_label_use_title ? item.title : item.timer_label
 
@@ -381,12 +381,82 @@ function StepRow({ item, index, total, onChange, onMove, onRemove, onMediaChange
             onMediaChange={media => onMediaChange?.(media)}
             allowVideo={false}
           />
+          <MediaGallery
+            media={item.media || []}
+            showSetPrimary={false}
+            onReload={() => onStepMediaReload?.(item.dbId, item._key)}
+          />
         </div>
       ) : (
         <button disabled style={{ marginTop: '0.5rem', padding: '0.3rem 0.75rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'default', color: 'var(--subtext)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
           📷 Fotos <span style={{ fontSize: '0.7rem', fontStyle: 'italic' }}>(nach erstem Speichern)</span>
         </button>
       )}
+    </div>
+  )
+}
+
+// ── MediaGallery ──────────────────────────────────────────────────────────────
+
+function MediaGallery({ media, onReload, showSetPrimary = true }) {
+  const images = (media || [])
+    .filter(m => m.media_type === 'image' && !m.deleted_at)
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  if (!images.length) return null
+
+  const doDelete = async (id) => {
+    try { await client.delete(`/api/media/${id}`); onReload() } catch {}
+  }
+  const doSetPrimary = async (id) => {
+    try { await client.patch(`/api/media/${id}/set-primary`); onReload() } catch {}
+  }
+  const doReorder = async (id, targetId) => {
+    const a = images.find(m => m.id === id)
+    const b = images.find(m => m.id === targetId)
+    if (!a || !b) return
+    try {
+      await Promise.all([
+        client.patch(`/api/media/${id}`, { sort_order: b.sort_order ?? images.indexOf(b) }),
+        client.patch(`/api/media/${targetId}`, { sort_order: a.sort_order ?? images.indexOf(a) }),
+      ])
+      onReload()
+    } catch {}
+  }
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem', marginTop: '0.875rem' }}>
+      {images.map((m, idx) => (
+        <div key={m.id} style={{
+          position: 'relative',
+          border: `2px solid ${m.is_primary ? '#C8602A' : 'transparent'}`,
+          borderRadius: '10px',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}>
+          <img
+            src={m.thumbnail_url || m.url}
+            alt=""
+            style={{ height: '100px', width: 'auto', display: 'block', objectFit: 'cover' }}
+          />
+          {m.is_primary && (
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(200,96,42,0.88)', color: '#fff', fontSize: '0.6rem', fontWeight: 700, textAlign: 'center', padding: '2px 0', fontFamily: 'Inter, sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              Titelbild
+            </div>
+          )}
+          <button onClick={() => doDelete(m.id)} title="Löschen" style={{ position: 'absolute', top: '3px', right: '3px', width: '19px', height: '19px', borderRadius: '50%', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>×</button>
+          {showSetPrimary && !m.is_primary && (
+            <button onClick={() => doSetPrimary(m.id)} title="Als Titelbild setzen" style={{ position: 'absolute', top: '3px', left: '3px', padding: '0.1rem 0.3rem', borderRadius: '3px', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.58rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>★</button>
+          )}
+          <div style={{ position: 'absolute', bottom: m.is_primary ? '16px' : '3px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '2px' }}>
+            {idx > 0 && (
+              <button onClick={() => doReorder(m.id, images[idx - 1].id)} style={{ width: '17px', height: '17px', borderRadius: '3px', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>←</button>
+            )}
+            {idx < images.length - 1 && (
+              <button onClick={() => doReorder(m.id, images[idx + 1].id)} style={{ width: '17px', height: '17px', borderRadius: '3px', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>→</button>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -431,6 +501,7 @@ export default function RecipeForm() {
   const [savingAs, setSavingAs] = useState(null)
   const [saveError, setSaveError] = useState(null)
   const [toast, setToast] = useState(null)
+  const [toastFading, setToastFading] = useState(false)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -449,6 +520,13 @@ export default function RecipeForm() {
 
   const updateStepMedia = useCallback((stepKey, media) => {
     setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
+  }, [])
+
+  const reloadStepMedia = useCallback(async (dbId, stepKey) => {
+    try {
+      const { data } = await client.get(`/api/media/entity/step/${dbId}`)
+      setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media: data } : s))
+    } catch {}
   }, [])
 
   // Guarded navigation: show confirm dialog when there are unsaved changes
@@ -500,11 +578,30 @@ export default function RecipeForm() {
             ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '' }))
             : [mkIng()],
           steps: sps.length
-            ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false }))
+            ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false, media: [] }))
             : [mkStep()],
         }
         applySnapshot(snap)
         setSavedSnapshot(snap)
+        // Load recipe media
+        client.get(`/api/media/entity/recipe/${id}`)
+          .then(({ data }) => setRecipeMedia(data))
+          .catch(() => {})
+        // Load step media in parallel
+        if (sps.length) {
+          Promise.all(
+            sps.map(s =>
+              client.get(`/api/media/entity/step/${s.id}`)
+                .then(({ data }) => ({ key: `step_${s.id}`, media: data }))
+                .catch(() => ({ key: `step_${s.id}`, media: [] }))
+            )
+          ).then(results => {
+            setSteps(prev => prev.map(step => {
+              const found = results.find(r => r.key === step._key)
+              return found ? { ...step, media: found.media } : step
+            }))
+          })
+        }
       })
       .catch(() => setLoadError('Rezept konnte nicht geladen werden.'))
       .finally(() => setLoadingRecipe(false))
@@ -601,11 +698,22 @@ export default function RecipeForm() {
     return () => clearInterval(iv)
   }, [canAutosave, doSave])
 
-  // Toast auto-dismiss
+  // Toast auto-dismiss + click-to-dismiss
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 3000)
-    return () => clearTimeout(t)
+    setToastFading(false)
+    const tFade = setTimeout(() => setToastFading(true), 3000)
+    const tClear = setTimeout(() => { setToast(null); setToastFading(false) }, 3300)
+    const onClick = () => {
+      clearTimeout(tFade); clearTimeout(tClear)
+      setToastFading(true)
+      setTimeout(() => { setToast(null); setToastFading(false) }, 300)
+    }
+    document.addEventListener('click', onClick, { once: true })
+    return () => {
+      clearTimeout(tFade); clearTimeout(tClear)
+      document.removeEventListener('click', onClick)
+    }
   }, [toast])
 
   // beforeunload autosave
@@ -774,6 +882,7 @@ export default function RecipeForm() {
               onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
               onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
               onMediaChange={media => updateStepMedia(step._key, media)}
+              onStepMediaReload={(dbId, key) => reloadStepMedia(dbId, key)}
             />
           ))}
           <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
@@ -782,13 +891,25 @@ export default function RecipeForm() {
         {/* 5. Fotos & Videos */}
         <SectionCard title="Fotos & Videos" icon="📷">
           {recipeId ? (
-            <MediaUpload
-              entityType="recipe"
-              entityId={recipeId}
-              existingMedia={recipeMedia}
-              onMediaChange={setRecipeMedia}
-              allowVideo={true}
-            />
+            <>
+              <MediaUpload
+                entityType="recipe"
+                entityId={recipeId}
+                existingMedia={recipeMedia}
+                onMediaChange={setRecipeMedia}
+                allowVideo={true}
+              />
+              <MediaGallery
+                media={recipeMedia}
+                showSetPrimary
+                onReload={async () => {
+                  try {
+                    const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`)
+                    setRecipeMedia(data)
+                  } catch {}
+                }}
+              />
+            </>
           ) : (
             <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
               Speichere das Rezept zuerst, um Fotos und Videos hochzuladen.
@@ -809,13 +930,13 @@ export default function RecipeForm() {
           </button>
         )}
 
-        <button onClick={handleDraft} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: savingAs || !title.trim() ? 'var(--subtext)' : 'var(--text)', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}>
+        <button onClick={handleDraft} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: (savingAs || !title.trim() || !isDirty) ? 'var(--subtext)' : 'var(--text)', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}>
           {savingAs === 'draft' ? 'Wird gespeichert …' : 'Als Entwurf speichern'}
         </button>
 
-        <button onClick={handlePublish} disabled={!!savingAs || !title.trim()} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: savingAs || !title.trim() ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: savingAs || !title.trim() ? 'default' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: !title.trim() ? 0.5 : 1 }}
-          onMouseEnter={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent-hover)' }}
-          onMouseLeave={e => { if (!savingAs && title.trim()) e.currentTarget.style.background = 'var(--accent)' }}>
+        <button onClick={handlePublish} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}
+          onMouseEnter={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent-hover)' }}
+          onMouseLeave={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent)' }}>
           {savingAs === 'published' ? 'Wird gespeichert …' : 'Veröffentlichen'}
         </button>
       </div>
@@ -823,10 +944,13 @@ export default function RecipeForm() {
       {/* Save toast */}
       {toast && (
         <>
-          <style>{`@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }`}</style>
+          <style>{`
+            @keyframes toast-in  { from{opacity:0} to{opacity:1} }
+            @keyframes toast-out { from{opacity:1} to{opacity:0} }
+          `}</style>
           <div style={{
             position: 'fixed',
-            bottom: '24px',
+            top: '80px',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'rgba(44,44,42,0.92)',
@@ -838,7 +962,7 @@ export default function RecipeForm() {
             fontWeight: 500,
             zIndex: 1000,
             boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-            animation: 'toast-in 0.2s ease',
+            animation: toastFading ? 'toast-out 0.3s ease forwards' : 'toast-in 0.2s ease',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
           }}>
