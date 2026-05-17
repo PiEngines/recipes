@@ -18,13 +18,32 @@ class TagResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class DietLabelResponse(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
+class AllergenResponse(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
 class AuthorResponse(BaseModel):
     id: int
     name: str
     model_config = {"from_attributes": True}
 
 
-# ── Ingredients ──────────────────────────────────────────────────────────────
+class RecipeImageResponse(BaseModel):
+    id: int
+    file_path: str
+    is_primary: bool
+    model_config = {"from_attributes": True}
+
+
+# ── Ingredients ───────────────────────────────────────────────────────────────
 
 class IngredientCreate(BaseModel):
     component_label: str | None = None
@@ -44,7 +63,7 @@ class IngredientResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ── Steps ────────────────────────────────────────────────────────────────────
+# ── Steps ─────────────────────────────────────────────────────────────────────
 
 class RecipeStepCreate(BaseModel):
     sort_order: int
@@ -52,6 +71,7 @@ class RecipeStepCreate(BaseModel):
     timer_seconds: int | None = None
     image_path: str | None = None
     video_path: str | None = None
+    ingredient_ids: list[int] | None = None
 
 
 class RecipeStepResponse(BaseModel):
@@ -61,10 +81,22 @@ class RecipeStepResponse(BaseModel):
     timer_seconds: int | None
     image_path: str | None
     video_path: str | None
+    ingredient_ids: list[int] | None
     model_config = {"from_attributes": True}
 
 
-# ── Recipe ───────────────────────────────────────────────────────────────────
+# ── Step-ingredient response (for the step-ingredients endpoint) ──────────────
+
+class StepIngredientResponse(BaseModel):
+    id: int
+    name: str
+    amount: str | None
+    unit: str | None
+    component_label: str | None
+    auto_detected: bool
+
+
+# ── Recipe ────────────────────────────────────────────────────────────────────
 
 class RecipeCreate(BaseModel):
     title: str
@@ -132,6 +164,9 @@ class RecipeResponse(BaseModel):
     ingredients: list[IngredientResponse]
     categories: list[CategoryResponse]
     tags: list[TagResponse]
+    diet_labels: list[DietLabelResponse]
+    allergens: list[AllergenResponse]
+    images: list[RecipeImageResponse]
     model_config = {"from_attributes": True}
 
 

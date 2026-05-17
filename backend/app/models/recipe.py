@@ -74,6 +74,7 @@ class RecipeStep(Base):
     timer_seconds = Column(Integer)
     image_path = Column(String(500))
     video_path = Column(String(500))
+    ingredient_ids = Column(JSONB, nullable=True)  # manual override; None = use auto-detection
 
     recipe = relationship("Recipe", back_populates="steps")
 

@@ -1,3 +1,5 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
@@ -11,6 +13,7 @@ from app.recipes.schemas import (
     RecipeListItem,
     RecipeResponse,
     RecipeUpdate,
+    StepIngredientResponse,
 )
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
@@ -34,6 +37,9 @@ def _load_full(recipe_id: int, db: Session) -> Recipe:
             joinedload(Recipe.ingredients),
             joinedload(Recipe.categories),
             joinedload(Recipe.tags),
+            joinedload(Recipe.diet_labels),
+            joinedload(Recipe.allergens),
+            joinedload(Recipe.images),
         )
         .filter(Recipe.id == recipe_id)
         .first()
@@ -52,6 +58,10 @@ def _resolve_tags(ids: list[int], db: Session) -> list[Tag]:
     return db.query(Tag).filter(Tag.id.in_(ids)).all()
 
 
+def _word_tokens(text: str) -> set[str]:
+    return set(re.findall(r"\b\w+\b", text.lower()))
+
+
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=PaginatedRecipes)
@@ -67,7 +77,6 @@ def list_recipes(
 ):
     q = db.query(Recipe)
 
-    # Unauthenticated users see only published recipes; authenticated users may filter freely
     if current_user is None:
         q = q.filter(Recipe.status == RecipeStatus.published)
     elif status_filter is not None:
@@ -120,6 +129,68 @@ def get_recipe(
     return recipe
 
 
+# ── Step ingredients ──────────────────────────────────────────────────────────
+
+@router.get("/{recipe_id}/steps/{step_id}/ingredients", response_model=list[StepIngredientResponse])
+def get_step_ingredients(
+    recipe_id: int,
+    step_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+):
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    if recipe.status != RecipeStatus.published and current_user is None:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    step = (
+        db.query(RecipeStep)
+        .filter(RecipeStep.id == step_id, RecipeStep.recipe_id == recipe_id)
+        .first()
+    )
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found")
+
+    all_ingredients = (
+        db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
+    )
+
+    if step.ingredient_ids is not None:
+        # Manual assignment: return exactly the specified ingredients
+        id_set = set(step.ingredient_ids)
+        return [
+            StepIngredientResponse(
+                id=ing.id,
+                name=ing.name,
+                amount=ing.amount,
+                unit=ing.unit,
+                component_label=ing.component_label,
+                auto_detected=False,
+            )
+            for ing in all_ingredients
+            if ing.id in id_set
+        ]
+
+    # Auto-detection: all words of the ingredient name must appear in the instruction
+    instr_tokens = _word_tokens(step.instruction)
+    result = []
+    for ing in all_ingredients:
+        ing_tokens = _word_tokens(ing.name)
+        if ing_tokens and ing_tokens.issubset(instr_tokens):
+            result.append(
+                StepIngredientResponse(
+                    id=ing.id,
+                    name=ing.name,
+                    amount=ing.amount,
+                    unit=ing.unit,
+                    component_label=ing.component_label,
+                    auto_detected=True,
+                )
+            )
+    return result
+
+
 # ── Create ────────────────────────────────────────────────────────────────────
 
 @router.post("", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
@@ -140,7 +211,7 @@ def create_recipe(
         created_by=current_user.id,
     )
     db.add(recipe)
-    db.flush()  # Populate recipe.id before adding children
+    db.flush()
 
     for step in body.steps:
         db.add(RecipeStep(**step.model_dump(), recipe_id=recipe.id))

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
@@ -56,6 +57,7 @@ function RecipeCard({ recipe }) {
   const color = recipe.difficulty ? diffColor(recipe.difficulty) : null
 
   return (
+    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit' }}>
     <div className="recipe-card">
       {/* Placeholder image */}
       <div style={{
@@ -142,6 +144,7 @@ function RecipeCard({ recipe }) {
         )}
       </div>
     </div>
+    </Link>
   )
 }
 
