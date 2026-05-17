@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useBlocker, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -386,6 +386,8 @@ export default function RecipeForm() {
   const [loadError, setLoadError] = useState(null)
   const [loadingRecipe, setLoadingRecipe] = useState(isEdit)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const pendingNavRef = useRef(null)
 
   // Snapshot for discard
   const [savedSnapshot, setSavedSnapshot] = useState(null)
@@ -426,12 +428,15 @@ export default function RecipeForm() {
 
   const markDirty = useCallback(() => setIsDirty(true), [])
 
-  // React Router blocker for unsaved changes on SPA navigation
-  const blocker = useBlocker(
-    useCallback(({ currentLocation, nextLocation }) => {
-      return isDirty && !savingRef.current && currentLocation.pathname !== nextLocation.pathname
-    }, [isDirty])
-  )
+  // Guarded navigation: show confirm dialog when there are unsaved changes
+  const guardedNavigate = useCallback((path) => {
+    if (isDirty && !savingRef.current) {
+      pendingNavRef.current = path
+      setShowLeaveConfirm(true)
+    } else {
+      navigate(path)
+    }
+  }, [isDirty, navigate])
 
   // Capture snapshot from loaded recipe data
   const applySnapshot = useCallback((snap) => {
@@ -588,6 +593,18 @@ export default function RecipeForm() {
     else navigate(recipeId ? `/recipes/${recipeId}` : '/')
   }
 
+  const handleLeaveConfirm = () => {
+    setShowLeaveConfirm(false)
+    const path = pendingNavRef.current
+    pendingNavRef.current = null
+    if (path) navigate(path)
+  }
+
+  const handleLeaveCancel = () => {
+    setShowLeaveConfirm(false)
+    pendingNavRef.current = null
+  }
+
   // Save status display
   const saveStatusText = savingAs ? 'Speichert …' : saveError ? saveError : isDirty ? 'Nicht gespeichert' : savedAt ? `Gespeichert um ${fmtTime(savedAt)}` : ''
   const saveStatusColor = saveError ? '#C84444' : isDirty ? '#C8A020' : savingAs ? 'var(--subtext)' : 'var(--secondary)'
@@ -612,12 +629,12 @@ export default function RecipeForm() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '96px' }}>
 
-      {/* Blocker dialog for unsaved SPA navigation */}
-      {blocker.state === 'blocked' && (
+      {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
+      {showLeaveConfirm && (
         <ConfirmDialog
           message="Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren."
-          onConfirm={() => blocker.proceed()}
-          onCancel={() => blocker.reset()}
+          onConfirm={handleLeaveConfirm}
+          onCancel={handleLeaveCancel}
           confirmLabel="Seite verlassen"
           confirmDanger
         />
@@ -636,7 +653,7 @@ export default function RecipeForm() {
 
       {/* Sticky top bar */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button onClick={() => navigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+        <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
           ← {isEdit ? 'Zur Detailseite' : 'Übersicht'}
         </button>
         <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
