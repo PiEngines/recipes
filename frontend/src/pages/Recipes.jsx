@@ -22,7 +22,7 @@ function DifficultySpoons({ difficulty }) {
   return (
     <span title={`${difficulty}/10`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} style={{ display: 'inline-block', fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1, transform: `rotate(${-40 + i * 20}deg)` }}>🥄</span>
+        <span key={i} style={{ display: 'inline-block', fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
       ))}
     </span>
   )
@@ -283,20 +283,24 @@ export default function Recipes() {
             </div>
           </div>
 
-          {/* Search + New: row 2 full-width on mobile (order 3), flex-1 on sm+ */}
-          <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', minWidth: 0 }}>
+          {/* Search: row 2 full-width on mobile (order 3), flex-1 on sm+ */}
+          <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', minWidth: 0 }}>
             <SearchInput value={searchInput} onChange={setSearchInput} />
-            {isAdmin && (
-              <button
-                onClick={() => navigate('/recipes/new')}
-                style={{ padding: '0.45rem 1rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', transition: 'var(--transition)', flexShrink: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
-              >
-                + Neues Rezept
-              </button>
-            )}
           </div>
+
+          {/* New Recipe: row 3 full-width on mobile (order 4), inline on sm+ */}
+          {isAdmin && (
+            <button
+              className="order-4 sm:order-3 w-full sm:w-auto"
+              onClick={() => navigate('/recipes/new')}
+              style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              <span className="sm:hidden">+ Neu</span>
+              <span className="hidden sm:inline">+ Neues Rezept</span>
+            </button>
+          )}
         </div>
       </header>
 

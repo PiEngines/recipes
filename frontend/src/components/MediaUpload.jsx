@@ -103,13 +103,33 @@ function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveL
   )
 }
 
+// ── Upload slot placeholder ───────────────────────────────────────────────────
+
+function UploadSlot({ status }) {
+  if (status === 'error') {
+    return (
+      <div style={{ borderRadius: 'var(--radius-input)', border: '1.5px solid rgba(200,68,68,0.45)', background: 'rgba(200,68,68,0.07)', aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', padding: '0.5rem' }}>
+        <span style={{ fontSize: '1.1rem', color: '#C84444', lineHeight: 1 }}>✕</span>
+        <span style={{ fontSize: '0.62rem', color: '#C84444', textAlign: 'center', fontFamily: 'Inter, sans-serif', lineHeight: 1.3 }}>Upload fehlgeschlagen</span>
+      </div>
+    )
+  }
+  return (
+    <div style={{ borderRadius: 'var(--radius-input)', border: '1.5px solid var(--border-input)', background: 'var(--bg)', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Spinner />
+    </div>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function MediaUpload({ entityType, entityId, existingMedia = [], onMediaChange, allowVideo = false }) {
   const [mediaList, setMediaList] = useState(existingMedia)
-  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(null) // { current, total }
+  const [uploadSlots, setUploadSlots] = useState([])
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState(null)
+  const isUploading = uploadProgress !== null
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [uploadToast, setUploadToast] = useState(null)
   const [uploadToastFading, setUploadToastFading] = useState(false)
@@ -190,14 +210,19 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
 
   const uploadFiles = useCallback(async (files) => {
     if (!files.length) return
-    setUploading(true)
     setError(null)
 
-    const newMedia = []
-    for (const file of files) {
-      const isVideo = file.type.startsWith('video/')
-      if (isVideo && !allowVideo) continue
+    const slots = files.map((_, i) => ({ key: `slot_${Date.now()}_${i}`, status: 'loading' }))
+    setUploadSlots(slots)
+    setUploadProgress({ current: 0, total: files.length })
 
+    const newMedia = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const slotKey = slots[i].key
+      setUploadProgress({ current: i + 1, total: files.length })
+
+      const isVideo = file.type.startsWith('video/')
       const endpoint = isVideo
         ? `/api/media/upload/video?entity_type=${entityType}&entity_id=${entityId}`
         : `/api/media/upload/image?entity_type=${entityType}&entity_id=${entityId}`
@@ -209,9 +234,9 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
           headers: { 'Content-Type': 'multipart/form-data' },
         })
         newMedia.push(data)
-      } catch (err) {
-        const msg = err.response?.data?.detail || 'Upload fehlgeschlagen'
-        setError(typeof msg === 'string' ? msg : JSON.stringify(msg))
+        setUploadSlots(prev => prev.filter(s => s.key !== slotKey))
+      } catch {
+        setUploadSlots(prev => prev.map(s => s.key === slotKey ? { ...s, status: 'error' } : s))
       }
     }
 
@@ -223,8 +248,10 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
       })
       showUploadToast('Bild gespeichert')
     }
-    setUploading(false)
-  }, [entityType, entityId, allowVideo, onMediaChange])
+    setUploadProgress(null)
+    // Auto-clear error slots after 5 seconds
+    setTimeout(() => setUploadSlots([]), 5000)
+  }, [entityType, entityId, allowVideo, onMediaChange, showUploadToast])
 
   const handleFiles = useCallback((files) => {
     const arr = Array.from(files).filter(f => {
@@ -290,26 +317,30 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
 
       {/* Drop zone */}
       <div
-        onClick={() => !uploading && inputRef.current?.click()}
+        onClick={() => !isUploading && inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files) }}
         style={{
-          border: `2px dashed ${dragOver ? 'var(--accent)' : uploading ? 'var(--secondary)' : 'var(--border-input)'}`,
+          border: `2px dashed ${dragOver ? 'var(--accent)' : isUploading ? 'var(--secondary)' : 'var(--border-input)'}`,
           borderRadius: 'var(--radius-input)',
           padding: '1.25rem',
           textAlign: 'center',
-          cursor: uploading ? 'wait' : 'pointer',
+          cursor: isUploading ? 'wait' : 'pointer',
           background: dragOver ? 'rgba(200,96,42,0.05)' : 'var(--bg)',
           transition: 'border-color 0.2s ease, background 0.2s ease',
-          marginBottom: mediaList.length > 0 ? '0.875rem' : 0,
+          marginBottom: (mediaList.length > 0 || uploadSlots.length > 0) ? '0.875rem' : 0,
         }}
       >
         <input ref={inputRef} type="file" accept={accept} multiple style={{ display: 'none' }} onChange={e => handleFiles(e.target.files)} />
-        {uploading ? (
+        {isUploading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--subtext)' }}>
             <Spinner />
-            <span style={{ fontSize: '0.875rem' }}>Lädt hoch …</span>
+            <span style={{ fontSize: '0.875rem' }}>
+              {uploadProgress && uploadProgress.total > 1
+                ? `Lade ${uploadProgress.current} von ${uploadProgress.total} Bildern hoch …`
+                : 'Lädt hoch …'}
+            </span>
           </div>
         ) : (
           <>
@@ -333,7 +364,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
       )}
 
       {/* Thumbnail grid */}
-      {mediaList.length > 0 && (
+      {(mediaList.length > 0 || uploadSlots.length > 0) && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: '0.5rem' }}>
           {mediaList.map((m, i) => (
             <MediaCard
@@ -346,6 +377,9 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
               onMoveLeft={idx => handleMove(idx, idx - 1)}
               onMoveRight={idx => handleMove(idx, idx + 1)}
             />
+          ))}
+          {uploadSlots.map(slot => (
+            <UploadSlot key={slot.key} status={slot.status} />
           ))}
         </div>
       )}
