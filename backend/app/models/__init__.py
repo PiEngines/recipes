@@ -14,7 +14,7 @@ from app.models.recipe import (
     RecipeVideo,
 )
 from app.models.media import Media
-from app.models.tokens import InvitationToken, PasswordResetToken
+from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
 
 __all__ = [
@@ -42,6 +42,7 @@ __all__ = [
     "Media",
     "InvitationToken",
     "PasswordResetToken",
+    "EmailVerificationToken",
     "RecipeAccess",
     "DisposableEmailDomain",
 ]

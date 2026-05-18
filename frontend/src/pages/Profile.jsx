@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../hooks/useTheme'
 
 export default function Profile() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const { setTheme: applyTheme } = useTheme()
 
   // Profile data state
   const [name, setName] = useState(user?.name || '')
@@ -78,6 +80,12 @@ export default function Profile() {
     } finally {
       setPasswordSaving(false)
     }
+  }
+
+  const handleThemeChange = async (value) => {
+    applyTheme(value) // immediate DOM update
+    setDarkModePreference(value)
+    try { await client.patch('/api/users/me', { dark_mode_preference: value }) } catch {}
   }
 
   const handleSettingsSave = async () => {
@@ -201,7 +209,7 @@ export default function Profile() {
             </div>
             <div>
               <label style={labelStyle} htmlFor="dark-mode">Erscheinungsbild</label>
-              <select id="dark-mode" value={darkModePreference} onChange={e => setDarkModePreference(e.target.value)} style={{ ...inputStyle, maxWidth: '240px' }}>
+              <select id="dark-mode" value={darkModePreference} onChange={e => handleThemeChange(e.target.value)} style={{ ...inputStyle, maxWidth: '240px' }}>
                 <option value="system">System</option>
                 <option value="light">Hell</option>
                 <option value="dark">Dunkel</option>

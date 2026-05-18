@@ -77,7 +77,7 @@ async def _warn_expiring_users() -> None:
             return
         admins = (
             db.query(User)
-            .filter(User.role == UserRole.admin, User.is_active.is_(True))
+            .filter(User.role.in_([UserRole.chefkoch, UserRole.admin]), User.is_active.is_(True))
             .all()
         )
         for user in expiring:

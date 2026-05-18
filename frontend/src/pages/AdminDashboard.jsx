@@ -32,10 +32,10 @@ export default function AdminDashboard() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <StatCard label="Benutzer" value={loading ? '…' : stats?.users_count ?? 0} color="var(--accent)" />
-          <StatCard label="Rezepte" value={loading ? '…' : stats?.recipes_count ?? 0} color="var(--secondary)" />
-          <StatCard label="Ausstehende Registrierungen" value={loading ? '…' : stats?.pending_users ?? 0} color="#C8A020" />
-          <StatCard label="Ausstehende Reviews" value={loading ? '…' : stats?.pending_reviews ?? 0} color="#8B4513" />
+          <StatCard label="Benutzer" value={loading ? '…' : stats?.users_count ?? 0} color="var(--accent)" onClick={() => navigate('/admin/users')} />
+          <StatCard label="Rezepte" value={loading ? '…' : stats?.recipes_count ?? 0} color="var(--secondary)" onClick={() => navigate('/admin/recipes')} />
+          <StatCard label="Ausstehende Registrierungen" value={loading ? '…' : stats?.pending_users ?? 0} color="#C8A020" onClick={() => navigate('/admin/users?tab=pending')} />
+          <StatCard label="Ausstehende Reviews" value={loading ? '…' : stats?.pending_reviews ?? 0} color="#8B4513" onClick={() => navigate('/admin/recipes?tab=reviews')} />
         </div>
 
         {/* Navigation cards */}
@@ -61,9 +61,15 @@ export default function AdminDashboard() {
   )
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, onClick }) {
+  const [hov, setHov] = useState(false)
   return (
-    <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.25rem', textAlign: 'center' }}>
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: hov ? 'var(--shadow-hover)' : 'var(--shadow)', padding: '1.25rem', textAlign: 'center', cursor: onClick ? 'pointer' : 'default', transition: 'var(--transition)', border: `2px solid ${hov && onClick ? color : 'transparent'}` }}
+    >
       <div style={{ fontSize: '2rem', fontWeight: 700, color, fontFamily: 'Inter, sans-serif', lineHeight: 1.2 }}>{value}</div>
       <div style={{ fontSize: '0.775rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem' }}>{label}</div>
     </div>

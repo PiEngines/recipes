@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import { getRoleLabel } from '../utils/roles'
 
 const TABS = [
   { key: 'active', label: 'Aktiv' },
@@ -8,11 +9,13 @@ const TABS = [
   { key: 'deleted', label: 'Gelöscht' },
 ]
 
-const ROLES = ['leser', 'autor', 'admin']
+const ROLES = ['kuechenhilfe', 'koch', 'chefkoch']
 
 export default function AdminUsers() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState('active')
+  const [searchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') || 'active'
+  const [tab, setTab] = useState(initialTab)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
@@ -20,7 +23,7 @@ export default function AdminUsers() {
 
   // Invitation state
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState('leser')
+  const [inviteRole, setInviteRole] = useState('kuechenhilfe')
   const [inviting, setInviting] = useState(false)
 
   const fetchUsers = useCallback(() => {
@@ -123,8 +126,9 @@ export default function AdminUsers() {
             <div style={{ minWidth: '140px' }}>
               <label style={labelStyle}>Rolle</label>
               <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={inputStyle}>
-                <option value="leser">Leser</option>
-                <option value="autor">Autor</option>
+                <option value="kuechenhilfe">Küchenhilfe</option>
+                <option value="koch">Koch</option>
+                <option value="chefkoch">Chefkoch</option>
               </select>
             </div>
             <button
@@ -174,10 +178,10 @@ export default function AdminUsers() {
                             onChange={e => handleRoleChange(u.id, e.target.value)}
                             style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
                           >
-                            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                            {ROLES.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
                           </select>
                         ) : (
-                          <span style={{ color: 'var(--subtext)' }}>{u.role}</span>
+                          <span style={{ color: 'var(--subtext)' }}>{getRoleLabel(u.role)}</span>
                         )}
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>

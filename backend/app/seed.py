@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def seed_admin() -> None:
     db: Session = SessionLocal()
     try:
-        if db.query(User).filter(User.role == UserRole.admin).first():
+        if db.query(User).filter(User.role.in_([UserRole.chefkoch, UserRole.admin])).first():
             return
 
         if len(settings.admin_password) < 8:
@@ -26,7 +26,7 @@ def seed_admin() -> None:
             name="Admin",
             email=settings.admin_email,
             password_hash=hash_password(settings.admin_password),
-            role=UserRole.admin,
+            role=UserRole.chefkoch,
             is_active=True,
             status="active",
         )
@@ -53,7 +53,7 @@ def seed_garbage_collector() -> None:
             name="System",
             email=gc_email,
             password_hash=secrets.token_urlsafe(64),
-            role=UserRole.admin,
+            role=UserRole.chefkoch,
             is_active=False,
             status="active",
         )

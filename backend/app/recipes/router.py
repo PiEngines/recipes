@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
-from app.auth.dependencies import get_current_user, get_optional_user, require_admin, require_admin_or_autor
+from app.auth.dependencies import get_current_user, get_optional_user, require_admin
 from app.database import get_db
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
@@ -90,7 +90,7 @@ def list_recipes(
 
     if current_user is None:
         q = q.filter(Recipe.status == RecipeStatus.published)
-    elif current_user.role == UserRole.admin:
+    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
         if status_filter is not None:
             try:
                 q = q.filter(Recipe.status == RecipeStatus(status_filter))
@@ -157,7 +157,7 @@ def get_recipe(
     if recipe.status != RecipeStatus.published:
         if current_user is None:
             raise HTTPException(status_code=404, detail="Recipe not found")
-        if current_user.role != UserRole.admin and recipe.created_by != current_user.id:
+        if current_user.role not in (UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
             raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
 
@@ -275,7 +275,7 @@ def update_recipe(
 
     from app.versioning import _recipe_snapshot, save_version
 
-    is_admin = current_user.role == UserRole.admin
+    is_admin = current_user.role in (UserRole.chefkoch, UserRole.admin)
     is_author = (
         recipe.author_id == current_user.id or recipe.created_by == current_user.id
     )

@@ -99,6 +99,18 @@ def send_pending_registration_email(admin_email: str, user_name: str, user_email
     _send(admin_email, "Neue Registrierungsanfrage – PiEngines Recipes", html)
 
 
+def send_verification_email(to_email: str, name: str, token: str) -> None:
+    link = f"{settings.app_url}/verify-email?token={token}"
+    html = f"""<div style="{_STYLE}">
+      <h2 style="color:#C8602A">Email-Adresse bestätigen</h2>
+      <p>Hallo <strong>{name}</strong>,</p>
+      <p>bitte bestätige deine Email-Adresse, um dein Konto zu aktivieren.</p>
+      <p><a href="{link}" style="{_BTN}">Email bestätigen</a></p>
+      <p style="color:#888;font-size:0.85rem">Link gültig für 24 Stunden.</p>
+    </div>"""
+    _send(to_email, "Bitte bestätige deine Email – PiEngines Recipes", html)
+
+
 def send_account_deleted_reminder(admin_email: str, user_name: str, days_remaining: int) -> None:
     html = f"""<div style="{_STYLE}">
       <h2 style="color:#C8A020">Konto-Löschung</h2>

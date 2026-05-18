@@ -17,6 +17,7 @@ export default function Login() {
     setLoading(true)
     try {
       await login(email, password)
+      localStorage.setItem('just_logged_in', 'true')
       navigate('/', { replace: true })
     } catch {
       setError('E-Mail oder Passwort ist falsch.')

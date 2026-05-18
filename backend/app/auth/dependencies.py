@@ -55,13 +55,21 @@ def get_optional_user(
     return db.query(User).filter(User.id == int(user_id), User.is_active.is_(True)).first()
 
 
-def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+def require_chefkoch(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in (UserRole.chefkoch, UserRole.admin):
+        raise HTTPException(status_code=403, detail="Chefkoch-Zugriff erforderlich")
     return current_user
 
 
-def require_admin_or_autor(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (UserRole.admin, UserRole.autor):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+# Alias for backward compatibility
+require_admin = require_chefkoch
+
+
+def require_koch_or_above(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in (UserRole.chefkoch, UserRole.koch, UserRole.admin, UserRole.autor):
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
     return current_user
+
+
+# Alias for backward compatibility
+require_admin_or_autor = require_koch_or_above

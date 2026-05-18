@@ -22,7 +22,7 @@ def list_versions(
     is_author = (
         recipe.author_id == current_user.id or recipe.created_by == current_user.id
     )
-    if current_user.role != UserRole.admin and not is_author:
+    if current_user.role not in (UserRole.chefkoch, UserRole.admin) and not is_author:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     versions = (
@@ -57,7 +57,7 @@ def get_version(
     is_author = (
         recipe.author_id == current_user.id or recipe.created_by == current_user.id
     )
-    if current_user.role != UserRole.admin and not is_author:
+    if current_user.role not in (UserRole.chefkoch, UserRole.admin) and not is_author:
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     ver = (
@@ -88,8 +88,8 @@ def restore_version(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Nur Admins können Versionen wiederherstellen")
+    if current_user.role not in (UserRole.chefkoch, UserRole.admin):
+        raise HTTPException(status_code=403, detail="Nur Chefköche können Versionen wiederherstellen")
 
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
     if not recipe:

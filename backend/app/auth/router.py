@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user, require_admin_or_autor
+from app.auth.dependencies import get_current_user, require_koch_or_above
 from app.auth.jwt import create_access_token, create_refresh_token
 from app.auth.password import hash_password, verify_password
 from app.auth.schemas import (
@@ -23,6 +23,7 @@ from app.email_service import (
     send_invitation_email,
     send_password_reset_email,
     send_pending_registration_email,
+    send_verification_email,
     send_welcome_email,
 )
 from app.models import User
@@ -85,26 +86,24 @@ def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_200_OK)
 def register(
     body: RegisterRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
+    # Validate inputs
     if len(body.name.strip()) < 2:
         raise HTTPException(status_code=400, detail="Name muss mind. 2 Zeichen haben")
     _validate_password(body.password)
     email = body.email.lower().strip()
     if _is_disposable(email, db):
         raise HTTPException(status_code=400, detail="Wegwerf-Email-Adressen sind nicht erlaubt")
-    if db.query(User).filter(User.email == email).first():
+    if db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first():
         raise HTTPException(status_code=409, detail="Email bereits registriert")
 
-    role = UserRole.leser
-    is_active = False
-    user_status = "pending"
+    was_invited = False
     inv = None
-
     if body.token:
         inv = (
             db.query(InvitationToken)
@@ -117,54 +116,99 @@ def register(
         )
         if not inv:
             raise HTTPException(status_code=400, detail="Einladungslink ungültig oder abgelaufen")
-        role = (
-            UserRole(inv.role)
-            if inv.role in UserRole._value2member_map_
-            else UserRole.leser
-        )
-        is_active = True
-        user_status = "active"
+        was_invited = True
+        inv.used_at = datetime.now(timezone.utc)
 
+    role = (
+        UserRole(inv.role)
+        if inv and inv.role in UserRole._value2member_map_
+        else UserRole.kuechenhilfe
+    )
     user = User(
         name=body.name.strip(),
         email=email,
         password_hash=hash_password(body.password),
         role=role,
-        is_active=is_active,
-        status=user_status,
+        is_active=False,
+        status="pending",
+        email_verified=False,
     )
     db.add(user)
     db.flush()
 
-    if body.token and inv:
-        inv.used_at = datetime.now(timezone.utc)
-        if inv.recipe_id:
-            from app.models.access import RecipeAccess
+    # Handle recipe access for invited users
+    if inv and inv.recipe_id:
+        from app.models.access import RecipeAccess
 
-            access = RecipeAccess(
-                recipe_id=inv.recipe_id,
-                access_type="individual",
-                email=email,
-                created_by=inv.invited_by or user.id,
-            )
-            db.add(access)
-        db.commit()
-        db.refresh(user)
-        background_tasks.add_task(send_welcome_email, email, user.name)
-    else:
-        db.commit()
-        db.refresh(user)
+        db.add(RecipeAccess(
+            recipe_id=inv.recipe_id,
+            access_type="individual",
+            email=email,
+            created_by=inv.invited_by or user.id,
+        ))
+
+    # Create email verification token
+    from app.models.tokens import EmailVerificationToken
+
+    ev_token_str = secrets.token_urlsafe(32)
+    ev_token = EmailVerificationToken(
+        token=ev_token_str,
+        user_id=user.id,
+        was_invited=was_invited,
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+    )
+    db.add(ev_token)
+    db.commit()
+
+    background_tasks.add_task(send_verification_email, email, user.name, ev_token_str)
+
+    # Also notify admins if not invited
+    if not was_invited:
         admins = (
             db.query(User)
-            .filter(User.role == UserRole.admin, User.is_active.is_(True))
+            .filter(
+                User.role.in_([UserRole.chefkoch, UserRole.admin]),
+                User.is_active.is_(True),
+            )
             .all()
         )
         for admin in admins:
-            background_tasks.add_task(
-                send_pending_registration_email, admin.email, user.name, email
-            )
+            background_tasks.add_task(send_pending_registration_email, admin.email, user.name, email)
 
-    return user
+    return {"message": "Bestätigungs-Email gesendet", "status": "pending"}
+
+
+@router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    from app.models.tokens import EmailVerificationToken
+
+    ev = (
+        db.query(EmailVerificationToken)
+        .filter(
+            EmailVerificationToken.token == token,
+            EmailVerificationToken.used_at.is_(None),
+            EmailVerificationToken.expires_at > datetime.now(timezone.utc),
+        )
+        .first()
+    )
+    if not ev:
+        raise HTTPException(status_code=400, detail="Token ungültig oder abgelaufen")
+
+    user = db.query(User).filter(User.id == ev.user_id).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Benutzer nicht gefunden")
+
+    user.email_verified = True
+    ev.used_at = datetime.now(timezone.utc)
+
+    result_status = "pending"
+    if ev.was_invited:
+        user.is_active = True
+        user.status = "active"
+        result_status = "active"
+
+    db.commit()
+    return {"status": result_status}
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
@@ -220,13 +264,18 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
 def invite(
     body: InviteRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_admin_or_autor),
+    current_user: User = Depends(require_koch_or_above),
     db: Session = Depends(get_db),
 ):
-    if current_user.role == UserRole.autor and body.role != "leser":
-        raise HTTPException(status_code=403, detail="Autoren können nur Leser einladen")
+    # Self-invite check
+    if body.email.lower().strip() == current_user.email:
+        raise HTTPException(status_code=400, detail="Du kannst dich nicht selbst einladen")
 
-    if current_user.role != UserRole.admin:
+    # Kochs can only invite kuechenhilfe
+    if current_user.role == UserRole.koch and body.role != "kuechenhilfe":
+        raise HTTPException(status_code=403, detail="Köche können nur Küchenhilfen einladen")
+
+    if current_user.role not in (UserRole.chefkoch, UserRole.admin):
         check_rate_limit(f"invite:{current_user.id}", max_calls=3, window_seconds=3600)
 
     email = body.email.lower().strip()

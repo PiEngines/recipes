@@ -1,11 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
-import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
 
@@ -16,37 +13,49 @@ export default function Register() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [recoverableMsg, setRecoverableMsg] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+
+  const triggerShake = () => {
+    setShake(true)
+    setTimeout(() => setShake(false), 600)
+  }
 
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
-    setRecoverableMsg('')
 
+    // Client-side validation
+    if (name.trim().length < 2) {
+      setError('Name muss mind. 2 Zeichen haben')
+      triggerShake()
+      return
+    }
+    if (!email.trim()) {
+      setError('Bitte gib eine E-Mail-Adresse ein')
+      triggerShake()
+      return
+    }
+    if (password.length < 8 || !/\d/.test(password)) {
+      setError('Passwort muss mind. 8 Zeichen und 1 Zahl enthalten')
+      triggerShake()
+      return
+    }
     if (password !== passwordConfirm) {
       setError('Passwörter stimmen nicht überein')
-      setShake(true)
-      setTimeout(() => setShake(false), 600)
+      triggerShake()
       return
     }
 
     setLoading(true)
     try {
-      const res = await client.post('/api/auth/register', { name, email, password, token: token || undefined })
-      const user = res.data
-      if (user.status === 'active') {
-        await login(email, password)
-        navigate('/', { state: { showOnboarding: true } })
-      } else {
-        // pending
-        setSuccess(true)
-      }
+      await client.post('/api/auth/register', {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        token: token || undefined,
+      })
+      setEmailSent(true)
     } catch (err) {
-      if (err.response?.data?.recoverable_account) {
-        setRecoverableMsg('Dieses Konto existiert bereits, ist aber noch nicht aktiviert. Bitte wende dich an einen Administrator.')
-        return
-      }
       const status = err.response?.status
       const detail = err.response?.data?.detail || ''
       if (status === 409) {
@@ -54,26 +63,26 @@ export default function Register() {
       } else if (status === 400 && detail.includes('Wegwerf')) {
         setError('Bitte verwende eine echte Email-Adresse.')
       } else if (status === 400 && detail.includes('Passwort')) {
-        setError('Passwort muss min. 8 Zeichen und 1 Zahl enthalten.')
+        setError(detail)
       } else {
         setError(detail || 'Ein Fehler ist aufgetreten.')
       }
-      setShake(true)
-      setTimeout(() => setShake(false), 600)
+      triggerShake()
     } finally {
       setLoading(false)
     }
   }
 
-  if (success) {
+  if (emailSent) {
     return (
       <div style={pageStyle}>
         <div style={cardStyle}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>✉️</div>
-            <h1 style={headingStyle}>Registrierung eingegangen</h1>
+            <h1 style={headingStyle}>Bestätigungs-Email gesendet</h1>
             <p style={{ color: '#6B6B68', margin: '0 0 1.5rem', fontSize: '0.925rem', lineHeight: 1.6 }}>
-              Deine Registrierung wird von einem Administrator geprüft. Du erhältst eine E-Mail, sobald dein Konto freigeschaltet wurde.
+              Wir haben dir eine Bestätigungs-Email gesendet.
+              Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.
             </p>
             <Link to="/login" style={{ color: 'var(--accent)', fontSize: '0.9rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
               ← Zurück zur Anmeldung
@@ -152,12 +161,6 @@ export default function Register() {
           {error && (
             <p style={{ color: '#C8602A', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
               {error}
-            </p>
-          )}
-
-          {recoverableMsg && (
-            <p style={{ color: '#8B6914', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500, background: 'rgba(139,105,20,0.08)', padding: '0.75rem', borderRadius: '8px' }}>
-              {recoverableMsg}
             </p>
           )}
 

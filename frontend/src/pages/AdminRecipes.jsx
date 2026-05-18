@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 
 const TABS = [
-  { key: 'all', label: 'Alle' },
-  { key: 'pending', label: 'Ausstehende Reviews' },
-  { key: 'trash', label: 'Papierkorb' },
+  { key: 'alle', label: 'Alle' },
+  { key: 'reviews', label: 'Ausstehende Reviews' },
+  { key: 'papierkorb', label: 'Papierkorb' },
 ]
+
+// Map old tab keys for backward compatibility
+const TAB_MAP = { all: 'alle', pending: 'reviews', trash: 'papierkorb' }
 
 export default function AdminRecipes() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState('all')
+  const [searchParams] = useSearchParams()
+  const rawTab = searchParams.get('tab') || 'alle'
+  const initialTab = TAB_MAP[rawTab] || rawTab
+  const [tab, setTab] = useState(initialTab)
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
@@ -20,12 +26,12 @@ export default function AdminRecipes() {
 
   const fetchRecipes = useCallback(() => {
     setLoading(true)
-    if (tab === 'pending') {
+    if (tab === 'reviews') {
       client.get('/api/recipes/pending-review')
         .then(res => setRecipes(res.data))
         .catch(console.error)
         .finally(() => setLoading(false))
-    } else if (tab === 'all') {
+    } else if (tab === 'alle') {
       client.get('/api/recipes', { params: { page_size: 50, page: 1 } })
         .then(res => setRecipes(res.data.items))
         .catch(console.error)
@@ -90,7 +96,7 @@ export default function AdminRecipes() {
         <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Wird geladen …</div>
-          ) : tab === 'trash' ? (
+          ) : tab === 'papierkorb' ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🗑️</div>
               <p style={{ margin: 0, fontFamily: 'Inter, sans-serif' }}>Funktion in Vorbereitung</p>
@@ -124,7 +130,7 @@ export default function AdminRecipes() {
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          {tab === 'pending' && (
+                          {tab === 'reviews' && (
                             <ActionBtn onClick={() => { setReviewRecipe(r); setReviewComment('') }}>Review</ActionBtn>
                           )}
                           <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>

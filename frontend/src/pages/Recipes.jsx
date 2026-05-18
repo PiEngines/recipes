@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
+import { isChefkoch } from '../utils/roles'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -199,7 +200,7 @@ export default function Recipes() {
   const { user, logout } = useAuth()
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
-  const isAdmin = user?.role === 'admin'
+  const isChefkochUser = isChefkoch(user)
 
   const [recipes, setRecipes]         = useState([])
   const [primaryImages, setPrimaryImages] = useState({}) // { recipeId: mediaObj | null }
@@ -267,10 +268,10 @@ export default function Recipes() {
 
           {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
           <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-            {isAdmin && (
+            {isChefkochUser && (
               <button
                 onClick={() => navigate('/admin')}
-                style={{ padding: '0.4rem 0.875rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}
+                style={{ padding: '0.4rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', transition: 'var(--transition)', flexShrink: 0 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
@@ -288,6 +289,7 @@ export default function Recipes() {
                 <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
                   <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
                   <UserMenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</UserMenuItem>
+                  {isChefkochUser && <UserMenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</UserMenuItem>}
                   <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
                 </div>
               )}
@@ -299,7 +301,7 @@ export default function Recipes() {
             <div style={{ flex: 1, display: 'flex', minWidth: 0 }}>
               <SearchInput value={searchInput} onChange={setSearchInput} />
             </div>
-            {isAdmin && (
+            {isChefkochUser && (
               <button
                 onClick={() => navigate('/recipes/new')}
                 style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}

@@ -8,12 +8,16 @@ from app.database import Base
 
 
 class UserRole(str, enum.Enum):
+    chefkoch = "chefkoch"
+    koch = "koch"
+    kuechenhilfe = "kuechenhilfe"
+    # Legacy — kept for backward compatibility during migration
     admin = "admin"
+    autor = "autor"
+    leser = "leser"
     full = "full"
     limited = "limited"
     single = "single"
-    autor = "autor"
-    leser = "leser"
 
 
 class User(Base):
@@ -23,7 +27,7 @@ class User(Base):
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.leser)
+    role = Column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.kuechenhilfe)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -31,6 +35,7 @@ class User(Base):
     email_notifications = Column(Boolean, nullable=False, default=True)
     dark_mode_preference = Column(String(10))
     status = Column(String(20), nullable=False, default="active")
+    email_verified = Column(Boolean, nullable=False, default=False)
 
     recipes = relationship("Recipe", back_populates="author", foreign_keys="Recipe.created_by")
     collections = relationship("Collection", back_populates="owner")

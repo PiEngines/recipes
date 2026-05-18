@@ -46,5 +46,5 @@ class ResetPasswordRequest(BaseModel):
 
 class InviteRequest(BaseModel):
     email: str
-    role: str = "leser"
+    role: str = "kuechenhilfe"
     recipe_id: int | None = None

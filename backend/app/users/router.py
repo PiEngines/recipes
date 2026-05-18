@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user, require_admin
+from app.auth.dependencies import get_current_user, require_chefkoch
 from app.auth.password import hash_password, verify_password
 from app.database import get_db
 from app.email_service import send_welcome_email
@@ -13,6 +13,20 @@ from app.models.user import UserRole
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _is_disposable(email: str, db: Session) -> bool:
+    from app.models.access import DisposableEmailDomain
+
+    domain = email.lower().split("@")[-1] if "@" in email else email
+    return (
+        db.query(DisposableEmailDomain)
+        .filter(DisposableEmailDomain.domain == domain)
+        .first()
+        is not None
+    )
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -45,12 +59,12 @@ class PatchRoleBody(BaseModel):
     role: str
 
 
-# ── List users (admin) ────────────────────────────────────────────────────────
+# ── List users (chefkoch) ─────────────────────────────────────────────────────
 
 @router.get("", response_model=list[UserListItem])
 def list_users(
     status: str | None = Query(None),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     q = db.query(User)
@@ -63,7 +77,7 @@ def list_users(
 
 @admin_router.get("/stats")
 def admin_stats(
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     users_count = db.query(User).filter(User.deleted_at.is_(None)).count()
@@ -92,6 +106,8 @@ def patch_me(
         current_user.name = body.name.strip()
     if body.email is not None:
         email = body.email.lower().strip()
+        if _is_disposable(email, db):
+            raise HTTPException(status_code=400, detail="Wegwerf-Email-Adressen sind nicht erlaubt")
         existing = db.query(User).filter(User.email == email, User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=409, detail="Email bereits vergeben")
@@ -139,13 +155,13 @@ def delete_me(
     db.commit()
 
 
-# ── Patch role (admin) ────────────────────────────────────────────────────────
+# ── Patch role (chefkoch) ─────────────────────────────────────────────────────
 
 @router.patch("/{user_id}/role", response_model=UserListItem)
 def patch_role(
     user_id: int,
     body: PatchRoleBody,
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     allowed_roles = [r.value for r in UserRole]
@@ -160,13 +176,13 @@ def patch_role(
     return user
 
 
-# ── Activate user (admin) ─────────────────────────────────────────────────────
+# ── Activate user (chefkoch) ──────────────────────────────────────────────────
 
 @router.patch("/{user_id}/activate", response_model=UserListItem)
 def activate_user(
     user_id: int,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.id == user_id).first()
@@ -180,12 +196,12 @@ def activate_user(
     return user
 
 
-# ── Soft-delete user (admin) ──────────────────────────────────────────────────
+# ── Soft-delete user (chefkoch) ───────────────────────────────────────────────
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def soft_delete_user(
     user_id: int,
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.id == user_id).first()
@@ -204,12 +220,12 @@ def soft_delete_user(
     db.commit()
 
 
-# ── Restore user (admin) ──────────────────────────────────────────────────────
+# ── Restore user (chefkoch) ───────────────────────────────────────────────────
 
 @router.post("/{user_id}/restore", status_code=status.HTTP_200_OK)
 def restore_user(
     user_id: int,
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.id == user_id).first()

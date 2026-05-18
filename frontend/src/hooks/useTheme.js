@@ -1,16 +1,29 @@
 import { useState, useEffect } from 'react'
 
+function getEffectiveTheme(pref) {
+  if (pref === 'system' || !pref) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return pref
+}
+
 export function useTheme() {
-  const [theme, setTheme] = useState(
-    () => document.documentElement.getAttribute('data-theme') || 'light',
-  )
+  const [theme, setThemeState] = useState(() => {
+    const stored = localStorage.getItem('theme') || 'light'
+    return getEffectiveTheme(stored)
+  })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('theme', theme)
   }, [theme])
 
-  const toggle = () => setTheme(t => (t === 'light' ? 'dark' : 'light'))
+  const toggle = () => setThemeState(t => (t === 'light' ? 'dark' : 'light'))
 
-  return { theme, toggle }
+  const setTheme = (pref) => {
+    const effective = getEffectiveTheme(pref)
+    setThemeState(effective)
+  }
+
+  return { theme, toggle, setTheme }
 }
