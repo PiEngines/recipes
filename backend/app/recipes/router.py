@@ -1,10 +1,12 @@
+import logging
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
-from app.auth.dependencies import get_current_user, get_optional_user, require_admin
+from app.auth.dependencies import get_current_user, get_optional_user, require_admin, require_admin_or_autor
 from app.database import get_db
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
@@ -17,7 +19,14 @@ from app.recipes.schemas import (
     StepIngredientResponse,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
+
+
+class ReviewBody(BaseModel):
+    approved: bool
+    comment: str | None = None
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -248,10 +257,27 @@ def create_recipe(
 def update_recipe(
     recipe_id: int,
     body: RecipeUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
 ):
-    recipe = _get_or_404(recipe_id, db)
+    recipe = _load_full(recipe_id, db)
+    if not recipe:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
+
+    from app.versioning import _recipe_snapshot, save_version
+
+    is_admin = current_user.role == UserRole.admin
+    is_author = (
+        recipe.author_id == current_user.id or recipe.created_by == current_user.id
+    )
+
+    # Non-admin, non-author: forbidden
+    if not is_admin and not is_author:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+
+    # Capture snapshot before applying changes
+    old_snapshot = _recipe_snapshot(recipe)
 
     scalar_fields = {"title", "description", "prep_time", "cook_time", "servings", "difficulty", "status", "source"}
     for field in body.model_fields_set & scalar_fields:
@@ -271,7 +297,7 @@ def update_recipe(
         new_steps = []
         for step_data in body.steps:
             d = step_data.model_dump()
-            step_id = d.pop('id', None)
+            step_id = d.pop("id", None)
             if step_id and step_id in existing:
                 s = existing[step_id]
                 for k, v in d.items():
@@ -285,7 +311,26 @@ def update_recipe(
                 db.delete(old_step)
         recipe.steps = new_steps
 
-    db.commit()
+    if is_admin:
+        # Admin edits go through directly
+        db.flush()
+        save_version(recipe, old_snapshot, current_user.id, db)
+        recipe.review_status = "none"
+        db.commit()
+    else:
+        # Autor edits: create a pending version for review
+        db.flush()
+        pending_ver = save_version(recipe, old_snapshot, current_user.id, db)
+        recipe.pending_version_id = pending_ver.id
+        recipe.review_status = "pending"
+        db.commit()
+        logger.info(
+            "Recipe %d submitted for review by user %d (version %d)",
+            recipe_id,
+            current_user.id,
+            pending_ver.version_number,
+        )
+
     return _load_full(recipe_id, db)
 
 
@@ -318,6 +363,65 @@ def toggle_status(
     )
     db.commit()
     return _load_full(recipe_id, db)
+
+
+# ── Pending review ────────────────────────────────────────────────────────────
+
+@router.get("/pending-review", response_model=list[RecipeListItem])
+def list_pending_review(
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    items = (
+        db.query(Recipe)
+        .options(subqueryload(Recipe.categories), subqueryload(Recipe.tags))
+        .filter(Recipe.review_status == "pending")
+        .order_by(Recipe.updated_at.desc())
+        .all()
+    )
+    return items
+
+
+@router.post("/{recipe_id}/review")
+def review_recipe(
+    recipe_id: int,
+    body: ReviewBody,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    from app.email_service import send_review_result_email
+
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
+    if recipe.review_status != "pending":
+        raise HTTPException(status_code=400, detail="Keine ausstehende Überprüfung")
+
+    if body.approved:
+        recipe.review_status = "none"
+        recipe.pending_version_id = None
+    else:
+        # Rollback: restore the snapshot from before the pending version
+        recipe.review_status = "none"
+        recipe.pending_version_id = None
+
+    db.commit()
+
+    # Notify the author
+    author_id = recipe.author_id or recipe.created_by
+    if author_id:
+        author = db.query(User).filter(User.id == author_id).first()
+        if author and author.email:
+            background_tasks.add_task(
+                send_review_result_email,
+                author.email,
+                recipe.title,
+                body.approved,
+                body.comment,
+            )
+
+    return {"detail": "Genehmigt" if body.approved else "Abgelehnt"}
 
 
 # ── Ingredient suggestions ────────────────────────────────────────────────────

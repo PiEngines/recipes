@@ -18,5 +18,28 @@ class UserResponse(BaseModel):
     email: str
     role: str
     is_active: bool
+    status: str = "active"
 
     model_config = {"from_attributes": True}
+
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    token: str | None = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+class InviteRequest(BaseModel):
+    email: str
+    role: str = "leser"
+    recipe_id: int | None = None

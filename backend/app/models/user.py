@@ -12,6 +12,8 @@ class UserRole(str, enum.Enum):
     full = "full"
     limited = "limited"
     single = "single"
+    autor = "autor"
+    leser = "leser"
 
 
 class User(Base):
@@ -21,9 +23,14 @@ class User(Base):
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.limited)
+    role = Column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.leser)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    email_notifications = Column(Boolean, nullable=False, default=True)
+    dark_mode_preference = Column(String(10))
+    status = Column(String(20), nullable=False, default="active")
 
     recipes = relationship("Recipe", back_populates="author", foreign_keys="Recipe.created_by")
     collections = relationship("Collection", back_populates="owner")

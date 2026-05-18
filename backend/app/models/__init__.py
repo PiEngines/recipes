@@ -1,3 +1,4 @@
+from app.models.access import DisposableEmailDomain, RecipeAccess
 from app.models.associations import recipe_allergens, recipe_categories, recipe_diet_labels, recipe_tags
 from app.models.category import Allergen, Category, DietLabel, Tag
 from app.models.collection import Collection, CollectionRecipe
@@ -13,6 +14,7 @@ from app.models.recipe import (
     RecipeVideo,
 )
 from app.models.media import Media
+from app.models.tokens import InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
 
 __all__ = [
@@ -38,4 +40,8 @@ __all__ = [
     "recipe_diet_labels",
     "recipe_allergens",
     "Media",
+    "InvitationToken",
+    "PasswordResetToken",
+    "RecipeAccess",
+    "DisposableEmailDomain",
 ]

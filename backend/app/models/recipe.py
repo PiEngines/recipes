@@ -34,6 +34,10 @@ class Recipe(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    pending_version_id = Column(Integer, ForeignKey("recipe_versions.id"), nullable=True)
+    review_status = Column(String(20), nullable=False, default="none")
 
     author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
     steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
@@ -140,6 +144,9 @@ class RecipeVersion(Base):
     recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
     version_number = Column(Integer, nullable=False)
     snapshot = Column(JSONB, nullable=False)
+    changed_fields_count = Column(Integer, nullable=True)
+    changed_chars_count = Column(Integer, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     recipe = relationship("Recipe", back_populates="versions")

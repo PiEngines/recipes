@@ -1,0 +1,25 @@
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.sql import func
+
+from app.database import Base
+
+
+class RecipeAccess(Base):
+    __tablename__ = "recipe_access"
+
+    id = Column(Integer, primary_key=True)
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False)
+    access_type = Column(String(20), nullable=False)  # 'free_for_all' | 'individual'
+    email = Column(String(255), nullable=True)
+    token = Column(String(128), unique=True, nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DisposableEmailDomain(Base):
+    __tablename__ = "disposable_email_domains"
+
+    id = Column(Integer, primary_key=True)
+    domain = Column(String(255), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

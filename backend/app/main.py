@@ -1,5 +1,8 @@
+import logging
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,15 +10,136 @@ from app.auth.router import router as auth_router
 from app.categories.router import router as categories_router
 from app.config import settings
 from app.media.router import router as media_router
+from app.recipes.access_router import router as access_router
 from app.recipes.router import router as recipes_router
-from app.seed import seed_admin
+from app.recipes.versions_router import router as versions_router
+from app.seed import seed_admin, seed_garbage_collector
 from app.tags.router import router as tags_router
+from app.users.router import router as users_router
+
+logger = logging.getLogger(__name__)
+
+
+async def _cleanup_deleted_users() -> None:
+    from app.database import SessionLocal
+    from app.models import Recipe, User
+
+    db = SessionLocal()
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+        expired_users = (
+            db.query(User)
+            .filter(
+                User.deleted_at.isnot(None),
+                User.deleted_at < cutoff,
+            )
+            .all()
+        )
+        if not expired_users:
+            return
+        gc = db.query(User).filter(User.email == "system@piengines.internal").first()
+        gc_id = gc.id if gc else None
+        for user in expired_users:
+            if gc_id:
+                db.query(Recipe).filter(Recipe.created_by == user.id).update(
+                    {"created_by": gc_id, "author_id": gc_id}
+                )
+            db.delete(user)
+        db.commit()
+        logger.info("Cleaned up %d expired user(s)", len(expired_users))
+    except Exception:
+        db.rollback()
+        logger.exception("Cleanup of deleted users failed")
+    finally:
+        db.close()
+
+
+async def _warn_expiring_users() -> None:
+    from app.database import SessionLocal
+    from app.email_service import send_account_deleted_reminder
+    from app.models import User
+    from app.models.user import UserRole
+
+    db = SessionLocal()
+    try:
+        warn_date = datetime.now(timezone.utc) - timedelta(days=27)
+        warn_end = datetime.now(timezone.utc) - timedelta(days=26)
+        expiring = (
+            db.query(User)
+            .filter(
+                User.deleted_at.isnot(None),
+                User.deleted_at >= warn_date,
+                User.deleted_at < warn_end,
+            )
+            .all()
+        )
+        if not expiring:
+            return
+        admins = (
+            db.query(User)
+            .filter(User.role == UserRole.admin, User.is_active.is_(True))
+            .all()
+        )
+        for user in expiring:
+            days = 30 - (datetime.now(timezone.utc) - user.deleted_at).days
+            for admin in admins:
+                send_account_deleted_reminder(admin.email, user.name, days)
+    except Exception:
+        logger.exception("Warning of expiring users failed")
+    finally:
+        db.close()
+
+
+async def _seed_disposable_domains() -> None:
+    import httpx
+
+    from app.database import SessionLocal
+    from app.models.access import DisposableEmailDomain
+
+    db = SessionLocal()
+    try:
+        if db.query(DisposableEmailDomain).count() > 0:
+            return
+        url = (
+            "https://raw.githubusercontent.com/disposable-email-domains/"
+            "disposable-email-domains/master/disposable_email_blocklist.conf"
+        )
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(url)
+        domains = [
+            line.strip()
+            for line in resp.text.splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        capped = domains[:5000]
+        for domain in capped:
+            db.add(DisposableEmailDomain(domain=domain))
+        db.commit()
+        logger.info("Loaded %d disposable email domains", len(capped))
+    except Exception:
+        db.rollback()
+        logger.warning("Could not load disposable email domains")
+    finally:
+        db.close()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_admin()
+    seed_garbage_collector()
+
+    await _seed_disposable_domains()
+
+    scheduler = AsyncIOScheduler()
+    # Daily cleanup of permanently expired (30-day) deleted users
+    scheduler.add_job(_cleanup_deleted_users, "cron", hour=3, minute=0)
+    # Daily warning for users about to be permanently deleted (3 days remaining)
+    scheduler.add_job(_warn_expiring_users, "cron", hour=3, minute=15)
+    scheduler.start()
+
     yield
+
+    scheduler.shutdown(wait=False)
 
 
 app = FastAPI(title="PiEngines Recipes API", lifespan=lifespan)
@@ -30,9 +154,12 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(recipes_router)
+app.include_router(versions_router)
+app.include_router(access_router)
 app.include_router(categories_router)
 app.include_router(tags_router)
 app.include_router(media_router)
+app.include_router(users_router)
 
 
 @app.get("/api/health")

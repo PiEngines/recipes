@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
@@ -27,6 +28,7 @@ def seed_admin() -> None:
             password_hash=hash_password(settings.admin_password),
             role=UserRole.admin,
             is_active=True,
+            status="active",
         )
         db.add(admin)
         db.commit()
@@ -37,5 +39,32 @@ def seed_admin() -> None:
     except Exception:
         db.rollback()
         logger.exception("Failed to seed admin user")
+    finally:
+        db.close()
+
+
+def seed_garbage_collector() -> None:
+    db: Session = SessionLocal()
+    try:
+        gc_email = "system@piengines.internal"
+        if db.query(User).filter(User.email == gc_email).first():
+            return
+        gc_user = User(
+            name="System",
+            email=gc_email,
+            password_hash=secrets.token_urlsafe(64),
+            role=UserRole.admin,
+            is_active=False,
+            status="active",
+        )
+        db.add(gc_user)
+        db.commit()
+        logger.info("Garbage collector user created")
+    except ProgrammingError:
+        db.rollback()
+        logger.info("GC seed skipped — database tables not yet created")
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to create garbage collector user")
     finally:
         db.close()

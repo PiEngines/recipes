@@ -251,10 +251,11 @@ function IngredientNameInput({ value, onChange }) {
   }, [open])
 
   useEffect(() => {
-    if (!value.trim() || value.length < 2) { setSuggestions([]); setOpen(false); return }
+    const query = value.trim()
+    if (query.length < 2) { setSuggestions([]); setOpen(false); return }
     const t = setTimeout(async () => {
       try {
-        const { data } = await client.get('/api/recipes/ingredients/suggestions', { params: { search: value } })
+        const { data } = await client.get('/api/recipes/ingredients/suggestions', { params: { search: query } })
         setSuggestions(data.filter(s => s.toLowerCase() !== value.toLowerCase()))
         setOpen(data.length > 0)
       } catch {}
@@ -639,7 +640,7 @@ export default function RecipeForm() {
       tag_ids: s.selectedTags.map(t => t.id),
       ingredients: s.ingredients
         .filter(i => i.name.trim())
-        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name, amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
+        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({

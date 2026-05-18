@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.recipe import RecipeStatus
 
@@ -52,6 +52,11 @@ class IngredientCreate(BaseModel):
     unit: str | None = None
     sort_order: int = 0
     is_integer: bool = False
+
+    @field_validator('name')
+    @classmethod
+    def trim_name(cls, v: str) -> str:
+        return v.strip()
 
 
 class IngredientResponse(BaseModel):
