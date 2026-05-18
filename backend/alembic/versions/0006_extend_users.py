@@ -30,13 +30,17 @@ def upgrade() -> None:
         sa.Column("status", sa.String(20), nullable=False, server_default="active"),
     )
 
-    # Extend the user_role enum with new values
-    op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'autor'")
-    op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'leser'")
+    # Step 1: extend enum in its own autocommit block — new values must be
+    # committed before they can be referenced in DML statements
+    with op.get_context().autocommit_block():
+        op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'autor'")
+        op.execute("ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'leser'")
 
-    # Migrate existing role data
+    # Step 2: migrate existing data (new transaction, enum values now visible)
     op.execute("UPDATE users SET role='autor' WHERE role='full'")
-    op.execute("UPDATE users SET role='leser' WHERE role IN ('limited', 'single')")
+    op.execute("UPDATE users SET role='leser' WHERE role='limited'")
+    op.execute("UPDATE users SET role='leser' WHERE role='single'")
+    op.execute("UPDATE users SET role='leser' WHERE role='user'")
 
 
 def downgrade() -> None:
