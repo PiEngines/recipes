@@ -59,7 +59,7 @@ def _is_disposable(email: str, db: Session) -> bool:
 
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
-    from app.auth.schemas import DeclinedShare
+    from app.auth.schemas import DeclinedShare, Notification
     from app.models.access import RecipeAccess
     from app.models.recipe import Recipe as RecipeModel
 
@@ -80,7 +80,11 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
             detail="Account is inactive",
         )
 
-    # Collect unseen declined shares for recipes owned by this user
+    now = datetime.now(timezone.utc)
+    notifications: list[Notification] = []
+    needs_commit = False
+
+    # ── share_declined: recipes owned by this user that someone declined ─────
     declined_rows = (
         db.query(RecipeAccess, RecipeModel)
         .join(RecipeModel, RecipeAccess.recipe_id == RecipeModel.id)
@@ -95,22 +99,54 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
     declined_shares = []
     for access, recipe in declined_rows:
         decliner = db.query(User).filter(User.id == access.declined_by).first()
-        declined_shares.append(
-            DeclinedShare(
-                recipe_id=recipe.id,
-                recipe_title=recipe.title,
-                declined_by_name=decliner.name if decliner else "Unbekannt",
-            )
+        ds = DeclinedShare(
+            recipe_id=recipe.id,
+            recipe_title=recipe.title,
+            declined_by_name=decliner.name if decliner else "Unbekannt",
         )
-        access.notified_at = datetime.now(timezone.utc)
+        declined_shares.append(ds)
+        notifications.append(Notification(type="share_declined", data=ds.model_dump()))
+        access.notified_at = now
+        needs_commit = True
 
-    if declined_shares:
+    # ── share_approved: recipes shared with this user that were under review ──
+    approved_rows = (
+        db.query(RecipeAccess, RecipeModel)
+        .join(RecipeModel, RecipeAccess.recipe_id == RecipeModel.id)
+        .filter(
+            RecipeAccess.email == user.email,
+            RecipeAccess.is_pending_review.is_(True),
+            RecipeModel.review_status != "pending",
+            RecipeModel.deleted_at.is_(None),
+        )
+        .all()
+    )
+
+    for access, recipe in approved_rows:
+        sharer = db.query(User).filter(User.id == access.created_by).first()
+        notifications.append(Notification(
+            type="share_approved",
+            data={
+                "recipe_id": recipe.id,
+                "recipe_title": recipe.title,
+                "shared_by_name": sharer.name if sharer else "Unbekannt",
+            },
+        ))
+        access.is_pending_review = False  # mark as notified
+        needs_commit = True
+
+    # ── recipe_review_result: populated once review endpoint sets notified_at ──
+    # Infrastructure (recipe_versions.notified_at column) is in place via migration 0012.
+    # Requires review endpoint to stamp versions on completion before this fires.
+
+    if needs_commit:
         db.commit()
 
     return TokenResponse(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
         declined_shares=declined_shares if declined_shares else None,
+        notifications=notifications if notifications else None,
     )
 
 
@@ -200,7 +236,7 @@ def register(
         db.add(ev_token)
         db.commit()
         background_tasks.add_task(send_verification_email, email, user.name, ev_token_str)
-        return {"message": "Bestätigungs-Email gesendet", "status": "pending"}
+        return {"message": "Wir haben dir eine Bestätigungs-Email gesendet.", "status": "verification_sent"}
     else:
         # Not invited: notify admins, no email to user
         db.commit()
@@ -214,7 +250,10 @@ def register(
         )
         for admin in admins:
             background_tasks.add_task(send_pending_registration_email, admin.email, user.name, email)
-        return {"message": "Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen.", "status": "pending"}
+        return {
+            "message": "Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und dich dann kontaktieren.",
+            "status": "pending",
+        }
 
 
 @router.get("/verify-email")

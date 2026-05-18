@@ -158,6 +158,8 @@ class RecipeVersion(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    notified_at = Column(DateTime(timezone=True), nullable=True)
+
     recipe = relationship(
         "Recipe",
         foreign_keys="[RecipeVersion.recipe_id]",

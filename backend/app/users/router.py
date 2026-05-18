@@ -194,6 +194,19 @@ def activate_user(
     if not user:
         raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
 
+    # Guard against duplicate emails on repeated clicks
+    existing_token = (
+        db.query(EmailVerificationToken)
+        .filter(
+            EmailVerificationToken.user_id == user.id,
+            EmailVerificationToken.used_at.is_(None),
+            EmailVerificationToken.expires_at > datetime.now(timezone.utc),
+        )
+        .first()
+    )
+    if existing_token:
+        return {"message": "Verifikations-Email wurde bereits gesendet."}
+
     token_str = secrets.token_urlsafe(32)
     ev_token = EmailVerificationToken(
         token=token_str,
@@ -312,6 +325,7 @@ def get_shared_recipes(
                 "access_id": access_map[r.id].id,
                 "expires_at": access_map[r.id].expires_at.isoformat() if access_map[r.id].expires_at else None,
                 "shared_by_name": creators.get(r.created_by, "Unbekannt"),
+                "is_pending_review": bool(access_map[r.id].is_pending_review),
             }
             for r in recipes
         ],

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -21,6 +21,7 @@ class RecipeAccess(Base):
     page = Column(Integer, default=1)
     page_size = Column(Integer, default=20)
     notified_at = Column(DateTime(timezone=True), nullable=True)
+    is_pending_review = Column(Boolean, nullable=True, default=False)
 
 
 class DisposableEmailDomain(Base):

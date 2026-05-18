@@ -70,6 +70,7 @@ def create_access(
         token=token_str,
         expires_at=expires_at,
         created_by=current_user.id,
+        is_pending_review=(recipe.review_status == "pending"),
     )
     db.add(access)
     db.commit()
@@ -193,4 +194,5 @@ def _serialize(a: RecipeAccess) -> dict:
         "expires_at": a.expires_at.isoformat() if a.expires_at else None,
         "created_at": a.created_at.isoformat() if a.created_at else None,
         "declined_at": a.declined_at.isoformat() if a.declined_at else None,
+        "is_pending_review": bool(a.is_pending_review),
     }

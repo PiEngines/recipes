@@ -90,7 +90,7 @@ def list_recipes(
 ):
     from app.models.access import RecipeAccess
 
-    q = db.query(Recipe)
+    q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
 
     if current_user is None:
         # Unauthenticated: only recipes with active free_for_all access
@@ -106,12 +106,19 @@ def list_recipes(
         )
         q = q.filter(Recipe.id.in_(free_sq))
     else:
-        # All authenticated users see all recipes
+        # Authenticated: published recipes + own drafts
+        own_or_published = (
+            (Recipe.status == RecipeStatus.published)
+            | (Recipe.created_by == current_user.id)
+        )
         if status_filter is not None:
             try:
-                q = q.filter(Recipe.status == RecipeStatus(status_filter))
+                sf = RecipeStatus(status_filter)
+                q = q.filter(own_or_published & (Recipe.status == sf))
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+        else:
+            q = q.filter(own_or_published)
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
@@ -167,14 +174,16 @@ def get_recipe(
     current_user: User | None = Depends(get_optional_user),
 ):
     from app.models.access import RecipeAccess
+    from app.recipes.schemas import RecipeResponse as RecipeResponseSchema
 
     recipe = _load_full(recipe_id, db)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
+    now = datetime.now(timezone.utc)
+
     if current_user is None:
         # Unauthenticated: check free_for_all or individual token
-        now = datetime.now(timezone.utc)
         has_free = (
             db.query(RecipeAccess)
             .filter(
@@ -201,7 +210,28 @@ def get_recipe(
                     raise HTTPException(status_code=404, detail="Recipe not found")
             else:
                 raise HTTPException(status_code=404, detail="Recipe not found")
-    # Authenticated users: always allowed
+    else:
+        # Authenticated: must be published, own recipe, or admin
+        if recipe.status != RecipeStatus.published:
+            if current_user.role not in (UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
+                raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # Check if current user has pending-review access (recipient sees review flag)
+    if current_user and current_user.email:
+        pending_access = (
+            db.query(RecipeAccess)
+            .filter(
+                RecipeAccess.recipe_id == recipe_id,
+                RecipeAccess.email == current_user.email,
+                RecipeAccess.is_pending_review.is_(True),
+            )
+            .first()
+        )
+        if pending_access:
+            return RecipeResponseSchema.model_validate(recipe).model_copy(
+                update={"is_pending_review": True}
+            )
+
     return recipe
 
 

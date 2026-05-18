@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 from pydantic import BaseModel
 
@@ -15,11 +14,17 @@ class DeclinedShare(BaseModel):
     declined_by_name: str
 
 
+class Notification(BaseModel):
+    type: str   # share_declined | share_approved | recipe_review_result
+    data: dict
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    declined_shares: list[DeclinedShare] | None = None
+    declined_shares: list[DeclinedShare] | None = None  # kept for backward compat
+    notifications: list[Notification] | None = None
 
 
 class UserResponse(BaseModel):

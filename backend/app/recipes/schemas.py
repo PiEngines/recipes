@@ -184,6 +184,7 @@ class RecipeResponse(BaseModel):
     diet_labels: list[DietLabelResponse]
     allergens: list[AllergenResponse]
     images: list[RecipeImageResponse]
+    is_pending_review: bool = False
     model_config = {"from_attributes": True}
 
 
