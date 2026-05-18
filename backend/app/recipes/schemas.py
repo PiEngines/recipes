@@ -51,6 +51,7 @@ class IngredientCreate(BaseModel):
     amount: str | None = None
     unit: str | None = None
     sort_order: int = 0
+    is_integer: bool = False
 
 
 class IngredientResponse(BaseModel):
@@ -60,6 +61,7 @@ class IngredientResponse(BaseModel):
     amount: str | None
     unit: str | None
     sort_order: int
+    is_integer: bool
     model_config = {"from_attributes": True}
 
 

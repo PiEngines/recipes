@@ -32,7 +32,13 @@ function diffColor(d) {
   return '#C8602A'
 }
 
-const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '' })
+const IS_INTEGER_WORDS = new Set(['ei', 'eier', 'eigelb', 'eigelbe', 'eidotter', 'eiklar', 'dotter', 'wachtelei', 'wachteleier'])
+function autoIsInteger(name) {
+  const lower = name.toLowerCase().trim()
+  const first = lower.split(/\s+/)[0]
+  return IS_INTEGER_WORDS.has(lower) || IS_INTEGER_WORDS.has(first)
+}
+const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '', is_integer: false, _auto_int: true })
 const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, dbId: null, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: false })
 
 // ── Confirm dialog ────────────────────────────────────────────────────────────
@@ -315,12 +321,27 @@ function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
         <button onClick={onRemove} title="Entfernen" style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'none', border: '1.5px solid var(--border-input)', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>×</button>
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', paddingLeft: '3.5rem' }}>
-        <IngredientNameInput value={item.name} onChange={v => onChange('name', v)} />
+        <IngredientNameInput
+          value={item.name}
+          onChange={v => {
+            onChange('name', v)
+            if (item._auto_int) onChange('is_integer', autoIsInteger(v))
+          }}
+        />
         <div style={{ flex: '1 1 60px', minWidth: 0 }}>
           <SmallInput value={item.amount} onChange={v => onChange('amount', v)} placeholder="Menge" />
         </div>
         <UnitCombobox value={item.unit} onChange={v => onChange('unit', v)} />
       </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.375rem', paddingLeft: '3.5rem', fontSize: '0.78rem', color: 'var(--subtext)', cursor: 'pointer', userSelect: 'none' }}>
+        <input
+          type="checkbox"
+          checked={item.is_integer ?? false}
+          onChange={e => { onChange('is_integer', e.target.checked); onChange('_auto_int', false) }}
+          style={{ accentColor: 'var(--accent)', width: '13px', height: '13px' }}
+        />
+        Nur ganze Stück
+      </label>
     </div>
   )
 }
@@ -570,7 +591,7 @@ export default function RecipeForm() {
           selectedCats: r.categories,
           selectedTags: r.tags,
           ingredients: ings.length
-            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '' }))
+            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '', is_integer: i.is_integer ?? false, _auto_int: false }))
             : [mkIng()],
           steps: sps.length
             ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false, media: [] }))
@@ -618,7 +639,7 @@ export default function RecipeForm() {
       tag_ids: s.selectedTags.map(t => t.id),
       ingredients: s.ingredients
         .filter(i => i.name.trim())
-        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name, amount: i.amount || null, unit: i.unit || null, sort_order: idx })),
+        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name, amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({
@@ -840,9 +861,11 @@ export default function RecipeForm() {
               <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/10</span>
               <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>{difficulty <= 3 ? 'Einfach' : difficulty <= 6 ? 'Mittel' : 'Schwer'}</span>
             </div>
-            <div style={{ display: 'flex', gap: '3px' }}>
-              {Array.from({ length: 10 }).map((_, i) => <span key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < difficulty ? diffColor(difficulty) : 'var(--border-input)', display: 'inline-block' }} />)}
-            </div>
+            <span style={{ display: 'inline-flex', gap: '2px' }} title={`${difficulty}/10`}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span key={i} style={{ fontSize: '1.1rem', color: '#C8602A', opacity: i < Math.ceil(difficulty / 2) ? 1 : 0.2, lineHeight: 1 }}>🥄</span>
+              ))}
+            </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><FieldLabel>Quelle / Inspiration</FieldLabel><StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" /></div>

@@ -91,6 +91,7 @@ class Ingredient(Base):
     amount = Column(String(100))           # string to support "½", "a pinch", etc.
     unit = Column(String(100))
     sort_order = Column(Integer, nullable=False, default=0)
+    is_integer = Column(Boolean, nullable=False, default=False)
 
     recipe = relationship("Recipe", back_populates="ingredients")
 

@@ -21,21 +21,36 @@ function diffColor(d) {
   return '#C8602A'
 }
 
-function scaleAmount(amount, factor) {
-  if (!amount || factor === 1) return amount
-  const frac = /^(\d+)\s*\/\s*(\d+)$/.exec(amount.trim())
-  if (frac) return fmtNum((parseInt(frac[1]) / parseInt(frac[2])) * factor)
-  const n = parseFloat(amount)
-  if (isNaN(n)) return amount
-  return fmtNum(n * factor)
+const EXACT_UNITS = new Set(['tsp', 'tbsp', 'pinch', 'TL', 'EL', 'Prise'])
+
+function roundToQuarter(n) {
+  return Math.round(n * 4) / 4
 }
 
-function fmtNum(n) {
-  if (Math.abs(n - Math.round(n)) < 0.02) return String(Math.round(n))
-  for (const [num, den] of [[1,8],[1,4],[1,3],[3,8],[1,2],[5,8],[2,3],[3,4],[7,8]]) {
-    if (Math.abs(n - num / den) < 0.07) return `${num}/${den}`
+function fmtScaled(n) {
+  if (n <= 0) return '0'
+  const whole = Math.floor(n + 0.001)
+  const frac = Math.round((n - whole) * 4) / 4
+  const fracStr = frac < 0.01 ? '' : frac < 0.4 ? '1/4' : frac < 0.65 ? '1/2' : '3/4'
+  if (whole === 0) return fracStr || '0'
+  if (!fracStr) return String(whole)
+  return `${whole} ${fracStr}`
+}
+
+function scaleAmount(amount, factor, unit, isInteger) {
+  if (!amount || factor === 1) return amount
+  if (unit && EXACT_UNITS.has(unit)) return amount
+  const frac = /^(\d+)\s*\/\s*(\d+)$/.exec(amount.trim())
+  let n
+  if (frac) {
+    n = (parseInt(frac[1]) / parseInt(frac[2])) * factor
+  } else {
+    n = parseFloat(amount)
+    if (isNaN(n)) return amount
+    n *= factor
   }
-  return n.toFixed(1).replace(/\.0$/, '')
+  if (isInteger) return String(Math.ceil(n))
+  return fmtScaled(roundToQuarter(n))
 }
 
 function fmtTime(s) {
@@ -65,6 +80,19 @@ function buildHighlightedHtml(text, ingredientName) {
   const escaped = escapeHtml(text)
   const pattern = new RegExp(escapeHtml(ingredientName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
   return escaped.replace(pattern, m => `<mark class="ingredient-highlight">${m}</mark>`)
+}
+
+// ── Difficulty spoons ─────────────────────────────────────────────────────────
+
+function DifficultySpoons({ difficulty }) {
+  const filled = Math.ceil(difficulty / 2)
+  return (
+    <span title={`${difficulty}/10`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} style={{ fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1 }}>🥄</span>
+      ))}
+    </span>
+  )
 }
 
 // ── Hero section ──────────────────────────────────────────────────────────────
@@ -146,12 +174,7 @@ function MetaBar({ recipe }) {
       {recipe.difficulty && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Schwierigkeit</span>
-          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <span key={i} style={{ width: '7px', height: '7px', borderRadius: '50%', background: i < recipe.difficulty ? color : 'var(--border-input)', display: 'inline-block' }} />
-            ))}
-            <span style={{ fontSize: '0.75rem', color: 'var(--subtext)', marginLeft: '0.3rem' }}>{recipe.difficulty}/10</span>
-          </div>
+          <DifficultySpoons difficulty={recipe.difficulty} />
         </div>
       )}
 
@@ -202,7 +225,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
   const renderIng = ing => {
     const active = activeIds.has(ing.id)
     const selected = selectedIngredient?.id === ing.id
-    const scaled = scaleAmount(ing.amount, scaleFactor)
+    const scaled = scaleAmount(ing.amount, scaleFactor, ing.unit, ing.is_integer)
     return (
       <div
         key={ing.id}

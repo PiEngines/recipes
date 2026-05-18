@@ -17,10 +17,15 @@ const CARD_GRADIENTS = [
   'linear-gradient(135deg, #C4A55A 0%, #E0C870 100%)',  // Sandgelb
 ]
 
-function diffColor(d) {
-  if (d <= 3) return '#6B7C4E'
-  if (d <= 6) return '#C8A020'
-  return '#C8602A'
+function DifficultySpoons({ difficulty }) {
+  const filled = Math.ceil(difficulty / 2)
+  return (
+    <span title={`${difficulty}/10`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span key={i} style={{ fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1 }}>🥄</span>
+      ))}
+    </span>
+  )
 }
 
 // ── Icons ────────────────────────────────────────────────────────────────────
@@ -56,7 +61,6 @@ function SunIcon() {
 
 function RecipeCard({ recipe, primaryImage }) {
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
-  const color = recipe.difficulty ? diffColor(recipe.difficulty) : null
   const isDraft = recipe.status === 'draft'
 
   const draftBadge = isDraft && (
@@ -126,14 +130,7 @@ function RecipeCard({ recipe, primaryImage }) {
                 )}
               </div>
             )}
-            {recipe.difficulty && (
-              <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <span key={i} style={{ width: '7px', height: '7px', borderRadius: '50%', background: i < recipe.difficulty ? color : 'var(--border-input)', display: 'inline-block', flexShrink: 0 }} />
-                ))}
-                <span style={{ marginLeft: '0.375rem', fontSize: '0.7rem', color: 'var(--subtext)' }}>{recipe.difficulty}/10</span>
-              </div>
-            )}
+            {recipe.difficulty && <DifficultySpoons difficulty={recipe.difficulty} />}
           </div>
         </div>
       </div>
@@ -259,38 +256,45 @@ export default function Recipes() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
-      {/* Sticky header */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'background-color 0.3s ease' }}>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, margin: 0, color: 'var(--text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-          🍽️ PiEngines
-        </h1>
+      {/* Sticky header — 2-row on mobile, 1-row on sm+ */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.625rem 1.5rem', transition: 'background-color 0.3s ease' }}>
+        <div className="flex flex-wrap items-center" style={{ gap: '0.625rem', rowGap: '0.5rem' }}>
 
-        <SearchInput value={searchInput} onChange={setSearchInput} />
+          {/* Logo: row 1 left */}
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, margin: 0, color: 'var(--text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            🍽️ PiEngines
+          </h1>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          {isAdmin && (
-            <button
-              onClick={() => navigate('/recipes/new')}
-              style={{ padding: '0.45rem 1rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', transition: 'var(--transition)', flexShrink: 0 }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
-            >
-              + Neues Rezept
-            </button>
-          )}
-          <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
-            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-          </IconBtn>
+          {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
+          <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
+            <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            </IconBtn>
+            <div ref={menuRef} style={{ position: 'relative' }}>
+              <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                {initials}
+              </button>
+              {showMenu && (
+                <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
+                  <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
+                  <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <div ref={menuRef} style={{ position: 'relative' }}>
-            <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
-              {initials}
-            </button>
-            {showMenu && (
-              <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
-                <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
-                <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
-              </div>
+          {/* Search + New: row 2 full-width on mobile (order 3), flex-1 on sm+ */}
+          <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', minWidth: 0 }}>
+            <SearchInput value={searchInput} onChange={setSearchInput} />
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/recipes/new')}
+                style={{ padding: '0.45rem 1rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', transition: 'var(--transition)', flexShrink: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent-hover)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--accent)' }}
+              >
+                + Neues Rezept
+              </button>
             )}
           </div>
         </div>
