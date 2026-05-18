@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
 const NavigationContext = createContext(null)
@@ -22,10 +22,9 @@ function getLabelForPath(path, dynamicLabels) {
 export function NavigationProvider({ children }) {
   const location = useLocation()
   const [previousRoute, setPreviousRoute] = useState(null)
-  const stackRef = useRef([])       // { path, label }[]
   const prevPathRef = useRef(null)
   const dynamicLabelsRef = useRef({})
-  const skipNextRef = useRef(false) // true when goBack triggered navigation
+  const previousRouteRef = useRef(null)
 
   const setDynamicLabel = (path, label) => {
     dynamicLabelsRef.current = { ...dynamicLabelsRef.current, [path]: label }
@@ -41,45 +40,24 @@ export function NavigationProvider({ children }) {
 
     if (prevPathRef.current === currentPath) return
 
-    if (skipNextRef.current) {
-      // Navigation was triggered by goBack — don't push, just sync state
-      skipNextRef.current = false
+    // Don't update if navigating to what is already the previousRoute (avoids A→B→A loop)
+    if (previousRouteRef.current && previousRouteRef.current.path === currentPath) {
       prevPathRef.current = currentPath
-      const top = stackRef.current[stackRef.current.length - 1]
-      setPreviousRoute(top || null)
       return
     }
 
-    // Push previous path to history stack (deduplicate consecutive entries)
     const label = getLabelForPath(prevPathRef.current, dynamicLabelsRef.current)
     if (label) {
-      const last = stackRef.current[stackRef.current.length - 1]
-      if (!last || last.path !== prevPathRef.current) {
-        stackRef.current = [...stackRef.current.slice(-9), { path: prevPathRef.current, label }]
-      }
+      const route = { path: prevPathRef.current, label }
+      previousRouteRef.current = route
+      setPreviousRoute(route)
     }
 
     prevPathRef.current = currentPath
-    const top = stackRef.current[stackRef.current.length - 1]
-    setPreviousRoute(top || null)
   }, [location.pathname])
 
-  const goBack = useCallback((navigate, fallback = '/') => {
-    if (stackRef.current.length > 0) {
-      const top = stackRef.current[stackRef.current.length - 1]
-      stackRef.current = stackRef.current.slice(0, -1)
-      skipNextRef.current = true
-      setPreviousRoute(stackRef.current[stackRef.current.length - 1] || null)
-      navigate(top.path)
-    } else if (window.history.length > 1) {
-      navigate(-1)
-    } else {
-      navigate(fallback)
-    }
-  }, [])
-
   return (
-    <NavigationContext.Provider value={{ previousRoute, setDynamicLabel, goBack }}>
+    <NavigationContext.Provider value={{ previousRoute, setDynamicLabel }}>
       {children}
     </NavigationContext.Provider>
   )

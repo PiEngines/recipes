@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import MediaUpload from '../components/MediaUpload'
+import Breadcrumb from '../components/Breadcrumb'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -801,6 +802,14 @@ export default function RecipeForm() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '96px' }}>
+
+      {/* Breadcrumb strip */}
+      <div style={{ padding: '0.625rem 1.5rem', maxWidth: '860px', margin: '0 auto' }}>
+        <Breadcrumb items={isEdit
+          ? [{ label: 'Alle Rezepte', path: '/' }, { label: title || 'Rezept', path: recipeId ? `/recipes/${recipeId}` : null }, { label: 'Bearbeiten', path: null }]
+          : [{ label: 'Alle Rezepte', path: '/' }, { label: 'Neues Rezept', path: null }]
+        } />
+      </div>
 
       {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
       {showLeaveConfirm && (

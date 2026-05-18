@@ -64,9 +64,17 @@ function RecipeCard({ recipe, primaryImage }) {
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
   const isDraft = recipe.status === 'draft'
 
+  const isPendingReview = recipe.review_status === 'pending'
+
   const draftBadge = isDraft && (
     <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(0,0,0,0.45)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', zIndex: 2 }}>
       Entwurf
+    </span>
+  )
+
+  const pendingBadge = isPendingReview && (
+    <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(200,160,32,0.9)', color: '#5a4400', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.02em', zIndex: 2 }}>
+      Wird geprüft
     </span>
   )
 
@@ -92,7 +100,7 @@ function RecipeCard({ recipe, primaryImage }) {
         }}
       />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 58%)' }} />
-      {draftBadge}
+      {pendingBadge || draftBadge}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.875rem 1rem' }}>
         {titleSpan}
       </div>
@@ -100,13 +108,13 @@ function RecipeCard({ recipe, primaryImage }) {
   ) : (
     // ── Gradient Card: unverändert ────────────────────────────────────────────
     <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
-      {draftBadge}
+      {pendingBadge || draftBadge}
       {titleSpan}
     </div>
   )
 
   return (
-    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%' }}>
+    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: isPendingReview ? 0.65 : 1 }}>
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {topArea}
         {/* Weißer Infobereich – gleich für beide Varianten */}

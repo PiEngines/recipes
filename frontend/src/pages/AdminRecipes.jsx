@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import Breadcrumb from '../components/Breadcrumb'
 
 const TABS = [
   { key: 'alle', label: 'Alle' },
@@ -76,6 +77,7 @@ export default function AdminRecipes() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
 
+        <Breadcrumb items={[{ label: 'Admin', path: '/admin' }, { label: 'Rezeptverwaltung', path: null }]} />
         <button onClick={() => navigate('/admin')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           ← Admin-Bereich
         </button>

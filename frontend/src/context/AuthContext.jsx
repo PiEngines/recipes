@@ -6,6 +6,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [pendingNotifications, setPendingNotifications] = useState([])
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')
@@ -26,19 +27,25 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh_token', data.refresh_token)
     const me = await client.get('/api/auth/me')
     setUser(me.data)
+    if (data.notifications?.length) {
+      setPendingNotifications(data.notifications)
+    }
     return data.declined_shares || []
   }
+
+  const clearPendingNotifications = () => setPendingNotifications([])
 
   const logout = async () => {
     try { await client.post('/api/auth/logout') } catch (_) { /* stateless */ }
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     setUser(null)
+    setPendingNotifications([])
     window.location.href = '/login'
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, pendingNotifications, clearPendingNotifications }}>
       {children}
     </AuthContext.Provider>
   )

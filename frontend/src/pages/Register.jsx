@@ -14,6 +14,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [successStatus, setSuccessStatus] = useState('verification_sent')
 
   const triggerShake = () => {
     setShake(true)
@@ -48,12 +49,13 @@ export default function Register() {
 
     setLoading(true)
     try {
-      await client.post('/api/auth/register', {
+      const res = await client.post('/api/auth/register', {
         name: name.trim(),
         email: email.trim(),
         password,
         token: token || undefined,
       })
+      setSuccessStatus(res.data.status || 'verification_sent')
       setEmailSent(true)
     } catch (err) {
       const status = err.response?.status
@@ -79,11 +81,13 @@ export default function Register() {
         <div style={cardStyle}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>✉️</div>
-            <h1 style={headingStyle}>Bestätigungs-Email gesendet</h1>
+            <h1 style={headingStyle}>
+              {successStatus === 'pending' ? 'Anfrage gesendet' : 'Bestätigungs-Email gesendet'}
+            </h1>
             <p style={{ color: '#6B6B68', margin: '0 0 1.5rem', fontSize: '0.925rem', lineHeight: 1.6 }}>
-              {token
-                ? 'Wir haben dir eine Bestätigungs-Email gesendet. Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.'
-                : 'Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und du erhältst eine Email sobald dein Konto freigeschaltet wird.'}
+              {successStatus === 'pending'
+                ? 'Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und dich dann kontaktieren.'
+                : 'Wir haben dir eine Bestätigungs-Email gesendet. Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.'}
             </p>
             <Link to="/login" style={{ color: 'var(--accent)', fontSize: '0.9rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
               ← Zurück zur Anmeldung

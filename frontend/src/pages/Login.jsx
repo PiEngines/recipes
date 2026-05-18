@@ -14,7 +14,6 @@ export default function Login() {
   const [emailNotVerified, setEmailNotVerified] = useState(false)
   const [resendSent, setResendSent] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
-  const [declinedShares, setDeclinedShares] = useState(null)
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -23,14 +22,9 @@ export default function Login() {
     setResendSent(false)
     setLoading(true)
     try {
-      const declined = await login(email, password)
+      await login(email, password)
       localStorage.setItem('just_logged_in', 'true')
-      if (declined?.length) {
-        setDeclinedShares(declined)
-        setLoading(false)
-      } else {
-        navigate('/', { replace: true })
-      }
+      navigate('/', { replace: true })
     } catch (err) {
       const detail = err.response?.data?.detail
       if (err.response?.status === 403 && detail?.code === 'email_not_verified') {
@@ -56,35 +50,6 @@ export default function Login() {
     } finally {
       setResendLoading(false)
     }
-  }
-
-  if (declinedShares) {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📣</div>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 600, color: '#2C2C2A', margin: 0 }}>
-              Neuigkeiten
-            </h2>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-            {declinedShares.map((s, i) => (
-              <div key={i} style={{ padding: '0.75rem 1rem', background: '#f9f7f5', borderRadius: '10px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: '#2C2C2A', lineHeight: 1.5 }}>
-                <strong>{s.declined_by_name}</strong> folgt deinem Rezept{' '}
-                <strong>„{s.recipe_title}"</strong> nicht mehr.
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={() => navigate('/', { replace: true })}
-            style={{ width: '100%', padding: '0.9rem', background: '#C8602A', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer' }}
-          >
-            Verstanden
-          </button>
-        </div>
-      </div>
-    )
   }
 
   return (

@@ -6,6 +6,7 @@ import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import BackButton from '../components/BackButton'
+import Breadcrumb from '../components/Breadcrumb'
 import { isChefkoch, isKochOrAbove } from '../utils/roles'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
@@ -672,32 +673,38 @@ export default function RecipeDetail() {
       <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
 
       {/* Back nav */}
-      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-        <BackButton fallback="/" label="← Alle Rezepte" />
-        {isAdmin && recipe && (
-          <button
-            onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
-            style={{
-              padding: '0.4rem 1rem',
-              border: '1.5px solid var(--accent)',
-              borderRadius: 'var(--radius-pill)',
-              background: 'none',
-              color: 'var(--accent)',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-              transition: 'var(--transition)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-          >
-            ✏ Bearbeiten
-          </button>
-        )}
+      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <Breadcrumb items={[
+          { label: 'Alle Rezepte', path: '/' },
+          { label: recipe?.title || '…', path: null },
+        ]} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <BackButton fallback="/" />
+          {isAdmin && recipe && (
+            <button
+              onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
+              style={{
+                padding: '0.4rem 1rem',
+                border: '1.5px solid var(--accent)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'none',
+                color: 'var(--accent)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                transition: 'var(--transition)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            >
+              ✏ Bearbeiten
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -719,19 +726,11 @@ export default function RecipeDetail() {
 
           {/* Main */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Mobile: show ingredients button */}
-            <div className="md:hidden" style={{ marginBottom: '1rem' }}>
-              <button onClick={() => setDrawerOpen(true)} style={{
-                width: '100%', padding: '0.75rem',
-                background: 'var(--card)', border: '1.5px solid var(--border-input)',
-                borderRadius: 'var(--radius-input)', color: 'var(--text)',
-                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
-                fontSize: '0.925rem', fontWeight: 500,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              }}>
-                🥗 Zutaten anzeigen ({recipe.ingredients.length})
-              </button>
-            </div>
+            {recipe.is_pending_review && (
+              <div style={{ background: 'rgba(200,160,32,0.12)', border: '1px solid rgba(200,160,32,0.35)', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#A68000', lineHeight: 1.5 }}>
+                ⏳ Dieses Rezept wird gerade vom Admin geprüft und ist noch nicht vollständig freigegeben.
+              </div>
+            )}
 
             <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
             <MetaBar recipe={recipe} />
@@ -806,6 +805,36 @@ export default function RecipeDetail() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Mobile floating ingredients button */}
+      <div className="md:hidden" style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 90 }}>
+        <button
+          onClick={() => setDrawerOpen(true)}
+          style={{
+            width: '48px', height: '48px', borderRadius: '50%',
+            background: 'var(--secondary)', color: '#fff',
+            border: 'none', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.2rem', position: 'relative',
+          }}
+          title="Zutaten anzeigen"
+        >
+          🥗
+          {activeIds.size > 0 && (
+            <span style={{
+              position: 'absolute', top: '-3px', right: '-3px',
+              background: 'var(--accent)', color: '#fff',
+              borderRadius: '999px', fontSize: '0.6rem', fontWeight: 700,
+              minWidth: '16px', height: '16px', padding: '0 3px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              lineHeight: 1,
+            }}>
+              {activeIds.size}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Mobile drawer */}

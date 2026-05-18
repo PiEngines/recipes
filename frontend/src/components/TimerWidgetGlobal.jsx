@@ -44,39 +44,15 @@ function TimerRow({ timer, expanded, onClick, onAddTime, onRemove }) {
 
 export default function TimerWidgetGlobal() {
   const navigate = useNavigate()
-  const { timers, remove, addTime, expiredTimers, confirmAllExpired } = useTimerContext()
+  const { timers, remove, addTime } = useTimerContext()
   const [expanded, setExpanded] = useState(false)
   const [pos, setPos] = useState(loadPos)
-  const [showExpiredModal, setShowExpiredModal] = useState(() => {
-    const { expired } = (() => {
-      try {
-        const raw = localStorage.getItem('piengines_timers')
-        if (!raw) return { expired: [] }
-        const now = Date.now()
-        return { expired: JSON.parse(raw).filter(t => Math.max(0, Math.round((t.endTime - now) / 1000)) === 0) }
-      } catch { return { expired: [] } }
-    })()
-    return expired.length > 0
-  })
+  // ExpiredTimerModal moved to NotificationsModal (App.jsx)
   const widgetRef = useRef(null)
   const mouseDragState = useRef(null)
   const touchDragState = useRef(null)
 
   useEffect(() => { if (pos) savePos(pos) }, [pos])
-
-  // Show modal when new timers expire
-  useEffect(() => {
-    if (expiredTimers.length > 0) setShowExpiredModal(true)
-  }, [expiredTimers.length])
-
-  // Show modal on tab return if expired timers exist
-  useEffect(() => {
-    const handler = () => {
-      if (document.visibilityState === 'visible' && expiredTimers.length > 0) setShowExpiredModal(true)
-    }
-    document.addEventListener('visibilitychange', handler)
-    return () => document.removeEventListener('visibilitychange', handler)
-  }, [expiredTimers])
 
   // Mouse drag
   useEffect(() => {
@@ -174,31 +150,6 @@ export default function TimerWidgetGlobal() {
         </div>
       )}
 
-      {/* Expired timer modal */}
-      {showExpiredModal && expiredTimers.length > 0 && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent)', margin: '0 0 1rem' }}>⏱ Timer abgelaufen!</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              {expiredTimers.map(t => (
-                <span
-                  key={t.id}
-                  onClick={() => { navigate(`/recipes/${t.recipeId}`); setShowExpiredModal(false); confirmAllExpired() }}
-                  style={{ color: 'var(--accent)', cursor: 'pointer', fontSize: '0.925rem', fontFamily: 'Inter, sans-serif', textDecoration: 'underline' }}
-                >
-                  • {t.label} – {t.recipeTitle}
-                </span>
-              ))}
-            </div>
-            <button
-              onClick={() => { confirmAllExpired(); setShowExpiredModal(false) }}
-              style={{ width: '100%', padding: '0.75rem', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '1rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer' }}
-            >
-              Verstanden
-            </button>
-          </div>
-        </div>
-      )}
     </>
   )
 }

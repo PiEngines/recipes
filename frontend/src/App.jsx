@@ -4,6 +4,7 @@ import { TimerProvider } from './context/TimerContext'
 import { NavigationProvider } from './context/NavigationContext'
 import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute'
 import TimerWidgetGlobal from './components/TimerWidgetGlobal'
+import NotificationsModal from './components/NotificationsModal'
 // import OnboardingPopup from './components/OnboardingPopup'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminRecipes from './pages/AdminRecipes.jsx'
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/users/:id" element={<PublicProfile />} />
           </Routes>
           <TimerWidgetGlobal />
+          <NotificationsModal />
           {/* <OnboardingPopup /> */}
         </NavigationProvider>
       </TimerProvider>

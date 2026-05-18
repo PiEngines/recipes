@@ -4,6 +4,7 @@ import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import BackButton from '../components/BackButton'
+import Breadcrumb from '../components/Breadcrumb'
 import { getRoleLabel } from '../utils/roles'
 
 export default function Profile() {
@@ -221,6 +222,7 @@ export default function Profile() {
 
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
+          <Breadcrumb items={[{ label: 'Startseite', path: '/' }, { label: 'Mein Profil', path: null }]} />
           <div style={{ marginBottom: '1rem' }}>
             <BackButton fallback="/" />
           </div>
@@ -747,7 +749,7 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
         expires_days: expiresDays,
       })
       const limitLabel = newNoLimit ? 'Ohne Limit' : newExpiry ? new Date(newExpiry).toLocaleDateString('de-DE') : 'Ohne Limit'
-      onToast?.(`${newEmail.trim()} geteilt. Limit: ${limitLabel}`)
+      onToast?.(`Mit ${newEmail.trim()} erfolgreich geteilt. Limit: ${limitLabel}`)
       setNewEmail('')
       setNewExpiry('')
       setNewNoLimit(true)
