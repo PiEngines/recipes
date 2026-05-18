@@ -267,16 +267,27 @@ export default function Recipes() {
 
           {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
           <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                style={{ padding: '0.4rem 0.875rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                Admin
+              </button>
+            )}
             <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </IconBtn>
             <div ref={menuRef} style={{ position: 'relative' }}>
-              <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+              <button onClick={() => { navigate('/profile'); setShowMenu(m => !m) }} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
                 {initials}
               </button>
               {showMenu && (
                 <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
                   <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
+                  <UserMenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</UserMenuItem>
                   <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
                 </div>
               )}

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -19,6 +21,9 @@ class UserResponse(BaseModel):
     role: str
     is_active: bool
     status: str = "active"
+    created_at: datetime | None = None
+    email_notifications: bool = True
+    dark_mode_preference: str | None = None
 
     model_config = {"from_attributes": True}
 

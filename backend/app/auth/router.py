@@ -3,6 +3,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_admin_or_autor
@@ -255,3 +256,24 @@ def invite(
         send_invitation_email, email, token_str, current_user.name, recipe_title
     )
     return {"detail": "Einladung versendet"}
+
+
+# ── Change password ───────────────────────────────────────────────────────────
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+def change_password(
+    body: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not verify_password(body.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Aktuelles Passwort ist falsch")
+    _validate_password(body.new_password)
+    current_user.password_hash = hash_password(body.new_password)
+    db.commit()
+    return {"detail": "Passwort geändert"}

@@ -15,7 +15,7 @@ from app.recipes.router import router as recipes_router
 from app.recipes.versions_router import router as versions_router
 from app.seed import seed_admin, seed_garbage_collector
 from app.tags.router import router as tags_router
-from app.users.router import router as users_router
+from app.users.router import admin_router, router as users_router
 
 logger = logging.getLogger(__name__)
 
@@ -160,6 +160,7 @@ app.include_router(categories_router)
 app.include_router(tags_router)
 app.include_router(media_router)
 app.include_router(users_router)
+app.include_router(admin_router)
 
 
 @app.get("/api/health")

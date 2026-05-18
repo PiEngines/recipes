@@ -82,6 +82,7 @@ def list_recipes(
     tag: int | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     search: str | None = Query(None),
+    author_id: int | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
@@ -117,9 +118,16 @@ def list_recipes(
         term = f"%{search}%"
         q = q.filter(Recipe.title.ilike(term) | Recipe.description.ilike(term))
 
+    if author_id is not None:
+        q = q.filter(Recipe.created_by == author_id)
+
     total = q.count()
     items = (
-        q.options(subqueryload(Recipe.categories), subqueryload(Recipe.tags))
+        q.options(
+            subqueryload(Recipe.categories),
+            subqueryload(Recipe.tags),
+            joinedload(Recipe.author),
+        )
         .order_by(Recipe.created_at.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
@@ -374,7 +382,11 @@ def list_pending_review(
 ):
     items = (
         db.query(Recipe)
-        .options(subqueryload(Recipe.categories), subqueryload(Recipe.tags))
+        .options(
+            subqueryload(Recipe.categories),
+            subqueryload(Recipe.tags),
+            joinedload(Recipe.author),
+        )
         .filter(Recipe.review_status == "pending")
         .order_by(Recipe.updated_at.desc())
         .all()

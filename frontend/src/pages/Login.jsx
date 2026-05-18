@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -107,6 +107,14 @@ export default function Login() {
 
           <LoginButton loading={loading} />
         </form>
+        <div style={{ textAlign: 'center', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Link to="/forgot-password" style={{ color: 'var(--accent)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
+            Passwort vergessen?
+          </Link>
+          <Link to="/register" style={{ color: 'var(--subtext)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
+            Noch kein Konto? <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Registrieren</span>
+          </Link>
+        </div>
       </div>
     </div>
   )

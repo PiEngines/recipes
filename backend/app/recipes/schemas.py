@@ -151,7 +151,10 @@ class RecipeListItem(BaseModel):
     servings: int | None
     difficulty: int | None
     status: str
+    review_status: str | None = None
+    created_by: int | None = None
     created_at: datetime
+    author: AuthorResponse | None = None
     categories: list[CategoryResponse]
     tags: list[TagResponse]
     model_config = {"from_attributes": True}
@@ -169,6 +172,8 @@ class RecipeResponse(BaseModel):
     difficulty: int | None
     status: str
     source: str | None
+    review_status: str | None = None
+    created_by: int | None = None
     created_at: datetime
     updated_at: datetime
     author: AuthorResponse

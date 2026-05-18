@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
@@ -556,6 +556,7 @@ export default function RecipeDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+  const canEdit = isAdmin || (recipe?.created_by === user?.id)
   const { timers, add: addTimer, remove: removeTimer, addTime } = useTimerContext()
 
   const [recipe, setRecipe] = useState(null)
@@ -727,6 +728,31 @@ export default function RecipeDetail() {
 
             <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
             <MetaBar recipe={recipe} />
+
+            {/* Author + dates bar */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--subtext)' }}>
+              {recipe.author && (
+                <span>
+                  von{' '}
+                  <Link to={`/users/${recipe.author.id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+                    {recipe.author.name}
+                  </Link>
+                </span>
+              )}
+              {recipe.author && <span>·</span>}
+              <span>{new Date(recipe.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+              {recipe.updated_at && recipe.updated_at !== recipe.created_at && (
+                <>
+                  <span>·</span>
+                  <span>geändert {new Date(recipe.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                </>
+              )}
+              {recipe.review_status === 'pending' && canEdit && (
+                <span style={{ background: 'rgba(200,160,32,0.15)', color: '#A68000', borderRadius: '6px', padding: '0.15rem 0.625rem', fontSize: '0.78rem', fontWeight: 600 }}>
+                  In Prüfung
+                </span>
+              )}
+            </div>
 
             {/* Steps */}
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, margin: '0 0 1.25rem', color: 'var(--text)' }}>
