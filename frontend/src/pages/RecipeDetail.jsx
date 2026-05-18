@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useTimerContext } from '../context/TimerContext'
 import MediaLightbox from '../components/MediaLightbox'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
@@ -42,55 +43,28 @@ function fmtTime(s) {
   return `${m}:${String(sec).padStart(2, '0')}`
 }
 
-function playBeep() {
-  try {
-    const ctx = new AudioContext()
-    ;[880, 1100, 880].forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const g = ctx.createGain()
-      osc.connect(g); g.connect(ctx.destination)
-      osc.frequency.value = freq; osc.type = 'sine'
-      const t = ctx.currentTime + i * 0.22
-      g.gain.setValueAtTime(0.25, t)
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2)
-      osc.start(t); osc.stop(t + 0.22)
-    })
-    setTimeout(() => ctx.close(), 800)
-  } catch (_) {}
+// ── Ingredient fuzzy match ────────────────────────────────────────────────────
+
+function normalizeText(s) {
+  return s.toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
 }
 
-// ── Timer hook ────────────────────────────────────────────────────────────────
+function fuzzyMatch(stepText, ingredientName) {
+  const text = normalizeText(stepText)
+  const tokens = normalizeText(ingredientName).split(/\s+/).filter(t => t.length >= 3)
+  if (tokens.length === 0) return false
+  return tokens.every(t => text.includes(t))
+}
 
-function useTimers() {
-  const [timers, setTimers] = useState([])
-  const nextId = useRef(1)
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setTimers(prev => {
-        if (prev.every(t => t.remaining <= 0)) return prev
-        return prev.map(t => {
-          if (t.remaining <= 0) return t
-          const r = t.remaining - 1
-          if (r === 0) playBeep()
-          return { ...t, remaining: r }
-        })
-      })
-    }, 1000)
-    return () => clearInterval(iv)
-  }, [])
-
-  const add = useCallback((stepIdx, label, seconds) => {
-    const id = nextId.current++
-    setTimers(p => [...p, { id, stepIdx, label, total: seconds, remaining: seconds }])
-    return id
-  }, [])
-
-  const remove = useCallback(id => setTimers(p => p.filter(t => t.id !== id)), [])
-  const addTime = useCallback((id, secs) =>
-    setTimers(p => p.map(t => t.id === id ? { ...t, remaining: t.remaining + secs, total: t.total + secs } : t)), [])
-
-  return { timers, add, remove, addTime }
+function buildHighlightedHtml(text, ingredientName) {
+  const escaped = escapeHtml(text)
+  const pattern = new RegExp(escapeHtml(ingredientName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+  return escaped.replace(pattern, m => `<mark class="ingredient-highlight">${m}</mark>`)
 }
 
 // ── Hero section ──────────────────────────────────────────────────────────────
@@ -216,7 +190,7 @@ function Pill({ children, color }) {
 
 // ── Ingredient list (shared by sidebar + drawer) ──────────────────────────────
 
-function IngredientList({ ingredients, scaleFactor, activeIds, view }) {
+function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIngredient, onSelectIngredient }) {
   const grouped = {}
   for (const ing of ingredients) {
     const key = ing.component_label || ''
@@ -227,21 +201,31 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view }) {
 
   const renderIng = ing => {
     const active = activeIds.has(ing.id)
+    const selected = selectedIngredient?.id === ing.id
     const scaled = scaleAmount(ing.amount, scaleFactor)
     return (
-      <div key={ing.id} style={{
-        padding: '0.375rem 0',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        gap: '0.5rem',
-        transition: 'color 0.2s',
-        color: active ? 'var(--accent)' : 'var(--text)',
-        fontWeight: active ? 600 : 400,
-      }}>
-        {active && <span style={{ color: 'var(--accent)', flexShrink: 0 }}>●</span>}
+      <div
+        key={ing.id}
+        onClick={() => onSelectIngredient?.(selected ? null : { id: ing.id, name: ing.name })}
+        style={{
+          padding: '0.375rem 0.375rem',
+          marginBottom: '1px',
+          borderBottom: selected ? 'none' : '1px solid var(--border)',
+          display: 'flex',
+          gap: '0.5rem',
+          transition: 'all 0.15s',
+          color: (active || selected) ? 'var(--accent)' : 'var(--text)',
+          fontWeight: (active || selected) ? 600 : 400,
+          cursor: 'pointer',
+          background: selected ? 'rgba(200,96,42,0.08)' : 'transparent',
+          borderRadius: selected ? '4px' : 0,
+          outline: selected ? '1.5px solid rgba(200,96,42,0.4)' : 'none',
+        }}
+      >
+        {(active || selected) && <span style={{ color: 'var(--accent)', flexShrink: 0 }}>●</span>}
         <span style={{ flex: 1, fontSize: '0.875rem' }}>{ing.name}</span>
         {(scaled || ing.unit) && (
-          <span style={{ fontSize: '0.8rem', color: active ? 'var(--accent)' : 'var(--subtext)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.8rem', color: (active || selected) ? 'var(--accent)' : 'var(--subtext)', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {scaled}{ing.unit ? ` ${ing.unit}` : ''}
           </span>
         )}
@@ -271,7 +255,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view }) {
 
 // ── Ingredient sidebar (desktop) ──────────────────────────────────────────────
 
-function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, view, onViewChange }) {
+function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, view, onViewChange, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
   return (
     <aside className="hidden md:block" style={{
@@ -316,11 +300,20 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
         </div>
       )}
 
+      {selectedIngredient && (
+        <div style={{ marginBottom: '0.75rem', padding: '0.375rem 0.625rem', background: 'rgba(200,96,42,0.08)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>Filter: {selectedIngredient.name}</span>
+          <button onClick={() => onSelectIngredient(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.8rem', padding: 0, lineHeight: 1 }}>✕</button>
+        </div>
+      )}
+
       <IngredientList
         ingredients={recipe.ingredients}
         scaleFactor={scaleFactor}
         activeIds={activeIds}
         view={view}
+        selectedIngredient={selectedIngredient}
+        onSelectIngredient={onSelectIngredient}
       />
     </aside>
   )
@@ -337,7 +330,7 @@ const adjBtn = {
 
 // ── Mobile ingredients drawer ─────────────────────────────────────────────────
 
-function MobileDrawer({ recipe, servings, baseServings, onServingsChange, activeIds, onClose }) {
+function MobileDrawer({ recipe, servings, baseServings, onServingsChange, activeIds, onClose, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
   return (
     <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 300 }}>
@@ -362,15 +355,78 @@ function MobileDrawer({ recipe, servings, baseServings, onServingsChange, active
             <button onClick={() => onServingsChange(s => s + 1)} style={adjBtn}>+</button>
           </div>
         )}
-        <IngredientList ingredients={recipe.ingredients} scaleFactor={scaleFactor} activeIds={activeIds} view="grouped" />
+        <IngredientList
+          ingredients={recipe.ingredients}
+          scaleFactor={scaleFactor}
+          activeIds={activeIds}
+          view="grouped"
+          selectedIngredient={selectedIngredient}
+          onSelectIngredient={onSelectIngredient}
+        />
       </div>
+    </div>
+  )
+}
+
+// ── Step image row with scroll dots ──────────────────────────────────────────
+
+function StepImageRow({ images, onImageClick }) {
+  const containerRef = useRef(null)
+  const [activeIdx, setActiveIdx] = useState(0)
+
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || images.length <= 1) return
+    const el = containerRef.current
+    const itemWidth = el.scrollWidth / images.length
+    setActiveIdx(Math.min(images.length - 1, Math.round(el.scrollLeft / itemWidth)))
+  }, [images.length])
+
+  return (
+    <div style={{ marginTop: '0.75rem' }}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', width: '100%', minHeight: '180px' }}
+      >
+        {images.map(m => (
+          <img
+            key={m.id}
+            src={m.url}
+            alt=""
+            onClick={e => { e.stopPropagation(); onImageClick?.(m.url, images) }}
+            style={{ height: '180px', width: 'auto', minWidth: '120px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+          />
+        ))}
+      </div>
+      {images.length > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginTop: '6px' }}>
+          {images.map((_, i) => (
+            <span key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === activeIdx ? '#C8602A' : 'var(--border-input)', display: 'inline-block', transition: 'background 0.2s', flexShrink: 0 }} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 // ── Step card ─────────────────────────────────────────────────────────────────
 
-const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages, onImageClick }, ref) {
+const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages, onImageClick, selectedIngredient }, ref) {
+  const matches = selectedIngredient ? fuzzyMatch(step.instruction, selectedIngredient.name) : false
+  const dimmed = selectedIngredient && !matches
+
+  const borderColor = selectedIngredient
+    ? (matches ? 'var(--accent)' : 'transparent')
+    : (isActive ? 'var(--accent)' : 'transparent')
+
+  const bgColor = selectedIngredient
+    ? (matches ? 'color-mix(in srgb, var(--accent) 6%, var(--card))' : 'var(--card)')
+    : (isActive ? 'color-mix(in srgb, var(--accent) 6%, var(--card))' : 'var(--card)')
+
+  const highlightedHtml = selectedIngredient && matches
+    ? buildHighlightedHtml(step.instruction, selectedIngredient.name)
+    : null
+
   return (
     <div
       ref={ref}
@@ -379,29 +435,29 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
         borderRadius: 'var(--radius-card)',
         marginBottom: '1rem',
         padding: '1.25rem 1.25rem 1.25rem 1.5rem',
-        background: isActive ? 'color-mix(in srgb, var(--accent) 6%, var(--card))' : 'var(--card)',
+        background: bgColor,
         boxShadow: 'var(--shadow)',
         cursor: 'pointer',
         transition: 'all 0.2s ease',
-        borderLeft: isActive ? '4px solid var(--accent)' : '4px solid transparent',
-        borderRight: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+        borderLeft: `4px solid ${borderColor}`,
+        borderRight: `2px solid ${borderColor}`,
         position: 'relative',
+        opacity: dimmed ? 0.6 : 1,
       }}
     >
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
         {/* Step number */}
         <div style={{
           width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
-          background: isActive ? 'var(--accent)' : 'var(--border-input)',
-          color: isActive ? '#fff' : 'var(--subtext)',
+          background: (isActive && !selectedIngredient) || matches ? 'var(--accent)' : 'var(--border-input)',
+          color: (isActive && !selectedIngredient) || matches ? '#fff' : 'var(--subtext)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '0.875rem', fontWeight: 700,
           transition: 'all 0.2s ease',
         }}>
           {index + 1}
         </div>
-        <div style={{ flex: 1 }}>
-          {/* Item 2: optionale Schritt-Überschrift */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           {step.title && (
             <h3 style={{
               fontFamily: 'Playfair Display, serif',
@@ -412,26 +468,20 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
               lineHeight: 1.3,
             }}>{step.title}</h3>
           )}
-          <p style={{
-            margin: step.title ? '0' : '0.2rem 0 0',
-            lineHeight: 1.65,
-            fontSize: '0.95rem',
-            color: 'var(--text)',
-          }}>{step.instruction}</p>
+          {highlightedHtml ? (
+            <p
+              style={{ margin: step.title ? '0' : '0.2rem 0 0', lineHeight: 1.65, fontSize: '0.95rem', color: 'var(--text)' }}
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <p style={{ margin: step.title ? '0' : '0.2rem 0 0', lineHeight: 1.65, fontSize: '0.95rem', color: 'var(--text)' }}>
+              {step.instruction}
+            </p>
+          )}
 
-          {/* Step images */}
+          {/* Step images with scroll dots */}
           {stepImages?.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', overflowX: 'auto', width: '100%', minHeight: '180px' }}>
-              {stepImages.map(m => (
-                <img
-                  key={m.id}
-                  src={m.url}
-                  alt=""
-                  onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-                  style={{ height: '180px', width: 'auto', minWidth: '120px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
-                />
-              ))}
-            </div>
+            <StepImageRow images={stepImages} onImageClick={onImageClick} />
           )}
 
           {/* Timer button */}
@@ -463,129 +513,6 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
   )
 })
 
-// ── Timer widget ──────────────────────────────────────────────────────────────
-
-const TimerWidget = forwardRef(function TimerWidget({ timers, expanded, onToggleExpand, onTimerClick, onAddTime, onRemove, pos, onDragStart }, ref) {
-  const style = pos
-    ? { position: 'fixed', left: pos.left, top: pos.top, bottom: 'auto', right: 'auto' }
-    : { position: 'fixed', bottom: '1.5rem', left: '1.5rem' }
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        ...style,
-        zIndex: 400,
-        background: 'var(--card)',
-        borderRadius: expanded ? '16px' : '12px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        minWidth: expanded ? '300px' : '200px',
-        maxWidth: '340px',
-        overflow: 'hidden',
-        transition: 'min-width 0.2s ease, border-radius 0.2s ease',
-        userSelect: 'none',
-      }}
-    >
-      {/* Drag handle / header */}
-      <div
-        onMouseDown={onDragStart}
-        style={{
-          padding: '0.625rem 0.875rem',
-          background: 'var(--accent)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'grab',
-        }}
-      >
-        <span style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>
-          ⏱ {timers.length} Timer aktiv
-        </span>
-        <button
-          onMouseDown={e => e.stopPropagation()}
-          onClick={onToggleExpand}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: '0.8rem' }}
-        >
-          {expanded ? '▼' : '▲'}
-        </button>
-      </div>
-
-      {/* Timer list */}
-      <div style={{ padding: expanded ? '0.5rem' : '0.375rem', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-        {timers.map(timer => (
-          <TimerRow
-            key={timer.id}
-            timer={timer}
-            expanded={expanded}
-            onClick={() => onTimerClick(timer.id, timer.stepIdx)}
-            onAddTime={onAddTime}
-            onRemove={onRemove}
-          />
-        ))}
-      </div>
-    </div>
-  )
-})
-
-function TimerRow({ timer, expanded, onClick, onAddTime, onRemove }) {
-  const pct = timer.total > 0 ? (timer.remaining / timer.total) * 100 : 0
-  const done = timer.remaining <= 0
-  const color = done ? '#6B7C4E' : timer.remaining < 30 ? '#C8602A' : 'var(--accent)'
-
-  return (
-    <div style={{
-      background: 'var(--bg)',
-      borderRadius: '8px',
-      padding: expanded ? '0.625rem 0.75rem' : '0.375rem 0.625rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    }} onClick={onClick}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: expanded ? '0.5rem' : '0.25rem' }}>
-        <span style={{ fontSize: '0.78rem', color: 'var(--subtext)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {timer.label}
-        </span>
-        <span style={{ fontSize: '1rem', fontWeight: 700, color, marginLeft: '0.5rem', fontVariantNumeric: 'tabular-nums' }}>
-          {done ? '✓' : fmtTime(timer.remaining)}
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ height: '3px', background: 'var(--border-input)', borderRadius: '2px', overflow: 'hidden', marginBottom: expanded ? '0.5rem' : 0 }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: color, transition: 'width 1s linear, background 0.3s' }} />
-      </div>
-
-      {/* Expanded controls */}
-      {expanded && (
-        <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.375rem' }} onClick={e => e.stopPropagation()}>
-          {[1, 3, 5].map(m => (
-            <button key={m} onClick={() => onAddTime(timer.id, m * 60)} style={{
-              padding: '0.2rem 0.45rem',
-              fontSize: '0.7rem',
-              border: '1px solid var(--border-input)',
-              borderRadius: '4px',
-              background: 'none',
-              cursor: 'pointer',
-              color: 'var(--subtext)',
-              fontFamily: 'Inter, sans-serif',
-            }}>+{m}m</button>
-          ))}
-          <button onClick={() => onRemove(timer.id)} style={{
-            marginLeft: 'auto',
-            padding: '0.2rem 0.45rem',
-            fontSize: '0.7rem',
-            border: '1px solid var(--border-input)',
-            borderRadius: '4px',
-            background: 'none',
-            cursor: 'pointer',
-            color: '#C8602A',
-            fontFamily: 'Inter, sans-serif',
-          }}>✕</button>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Loading screen ────────────────────────────────────────────────────────────
 
 function LoadingScreen() {
@@ -606,7 +533,7 @@ export default function RecipeDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
-  const { timers, add: addTimer, remove: removeTimer, addTime } = useTimers()
+  const { timers, add: addTimer, remove: removeTimer, addTime } = useTimerContext()
 
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -615,17 +542,14 @@ export default function RecipeDetail() {
   const [stepIngredients, setStepIngredients] = useState({})
   const [ingredientView, setIngredientView] = useState('grouped')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [timerExpanded, setTimerExpanded] = useState(false)
-  const [widgetPos, setWidgetPos] = useState(null)
   const [recipeMedia, setRecipeMedia] = useState([])
-  const [stepMedia, setStepMedia] = useState({}) // { stepId: [media] }
+  const [stepMedia, setStepMedia] = useState({})
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [lightboxImages, setLightboxImages] = useState([])
+  const [selectedIngredient, setSelectedIngredient] = useState(null)
 
   const stepRefs = useRef({})
-  const widgetRef = useRef(null)
-  const dragState = useRef(null)
-  const lastTimerClick = useRef(null)
 
   // Fetch recipe + media
   useEffect(() => {
@@ -635,11 +559,9 @@ export default function RecipeDetail() {
         const r = res.data
         setRecipe(r)
         setServings(r.servings || 4)
-        // Load recipe media
         client.get(`/api/media/entity/recipe/${id}`)
           .then(m => setRecipeMedia(m.data))
           .catch(() => {})
-        // Load step media in parallel
         if (r.steps?.length) {
           Promise.all(
             r.steps.map(s =>
@@ -668,44 +590,19 @@ export default function RecipeDetail() {
       .catch(() => setStepIngredients(p => ({ ...p, [step.id]: [] })))
   }, [activeStepIdx, recipe])
 
-  // Widget drag
+  // Listen for cross-page scroll-to-step events from TimerWidgetGlobal
   useEffect(() => {
-    const onMove = e => {
-      if (!dragState.current) return
-      setWidgetPos({
-        left: dragState.current.startLeft + (e.clientX - dragState.current.startX),
-        top: dragState.current.startTop + (e.clientY - dragState.current.startY),
-      })
-    }
-    const onUp = () => { dragState.current = null }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
-  }, [])
-
-  const handleDragStart = e => {
-    const el = widgetRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const startLeft = widgetPos ? widgetPos.left : rect.left
-    const startTop = widgetPos ? widgetPos.top : rect.top
-    if (!widgetPos) setWidgetPos({ left: rect.left, top: rect.top })
-    dragState.current = { startX: e.clientX, startY: e.clientY, startLeft, startTop }
-    e.preventDefault()
-  }
-
-  const handleTimerClick = (timerId, stepIdx) => {
-    if (!timerExpanded) {
-      setTimerExpanded(true)
-      lastTimerClick.current = timerId
-    } else if (lastTimerClick.current === timerId) {
+    const handler = e => {
+      const { stepIdx } = e.detail
       const el = stepRefs.current[stepIdx]
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setActiveStepIdx(stepIdx) }
-      lastTimerClick.current = null
-    } else {
-      lastTimerClick.current = timerId
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setActiveStepIdx(stepIdx)
+      }
     }
-  }
+    window.addEventListener('scroll-to-step', handler)
+    return () => window.removeEventListener('scroll-to-step', handler)
+  }, [])
 
   if (loading) return <LoadingScreen />
   if (!recipe) return null
@@ -713,30 +610,29 @@ export default function RecipeDetail() {
   const activeStep = recipe.steps[activeStepIdx]
   const activeIds = new Set((activeStep ? stepIngredients[activeStep.id] : [])?.map(i => i.id) ?? [])
   const baseServings = recipe.servings || 4
-  // Lightbox: Rezept-Bilder (Primary zuerst) + Schritt-Bilder mit Caption
-  const lightboxImages = [
-    ...recipeMedia
-      .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
-      .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
-      .map(m => ({ url: m.url, caption: '' })),
-    ...recipe.steps.flatMap((step, idx) =>
-      (stepMedia[step.id] || [])
-        .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
-        .map(m => ({
-          url: m.url,
-          caption: step.title ? `Schritt ${idx + 1}: ${step.title}` : `Schritt ${idx + 1}`,
-        }))
-    ),
-  ]
 
-  const openLightbox = (url) => {
-    const i = lightboxImages.findIndex(img => img.url === url)
-    setLightboxIndex(i >= 0 ? i : 0)
+  const openRecipeLightbox = (url) => {
+    const list = recipeMedia
+      .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+      .map(m => ({ url: m.url, caption: '' }))
+    const idx = list.findIndex(img => img.url === url)
+    setLightboxImages(list)
+    setLightboxIndex(idx >= 0 ? idx : 0)
+    setLightboxOpen(true)
+  }
+
+  const openStepLightbox = (url, imgs) => {
+    const list = (imgs || []).map(m => ({ url: m.url, caption: '' }))
+    const idx = list.findIndex(img => img.url === url)
+    setLightboxImages(list)
+    setLightboxIndex(idx >= 0 ? idx : 0)
     setLightboxOpen(true)
   }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
+
       {/* Back nav */}
       <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <button onClick={() => navigate('/')} style={{
@@ -786,6 +682,8 @@ export default function RecipeDetail() {
             activeIds={activeIds}
             view={ingredientView}
             onViewChange={setIngredientView}
+            selectedIngredient={selectedIngredient}
+            onSelectIngredient={setSelectedIngredient}
           />
 
           {/* Main */}
@@ -804,7 +702,7 @@ export default function RecipeDetail() {
               </button>
             </div>
 
-            <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openLightbox} />
+            <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
             <MetaBar recipe={recipe} />
 
             {/* Steps */}
@@ -822,11 +720,12 @@ export default function RecipeDetail() {
                   step={step}
                   index={idx}
                   isActive={idx === activeStepIdx}
-                  onClick={() => setActiveStepIdx(idx)}
-                  onAddTimer={() => addTimer(idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
+                  onClick={() => { setActiveStepIdx(idx); setSelectedIngredient(null) }}
+                  onAddTimer={() => addTimer(recipe.id, recipe.title, idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
                   stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)}
-                  onImageClick={openLightbox}
+                  onImageClick={openStepLightbox}
+                  selectedIngredient={selectedIngredient}
                 />
               ))
             )}
@@ -843,21 +742,8 @@ export default function RecipeDetail() {
           onServingsChange={setServings}
           activeIds={activeIds}
           onClose={() => setDrawerOpen(false)}
-        />
-      )}
-
-      {/* Timer widget */}
-      {timers.length > 0 && (
-        <TimerWidget
-          ref={widgetRef}
-          timers={timers}
-          expanded={timerExpanded}
-          onToggleExpand={() => setTimerExpanded(e => !e)}
-          onTimerClick={handleTimerClick}
-          onAddTime={addTime}
-          onRemove={removeTimer}
-          pos={widgetPos}
-          onDragStart={handleDragStart}
+          selectedIngredient={selectedIngredient}
+          onSelectIngredient={setSelectedIngredient}
         />
       )}
 

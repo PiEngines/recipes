@@ -378,13 +378,8 @@ function StepRow({ item, index, total, onChange, onMove, onRemove, onMediaChange
             entityType="step"
             entityId={item.dbId}
             existingMedia={item.media || []}
-            onMediaChange={media => onMediaChange?.(media)}
+            onMediaChange={() => onStepMediaReload?.(item.dbId, item._key)}
             allowVideo={false}
-          />
-          <MediaGallery
-            media={item.media || []}
-            showSetPrimary={false}
-            onReload={() => onStepMediaReload?.(item.dbId, item._key)}
           />
         </div>
       ) : (
@@ -661,7 +656,13 @@ export default function RecipeForm() {
       if (targetStatus) { setStatus(targetStatus); stateRef.current.status = targetStatus }
       setSavedAt(new Date())
       setIsDirty(false)
-      if (targetStatus) setToast(targetStatus === 'published' ? 'Veröffentlicht' : 'Als Entwurf gespeichert')
+      if (targetStatus) {
+        const wasPublished = s.status === 'published'
+        const toastMsg = targetStatus === 'draft'
+          ? (wasPublished ? 'Rezept zurückgezogen' : 'Als Entwurf gespeichert')
+          : (wasPublished ? 'Änderungen gespeichert' : 'Veröffentlicht')
+        setToast(toastMsg)
+      }
       // Map DB step IDs back into form state
       const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
       setSteps(prev => {
@@ -892,25 +893,18 @@ export default function RecipeForm() {
         {/* 5. Fotos & Videos */}
         <SectionCard title="Fotos & Videos" icon="📷">
           {recipeId ? (
-            <>
-              <MediaUpload
-                entityType="recipe"
-                entityId={recipeId}
-                existingMedia={recipeMedia}
-                onMediaChange={setRecipeMedia}
-                allowVideo={true}
-              />
-              <MediaGallery
-                media={recipeMedia}
-                showSetPrimary
-                onReload={async () => {
-                  try {
-                    const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`)
-                    setRecipeMedia(data)
-                  } catch {}
-                }}
-              />
-            </>
+            <MediaUpload
+              entityType="recipe"
+              entityId={recipeId}
+              existingMedia={recipeMedia}
+              onMediaChange={async () => {
+                try {
+                  const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`)
+                  setRecipeMedia(data)
+                } catch {}
+              }}
+              allowVideo={true}
+            />
           ) : (
             <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
               Speichere das Rezept zuerst, um Fotos und Videos hochzuladen.
@@ -932,13 +926,13 @@ export default function RecipeForm() {
         )}
 
         <button onClick={handleDraft} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: (savingAs || !title.trim() || !isDirty) ? 'var(--subtext)' : 'var(--text)', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}>
-          {savingAs === 'draft' ? 'Wird gespeichert …' : 'Als Entwurf speichern'}
+          {savingAs === 'draft' ? 'Wird gespeichert …' : status === 'published' ? 'Als Entwurf zurückziehen' : 'Als Entwurf speichern'}
         </button>
 
         <button onClick={handlePublish} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}
           onMouseEnter={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent-hover)' }}
           onMouseLeave={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent)' }}>
-          {savingAs === 'published' ? 'Wird gespeichert …' : 'Veröffentlichen'}
+          {savingAs === 'published' ? 'Wird gespeichert …' : status === 'published' ? 'Änderungen speichern' : 'Veröffentlichen'}
         </button>
       </div>
 
