@@ -47,6 +47,16 @@ export default function Profile() {
   const [unfollowMode, setUnfollowMode] = useState(false)
   const [pendingDecline, setPendingDecline] = useState(null) // { recipeId, accessId, title }
 
+  // Toast
+  const [toast, setToast] = useState('')
+  const toastTimerRef = useRef(null)
+
+  const showToast = msg => {
+    setToast(msg)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setToast(''), 4000)
+  }
+
   // Delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [recipeAction, setRecipeAction] = useState('keep')
@@ -180,8 +190,10 @@ export default function Profile() {
           access_type: 'free_for_all',
           expires_days: expiresDays || null,
         })
+        showToast('Rezept ist jetzt öffentlich zugänglich.')
       } else if (existing) {
         await client.delete(`/api/recipes/${recipeId}/access/${existing.id}`)
+        showToast('Rezept ist nicht mehr öffentlich.')
       }
       await loadAccess(recipeId)
     } catch {}
@@ -192,7 +204,10 @@ export default function Profile() {
       await client.post(`/api/recipes/${recipeId}/access/${accessId}/decline`)
       setSharedRecipes(prev => prev.filter(r => r.access_id !== accessId))
       setSharedTotal(t => t - 1)
-    } catch {}
+      showToast('Rezept entfernt.')
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Fehler beim Entfernen.')
+    }
     setPendingDecline(null)
   }
 
@@ -466,6 +481,7 @@ export default function Profile() {
           items={(accessData[accessModal.recipeId]?.items || []).filter(a => a.access_type === 'individual')}
           onClose={() => setAccessModal(null)}
           onRefresh={() => loadAccess(accessModal.recipeId)}
+          onToast={showToast}
         />
       )}
 
@@ -535,6 +551,13 @@ export default function Profile() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)', background: 'var(--text)', color: 'var(--card)', padding: '0.75rem 1.5rem', borderRadius: 'var(--radius-pill)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', zIndex: 1000, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          {toast}
         </div>
       )}
     </div>
@@ -700,7 +723,7 @@ function FreeForAllToggle({ recipeId, isActive, currentEntry, onToggle }) {
 
 // ── Individual access modal ───────────────────────────────────────────────────
 
-function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh }) {
+function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onToast }) {
   const [newEmail, setNewEmail] = useState('')
   const [newExpiry, setNewExpiry] = useState('')
   const [newNoLimit, setNewNoLimit] = useState(true)
@@ -723,6 +746,8 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh }) {
         email: newEmail.trim(),
         expires_days: expiresDays,
       })
+      const limitLabel = newNoLimit ? 'Ohne Limit' : newExpiry ? new Date(newExpiry).toLocaleDateString('de-DE') : 'Ohne Limit'
+      onToast?.(`${newEmail.trim()} geteilt. Limit: ${limitLabel}`)
       setNewEmail('')
       setNewExpiry('')
       setNewNoLimit(true)

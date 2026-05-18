@@ -186,23 +186,24 @@ def register(
             created_by=inv.invited_by or user.id,
         ))
 
-    # Create email verification token
-    from app.models.tokens import EmailVerificationToken
+    if was_invited:
+        # Invited: send verification email immediately
+        from app.models.tokens import EmailVerificationToken
 
-    ev_token_str = secrets.token_urlsafe(32)
-    ev_token = EmailVerificationToken(
-        token=ev_token_str,
-        user_id=user.id,
-        was_invited=was_invited,
-        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
-    )
-    db.add(ev_token)
-    db.commit()
-
-    background_tasks.add_task(send_verification_email, email, user.name, ev_token_str)
-
-    # Also notify admins if not invited
-    if not was_invited:
+        ev_token_str = secrets.token_urlsafe(32)
+        ev_token = EmailVerificationToken(
+            token=ev_token_str,
+            user_id=user.id,
+            was_invited=True,
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+        )
+        db.add(ev_token)
+        db.commit()
+        background_tasks.add_task(send_verification_email, email, user.name, ev_token_str)
+        return {"message": "Bestätigungs-Email gesendet", "status": "pending"}
+    else:
+        # Not invited: notify admins, no email to user
+        db.commit()
         admins = (
             db.query(User)
             .filter(
@@ -213,8 +214,7 @@ def register(
         )
         for admin in admins:
             background_tasks.add_task(send_pending_registration_email, admin.email, user.name, email)
-
-    return {"message": "Bestätigungs-Email gesendet", "status": "pending"}
+        return {"message": "Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen.", "status": "pending"}
 
 
 @router.get("/verify-email")

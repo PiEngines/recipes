@@ -269,7 +269,7 @@ function IngredientNameInput({ value, onChange }) {
       {open && suggestions.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 50, maxHeight: '130px', overflowY: 'auto' }}>
           {suggestions.map((s, i) => (
-            <button key={s} onMouseDown={e => { e.preventDefault(); onChange(s); setOpen(false) }} style={{ width: '100%', padding: '0.35rem 0.625rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>{s}</button>
+            <button key={s} onMouseDown={e => { e.preventDefault(); onChange(s.trim()); setOpen(false) }} style={{ width: '100%', padding: '0.35rem 0.625rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', display: 'block' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }} onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>{s}</button>
           ))}
         </div>
       )}

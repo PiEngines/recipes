@@ -3,19 +3,13 @@ import { useNavigation } from '../context/NavigationContext'
 
 export default function BackButton({ fallback = '/' }) {
   const navigate = useNavigate()
-  const { previousRoute } = useNavigation()
+  const { previousRoute, goBack } = useNavigation()
 
   const label = previousRoute ? `← ${previousRoute.label}` : '← Zurück'
 
-  const handleClick = () => {
-    if (previousRoute) navigate(previousRoute.path)
-    else if (window.history.length > 1) navigate(-1)
-    else navigate(fallback)
-  }
-
   return (
     <button
-      onClick={handleClick}
+      onClick={() => goBack(navigate, fallback)}
       style={{
         background: 'none',
         border: 'none',

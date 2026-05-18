@@ -1,9 +1,10 @@
 import logging
 import re
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
 from app.auth.dependencies import get_current_user, get_optional_user, require_admin
@@ -82,31 +83,35 @@ def list_recipes(
     tag: int | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     search: str | None = Query(None),
+    search_scope: str = Query("title"),
     author_id: int | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
+    from app.models.access import RecipeAccess
+
     q = db.query(Recipe)
 
     if current_user is None:
-        q = q.filter(Recipe.status == RecipeStatus.published)
-    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
+        # Unauthenticated: only recipes with active free_for_all access
+        now = datetime.now(timezone.utc)
+        free_sq = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.access_type == "free_for_all",
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        q = q.filter(Recipe.id.in_(free_sq))
+    else:
+        # All authenticated users see all recipes
         if status_filter is not None:
             try:
                 q = q.filter(Recipe.status == RecipeStatus(status_filter))
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
-    else:
-        # Non-admin: published recipes + own drafts
-        own_or_published = (Recipe.status == RecipeStatus.published) | (Recipe.created_by == current_user.id)
-        if status_filter is not None:
-            try:
-                sf = RecipeStatus(status_filter)
-                q = q.filter(own_or_published & (Recipe.status == sf))
-            except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
-        else:
-            q = q.filter(own_or_published)
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
@@ -116,7 +121,16 @@ def list_recipes(
 
     if search:
         term = f"%{search}%"
-        q = q.filter(Recipe.title.ilike(term) | Recipe.description.ilike(term))
+        if "ingredients" in search_scope:
+            q = q.filter(
+                Recipe.title.ilike(term)
+                | Recipe.description.ilike(term)
+                | Recipe.ingredients.any(Ingredient.name.ilike(term))
+            )
+        elif "description" in search_scope:
+            q = q.filter(Recipe.title.ilike(term) | Recipe.description.ilike(term))
+        else:
+            q = q.filter(Recipe.title.ilike(term))
 
     if author_id is not None:
         q = q.filter(Recipe.created_by == author_id)
@@ -148,17 +162,46 @@ def list_recipes(
 @router.get("/{recipe_id}", response_model=RecipeResponse)
 def get_recipe(
     recipe_id: int,
+    token: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
+    from app.models.access import RecipeAccess
+
     recipe = _load_full(recipe_id, db)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    if recipe.status != RecipeStatus.published:
-        if current_user is None:
-            raise HTTPException(status_code=404, detail="Recipe not found")
-        if current_user.role not in (UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
-            raise HTTPException(status_code=404, detail="Recipe not found")
+
+    if current_user is None:
+        # Unauthenticated: check free_for_all or individual token
+        now = datetime.now(timezone.utc)
+        has_free = (
+            db.query(RecipeAccess)
+            .filter(
+                RecipeAccess.recipe_id == recipe_id,
+                RecipeAccess.access_type == "free_for_all",
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .first()
+        )
+        if not has_free:
+            if token:
+                individual = (
+                    db.query(RecipeAccess)
+                    .filter(
+                        RecipeAccess.recipe_id == recipe_id,
+                        RecipeAccess.token == token,
+                        RecipeAccess.declined_at.is_(None),
+                        or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+                    )
+                    .first()
+                )
+                if not individual:
+                    raise HTTPException(status_code=404, detail="Recipe not found")
+            else:
+                raise HTTPException(status_code=404, detail="Recipe not found")
+    # Authenticated users: always allowed
     return recipe
 
 

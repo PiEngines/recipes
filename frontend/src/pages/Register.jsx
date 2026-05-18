@@ -81,8 +81,9 @@ export default function Register() {
             <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>✉️</div>
             <h1 style={headingStyle}>Bestätigungs-Email gesendet</h1>
             <p style={{ color: '#6B6B68', margin: '0 0 1.5rem', fontSize: '0.925rem', lineHeight: 1.6 }}>
-              Wir haben dir eine Bestätigungs-Email gesendet.
-              Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.
+              {token
+                ? 'Wir haben dir eine Bestätigungs-Email gesendet. Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.'
+                : 'Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und du erhältst eine Email sobald dein Konto freigeschaltet wird.'}
             </p>
             <Link to="/login" style={{ color: 'var(--accent)', fontSize: '0.9rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
               ← Zurück zur Anmeldung

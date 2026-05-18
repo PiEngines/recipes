@@ -114,3 +114,15 @@ body {
   background: var(--border-input);
   border-radius: 4px;
 }
+
+/* ── Date picker ─────────────────────────────────────────────────────────── */
+
+input[type="date"] {
+  color-scheme: light;
+  min-height: 40px;
+  cursor: pointer;
+}
+
+[data-theme="dark"] input[type="date"] {
+  color-scheme: dark;
+}

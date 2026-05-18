@@ -210,6 +210,8 @@ export default function Recipes() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch]           = useState('')
   const [showMenu, setShowMenu]       = useState(false)
+  const [scopeDesc, setScopeDesc]     = useState(false)
+  const [scopeIng, setScopeIng]       = useState(false)
 
   const menuRef = useRef(null)
 
@@ -225,10 +227,13 @@ export default function Recipes() {
     return () => clearTimeout(t)
   }, [searchInput])
 
+  useEffect(() => { setPage(1) }, [scopeDesc, scopeIng])
+
   useEffect(() => {
     setLoading(true)
+    const searchScope = scopeIng ? 'title,description,ingredients' : scopeDesc ? 'title,description' : 'title'
     const params = { page, page_size: PAGE_SIZE }
-    if (search) params.search = search
+    if (search) { params.search = search; params.search_scope = searchScope }
     client.get('/api/recipes', { params })
       .then(res => {
         const items = res.data.items
@@ -258,50 +263,40 @@ export default function Recipes() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
 
       {/* Sticky header — 2-row on mobile, 1-row on sm+ */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.625rem 1.5rem', transition: 'background-color 0.3s ease' }}>
-        <div className="flex flex-wrap items-center" style={{ gap: '0.625rem', rowGap: '0.5rem' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.625rem 1.5rem' }}>
+          <div className="flex flex-wrap items-center" style={{ gap: '0.625rem', rowGap: '0.5rem' }}>
 
-          {/* Logo: row 1 left */}
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, margin: 0, color: 'var(--text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            🍽️ PiEngines
-          </h1>
+            {/* Logo: row 1 left */}
+            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, margin: 0, color: 'var(--text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              🍽️ PiEngines
+            </h1>
 
-          {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
-          <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-            {isChefkochUser && (
-              <button
-                onClick={() => navigate('/admin')}
-                style={{ padding: '0.4rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', transition: 'var(--transition)', flexShrink: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-              >
-                Admin
-              </button>
-            )}
-            <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </IconBtn>
-            <div ref={menuRef} style={{ position: 'relative' }}>
-              <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
-                {initials}
-              </button>
-              {showMenu && (
-                <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
-                  <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
-                  <UserMenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</UserMenuItem>
-                  {isChefkochUser && <UserMenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</UserMenuItem>}
-                  <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
-                </div>
-              )}
+            {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
+            <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
+              <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+              </IconBtn>
+              <div ref={menuRef} style={{ position: 'relative' }}>
+                <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                  {initials}
+                </button>
+                {showMenu && (
+                  <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
+                    <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
+                    <UserMenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</UserMenuItem>
+                    {isChefkochUser && <UserMenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</UserMenuItem>}
+                    <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Search + New: row 2 on mobile (order 3), flex-1 on sm+ */}
-          <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', minWidth: 0 }}>
-            <div style={{ flex: 1, display: 'flex', minWidth: 0 }}>
-              <SearchInput value={searchInput} onChange={setSearchInput} />
-            </div>
-            {isChefkochUser && (
+            {/* Search + New: row 2 on mobile (order 3), flex-1 on sm+ */}
+            <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', minWidth: 0 }}>
+              <div style={{ flex: 1, display: 'flex', minWidth: 0 }}>
+                <SearchInput value={searchInput} onChange={setSearchInput} />
+              </div>
               <button
                 onClick={() => navigate('/recipes/new')}
                 style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}
@@ -311,13 +306,25 @@ export default function Recipes() {
                 <span className="sm:hidden">+ Neu</span>
                 <span className="hidden sm:inline">+ Neues Rezept</span>
               </button>
-            )}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Content */}
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+        {search && (
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+              <input type="checkbox" checked={scopeDesc} onChange={e => setScopeDesc(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+              Beschreibung einbeziehen
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+              <input type="checkbox" checked={scopeIng} onChange={e => setScopeIng(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+              Zutaten einbeziehen
+            </label>
+          </div>
+        )}
         {!loading && total > 0 && (
           <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', margin: '0 0 1.5rem' }}>
             {total} Rezept{total !== 1 ? 'e' : ''}{search ? ` für „${search}"` : ''}
