@@ -32,7 +32,7 @@ function diffColor(d) {
   return '#C8602A'
 }
 
-const IS_INTEGER_WORDS = new Set(['ei', 'eier', 'eigelb', 'eigelbe', 'eidotter', 'eiklar', 'dotter', 'wachtelei', 'wachteleier'])
+const IS_INTEGER_WORDS = new Set(['ei', 'eier', 'eigelb', 'eigelbe', 'eidotter', 'eiklar', 'eiweiß', 'eiweiss', 'eiweiße', 'eiweisse', 'dotter', 'wachtelei', 'wachteleier'])
 function autoIsInteger(name) {
   const lower = name.toLowerCase().trim()
   const first = lower.split(/\s+/)[0]
@@ -591,7 +591,7 @@ export default function RecipeForm() {
           selectedCats: r.categories,
           selectedTags: r.tags,
           ingredients: ings.length
-            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '', is_integer: i.is_integer ?? false, _auto_int: false }))
+            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '', is_integer: (i.is_integer ?? false) || autoIsInteger(i.name), _auto_int: false }))
             : [mkIng()],
           steps: sps.length
             ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false, media: [] }))
@@ -863,7 +863,7 @@ export default function RecipeForm() {
             </div>
             <span style={{ display: 'inline-flex', gap: '2px' }} title={`${difficulty}/10`}>
               {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} style={{ fontSize: '1.1rem', color: '#C8602A', opacity: i < Math.ceil(difficulty / 2) ? 1 : 0.2, lineHeight: 1 }}>🥄</span>
+                <span key={i} style={{ display: 'inline-block', fontSize: '1.1rem', color: '#C8602A', opacity: i < Math.ceil(difficulty / 2) ? 1 : 0.2, lineHeight: 1, transform: `rotate(${-40 + i * 20}deg)` }}>🥄</span>
               ))}
             </span>
           </div>
