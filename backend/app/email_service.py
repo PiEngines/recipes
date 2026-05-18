@@ -111,6 +111,21 @@ def send_verification_email(to_email: str, name: str, token: str) -> None:
     _send(to_email, "Bitte bestätige deine Email – PiEngines Recipes", html)
 
 
+def send_recipe_share_email(
+    to_email: str,
+    recipe_title: str,
+    shared_by_name: str,
+    recipe_url: str,
+) -> None:
+    html = f"""<div style="{_STYLE}">
+      <h2 style="color:#C8602A">Rezept geteilt: {recipe_title}</h2>
+      <p><strong>{shared_by_name}</strong> hat das Rezept <strong>{recipe_title}</strong> mit dir geteilt.</p>
+      <p><a href="{recipe_url}" style="{_BTN}">Rezept ansehen</a></p>
+      <p style="color:#888;font-size:0.85rem">Registriere dich, um das Rezept dauerhaft zu speichern.</p>
+    </div>"""
+    _send(to_email, f"{shared_by_name} hat ein Rezept mit dir geteilt – PiEngines Recipes", html)
+
+
 def send_account_deleted_reminder(admin_email: str, user_name: str, days_remaining: int) -> None:
     html = f"""<div style="{_STYLE}">
       <h2 style="color:#C8A020">Konto-Löschung</h2>

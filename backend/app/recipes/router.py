@@ -377,6 +377,8 @@ def toggle_status(
 
 @router.get("/pending-review", response_model=list[RecipeListItem])
 def list_pending_review(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
@@ -389,6 +391,8 @@ def list_pending_review(
         )
         .filter(Recipe.review_status == "pending")
         .order_by(Recipe.updated_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
         .all()
     )
     return items

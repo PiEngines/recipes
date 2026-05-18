@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,10 +9,17 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class DeclinedShare(BaseModel):
+    recipe_id: int
+    recipe_title: str
+    declined_by_name: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    declined_shares: list[DeclinedShare] | None = None
 
 
 class UserResponse(BaseModel):
@@ -24,6 +32,7 @@ class UserResponse(BaseModel):
     created_at: datetime | None = None
     email_notifications: bool = True
     dark_mode_preference: str | None = None
+    email_verified: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -48,3 +57,7 @@ class InviteRequest(BaseModel):
     email: str
     role: str = "kuechenhilfe"
     recipe_id: int | None = None
+
+
+class ResendVerificationRequest(BaseModel):
+    email: str

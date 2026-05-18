@@ -14,6 +14,7 @@ from app.auth.schemas import (
     InviteRequest,
     LoginRequest,
     RegisterRequest,
+    ResendVerificationRequest,
     ResetPasswordRequest,
     TokenResponse,
     UserResponse,
@@ -58,20 +59,58 @@ def _is_disposable(email: str, db: Session) -> bool:
 
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
+    from app.auth.schemas import DeclinedShare
+    from app.models.access import RecipeAccess
+    from app.models.recipe import Recipe as RecipeModel
+
     user = db.query(User).filter(User.email == body.email).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "email_not_verified", "message": "Bitte bestätige zuerst deine Email."},
+        )
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
         )
+
+    # Collect unseen declined shares for recipes owned by this user
+    declined_rows = (
+        db.query(RecipeAccess, RecipeModel)
+        .join(RecipeModel, RecipeAccess.recipe_id == RecipeModel.id)
+        .filter(
+            RecipeModel.created_by == user.id,
+            RecipeAccess.declined_at.isnot(None),
+            RecipeAccess.notified_at.is_(None),
+        )
+        .all()
+    )
+
+    declined_shares = []
+    for access, recipe in declined_rows:
+        decliner = db.query(User).filter(User.id == access.declined_by).first()
+        declined_shares.append(
+            DeclinedShare(
+                recipe_id=recipe.id,
+                recipe_title=recipe.title,
+                declined_by_name=decliner.name if decliner else "Unbekannt",
+            )
+        )
+        access.notified_at = datetime.now(timezone.utc)
+
+    if declined_shares:
+        db.commit()
+
     return TokenResponse(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
+        declined_shares=declined_shares if declined_shares else None,
     )
 
 
@@ -179,7 +218,11 @@ def register(
 
 
 @router.get("/verify-email")
-def verify_email(token: str, db: Session = Depends(get_db)):
+def verify_email(
+    token: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     from app.models.tokens import EmailVerificationToken
 
     ev = (
@@ -198,17 +241,44 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=400, detail="Benutzer nicht gefunden")
 
+    already_active = user.is_active
     user.email_verified = True
+    user.is_active = True
+    user.status = "active"
     ev.used_at = datetime.now(timezone.utc)
-
-    result_status = "pending"
-    if ev.was_invited:
-        user.is_active = True
-        user.status = "active"
-        result_status = "active"
-
     db.commit()
-    return {"status": result_status}
+
+    if not already_active:
+        background_tasks.add_task(send_welcome_email, user.email, user.name)
+
+    return {"status": "active"}
+
+
+@router.post("/resend-verification", status_code=status.HTTP_200_OK)
+def resend_verification(
+    body: ResendVerificationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    email = body.email.lower().strip()
+    check_rate_limit(f"resend_verify:{email}", max_calls=3, window_seconds=3600)
+
+    from app.models.tokens import EmailVerificationToken
+
+    user = db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first()
+    if user and not user.email_verified:
+        token_str = secrets.token_urlsafe(32)
+        ev_token = EmailVerificationToken(
+            token=token_str,
+            user_id=user.id,
+            was_invited=False,
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+        )
+        db.add(ev_token)
+        db.commit()
+        background_tasks.add_task(send_verification_email, email, user.name, token_str)
+
+    return {"detail": "Falls die Email existiert, wurde eine Bestätigungs-Email versendet"}
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
@@ -221,7 +291,7 @@ def forgot_password(
     check_rate_limit(f"pwd_reset:{email}", max_calls=3, window_seconds=3600)
 
     user = db.query(User).filter(User.email == email, User.is_active.is_(True)).first()
-    if user:
+    if user and user.email_verified:
         token_str = secrets.token_urlsafe(32)
         prt = PasswordResetToken(
             token=token_str,

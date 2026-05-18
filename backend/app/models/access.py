@@ -13,8 +13,14 @@ class RecipeAccess(Base):
     email = Column(String(255), nullable=True)
     token = Column(String(128), unique=True, nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at_individual = Column(DateTime(timezone=True), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    declined_at = Column(DateTime(timezone=True), nullable=True)
+    declined_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    page = Column(Integer, default=1)
+    page_size = Column(Integer, default=20)
+    notified_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class DisposableEmailDomain(Base):

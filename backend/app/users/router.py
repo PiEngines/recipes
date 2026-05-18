@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -7,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user, require_chefkoch
 from app.auth.password import hash_password, verify_password
 from app.database import get_db
-from app.email_service import send_welcome_email
+from app.email_service import send_verification_email, send_welcome_email
 from app.models import Recipe, User
 from app.models.user import UserRole
 
@@ -64,13 +65,15 @@ class PatchRoleBody(BaseModel):
 @router.get("", response_model=list[UserListItem])
 def list_users(
     status: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
     current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
     q = db.query(User)
     if status is not None:
         q = q.filter(User.status == status)
-    return q.order_by(User.created_at.desc()).all()
+    return q.order_by(User.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
 
 # ── Admin stats ───────────────────────────────────────────────────────────────
@@ -178,22 +181,30 @@ def patch_role(
 
 # ── Activate user (chefkoch) ──────────────────────────────────────────────────
 
-@router.patch("/{user_id}/activate", response_model=UserListItem)
+@router.patch("/{user_id}/activate")
 def activate_user(
     user_id: int,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(require_chefkoch),
     db: Session = Depends(get_db),
 ):
+    from app.models.tokens import EmailVerificationToken
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
-    user.status = "active"
-    user.is_active = True
+
+    token_str = secrets.token_urlsafe(32)
+    ev_token = EmailVerificationToken(
+        token=token_str,
+        user_id=user.id,
+        was_invited=True,
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+    )
+    db.add(ev_token)
     db.commit()
-    db.refresh(user)
-    background_tasks.add_task(send_welcome_email, user.email, user.name)
-    return user
+    background_tasks.add_task(send_verification_email, user.email, user.name, token_str)
+    return {"message": "Verifikations-Email gesendet"}
 
 
 # ── Soft-delete user (chefkoch) ───────────────────────────────────────────────
@@ -242,3 +253,50 @@ def restore_user(
     db.query(Recipe).filter(Recipe.created_by == user_id).update({"deleted_at": None})
     db.commit()
     return {"detail": "Benutzer wiederhergestellt"}
+
+
+# ── Shared recipes for current user ──────────────────────────────────────────
+
+@router.get("/me/shared-recipes")
+def get_shared_recipes(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    from app.models.access import RecipeAccess
+    from sqlalchemy import or_
+
+    now = datetime.now(timezone.utc)
+    q = (
+        db.query(Recipe)
+        .join(RecipeAccess, RecipeAccess.recipe_id == Recipe.id)
+        .filter(
+            RecipeAccess.email == current_user.email,
+            RecipeAccess.declined_at.is_(None),
+            or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            Recipe.deleted_at.is_(None),
+        )
+    )
+    total = q.count()
+    items = q.offset((page - 1) * page_size).limit(page_size).all()
+
+    return {
+        "items": [
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.description,
+                "prep_time": r.prep_time,
+                "cook_time": r.cook_time,
+                "servings": r.servings,
+                "status": r.status,
+                "created_at": r.created_at.isoformat(),
+            }
+            for r in items
+        ],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": max(1, (total + page_size - 1) // page_size),
+    }
