@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh_token', data.refresh_token)
     const me = await client.get('/api/auth/me')
     setUser(me.data)
+    return data.declined_shares || []
   }
 
   const logout = async () => {

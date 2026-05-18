@@ -268,18 +268,38 @@ def get_shared_recipes(
     from sqlalchemy import or_
 
     now = datetime.now(timezone.utc)
-    q = (
+
+    # Collect valid access entries for current user's email
+    accesses = db.query(RecipeAccess).filter(
+        RecipeAccess.email == current_user.email,
+        RecipeAccess.declined_at.is_(None),
+        or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+    ).all()
+
+    # Deduplicate by recipe_id (keep first match)
+    access_map = {}
+    for a in accesses:
+        if a.recipe_id not in access_map:
+            access_map[a.recipe_id] = a
+
+    recipe_ids = list(access_map.keys())
+    if not recipe_ids:
+        return {"items": [], "total": 0, "page": page, "page_size": page_size, "pages": 1}
+
+    total = db.query(Recipe).filter(Recipe.id.in_(recipe_ids), Recipe.deleted_at.is_(None)).count()
+    recipes = (
         db.query(Recipe)
-        .join(RecipeAccess, RecipeAccess.recipe_id == Recipe.id)
-        .filter(
-            RecipeAccess.email == current_user.email,
-            RecipeAccess.declined_at.is_(None),
-            or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
-            Recipe.deleted_at.is_(None),
-        )
+        .filter(Recipe.id.in_(recipe_ids), Recipe.deleted_at.is_(None))
+        .order_by(Recipe.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
     )
-    total = q.count()
-    items = q.offset((page - 1) * page_size).limit(page_size).all()
+
+    creator_ids = {r.created_by for r in recipes}
+    creators = {}
+    if creator_ids:
+        creators = {u.id: u.name for u in db.query(User).filter(User.id.in_(creator_ids)).all()}
 
     return {
         "items": [
@@ -287,13 +307,13 @@ def get_shared_recipes(
                 "id": r.id,
                 "title": r.title,
                 "description": r.description,
-                "prep_time": r.prep_time,
-                "cook_time": r.cook_time,
-                "servings": r.servings,
-                "status": r.status,
+                "status": str(r.status),
                 "created_at": r.created_at.isoformat(),
+                "access_id": access_map[r.id].id,
+                "expires_at": access_map[r.id].expires_at.isoformat() if access_map[r.id].expires_at else None,
+                "shared_by_name": creators.get(r.created_by, "Unbekannt"),
             }
-            for r in items
+            for r in recipes
         ],
         "total": total,
         "page": page,

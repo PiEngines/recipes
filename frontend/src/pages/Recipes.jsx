@@ -282,7 +282,7 @@ export default function Recipes() {
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </IconBtn>
             <div ref={menuRef} style={{ position: 'relative' }}>
-              <button onClick={() => { navigate('/profile'); setShowMenu(m => !m) }} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+              <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
                 {initials}
               </button>
               {showMenu && (

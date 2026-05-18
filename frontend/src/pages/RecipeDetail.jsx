@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
+import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import BackButton from '../components/BackButton'
 import { isChefkoch, isKochOrAbove } from '../utils/roles'
@@ -557,11 +558,13 @@ export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { setDynamicLabel } = useNavigation()
   const isAdmin = isChefkoch(user)
   const { timers, add: addTimer, remove: removeTimer, addTime } = useTimerContext()
 
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hasFreeAccess, setHasFreeAccess] = useState(false)
   const [activeStepIdx, setActiveStepIdx] = useState(0)
   const [servings, setServings] = useState(4)
   const [stepIngredients, setStepIngredients] = useState({})
@@ -584,6 +587,7 @@ export default function RecipeDetail() {
         const r = res.data
         setRecipe(r)
         setServings(r.servings || 4)
+        setDynamicLabel(`/recipes/${id}`, r.title)
         client.get(`/api/media/entity/recipe/${id}`)
           .then(m => setRecipeMedia(m.data))
           .catch(() => {})
@@ -629,10 +633,18 @@ export default function RecipeDetail() {
     return () => window.removeEventListener('scroll-to-step', handler)
   }, [])
 
+  const canEdit = recipe ? (isAdmin || recipe.created_by === user?.id) : false
+
+  // Load access info to show public badge (only for authorized editors)
+  useEffect(() => {
+    if (!recipe || !isKochOrAbove(user) || !canEdit) return
+    client.get(`/api/recipes/${recipe.id}/access`, { params: { page: 1, page_size: 10 } })
+      .then(({ data }) => setHasFreeAccess(data.items?.some(a => a.access_type === 'free_for_all') ?? false))
+      .catch(() => {})
+  }, [recipe?.id, user?.id])
+
   if (loading) return <LoadingScreen />
   if (!recipe) return null
-
-  const canEdit = isAdmin || (recipe.created_by === user?.id)
   const activeStep = recipe.steps[activeStepIdx]
   const activeIds = new Set((activeStep ? stepIngredients[activeStep.id] : [])?.map(i => i.id) ?? [])
   const baseServings = recipe.servings || 4
@@ -724,9 +736,23 @@ export default function RecipeDetail() {
             <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
             <MetaBar recipe={recipe} />
 
-            {/* Freigabe (only for Koch and above) */}
+            {/* Freigaben verwalten (only for Koch and above) */}
             {isKochOrAbove(user) && canEdit && (
-              <RecipeAccessSection recipeId={recipe.id} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                {hasFreeAccess && (
+                  <span style={{ fontSize: '0.8rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: '6px', padding: '0.25rem 0.625rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+                    🌍 Öffentlich zugänglich
+                  </span>
+                )}
+                <Link
+                  to="/profile#meine-rezepte"
+                  style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textDecoration: 'none' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--subtext)' }}
+                >
+                  Freigaben verwalten →
+                </Link>
+              </div>
             )}
 
             {/* Author + dates bar */}
@@ -808,115 +834,3 @@ export default function RecipeDetail() {
   )
 }
 
-// ── Recipe access section ─────────────────────────────────────────────────────
-
-function RecipeAccessSection({ recipeId }) {
-  const [accesses, setAccesses] = useState([])
-  const [showFreeModal, setShowFreeModal] = useState(false)
-  const [showInviteModal, setShowInviteModal] = useState(false)
-
-  const load = useCallback(async () => {
-    try {
-      const { data } = await client.get(`/api/recipes/${recipeId}/access`)
-      setAccesses(data)
-    } catch {}
-  }, [recipeId])
-
-  useEffect(() => { load() }, [load])
-
-  const handleDelete = async (id) => {
-    try { await client.delete(`/api/recipes/${recipeId}/access/${id}`); load() } catch {}
-  }
-
-  return (
-    <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.25rem', marginBottom: '1.5rem' }}>
-      <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: '0 0 0.875rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-        🔓 Freigabe
-      </h3>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: accesses.length > 0 ? '0.875rem' : 0 }}>
-        <button onClick={() => setShowFreeModal(true)} style={{ padding: '0.375rem 0.875rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-          Free for all
-        </button>
-        <button onClick={() => setShowInviteModal(true)} style={{ padding: '0.375rem 0.875rem', background: 'transparent', border: '1.5px solid var(--border-input)', color: 'var(--text)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif' }}>
-          Einzeln einladen
-        </button>
-      </div>
-      {accesses.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          {accesses.map(a => (
-            <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.375rem 0.625rem', background: 'var(--bg)', borderRadius: '6px', fontSize: '0.82rem' }}>
-              <span style={{ color: 'var(--text)' }}>
-                {a.access_type === 'free_for_all' ? '🌐 Free for all' : `📧 ${a.email || 'Einzelzugang'}`}
-                {a.expires_at && <span style={{ color: 'var(--subtext)', marginLeft: '0.375rem' }}>· bis {new Date(a.expires_at).toLocaleDateString('de-DE')}</span>}
-              </span>
-              <button onClick={() => handleDelete(a.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.85rem', padding: 0 }}>×</button>
-            </div>
-          ))}
-        </div>
-      )}
-      {showFreeModal && (
-        <AccessModal
-          title="Free for all aktivieren"
-          onClose={() => setShowFreeModal(false)}
-          onSubmit={async ({ expiresDays }) => {
-            await client.post(`/api/recipes/${recipeId}/access`, { access_type: 'free_for_all', expires_days: expiresDays || null })
-            setShowFreeModal(false); load()
-          }}
-        />
-      )}
-      {showInviteModal && (
-        <AccessModal
-          title="Einzeln einladen"
-          showEmail
-          onClose={() => setShowInviteModal(false)}
-          onSubmit={async ({ email, expiresDays }) => {
-            await client.post(`/api/recipes/${recipeId}/access`, { access_type: 'individual', email, expires_days: expiresDays || null })
-            setShowInviteModal(false); load()
-          }}
-        />
-      )}
-    </div>
-  )
-}
-
-function AccessModal({ title, showEmail = false, onClose, onSubmit }) {
-  const [email, setEmail] = useState('')
-  const [expiresDays, setExpiresDays] = useState('')
-  const [noExpiry, setNoExpiry] = useState(false)
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async () => {
-    setLoading(true)
-    try { await onSubmit({ email, expiresDays: noExpiry ? null : (expiresDays ? parseInt(expiresDays) : null) }) }
-    catch {} finally { setLoading(false) }
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.75rem', maxWidth: '360px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-        <h3 style={{ fontFamily: 'Playfair Display, serif', margin: '0 0 1.25rem', color: 'var(--text)', fontSize: '1.1rem' }}>{title}</h3>
-        {showEmail && (
-          <div style={{ marginBottom: '0.875rem' }}>
-            <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</label>
-            <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@beispiel.de" style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-        )}
-        <div style={{ marginBottom: '0.875rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text)', cursor: 'pointer' }}>
-            <input type="checkbox" checked={noExpiry} onChange={e => setNoExpiry(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
-            Ohne Ablaufdatum
-          </label>
-          {!noExpiry && (
-            <input type="number" min="1" value={expiresDays} onChange={e => setExpiresDays(e.target.value)} placeholder="Ablauf in Tagen (optional)" style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>Abbrechen</button>
-          <button onClick={handleSubmit} disabled={loading} style={{ padding: '0.5rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: loading ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
-            {loading ? '…' : 'Aktivieren'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}

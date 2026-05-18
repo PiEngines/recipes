@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -10,43 +11,87 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [resendSent, setResendSent] = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [declinedShares, setDeclinedShares] = useState(null)
 
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
+    setEmailNotVerified(false)
+    setResendSent(false)
     setLoading(true)
     try {
-      await login(email, password)
+      const declined = await login(email, password)
       localStorage.setItem('just_logged_in', 'true')
-      navigate('/', { replace: true })
-    } catch {
-      setError('E-Mail oder Passwort ist falsch.')
-      setShake(true)
-      setTimeout(() => setShake(false), 600)
+      if (declined?.length) {
+        setDeclinedShares(declined)
+        setLoading(false)
+      } else {
+        navigate('/', { replace: true })
+      }
+    } catch (err) {
+      const detail = err.response?.data?.detail
+      if (err.response?.status === 403 && detail?.code === 'email_not_verified') {
+        setEmailNotVerified(true)
+        setError('Bitte bestätige zuerst deine Email.')
+      } else {
+        setError('E-Mail oder Passwort ist falsch.')
+        setShake(true)
+        setTimeout(() => setShake(false), 600)
+      }
     } finally {
       setLoading(false)
     }
   }
 
+  const handleResend = async () => {
+    setResendLoading(true)
+    try {
+      await client.post('/api/auth/resend-verification', { email })
+      setResendSent(true)
+    } catch {
+      setResendSent(true)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  if (declinedShares) {
+    return (
+      <div style={pageStyle}>
+        <div style={cardStyle}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📣</div>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 600, color: '#2C2C2A', margin: 0 }}>
+              Neuigkeiten
+            </h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {declinedShares.map((s, i) => (
+              <div key={i} style={{ padding: '0.75rem 1rem', background: '#f9f7f5', borderRadius: '10px', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: '#2C2C2A', lineHeight: 1.5 }}>
+                <strong>{s.declined_by_name}</strong> folgt deinem Rezept{' '}
+                <strong>„{s.recipe_title}"</strong> nicht mehr.
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => navigate('/', { replace: true })}
+            style={{ width: '100%', padding: '0.9rem', background: '#C8602A', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 600, fontFamily: 'Inter, sans-serif', cursor: 'pointer' }}
+          >
+            Verstanden
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '1.5rem',
-      background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
-    }}>
+    <div style={pageStyle}>
       <div
         className={shake ? 'shake' : ''}
-        style={{
-          background: '#ffffff',
-          borderRadius: '20px',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
-          padding: '2.75rem 2.25rem',
-          width: '100%',
-          maxWidth: '420px',
-        }}
+        style={cardStyle}
       >
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2.25rem' }}>
@@ -99,15 +144,35 @@ export default function Login() {
               color: '#C8602A',
               fontSize: '0.875rem',
               textAlign: 'center',
-              margin: '0 0 1rem',
+              margin: '0 0 0.75rem',
               fontWeight: 500,
             }}>
               {error}
             </p>
           )}
 
+          {emailNotVerified && !resendSent && (
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'underline', padding: 0 }}
+              >
+                {resendLoading ? 'Wird gesendet …' : 'Neuen Bestätigungs-Link anfordern'}
+              </button>
+            </div>
+          )}
+
+          {resendSent && (
+            <p style={{ color: '#4A7040', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
+              Neuer Link wurde gesendet.
+            </p>
+          )}
+
           <LoginButton loading={loading} />
         </form>
+
         <div style={{ textAlign: 'center', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Link to="/forgot-password" style={{ color: 'var(--accent)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
             Passwort vergessen?
@@ -119,6 +184,24 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+const pageStyle = {
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '1.5rem',
+  background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
+}
+
+const cardStyle = {
+  background: '#ffffff',
+  borderRadius: '20px',
+  boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
+  padding: '2.75rem 2.25rem',
+  width: '100%',
+  maxWidth: '420px',
 }
 
 function LoginButton({ loading }) {

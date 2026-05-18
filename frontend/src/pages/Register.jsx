@@ -169,7 +169,7 @@ export default function Register() {
 
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
           <Link to="/login" style={{ color: 'var(--subtext)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
-            Bereits ein Konto? <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Anmelden</span>
+            Bereits registriert? <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Zum Login</span>
           </Link>
         </div>
       </div>

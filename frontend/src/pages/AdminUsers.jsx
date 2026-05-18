@@ -20,6 +20,9 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
   const [confirmDialog, setConfirmDialog] = useState(null) // { userId, action, name }
+  const [search, setSearch] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   // Invitation state
   const [inviteEmail, setInviteEmail] = useState('')
@@ -96,6 +99,15 @@ export default function AdminUsers() {
     }
   }
 
+  const q = search.toLowerCase()
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    const created = new Date(u.created_at)
+    const matchesFrom = !dateFrom || created >= new Date(dateFrom)
+    const matchesTo = !dateTo || created <= new Date(dateTo + 'T23:59:59')
+    return matchesSearch && matchesFrom && matchesTo
+  })
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -141,6 +153,36 @@ export default function AdminUsers() {
           </form>
         </div>
 
+        {/* Search + date filter */}
+        <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem 1.25rem', marginBottom: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1, minWidth: '180px' }}>
+            <label style={labelStyle}>Suche</label>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Name oder E-Mail"
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ minWidth: '140px' }}>
+            <label style={labelStyle}>Beigetreten von</label>
+            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={inputStyle} />
+          </div>
+          <div style={{ minWidth: '140px' }}>
+            <label style={labelStyle}>bis</label>
+            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={inputStyle} />
+          </div>
+          {(search || dateFrom || dateTo) && (
+            <button
+              onClick={() => { setSearch(''); setDateFrom(''); setDateTo('') }}
+              style={{ padding: '0.6rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', cursor: 'pointer' }}
+            >
+              Zurücksetzen
+            </button>
+          )}
+        </div>
+
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem', background: 'var(--card)', borderRadius: 'var(--radius-input)', padding: '0.25rem', width: 'fit-content', boxShadow: 'var(--shadow)' }}>
           {TABS.map(t => (
@@ -154,7 +196,7 @@ export default function AdminUsers() {
         <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Wird geladen …</div>
-          ) : users.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Keine Benutzer gefunden.</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -167,7 +209,7 @@ export default function AdminUsers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(u => (
+                  {filteredUsers.map(u => (
                     <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '0.875rem 1rem', color: 'var(--text)', fontWeight: 500 }}>{u.name}</td>
                       <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{u.email}</td>
