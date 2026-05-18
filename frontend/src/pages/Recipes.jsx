@@ -61,10 +61,12 @@ function SunIcon() {
 // Items 6, 7, 8: gleiche Höhe + warme Farben + kein doppelter Titel
 
 function RecipeCard({ recipe, primaryImage }) {
+  const { user } = useAuth()
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
   const isDraft = recipe.status === 'draft'
 
   const isPendingReview = recipe.review_status === 'pending'
+  const blockClick = isPendingReview && !isChefkoch(user) && user?.id !== recipe.created_by
 
   const draftBadge = isDraft && (
     <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(0,0,0,0.45)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', zIndex: 2 }}>
@@ -114,7 +116,11 @@ function RecipeCard({ recipe, primaryImage }) {
   )
 
   return (
-    <Link to={`/recipes/${recipe.id}`} style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: isPendingReview ? 0.65 : 1 }}>
+    <Link
+      to={`/recipes/${recipe.id}`}
+      style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: isPendingReview ? 0.65 : 1, pointerEvents: blockClick ? 'none' : 'auto' }}
+      tabIndex={blockClick ? -1 : 0}
+    >
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {topArea}
         {/* Weißer Infobereich – gleich für beide Varianten */}

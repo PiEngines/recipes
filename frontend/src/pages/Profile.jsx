@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
-import BackButton from '../components/BackButton'
 import Breadcrumb from '../components/Breadcrumb'
 import { getRoleLabel } from '../utils/roles'
 
@@ -223,9 +222,6 @@ export default function Profile() {
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
           <Breadcrumb items={[{ label: 'Startseite', path: '/' }, { label: 'Mein Profil', path: null }]} />
-          <div style={{ marginBottom: '1rem' }}>
-            <BackButton fallback="/" />
-          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 }}>
               {initials}

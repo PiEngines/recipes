@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -24,7 +26,7 @@ export default function Login() {
     try {
       await login(email, password)
       localStorage.setItem('just_logged_in', 'true')
-      navigate('/', { replace: true })
+      navigate(redirect, { replace: true })
     } catch (err) {
       const detail = err.response?.data?.detail
       if (err.response?.status === 403 && detail?.code === 'email_not_verified') {

@@ -92,9 +92,10 @@ def list_recipes(
 
     q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
 
+    now = datetime.now(timezone.utc)
+
     if current_user is None:
-        # Unauthenticated: only recipes with active free_for_all access
-        now = datetime.now(timezone.utc)
+        # Unauthenticated: only active free_for_all recipes
         free_sq = (
             db.query(RecipeAccess.recipe_id)
             .filter(
@@ -105,20 +106,48 @@ def list_recipes(
             .subquery()
         )
         q = q.filter(Recipe.id.in_(free_sq))
+
+    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
+        # Chefkoch sees everything
+        if status_filter is not None:
+            try:
+                q = q.filter(Recipe.status == RecipeStatus(status_filter))
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+
     else:
-        # Authenticated: published recipes + own drafts
-        own_or_published = (
-            (Recipe.status == RecipeStatus.published)
-            | (Recipe.created_by == current_user.id)
+        # Koch / Küchenhilfe: own + free_for_all + individual access
+        free_sq = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.access_type == "free_for_all",
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        individual_sq = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.email == current_user.email,
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        visible = (
+            (Recipe.created_by == current_user.id)
+            | Recipe.id.in_(free_sq)
+            | Recipe.id.in_(individual_sq)
         )
         if status_filter is not None:
             try:
                 sf = RecipeStatus(status_filter)
-                q = q.filter(own_or_published & (Recipe.status == sf))
+                q = q.filter(visible & (Recipe.status == sf))
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
         else:
-            q = q.filter(own_or_published)
+            q = q.filter(visible)
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
@@ -210,10 +239,26 @@ def get_recipe(
                     raise HTTPException(status_code=404, detail="Recipe not found")
             else:
                 raise HTTPException(status_code=404, detail="Recipe not found")
+    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
+        pass  # chefkoch sees everything
+
     else:
-        # Authenticated: must be published, own recipe, or admin
-        if recipe.status != RecipeStatus.published:
-            if current_user.role not in (UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
+        # Koch / Küchenhilfe: own OR free_for_all OR individual access
+        if recipe.created_by != current_user.id:
+            has_access = (
+                db.query(RecipeAccess)
+                .filter(
+                    RecipeAccess.recipe_id == recipe_id,
+                    or_(
+                        RecipeAccess.access_type == "free_for_all",
+                        RecipeAccess.email == current_user.email,
+                    ),
+                    RecipeAccess.declined_at.is_(None),
+                    or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+                )
+                .first()
+            )
+            if not has_access:
                 raise HTTPException(status_code=404, detail="Recipe not found")
 
     # Check if current user has pending-review access (recipient sees review flag)

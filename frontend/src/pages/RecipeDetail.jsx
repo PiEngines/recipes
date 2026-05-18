@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
-import BackButton from '../components/BackButton'
 import Breadcrumb from '../components/Breadcrumb'
 import { isChefkoch, isKochOrAbove } from '../utils/roles'
 
@@ -672,39 +671,37 @@ export default function RecipeDetail() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
 
-      {/* Back nav */}
-      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Nav bar */}
+      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
         <Breadcrumb items={[
           { label: 'Alle Rezepte', path: '/' },
           { label: recipe?.title || '…', path: null },
         ]} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-          <BackButton fallback="/" />
-          {isAdmin && recipe && (
-            <button
-              onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
-              style={{
-                padding: '0.4rem 1rem',
-                border: '1.5px solid var(--accent)',
-                borderRadius: 'var(--radius-pill)',
-                background: 'none',
-                color: 'var(--accent)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontFamily: 'Inter, sans-serif',
-                fontWeight: 600,
-                transition: 'var(--transition)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-            >
-              ✏ Bearbeiten
-            </button>
-          )}
-        </div>
+        {isAdmin && recipe && (
+          <button
+            onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
+            style={{
+              padding: '0.4rem 1rem',
+              border: '1.5px solid var(--accent)',
+              borderRadius: 'var(--radius-pill)',
+              background: 'none',
+              color: 'var(--accent)',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              transition: 'var(--transition)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+          >
+            ✏ Bearbeiten
+          </button>
+        )}
       </div>
 
       {/* Content */}
