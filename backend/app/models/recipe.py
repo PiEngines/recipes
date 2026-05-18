@@ -44,7 +44,16 @@ class Recipe(Base):
     ingredients = relationship("Ingredient", back_populates="recipe", order_by="Ingredient.sort_order", cascade="all, delete-orphan")
     images = relationship("RecipeImage", back_populates="recipe", cascade="all, delete-orphan")
     videos = relationship("RecipeVideo", back_populates="recipe", cascade="all, delete-orphan")
-    versions = relationship("RecipeVersion", back_populates="recipe", cascade="all, delete-orphan")
+    versions = relationship(
+        "RecipeVersion",
+        foreign_keys="RecipeVersion.recipe_id",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+    )
+    pending_version = relationship(
+        "RecipeVersion",
+        foreign_keys="[Recipe.pending_version_id]",
+    )
     cooked_logs = relationship("CookedLog", back_populates="recipe", cascade="all, delete-orphan")
     collection_entries = relationship("CollectionRecipe", back_populates="recipe", cascade="all, delete-orphan")
 
