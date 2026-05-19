@@ -22,6 +22,7 @@ function getLabelForPath(path, dynamicLabels) {
 export function NavigationProvider({ children }) {
   const location = useLocation()
   const [previousRoute, setPreviousRoute] = useState(null)
+  const [recipesScrollY, setRecipesScrollY] = useState(null)
   const prevPathRef = useRef(null)
   const dynamicLabelsRef = useRef({})
   const previousRouteRef = useRef(null)
@@ -57,7 +58,7 @@ export function NavigationProvider({ children }) {
   }, [location.pathname])
 
   return (
-    <NavigationContext.Provider value={{ previousRoute, setDynamicLabel }}>
+    <NavigationContext.Provider value={{ previousRoute, setDynamicLabel, recipesScrollY, setRecipesScrollY }}>
       {children}
     </NavigationContext.Provider>
   )

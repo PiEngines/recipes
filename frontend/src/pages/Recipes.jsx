@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { useNavigation } from '../context/NavigationContext'
 import { isChefkochOrAbove } from '../utils/roles'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -165,7 +166,7 @@ function PageBtn({ onClick, disabled, children }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Recipes() {
-  const location = useLocation()
+  const { recipesScrollY, setRecipesScrollY } = useNavigation()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const search = searchParams.get('q') || ''
@@ -178,31 +179,23 @@ export default function Recipes() {
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
 
-  // Scroll-Position: save on unmount, restore on back-navigation via location.key.
-  // locationKeyRef captures the current key without stale-closure in the cleanup.
-  const locationKeyRef = useRef(location.key)
-  useEffect(() => { locationKeyRef.current = location.key }, [location.key])
+  // Capture scroll position at mount (before any state changes clear it)
+  const scrollToRef = useRef(recipesScrollY)
 
+  // Save scroll position to context when leaving
   useEffect(() => {
-    return () => {
-      sessionStorage.setItem('recipes_scroll', String(window.scrollY))
-      sessionStorage.setItem('recipes_scroll_key', locationKeyRef.current)
-    }
-  }, []) // empty deps: only mount/unmount
+    return () => { setRecipesScrollY(window.scrollY) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Restore after first data load, then clear
   useEffect(() => {
     if (loading) return
-    const savedKey = sessionStorage.getItem('recipes_scroll_key')
-    if (savedKey !== location.key) return
-    const savedY = sessionStorage.getItem('recipes_scroll')
-    if (!savedY) return
-    sessionStorage.removeItem('recipes_scroll')
-    sessionStorage.removeItem('recipes_scroll_key')
-    // setTimeout(50) fires after the browser's own scroll events settle
-    setTimeout(() => {
-      window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
-    }, 50)
-  }, [loading, location.key])
+    const y = scrollToRef.current
+    if (!y) return
+    scrollToRef.current = null
+    setRecipesScrollY(null)
+    setTimeout(() => { window.scrollTo({ top: y, behavior: 'instant' }) }, 50)
+  }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setLoading(true)

@@ -1,6 +1,3 @@
-// Disable browser's native scroll restoration — we manage it manually in Recipes.jsx
-window.history.scrollRestoration = 'manual'
-
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TimerProvider } from './context/TimerContext'
