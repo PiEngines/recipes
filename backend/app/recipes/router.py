@@ -199,6 +199,31 @@ def list_recipes(
     )
 
 
+# ── Pending review ────────────────────────────────────────────────────────────
+
+@router.get("/pending-review", response_model=list[RecipeListItem])
+def list_pending_review(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_chefkoch_or_above),
+):
+    items = (
+        db.query(Recipe)
+        .options(
+            subqueryload(Recipe.categories),
+            subqueryload(Recipe.tags),
+            joinedload(Recipe.author),
+        )
+        .filter(Recipe.review_status == "pending")
+        .order_by(Recipe.updated_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return items
+
+
 # ── Single ────────────────────────────────────────────────────────────────────
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
@@ -495,31 +520,6 @@ def toggle_status(
     )
     db.commit()
     return _load_full(recipe_id, db)
-
-
-# ── Pending review ────────────────────────────────────────────────────────────
-
-@router.get("/pending-review", response_model=list[RecipeListItem])
-def list_pending_review(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    _admin: User = Depends(require_chefkoch_or_above),
-):
-    items = (
-        db.query(Recipe)
-        .options(
-            subqueryload(Recipe.categories),
-            subqueryload(Recipe.tags),
-            joinedload(Recipe.author),
-        )
-        .filter(Recipe.review_status == "pending")
-        .order_by(Recipe.updated_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
-    )
-    return items
 
 
 @router.post("/{recipe_id}/review")
