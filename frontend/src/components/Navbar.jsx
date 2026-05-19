@@ -132,12 +132,17 @@ function ScopeCheckboxes({ scopeDesc, scopeIng, onToggleDesc, onToggleIng }) {
 
 // ── Navbar ────────────────────────────────────────────────────────────────────
 
+// Pages where the search bar is not shown
+const HIDE_SEARCH_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
+
 export default function Navbar() {
   const { user, logout } = useAuth()
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const hideSearch = HIDE_SEARCH_PATHS.includes(location.pathname)
 
   // Local input value, debounced to URL
   const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
@@ -187,32 +192,53 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', h)
   }, [showMenu])
 
-  // Mobile row 2: hide after 3s, re-show on scroll-up or swipe-down
+  // ── Mobile row 2: hide after 3s, re-show on scroll-up / swipe-down ──────────
+  //
+  // Design: the initial 3s timer fires once unconditionally. Scroll/touch events
+  // can only show row 2 AFTER it has hidden at least once, preventing browser
+  // chrome resize events during load from resetting the initial timer.
+
   const [showRow2, setShowRow2] = useState(true)
   const hideTimerRef = useRef(null)
-  const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0)
+  const lastScrollY = useRef(0) // start at 0 to avoid scroll-restore false triggers
   const touchStartY = useRef(0)
+  const hasHiddenOnce = useRef(false) // guard: only allow re-show after first hide
 
-  const resetHideTimer = useCallback(() => {
+  // Initial one-shot hide
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setShowRow2(false)
+      hasHiddenOnce.current = true
+    }, 3000)
+    return () => {
+      clearTimeout(t)
+      clearTimeout(hideTimerRef.current)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Show row 2 and schedule hide after 3s (only callable after first hide)
+  const showAndScheduleHide = useCallback(() => {
+    if (!hasHiddenOnce.current) return
     setShowRow2(true)
     clearTimeout(hideTimerRef.current)
     hideTimerRef.current = setTimeout(() => setShowRow2(false), 3000)
   }, [])
 
   useEffect(() => {
-    hideTimerRef.current = setTimeout(() => setShowRow2(false), 3000)
-    return () => clearTimeout(hideTimerRef.current)
-  }, [])
-
-  useEffect(() => {
     const onScroll = () => {
       const current = window.scrollY
-      if (current < lastScrollY.current) resetHideTimer()
+      const delta = lastScrollY.current - current
+      if (delta > 30) {
+        showAndScheduleHide()                  // scroll up → show
+      } else if (delta < -30) {
+        clearTimeout(hideTimerRef.current)     // scroll down → hide immediately
+        setShowRow2(false)
+      }
       lastScrollY.current = current
     }
     const onTouchStart = e => { touchStartY.current = e.touches[0].clientY }
     const onTouchEnd = e => {
-      if (e.changedTouches[0].clientY - touchStartY.current > 30) resetHideTimer()
+      if (e.changedTouches[0].clientY - touchStartY.current > 30) showAndScheduleHide()
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -222,7 +248,7 @@ export default function Navbar() {
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchend', onTouchEnd)
     }
-  }, [resetHideTimer])
+  }, [showAndScheduleHide])
 
   const canCreate = isKochOrAbove(user)
   const initials = user?.name?.[0]?.toUpperCase() ?? '?'
@@ -238,6 +264,9 @@ export default function Navbar() {
     </button>
   )
 
+  // Whether to show mobile row 2 at all (needs search or new-recipe button)
+  const hasRow2Content = !hideSearch || canCreate
+
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
@@ -252,13 +281,14 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Search – desktop: flex-1 spacer; mobile: hidden */}
-          <div className="hidden sm:block" style={{ flex: 1, minWidth: 0 }}>
-            <NavSearchInput value={inputValue} onChange={setInputValue} />
+          {/* Center flex-1 area: search on /  pages; empty spacer on profile/admin */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {!hideSearch && (
+              <div className="hidden sm:block">
+                <NavSearchInput value={inputValue} onChange={setInputValue} />
+              </div>
+            )}
           </div>
-
-          {/* Spacer – mobile only, pushes controls right when search is hidden */}
-          <div className="sm:hidden" style={{ flex: 1 }} />
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
@@ -290,51 +320,57 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ── Desktop: scope checkboxes (collapses when no search active) ──── */}
-        <div
-          className="hidden sm:block"
-          style={{
-            overflow: 'hidden',
-            maxHeight: hasSearch ? '40px' : '0',
-            opacity: hasSearch ? 1 : 0,
-            transition: 'max-height 0.25s ease, opacity 0.25s ease',
-            paddingBottom: hasSearch ? '0.5rem' : 0,
-          }}
-        >
-          <ScopeCheckboxes
-            scopeDesc={scopeDesc}
-            scopeIng={scopeIng}
-            onToggleDesc={v => toggleScope('scopeDesc', v)}
-            onToggleIng={v => toggleScope('scopeIng', v)}
-          />
-        </div>
-
-        {/* ── Mobile: row 2 (search + new + checkboxes) ─────────────────────── */}
-        <div
-          className="sm:hidden"
-          style={{
-            overflow: 'hidden',
-            maxHeight: showRow2 ? '120px' : '0',
-            opacity: showRow2 ? 1 : 0,
-            transition: 'max-height 0.3s ease, opacity 0.3s ease',
-            paddingBottom: showRow2 ? '0.625rem' : 0,
-          }}
-        >
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: hasSearch ? '0.4rem' : 0 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <NavSearchInput value={inputValue} onChange={setInputValue} />
-            </div>
-            {canCreate && newRecipeButton('+ Neu')}
-          </div>
-          {hasSearch && (
+        {/* ── Desktop: scope checkboxes (only on search pages, collapses without query) */}
+        {!hideSearch && (
+          <div
+            className="hidden sm:block"
+            style={{
+              overflow: 'hidden',
+              maxHeight: hasSearch ? '40px' : '0',
+              opacity: hasSearch ? 1 : 0,
+              transition: 'max-height 0.25s ease, opacity 0.25s ease',
+              paddingBottom: hasSearch ? '0.5rem' : 0,
+            }}
+          >
             <ScopeCheckboxes
               scopeDesc={scopeDesc}
               scopeIng={scopeIng}
               onToggleDesc={v => toggleScope('scopeDesc', v)}
               onToggleIng={v => toggleScope('scopeIng', v)}
             />
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ── Mobile: row 2 (search + new + checkboxes) ─────────────────────── */}
+        {hasRow2Content && (
+          <div
+            className="sm:hidden"
+            style={{
+              overflow: 'hidden',
+              maxHeight: showRow2 ? '120px' : '0',
+              opacity: showRow2 ? 1 : 0,
+              transition: 'max-height 0.3s ease, opacity 0.3s ease',
+              paddingBottom: showRow2 ? '0.625rem' : 0,
+            }}
+          >
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: !hideSearch && hasSearch ? '0.4rem' : 0 }}>
+              {!hideSearch && (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <NavSearchInput value={inputValue} onChange={setInputValue} />
+                </div>
+              )}
+              {canCreate && newRecipeButton('+ Neu')}
+            </div>
+            {!hideSearch && hasSearch && (
+              <ScopeCheckboxes
+                scopeDesc={scopeDesc}
+                scopeIng={scopeIng}
+                onToggleDesc={v => toggleScope('scopeDesc', v)}
+                onToggleIng={v => toggleScope('scopeIng', v)}
+              />
+            )}
+          </div>
+        )}
 
       </div>
     </header>

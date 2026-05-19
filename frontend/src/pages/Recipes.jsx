@@ -180,8 +180,8 @@ export default function Recipes() {
   useEffect(() => {
     setLoading(true)
     const searchScope = scopeIng ? 'title,description,ingredients' : scopeDesc ? 'title,description' : 'title'
-    const params = { page, page_size: PAGE_SIZE }
-    if (search) { params.search = search; params.search_scope = searchScope }
+    const params = { page, page_size: PAGE_SIZE, search_scope: searchScope }
+    if (search) { params.search = search }
     client.get('/api/recipes', { params })
       .then(res => {
         const items = res.data.items

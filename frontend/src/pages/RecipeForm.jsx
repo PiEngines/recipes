@@ -847,7 +847,7 @@ export default function RecipeForm() {
       </header>
 
       {/* Main content */}
-      <main style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
 
         {/* 1. Grunddaten */}
         <SectionCard title="Grunddaten" icon="📋">
