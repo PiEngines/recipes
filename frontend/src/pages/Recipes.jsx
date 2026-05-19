@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../hooks/useTheme'
 import { isChefkoch } from '../utils/roles'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -29,36 +28,7 @@ function DifficultySpoons({ difficulty }) {
   )
 }
 
-// ── Icons ────────────────────────────────────────────────────────────────────
-
-function MoonIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  )
-}
-
-function SunIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5" />
-      <line x1="12" y1="1" x2="12" y2="3" />
-      <line x1="12" y1="21" x2="12" y2="23" />
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-      <line x1="1" y1="12" x2="3" y2="12" />
-      <line x1="21" y1="12" x2="23" y2="12" />
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-  )
-}
-
 // ── Recipe card ───────────────────────────────────────────────────────────────
-// Items 6, 7, 8: gleiche Höhe + warme Farben + kein doppelter Titel
 
 function RecipeCard({ recipe, primaryImage }) {
   const { user } = useAuth()
@@ -86,10 +56,7 @@ function RecipeCard({ recipe, primaryImage }) {
     </span>
   )
 
-  // Oberer Bild-Bereich: gleiche Höhe (180px) wie Gradient-Kacheln.
-  // Unterer weißer Bereich: identische Struktur wie Gradient-Kacheln.
   const topArea = primaryImage ? (
-    // ── Split Card: Foto-Hintergrund ──────────────────────────────────────────
     <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
       <div
         className="card-image-bg"
@@ -108,7 +75,6 @@ function RecipeCard({ recipe, primaryImage }) {
       </div>
     </div>
   ) : (
-    // ── Gradient Card: unverändert ────────────────────────────────────────────
     <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
       {pendingBadge || draftBadge}
       {titleSpan}
@@ -123,7 +89,6 @@ function RecipeCard({ recipe, primaryImage }) {
     >
       <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {topArea}
-        {/* Weißer Infobereich – gleich für beide Varianten */}
         <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
           <div style={{ flex: 1 }}>
             {recipe.description ? (
@@ -187,17 +152,6 @@ function EmptyState({ search }) {
   )
 }
 
-// ── Icon button ───────────────────────────────────────────────────────────────
-
-function IconBtn({ onClick, title, children }) {
-  const [hov, setHov] = useState(false)
-  return (
-    <button onClick={onClick} title={title} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ background: 'none', border: `1.5px solid ${hov ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: hov ? 'var(--accent)' : 'var(--subtext)', transition: 'var(--transition)', flexShrink: 0 }}>
-      {children}
-    </button>
-  )
-}
-
 // ── Pagination button ─────────────────────────────────────────────────────────
 
 function PageBtn({ onClick, disabled, children }) {
@@ -211,37 +165,17 @@ function PageBtn({ onClick, disabled, children }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Recipes() {
-  const { user, logout } = useAuth()
-  const { theme, toggle } = useTheme()
-  const navigate = useNavigate()
-  const isChefkochUser = isChefkoch(user)
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const search = searchParams.get('q') || ''
+  const scopeDesc = searchParams.get('scopeDesc') === '1'
+  const scopeIng = searchParams.get('scopeIng') === '1'
+  const page = parseInt(searchParams.get('page') || '1', 10)
 
   const [recipes, setRecipes]         = useState([])
-  const [primaryImages, setPrimaryImages] = useState({}) // { recipeId: mediaObj | null }
+  const [primaryImages, setPrimaryImages] = useState({})
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
-  const [page, setPage]               = useState(1)
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch]           = useState('')
-  const [showMenu, setShowMenu]       = useState(false)
-  const [scopeDesc, setScopeDesc]     = useState(false)
-  const [scopeIng, setScopeIng]       = useState(false)
-
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    if (!showMenu) return
-    const handle = e => { if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false) }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [showMenu])
-
-  useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 400)
-    return () => clearTimeout(t)
-  }, [searchInput])
-
-  useEffect(() => { setPage(1) }, [scopeDesc, scopeIng])
 
   useEffect(() => {
     setLoading(true)
@@ -253,7 +187,6 @@ export default function Recipes() {
         const items = res.data.items
         setRecipes(items)
         setTotal(res.data.total)
-        // Primärbilder parallel laden
         Promise.all(
           items.map(r =>
             client.get(`/api/media/entity/recipe/${r.id}`)
@@ -268,77 +201,20 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search])
+  }, [page, search, scopeDesc, scopeIng])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const initials = user?.name?.[0]?.toUpperCase() ?? '?'
+
+  const setPage = (p) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev)
+    if (p > 1) next.set('page', String(p))
+    else next.delete('page')
+    return next
+  }, { replace: true })
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-
-      {/* Sticky header — 2-row on mobile, 1-row on sm+ */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.625rem 1.5rem' }}>
-          <div className="flex flex-wrap items-center" style={{ gap: '0.625rem', rowGap: '0.5rem' }}>
-
-            {/* Logo: row 1 left */}
-            <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, margin: 0, color: 'var(--text)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              🍽️ PiEngines
-            </h1>
-
-            {/* Icons: row 1 right on mobile (order 2 + ml-auto), after search on desktop (order-last) */}
-            <div className="order-2 sm:order-last" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-              <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
-                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-              </IconBtn>
-              <div ref={menuRef} style={{ position: 'relative' }}>
-                <button onClick={() => setShowMenu(m => !m)} title={user?.name} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
-                  {initials}
-                </button>
-                {showMenu && (
-                  <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
-                    <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
-                    <UserMenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</UserMenuItem>
-                    {isChefkochUser && <UserMenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</UserMenuItem>}
-                    <UserMenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</UserMenuItem>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Search + New: row 2 on mobile (order 3), flex-1 on sm+ */}
-            <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', minWidth: 0 }}>
-              <div style={{ flex: 1, display: 'flex', minWidth: 0 }}>
-                <SearchInput value={searchInput} onChange={setSearchInput} />
-              </div>
-              <button
-                onClick={() => navigate('/recipes/new')}
-                style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-              >
-                <span className="sm:hidden">+ Neu</span>
-                <span className="hidden sm:inline">+ Neues Rezept</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        {search && (
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
-              <input type="checkbox" checked={scopeDesc} onChange={e => setScopeDesc(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
-              Beschreibung einbeziehen
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
-              <input type="checkbox" checked={scopeIng} onChange={e => setScopeIng(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
-              Zutaten einbeziehen
-            </label>
-          </div>
-        )}
         {!loading && total > 0 && (
           <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', margin: '0 0 1.5rem' }}>
             {total} Rezept{total !== 1 ? 'e' : ''}{search ? ` für „${search}"` : ''}
@@ -346,7 +222,6 @@ export default function Recipes() {
         )}
 
         {loading ? (
-          /* Item 6: align-items: stretch (CSS-Grid-Default, aber explizit) */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
@@ -360,30 +235,12 @@ export default function Recipes() {
 
         {!loading && totalPages > 1 && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2.5rem' }}>
-            <PageBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>← Zurück</PageBtn>
+            <PageBtn onClick={() => setPage(page - 1)} disabled={page === 1}>← Zurück</PageBtn>
             <span style={{ color: 'var(--subtext)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Seite {page} / {totalPages}</span>
-            <PageBtn onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>Weiter →</PageBtn>
+            <PageBtn onClick={() => setPage(page + 1)} disabled={page === totalPages}>Weiter →</PageBtn>
           </div>
         )}
       </main>
     </div>
-  )
-}
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function SearchInput({ value, onChange }) {
-  const [focused, setFocused] = useState(false)
-  return (
-    <input type="search" value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder="Rezepte suchen …" style={{ flex: 1, maxWidth: '400px', padding: '0.5rem 1rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'var(--transition)', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none' }} />
-  )
-}
-
-function UserMenuItem({ onClick, children }) {
-  const [hov, setHov] = useState(false)
-  return (
-    <button onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ width: '100%', padding: '0.5rem 0.75rem', background: hov ? 'rgba(200,96,42,0.1)' : 'none', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', transition: 'background 0.15s ease' }}>
-      {children}
-    </button>
   )
 }

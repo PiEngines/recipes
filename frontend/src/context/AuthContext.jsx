@@ -27,6 +27,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh_token', data.refresh_token)
     const me = await client.get('/api/auth/me')
     setUser(me.data)
+    if (me.data.dark_mode_preference) {
+      const pref = me.data.dark_mode_preference
+      localStorage.setItem('theme', pref)
+      document.documentElement.setAttribute('data-theme', pref)
+      window.dispatchEvent(new CustomEvent('themechange', { detail: pref }))
+    }
     if (data.notifications?.length) {
       setPendingNotifications(data.notifications)
     }
