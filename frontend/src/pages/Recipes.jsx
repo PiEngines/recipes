@@ -190,11 +190,12 @@ export default function Recipes() {
   // Restore after first data load, then clear
   useEffect(() => {
     if (loading) return
-    const y = scrollToRef.current
-    if (!y) return
-    scrollToRef.current = null
-    setRecipesScrollY(null)
-    setTimeout(() => { window.scrollTo({ top: y, behavior: 'instant' }) }, 50)
+    if (scrollToRef.current !== null) {
+      const pos = scrollToRef.current
+      scrollToRef.current = null
+      setRecipesScrollY(null)
+      setTimeout(() => window.scrollTo({ top: pos, behavior: 'instant' }), 0)
+    }
   }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
