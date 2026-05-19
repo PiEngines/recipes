@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
@@ -195,51 +195,23 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', h)
   }, [showMenu])
 
-  // ── Mobile row 2: hide after 3s, re-show on scroll-up / swipe-down ──────────
-  //
-  // Design: the initial 3s timer fires once unconditionally. Scroll/touch events
-  // can only show row 2 AFTER it has hidden at least once, preventing browser
-  // chrome resize events during load from resetting the initial timer.
+  // ── Mobile row 2: scroll-driven show/hide ────────────────────────────────────
 
   const [showRow2, setShowRow2] = useState(true)
-  const hideTimerRef = useRef(null)
-  const lastScrollY = useRef(0) // start at 0 to avoid scroll-restore false triggers
+  const lastScrollY = useRef(0)
   const touchStartY = useRef(0)
-  const hasHiddenOnce = useRef(false) // guard: only allow re-show after first hide
-
-  // Initial one-shot hide (stored in hideTimerRef so scroll-down can cancel it)
-  useEffect(() => {
-    hideTimerRef.current = setTimeout(() => {
-      setShowRow2(false)
-      hasHiddenOnce.current = true
-    }, 3000)
-    return () => clearTimeout(hideTimerRef.current)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Show row 2 and schedule hide after 3s (only callable after first hide)
-  const showAndScheduleHide = useCallback(() => {
-    if (!hasHiddenOnce.current) return
-    setShowRow2(true)
-    clearTimeout(hideTimerRef.current)
-    hideTimerRef.current = setTimeout(() => setShowRow2(false), 3000)
-  }, [])
 
   useEffect(() => {
     const onScroll = () => {
       const current = window.scrollY
       const delta = lastScrollY.current - current
-      if (delta > 30) {
-        showAndScheduleHide()                  // scroll up → show
-      } else if (delta < -30) {
-        clearTimeout(hideTimerRef.current)     // scroll down → cancel timer + hide immediately
-        setShowRow2(false)
-        hasHiddenOnce.current = true           // allow scroll-up to re-show
-      }
+      if (delta > 10) setShowRow2(true)        // scroll up → show
+      else if (delta < -10) setShowRow2(false) // scroll down → hide
       lastScrollY.current = current
     }
     const onTouchStart = e => { touchStartY.current = e.touches[0].clientY }
     const onTouchEnd = e => {
-      if (e.changedTouches[0].clientY - touchStartY.current > 30) showAndScheduleHide()
+      if (e.changedTouches[0].clientY - touchStartY.current > 10) setShowRow2(true)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -249,7 +221,7 @@ export default function Navbar() {
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchend', onTouchEnd)
     }
-  }, [showAndScheduleHide])
+  }, [])
 
   const canCreate = isKochOrAbove(user)
   const initials = user?.name?.[0]?.toUpperCase() ?? '?'
