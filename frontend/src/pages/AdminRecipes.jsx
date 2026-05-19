@@ -54,7 +54,7 @@ export default function AdminRecipes() {
         .catch(console.error)
         .finally(() => setLoading(false))
     } else if (tab === 'alle') {
-      client.get('/api/recipes', { params: { page_size: 500, page: 1 } })
+      client.get('/api/recipes', { params: { page_size: 100, page: 1 } })
         .then(res => setRecipes(res.data.items))
         .catch(console.error)
         .finally(() => setLoading(false))
