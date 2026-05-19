@@ -88,7 +88,7 @@ function RecipeCard({ recipe, primaryImage }) {
       style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: isPendingReview ? 0.65 : 1, pointerEvents: blockClick ? 'none' : 'auto' }}
       tabIndex={blockClick ? -1 : 0}
     >
-      <div className="recipe-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="recipe-card" style={{ height: '100%', minHeight: '280px', display: 'flex', flexDirection: 'column' }}>
         {topArea}
         <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
           <div style={{ flex: 1 }}>
@@ -181,39 +181,22 @@ export default function Recipes() {
 
   // Capture scroll position at mount (before any state changes clear it)
   const scrollToRef = useRef(recipesScrollY)
-  // Non-null while scroll lock is active: holds the position to enforce
-  const lockPosRef = useRef(null)
 
   // Save scroll position to context when leaving
   useEffect(() => {
     return () => { setRecipesScrollY(window.scrollY) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Restore after first data load, then lock position for 500ms against re-renders
+  // Restore after data loaded; 100ms gives layout time to settle after render
   useEffect(() => {
     if (loading) return
     if (scrollToRef.current !== null) {
       const pos = scrollToRef.current
       scrollToRef.current = null
       setRecipesScrollY(null)
-      setTimeout(() => {
-        window.scrollTo({ top: pos, behavior: 'instant' })
-        lockPosRef.current = pos
-        setTimeout(() => { lockPosRef.current = null }, 500)
-      }, 0)
+      setTimeout(() => window.scrollTo({ top: pos, behavior: 'instant' }), 100)
     }
   }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Enforce locked position whenever a scroll event fires during the lock window
-  useEffect(() => {
-    const enforce = () => {
-      if (lockPosRef.current !== null) {
-        window.scrollTo({ top: lockPosRef.current, behavior: 'instant' })
-      }
-    }
-    window.addEventListener('scroll', enforce, { passive: true })
-    return () => window.removeEventListener('scroll', enforce)
-  }, [])
 
   useEffect(() => {
     setLoading(true)
