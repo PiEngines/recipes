@@ -49,7 +49,7 @@ export default function AdminRecipes() {
     setRecipes([])  // Fix 2: clear stale data immediately
     if (tab === 'reviews') {
       // pending-review endpoint already filters review_status == 'pending'
-      client.get('/api/recipes/pending-review', { params: { page: 1, page_size: 200 } })
+      client.get('/api/recipes/pending-review', { params: { page: 1, page_size: 100 } })
         .then(res => setRecipes(res.data))
         .catch(console.error)
         .finally(() => setLoading(false))
