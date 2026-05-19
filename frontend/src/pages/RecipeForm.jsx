@@ -804,7 +804,7 @@ export default function RecipeForm() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '96px' }}>
 
       {/* Breadcrumb strip */}
-      <div style={{ padding: '0.625rem 1.5rem', maxWidth: '860px', margin: '0 auto' }}>
+      <div style={{ padding: '0 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
         <Breadcrumb items={isEdit
           ? [{ label: 'Alle Rezepte', path: '/' }, { label: title || 'Rezept', path: recipeId ? `/recipes/${recipeId}` : null }, { label: 'Bearbeiten', path: null }]
           : [{ label: 'Alle Rezepte', path: '/' }, { label: 'Neues Rezept', path: null }]

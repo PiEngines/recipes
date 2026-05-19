@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isChefkoch } from '../utils/roles'
 
@@ -23,8 +23,10 @@ export function ProtectedRoute({ children }) {
 
 export function PublicOnlyRoute({ children }) {
   const { user, loading } = useAuth()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
   if (loading) return <LoadingScreen />
-  if (user) return <Navigate to="/" replace />
+  if (user) return <Navigate to={redirect} replace />
   return children
 }
 
