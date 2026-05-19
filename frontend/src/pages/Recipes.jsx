@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { isChefkochOrAbove } from '../utils/roles'
@@ -165,6 +165,7 @@ function PageBtn({ onClick, disabled, children }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Recipes() {
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const search = searchParams.get('q') || ''
@@ -176,6 +177,27 @@ export default function Recipes() {
   const [primaryImages, setPrimaryImages] = useState({})
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
+
+  // Scroll-Position: save on unmount, restore on back-navigation via location.key
+  const scrollRestoredRef = useRef(false)
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem('recipes_scroll', String(window.scrollY))
+      sessionStorage.setItem('recipes_scroll_key', location.key)
+    }
+  }, [location.key])
+
+  useEffect(() => {
+    if (loading || scrollRestoredRef.current) return
+    const savedKey = sessionStorage.getItem('recipes_scroll_key')
+    if (savedKey !== location.key) return
+    const savedY = sessionStorage.getItem('recipes_scroll')
+    if (!savedY) return
+    scrollRestoredRef.current = true
+    sessionStorage.removeItem('recipes_scroll')
+    sessionStorage.removeItem('recipes_scroll_key')
+    window.scrollTo(0, parseInt(savedY, 10))
+  }, [loading, location.key])
 
   useEffect(() => {
     setLoading(true)

@@ -152,6 +152,9 @@ def delete_me(
             raise HTTPException(status_code=404, detail="Zielbenutzer nicht gefunden")
         db.query(Recipe).filter(Recipe.created_by == current_user.id).update({"created_by": body.transfer_to_user_id})
 
+    from app.models.access import RecipeAccess
+    db.query(RecipeAccess).filter(RecipeAccess.email == current_user.email).delete()
+
     current_user.deleted_at = now
     current_user.status = "deleted"
     current_user.is_active = False
@@ -234,7 +237,11 @@ def soft_delete_user(
     if user.id == current_user.id:
         raise HTTPException(status_code=400, detail="Eigenen Account nicht löschbar")
 
+    from app.models.access import RecipeAccess
+
     now = datetime.now(timezone.utc)
+    db.query(RecipeAccess).filter(RecipeAccess.email == user.email).delete()
+
     user.deleted_at = now
     user.status = "deleted"
     user.is_active = False

@@ -633,7 +633,9 @@ export default function RecipeDetail() {
     return () => window.removeEventListener('scroll-to-step', handler)
   }, [])
 
-  const canEdit = recipe ? (isAdmin || recipe.created_by === user?.id) : false
+  const canEdit = recipe
+    ? (isAdmin || (isKochOrAbove(user) && recipe.created_by === user?.id))
+    : false
 
   // Load access info to show public badge (only for authorized editors)
   useEffect(() => {
@@ -677,7 +679,7 @@ export default function RecipeDetail() {
           { label: 'Alle Rezepte', path: '/' },
           { label: recipe?.title || '…', path: null },
         ]} />
-        {isAdmin && recipe && (
+        {canEdit && recipe && (
           <button
             onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
             style={{
