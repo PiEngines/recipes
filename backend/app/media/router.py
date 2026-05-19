@@ -25,7 +25,7 @@ MAX_VIDEO_BYTES = 1024 * 1024 * 1024  # 1 GB
 
 def _check_owner(entity_type: str, entity_id: int, current_user: User, db: Session) -> None:
     """Raise 403 if user is not chefkoch/admin and not the recipe author."""
-    if current_user.role in (UserRole.chefkoch, UserRole.admin):
+    if current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
         return
     if entity_type == "recipe":
         recipe = db.query(Recipe).filter(Recipe.id == entity_id).first()

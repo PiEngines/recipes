@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import MediaUpload from '../components/MediaUpload'
 import Breadcrumb from '../components/Breadcrumb'
+import { useAuth } from '../context/AuthContext'
+import { isKochOrAbove } from '../utils/roles'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -484,7 +486,13 @@ function MediaGallery({ media, onReload, showSetPrimary = true }) {
 export default function RecipeForm() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const isEdit = Boolean(id)
+
+  // Küchenhilfe darf keine Rezepte erstellen
+  useEffect(() => {
+    if (!isEdit && user && !isKochOrAbove(user)) navigate('/', { replace: true })
+  }, [isEdit, user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [loadError, setLoadError] = useState(null)
   const [loadingRecipe, setLoadingRecipe] = useState(isEdit)

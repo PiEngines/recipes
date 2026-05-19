@@ -7,7 +7,13 @@ from pydantic import BaseModel
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload, subqueryload
 
-from app.auth.dependencies import get_current_user, get_optional_user, require_admin
+from app.auth.dependencies import (
+    get_current_user,
+    get_optional_user,
+    require_admin,
+    require_chefkoch_or_above,
+    require_koch_or_above,
+)
 from app.database import get_db
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
@@ -107,8 +113,8 @@ def list_recipes(
         )
         q = q.filter(Recipe.id.in_(free_sq))
 
-    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
-        # Chefkoch sees everything
+    elif current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
+        # Küchenchef + Chefkoch sees everything
         if status_filter is not None:
             try:
                 q = q.filter(Recipe.status == RecipeStatus(status_filter))
@@ -239,8 +245,8 @@ def get_recipe(
                     raise HTTPException(status_code=404, detail="Recipe not found")
             else:
                 raise HTTPException(status_code=404, detail="Recipe not found")
-    elif current_user.role in (UserRole.chefkoch, UserRole.admin):
-        pass  # chefkoch sees everything
+    elif current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
+        pass  # kuechenchef + chefkoch sees everything
 
     else:
         # Koch / Küchenhilfe: own OR free_for_all OR individual access
@@ -348,7 +354,7 @@ def get_step_ingredients(
 def create_recipe(
     body: RecipeCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_koch_or_above),
 ):
     recipe = Recipe(
         title=body.title,
@@ -393,7 +399,7 @@ def update_recipe(
 
     from app.versioning import _recipe_snapshot, save_version
 
-    is_admin = current_user.role in (UserRole.chefkoch, UserRole.admin)
+    is_admin = current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
     is_author = (
         recipe.author_id == current_user.id or recipe.created_by == current_user.id
     )
@@ -498,7 +504,7 @@ def list_pending_review(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _admin: User = Depends(require_chefkoch_or_above),
 ):
     items = (
         db.query(Recipe)
@@ -522,7 +528,7 @@ def review_recipe(
     body: ReviewBody,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(require_chefkoch_or_above),
 ):
     from app.email_service import send_review_result_email
 

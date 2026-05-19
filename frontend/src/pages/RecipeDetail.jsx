@@ -6,7 +6,7 @@ import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import Breadcrumb from '../components/Breadcrumb'
-import { isChefkoch, isKochOrAbove } from '../utils/roles'
+import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
 
@@ -559,7 +559,7 @@ export default function RecipeDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { setDynamicLabel } = useNavigation()
-  const isAdmin = isChefkoch(user)
+  const isAdmin = isChefkochOrAbove(user)
   const { timers, add: addTimer, remove: removeTimer, addTime } = useTimerContext()
 
   const [recipe, setRecipe] = useState(null)

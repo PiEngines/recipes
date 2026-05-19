@@ -55,21 +55,32 @@ def get_optional_user(
     return db.query(User).filter(User.id == int(user_id), User.is_active.is_(True)).first()
 
 
-def require_chefkoch(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (UserRole.chefkoch, UserRole.admin):
+def require_kuechenchef(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in (UserRole.kuechenchef, UserRole.admin):
+        raise HTTPException(status_code=403, detail="Küchenchef-Zugriff erforderlich")
+    return current_user
+
+
+# Alias used throughout routers
+require_admin = require_kuechenchef
+# Legacy alias
+require_chefkoch = require_kuechenchef
+
+
+def require_chefkoch_or_above(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
         raise HTTPException(status_code=403, detail="Chefkoch-Zugriff erforderlich")
     return current_user
 
 
-# Alias for backward compatibility
-require_admin = require_chefkoch
-
-
 def require_koch_or_above(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (UserRole.chefkoch, UserRole.koch, UserRole.admin, UserRole.autor):
+    if current_user.role not in (
+        UserRole.kuechenchef, UserRole.chefkoch, UserRole.koch,
+        UserRole.admin, UserRole.autor,
+    ):
         raise HTTPException(status_code=403, detail="Zugriff verweigert")
     return current_user
 
 
-# Alias for backward compatibility
+# Legacy alias
 require_admin_or_autor = require_koch_or_above

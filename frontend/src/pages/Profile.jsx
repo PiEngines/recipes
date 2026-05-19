@@ -4,7 +4,7 @@ import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import Breadcrumb from '../components/Breadcrumb'
-import { getRoleLabel } from '../utils/roles'
+import { getRoleLabel, isKochOrAbove } from '../utils/roles'
 
 export default function Profile() {
   const { user, logout } = useAuth()
@@ -308,7 +308,7 @@ export default function Profile() {
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontWeight: 600, margin: 0, color: 'var(--text)' }}>
               Meine Rezepte
             </h2>
-            {!editMode && recipes.length > 0 && (
+            {!editMode && recipes.length > 0 && isKochOrAbove(user) && (
               <button onClick={enterEditMode} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
                 Freigaben bearbeiten
               </button>

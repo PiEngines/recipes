@@ -10,7 +10,7 @@ const TABS = [
   { key: 'deleted', label: 'Gelöscht' },
 ]
 
-const ROLES = ['kuechenhilfe', 'koch', 'chefkoch']
+const ROLES = ['kuechenhilfe', 'koch', 'chefkoch', 'kuechenchef']
 
 export default function AdminUsers() {
   const navigate = useNavigate()
@@ -140,6 +140,7 @@ export default function AdminUsers() {
                 <option value="kuechenhilfe">Küchenhilfe</option>
                 <option value="koch">Koch</option>
                 <option value="chefkoch">Chefkoch</option>
+                <option value="kuechenchef">Küchenchef</option>
               </select>
             </div>
             <button

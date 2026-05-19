@@ -243,7 +243,7 @@ def register(
         admins = (
             db.query(User)
             .filter(
-                User.role.in_([UserRole.chefkoch, UserRole.admin]),
+                User.role.in_([UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin]),
                 User.is_active.is_(True),
             )
             .all()
@@ -384,7 +384,7 @@ def invite(
     if current_user.role == UserRole.koch and body.role != "kuechenhilfe":
         raise HTTPException(status_code=403, detail="Köche können nur Küchenhilfen einladen")
 
-    if current_user.role not in (UserRole.chefkoch, UserRole.admin):
+    if current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
         check_rate_limit(f"invite:{current_user.id}", max_calls=3, window_seconds=3600)
 
     email = body.email.lower().strip()

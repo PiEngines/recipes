@@ -1,6 +1,6 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { isChefkoch } from '../utils/roles'
+import { isChefkochOrAbove } from '../utils/roles'
 
 function LoadingScreen() {
   return (
@@ -35,6 +35,6 @@ export function AdminRoute({ children }) {
   const location = useLocation()
   if (loading) return <LoadingScreen />
   if (!user) return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
-  if (!isChefkoch(user)) return <Navigate to="/" replace />
+  if (!isChefkochOrAbove(user)) return <Navigate to="/" replace />
   return children
 }

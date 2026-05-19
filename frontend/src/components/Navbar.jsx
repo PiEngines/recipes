@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
-import { isChefkoch, isKochOrAbove } from '../utils/roles'
+import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -285,7 +285,7 @@ export default function Navbar() {
                 <div style={{ position: 'absolute', right: 0, top: '44px', background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: '10px', padding: '0.375rem', minWidth: '170px', zIndex: 200 }}>
                   <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem' }}>{user?.name}</div>
                   <MenuItem onClick={() => { setShowMenu(false); navigate('/profile') }}>Mein Profil</MenuItem>
-                  {isChefkoch(user) && <MenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</MenuItem>}
+                  {isChefkochOrAbove(user) && <MenuItem onClick={() => { setShowMenu(false); navigate('/admin') }}>Admin-Bereich</MenuItem>}
                   <MenuItem onClick={() => { setShowMenu(false); logout() }}>Abmelden</MenuItem>
                 </div>
               )}

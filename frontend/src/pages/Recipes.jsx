@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { isChefkoch } from '../utils/roles'
+import { isChefkochOrAbove } from '../utils/roles'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ function RecipeCard({ recipe, primaryImage }) {
   const isDraft = recipe.status === 'draft'
 
   const isPendingReview = recipe.review_status === 'pending'
-  const blockClick = isPendingReview && !isChefkoch(user) && user?.id !== recipe.created_by
+  const blockClick = isPendingReview && !isChefkochOrAbove(user) && user?.id !== recipe.created_by
 
   const draftBadge = isDraft && (
     <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(0,0,0,0.45)', color: '#fff', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', zIndex: 2 }}>

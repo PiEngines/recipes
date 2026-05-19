@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user, require_chefkoch
+from app.auth.dependencies import get_current_user, require_kuechenchef, require_chefkoch_or_above
 from app.auth.password import hash_password, verify_password
 from app.database import get_db
 from app.email_service import send_verification_email, send_welcome_email
@@ -67,7 +67,7 @@ def list_users(
     status: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_kuechenchef),
     db: Session = Depends(get_db),
 ):
     q = db.query(User)
@@ -80,7 +80,7 @@ def list_users(
 
 @admin_router.get("/stats")
 def admin_stats(
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_chefkoch_or_above),
     db: Session = Depends(get_db),
 ):
     users_count = db.query(User).filter(User.deleted_at.is_(None)).count()
@@ -164,7 +164,7 @@ def delete_me(
 def patch_role(
     user_id: int,
     body: PatchRoleBody,
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_kuechenchef),
     db: Session = Depends(get_db),
 ):
     allowed_roles = [r.value for r in UserRole]
@@ -185,7 +185,7 @@ def patch_role(
 def activate_user(
     user_id: int,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_kuechenchef),
     db: Session = Depends(get_db),
 ):
     from app.models.tokens import EmailVerificationToken
@@ -225,7 +225,7 @@ def activate_user(
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def soft_delete_user(
     user_id: int,
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_kuechenchef),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.id == user_id).first()
@@ -249,7 +249,7 @@ def soft_delete_user(
 @router.post("/{user_id}/restore", status_code=status.HTTP_200_OK)
 def restore_user(
     user_id: int,
-    current_user: User = Depends(require_chefkoch),
+    current_user: User = Depends(require_kuechenchef),
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.id == user_id).first()

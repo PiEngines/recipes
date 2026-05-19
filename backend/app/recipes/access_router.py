@@ -27,7 +27,7 @@ class AccessPatch(BaseModel):
 
 
 def _check_manage_permission(recipe: Recipe, current_user: User) -> None:
-    if current_user.role not in (UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
+    if current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin) and recipe.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Keine Berechtigung")
 
 
