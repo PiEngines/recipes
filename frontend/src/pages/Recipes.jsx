@@ -181,22 +181,39 @@ export default function Recipes() {
 
   // Capture scroll position at mount (before any state changes clear it)
   const scrollToRef = useRef(recipesScrollY)
+  // Non-null while scroll lock is active: holds the position to enforce
+  const lockPosRef = useRef(null)
 
   // Save scroll position to context when leaving
   useEffect(() => {
     return () => { setRecipesScrollY(window.scrollY) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Restore after first data load, then clear
+  // Restore after first data load, then lock position for 500ms against re-renders
   useEffect(() => {
     if (loading) return
     if (scrollToRef.current !== null) {
       const pos = scrollToRef.current
       scrollToRef.current = null
       setRecipesScrollY(null)
-      setTimeout(() => window.scrollTo({ top: pos, behavior: 'instant' }), 0)
+      setTimeout(() => {
+        window.scrollTo({ top: pos, behavior: 'instant' })
+        lockPosRef.current = pos
+        setTimeout(() => { lockPosRef.current = null }, 500)
+      }, 0)
     }
   }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Enforce locked position whenever a scroll event fires during the lock window
+  useEffect(() => {
+    const enforce = () => {
+      if (lockPosRef.current !== null) {
+        window.scrollTo({ top: lockPosRef.current, behavior: 'instant' })
+      }
+    }
+    window.addEventListener('scroll', enforce, { passive: true })
+    return () => window.removeEventListener('scroll', enforce)
+  }, [])
 
   useEffect(() => {
     setLoading(true)
