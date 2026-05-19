@@ -198,10 +198,10 @@ export default function Recipes() {
     if (!savedY) return
     sessionStorage.removeItem('recipes_scroll')
     sessionStorage.removeItem('recipes_scroll_key')
-    // rAF ensures React has painted the grid before scrolling
-    requestAnimationFrame(() => {
+    // setTimeout(50) fires after the browser's own scroll events settle
+    setTimeout(() => {
       window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
-    })
+    }, 50)
   }, [loading, location.key])
 
   useEffect(() => {
