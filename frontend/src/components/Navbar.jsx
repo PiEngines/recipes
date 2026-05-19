@@ -132,8 +132,9 @@ function ScopeCheckboxes({ scopeDesc, scopeIng, onToggleDesc, onToggleIng }) {
 
 // ── Navbar ────────────────────────────────────────────────────────────────────
 
-// Pages where the search bar is not shown
-const HIDE_SEARCH_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
+// Pages where the search bar (and optionally the create button) is hidden
+const SEARCH_HIDDEN_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
+const EDIT_NEW_RE = /^\/recipes\/(new|\d+\/edit)$/
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -142,7 +143,9 @@ export default function Navbar() {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const hideSearch = HIDE_SEARCH_PATHS.includes(location.pathname)
+  const isEditOrNew = EDIT_NEW_RE.test(location.pathname)
+  const hideSearch = SEARCH_HIDDEN_PATHS.includes(location.pathname) || isEditOrNew
+  const hideCreate = isEditOrNew
 
   // Local input value, debounced to URL
   const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
@@ -204,16 +207,13 @@ export default function Navbar() {
   const touchStartY = useRef(0)
   const hasHiddenOnce = useRef(false) // guard: only allow re-show after first hide
 
-  // Initial one-shot hide
+  // Initial one-shot hide (stored in hideTimerRef so scroll-down can cancel it)
   useEffect(() => {
-    const t = setTimeout(() => {
+    hideTimerRef.current = setTimeout(() => {
       setShowRow2(false)
       hasHiddenOnce.current = true
     }, 3000)
-    return () => {
-      clearTimeout(t)
-      clearTimeout(hideTimerRef.current)
-    }
+    return () => clearTimeout(hideTimerRef.current)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show row 2 and schedule hide after 3s (only callable after first hide)
@@ -231,8 +231,9 @@ export default function Navbar() {
       if (delta > 30) {
         showAndScheduleHide()                  // scroll up → show
       } else if (delta < -30) {
-        clearTimeout(hideTimerRef.current)     // scroll down → hide immediately
+        clearTimeout(hideTimerRef.current)     // scroll down → cancel timer + hide immediately
         setShowRow2(false)
+        hasHiddenOnce.current = true           // allow scroll-up to re-show
       }
       lastScrollY.current = current
     }
@@ -265,7 +266,7 @@ export default function Navbar() {
   )
 
   // Whether to show mobile row 2 at all (needs search or new-recipe button)
-  const hasRow2Content = !hideSearch || canCreate
+  const hasRow2Content = !hideSearch || (!hideCreate && canCreate)
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
@@ -292,7 +293,7 @@ export default function Navbar() {
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-            {canCreate && (
+            {canCreate && !hideCreate && (
               <div className="hidden sm:block">
                 {newRecipeButton('+ Neues Rezept')}
               </div>
@@ -359,7 +360,7 @@ export default function Navbar() {
                   <NavSearchInput value={inputValue} onChange={setInputValue} />
                 </div>
               )}
-              {canCreate && newRecipeButton('+ Neu')}
+              {!hideCreate && canCreate && newRecipeButton('+ Neu')}
             </div>
             {!hideSearch && hasSearch && (
               <ScopeCheckboxes

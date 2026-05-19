@@ -834,16 +834,18 @@ export default function RecipeForm() {
       )}
 
       {/* Sticky top bar */}
-      <header style={{ position: 'sticky', top: '64px', zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
-          ← {isEdit ? 'Zur Detailseite' : 'Übersicht'}
-        </button>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-          {isEdit ? (title || 'Rezept bearbeiten') : 'Neues Rezept'}
-        </h1>
-        {saveStatusText && (
-          <span style={{ fontSize: '0.78rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
-        )}
+      <header style={{ position: 'sticky', top: '64px', zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+            ← {isEdit ? 'Zur Detailseite' : 'Übersicht'}
+          </button>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+            {isEdit ? (title || 'Rezept bearbeiten') : 'Neues Rezept'}
+          </h1>
+          {saveStatusText && (
+            <span style={{ fontSize: '0.78rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
+          )}
+        </div>
       </header>
 
       {/* Main content */}
@@ -947,7 +949,8 @@ export default function RecipeForm() {
       </main>
 
       {/* Sticky footer */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', padding: '0.875rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', zIndex: 200, flexWrap: 'wrap' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', zIndex: 200 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.875rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.825rem', color: saveStatusColor, flex: '1 1 auto', minWidth: '100px' }}>
           {saveStatusText || (!title.trim() && <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Titel eingeben zum Speichern</span>)}
         </span>
@@ -967,6 +970,7 @@ export default function RecipeForm() {
           onMouseLeave={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent)' }}>
           {savingAs === 'published' ? 'Wird gespeichert …' : status === 'published' ? 'Änderungen speichern' : 'Veröffentlichen'}
         </button>
+        </div>
       </div>
 
       {/* Save toast */}
