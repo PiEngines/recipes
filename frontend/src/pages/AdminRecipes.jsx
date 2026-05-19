@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import Breadcrumb from '../components/Breadcrumb'
@@ -11,12 +11,15 @@ const TABS = [
 
 const TAB_MAP = { all: 'alle', pending: 'reviews', trash: 'papierkorb' }
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
+
 export default function AdminRecipes() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const rawTab = searchParams.get('tab') || 'alle'
   const initialTab = TAB_MAP[rawTab] || rawTab
   const [tab, setTab] = useState(initialTab)
+
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
@@ -29,16 +32,29 @@ export default function AdminRecipes() {
   const [editingRecipeId, setEditingRecipeId] = useState(null)
   const [accessModal, setAccessModal] = useState(null)
 
+  // Filters (reset on tab change)
+  const [filterTitle, setFilterTitle] = useState('')
+  const [filterAuthorId, setFilterAuthorId] = useState('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+
+  // Pagination (pageSize persists across tabs)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
   const fetchRecipes = useCallback(() => {
     setLoading(true)
-    setEditingRecipeId(null)
+    setRecipes([])  // Fix 2: clear stale data immediately
     if (tab === 'reviews') {
-      client.get('/api/recipes/pending-review')
+      // pending-review endpoint already filters review_status == 'pending'
+      client.get('/api/recipes/pending-review', { params: { page: 1, page_size: 200 } })
         .then(res => setRecipes(res.data))
         .catch(console.error)
         .finally(() => setLoading(false))
     } else if (tab === 'alle') {
-      client.get('/api/recipes', { params: { page_size: 50, page: 1 } })
+      client.get('/api/recipes', { params: { page_size: 500, page: 1 } })
         .then(res => setRecipes(res.data.items))
         .catch(console.error)
         .finally(() => setLoading(false))
@@ -49,6 +65,49 @@ export default function AdminRecipes() {
   }, [tab])
 
   useEffect(() => { fetchRecipes() }, [fetchRecipes])
+
+  // Reset filters + page on tab change
+  useEffect(() => {
+    setFilterTitle('')
+    setFilterAuthorId('')
+    setFilterDateFrom('')
+    setFilterDateTo('')
+    setPage(1)
+    setEditingRecipeId(null)
+  }, [tab])
+
+  // Reset to page 1 when any filter changes
+  useEffect(() => { setPage(1) }, [filterTitle, filterAuthorId, filterDateFrom, filterDateTo])
+
+  // ── Derived state ─────────────────────────────────────────────────────────
+
+  const authorsList = useMemo(() => {
+    const map = new Map()
+    recipes.forEach(r => { if (r.author) map.set(r.author.id, r.author.name) })
+    return [...map.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+  }, [recipes])
+
+  const filteredRecipes = useMemo(() => {
+    const titleLower = filterTitle.toLowerCase()
+    const dateFrom = filterDateFrom ? new Date(filterDateFrom) : null
+    const dateTo = filterDateTo ? new Date(filterDateTo + 'T23:59:59') : null
+    return recipes.filter(r => {
+      if (filterTitle && !r.title.toLowerCase().includes(titleLower)) return false
+      if (filterAuthorId && String(r.author?.id) !== filterAuthorId) return false
+      const created = new Date(r.created_at)
+      if (dateFrom && created < dateFrom) return false
+      if (dateTo && created > dateTo) return false
+      return true
+    })
+  }, [recipes, filterTitle, filterAuthorId, filterDateFrom, filterDateTo])
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecipes.length / pageSize))
+  const visibleRecipes = filteredRecipes.slice((page - 1) * pageSize, page * pageSize)
+  const hasFilter = filterTitle || filterAuthorId || filterDateFrom || filterDateTo
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
   const showToast = msg => {
     setToast(msg)
@@ -115,6 +174,13 @@ export default function AdminRecipes() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  const resetFilters = () => {
+    setFilterTitle('')
+    setFilterAuthorId('')
+    setFilterDateFrom('')
+    setFilterDateTo('')
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -142,122 +208,189 @@ export default function AdminRecipes() {
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🗑️</div>
               <p style={{ margin: 0, fontFamily: 'Inter, sans-serif' }}>Funktion in Vorbereitung</p>
             </div>
-          ) : recipes.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Keine Rezepte gefunden.</div>
-          ) : tab === 'reviews' ? (
-            /* ── Reviews: table layout (unchanged) ── */
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Titel', 'Autor', 'Status', 'Erstellt', 'Aktionen'].map(h => (
-                      <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recipes.map(r => (
-                    <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '0.875rem 1rem' }}>
-                        <button onClick={() => navigate(`/recipes/${r.id}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500, padding: 0, textAlign: 'left' }}>
-                          {r.title}
-                        </button>
-                      </td>
-                      <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{r.author?.name || '—'}</td>
-                      <td style={{ padding: '0.875rem 1rem' }}>
-                        <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
-                      </td>
-                      <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
-                        {new Date(r.created_at).toLocaleDateString('de-DE')}
-                      </td>
-                      <td style={{ padding: '0.875rem 1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <ActionBtn onClick={() => { setReviewRecipe(r); setReviewComment('') }}>Review</ActionBtn>
-                          <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           ) : (
-            /* ── Alle: list layout with access management ── */
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {recipes.map(r => {
-                const access = accessData[r.id]
-                const freeEntry = access?.items?.find(a => a.access_type === 'free_for_all')
-                const individualCount = access?.items?.filter(a => a.access_type === 'individual').length ?? 0
-                const isFree = !!freeEntry
-                const isEditing = editingRecipeId === r.id
+            <>
+              {/* Filter bar */}
+              <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', display: 'flex', gap: '0.625rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <input
+                  type="text"
+                  value={filterTitle}
+                  onChange={e => setFilterTitle(e.target.value)}
+                  placeholder="Rezeptname …"
+                  style={{ ...filterInputStyle, flex: '1 1 160px' }}
+                />
+                <select
+                  value={filterAuthorId}
+                  onChange={e => setFilterAuthorId(e.target.value)}
+                  style={{ ...filterInputStyle, flex: '0 1 160px' }}
+                >
+                  <option value="">Alle Autoren</option>
+                  {authorsList.map(a => (
+                    <option key={a.id} value={String(a.id)}>{a.name}</option>
+                  ))}
+                </select>
+                <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} style={{ ...filterInputStyle, flex: '0 1 140px' }} title="Von Datum" />
+                <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} style={{ ...filterInputStyle, flex: '0 1 140px' }} title="Bis Datum" />
+                {hasFilter && (
+                  <button onClick={resetFilters} style={{ padding: '0.45rem 0.875rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    Zurücksetzen
+                  </button>
+                )}
+              </div>
 
-                return (
-                  <div key={r.id} style={{ borderBottom: '1px solid var(--border)', overflow: 'hidden' }}>
-                    {/* Recipe row */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <button onClick={() => navigate(`/recipes/${r.id}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, padding: 0, textAlign: 'left' }}>
-                          {r.title}
-                        </button>
-                        {r.author?.name && (
-                          <span style={{ fontSize: '0.78rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                            von {r.author.name}
-                          </span>
-                        )}
-                        <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
-                        {isFree && (
-                          <span style={{ fontSize: '0.72rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-                            🌍 Öffentlich
-                          </span>
-                        )}
-                        {!isFree && individualCount > 0 && (
-                          <span style={{ fontSize: '0.72rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-                            {individualCount} Freigabe{individualCount !== 1 ? 'n' : ''}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
-                        {!isEditing ? (
-                          <ActionBtn onClick={() => enterEditMode(r.id)}>Freigaben bearbeiten</ActionBtn>
-                        ) : (
-                          <ActionBtn onClick={() => setEditingRecipeId(null)}>Fertig</ActionBtn>
-                        )}
-                        <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>
-                      </div>
-                    </div>
-
-                    {/* Access row — only in edit mode */}
-                    {isEditing && (
-                      <div style={{ borderTop: '1px solid var(--border)', padding: '0.625rem 1rem', display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center', background: 'var(--bg)' }}>
-                        {access?.loading ? (
-                          <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Wird geladen …</span>
-                        ) : (
-                          <>
-                            <FreeForAllToggle
-                              recipeId={r.id}
-                              isActive={isFree}
-                              currentEntry={freeEntry}
-                              onToggle={handleToggleFreeForAll}
-                            />
-                            <button
-                              onClick={() => setAccessModal({ recipeId: r.id, title: r.title })}
-                              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: '6px', padding: '0.3rem 0.75rem', cursor: 'pointer', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 500 }}
-                            >
-                              Einzelfreigaben
-                              {individualCount > 0 && (
-                                <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: '999px', fontSize: '0.7rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>
-                                  {individualCount}
-                                </span>
-                              )}
+              {visibleRecipes.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>
+                  {hasFilter ? 'Keine Rezepte entsprechen den Filterkriterien.' : 'Keine Rezepte gefunden.'}
+                </div>
+              ) : tab === 'reviews' ? (
+                /* ── Reviews tab: table layout ── */
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                        {['Titel', 'Autor', 'Status', 'Erstellt', 'Aktionen'].map(h => (
+                          <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleRecipes.map(r => (
+                        <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <button onClick={() => navigate(`/recipes/${r.id}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500, padding: 0, textAlign: 'left' }}>
+                              {r.title}
                             </button>
-                          </>
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{r.author?.name || '—'}</td>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
+                            {new Date(r.created_at).toLocaleDateString('de-DE')}
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <ActionBtn onClick={() => { setReviewRecipe(r); setReviewComment('') }}>Review</ActionBtn>
+                              <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                /* ── Alle tab: list layout with access management ── */
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {visibleRecipes.map(r => {
+                    const access = accessData[r.id]
+                    const freeEntry = access?.items?.find(a => a.access_type === 'free_for_all')
+                    const individualCount = access?.items?.filter(a => a.access_type === 'individual').length ?? 0
+                    const isFree = !!freeEntry
+                    const isEditing = editingRecipeId === r.id
+
+                    return (
+                      <div key={r.id} style={{ borderBottom: '1px solid var(--border)', overflow: 'hidden' }}>
+                        {/* Recipe row */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', gap: '1rem', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <button onClick={() => navigate(`/recipes/${r.id}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, padding: 0, textAlign: 'left' }}>
+                              {r.title}
+                            </button>
+                            {r.author?.name && (
+                              <span style={{ fontSize: '0.78rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                                von {r.author.name}
+                              </span>
+                            )}
+                            <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
+                            {isFree && (
+                              <span style={{ fontSize: '0.72rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+                                🌍 Öffentlich
+                              </span>
+                            )}
+                            {!isFree && individualCount > 0 && (
+                              <span style={{ fontSize: '0.72rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
+                                {individualCount} Freigabe{individualCount !== 1 ? 'n' : ''}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap' }}>
+                            {!isEditing ? (
+                              <ActionBtn onClick={() => enterEditMode(r.id)}>Freigaben bearbeiten</ActionBtn>
+                            ) : (
+                              <ActionBtn onClick={() => setEditingRecipeId(null)}>Fertig</ActionBtn>
+                            )}
+                            <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>
+                          </div>
+                        </div>
+
+                        {/* Edit panel — only in edit mode */}
+                        {isEditing && (
+                          <div style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
+                            {/* Fix 5: Compact recipe info line */}
+                            <div style={{ padding: '0.4rem 1rem', fontSize: '0.78rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', borderBottom: '1px solid var(--border)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                              {r.author?.name && <span>Autor: <strong style={{ color: 'var(--text)' }}>{r.author.name}</strong></span>}
+                              <span>Erstellt: {new Date(r.created_at).toLocaleDateString('de-DE')}</span>
+                              {r.updated_at && r.updated_at !== r.created_at && (
+                                <span>Geändert: {new Date(r.updated_at).toLocaleDateString('de-DE')}</span>
+                              )}
+                            </div>
+                            {/* Access controls */}
+                            <div style={{ padding: '0.625rem 1rem', display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                              {access?.loading ? (
+                                <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Wird geladen …</span>
+                              ) : (
+                                <>
+                                  <FreeForAllToggle
+                                    recipeId={r.id}
+                                    isActive={isFree}
+                                    currentEntry={freeEntry}
+                                    onToggle={handleToggleFreeForAll}
+                                  />
+                                  <button
+                                    onClick={() => setAccessModal({ recipeId: r.id, title: r.title })}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: '6px', padding: '0.3rem 0.75rem', cursor: 'pointer', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 500 }}
+                                  >
+                                    Einzelfreigaben
+                                    {individualCount > 0 && (
+                                      <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: '999px', fontSize: '0.7rem', padding: '0.1rem 0.45rem', fontWeight: 700 }}>
+                                        {individualCount}
+                                      </span>
+                                    )}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    )}
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Pagination bar */}
+              {filteredRecipes.length > 0 && (
+                <div style={{ padding: '0.625rem 1rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
+                    Seite {page} von {totalPages} ({filteredRecipes.length} Einträge)
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                      value={pageSize}
+                      onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+                      style={{ ...filterInputStyle, width: 'auto', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                    >
+                      {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} pro Seite</option>)}
+                    </select>
+                    <PaginationBtn onClick={() => setPage(1)} disabled={page === 1}>«</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>›</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(totalPages)} disabled={page === totalPages}>»</PaginationBtn>
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -367,6 +500,18 @@ function ActionBtn({ onClick, children, danger }) {
   )
 }
 
+function PaginationBtn({ onClick, disabled, children }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{ padding: '0.3rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: '6px', background: disabled ? 'none' : 'var(--bg)', color: disabled ? 'var(--border-input)' : 'var(--text)', cursor: disabled ? 'default' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', lineHeight: 1, minWidth: '28px' }}
+    >
+      {children}
+    </button>
+  )
+}
+
 // ── Free-for-all toggle (mirrored from Profile.jsx) ───────────────────────────
 
 function FreeForAllToggle({ recipeId, isActive, currentEntry, onToggle }) {
@@ -391,18 +536,10 @@ function FreeForAllToggle({ recipeId, isActive, currentEntry, onToggle }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--text)' }}>
-        <input
-          type="checkbox"
-          checked={isActive}
-          disabled={saving}
-          onChange={e => handleChange(e.target.checked)}
-          style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
-        />
+        <input type="checkbox" checked={isActive} disabled={saving} onChange={e => handleChange(e.target.checked)} style={{ accentColor: 'var(--accent)', cursor: 'pointer' }} />
         🌍 Free for all
         {isActive && currentEntry?.expires_at && (
-          <span style={{ color: 'var(--subtext)', fontWeight: 400 }}>
-            · bis {new Date(currentEntry.expires_at).toLocaleDateString('de-DE')}
-          </span>
+          <span style={{ color: 'var(--subtext)', fontWeight: 400 }}>· bis {new Date(currentEntry.expires_at).toLocaleDateString('de-DE')}</span>
         )}
       </label>
       {isActive && (
@@ -417,19 +554,11 @@ function FreeForAllToggle({ recipeId, isActive, currentEntry, onToggle }) {
             Ohne Limit
           </label>
           {!noLimit && (
-            <input
-              type="date"
-              value={expiryDate}
-              onChange={e => setExpiryDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              style={{ ...inputStyle, width: 'auto', padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
-            />
+            <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} min={new Date().toISOString().split('T')[0]}
+              style={{ ...inputStyle, width: 'auto', padding: '0.2rem 0.5rem', fontSize: '0.8rem' }} />
           )}
-          <button
-            onClick={() => handleChange(true)}
-            disabled={saving || (!noLimit && !expiryDate)}
-            style={{ padding: '0.2rem 0.75rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
-          >
+          <button onClick={() => handleChange(true)} disabled={saving || (!noLimit && !expiryDate)}
+            style={{ padding: '0.2rem 0.75rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
             {saving ? '…' : 'Aktivieren'}
           </button>
           <button onClick={() => setShowExpiry(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.78rem', padding: 0, fontFamily: 'Inter, sans-serif' }}>
@@ -467,15 +596,11 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
     }
     try {
       await client.post(`/api/recipes/${recipeId}/access`, {
-        access_type: 'individual',
-        email: newEmail.trim(),
-        expires_days: expiresDays,
+        access_type: 'individual', email: newEmail.trim(), expires_days: expiresDays,
       })
       const limitLabel = newNoLimit ? 'Ohne Limit' : newExpiry ? new Date(newExpiry).toLocaleDateString('de-DE') : 'Ohne Limit'
-      onToast?.(`Mit ${newEmail.trim()} erfolgreich geteilt. Limit: ${limitLabel}`)
-      setNewEmail('')
-      setNewExpiry('')
-      setNewNoLimit(true)
+      onToast?.(`Mit ${newEmail.trim()} geteilt. Limit: ${limitLabel}`)
+      setNewEmail(''); setNewExpiry(''); setNewNoLimit(true)
       onRefresh()
     } catch (err) {
       setError(err.response?.data?.detail || 'Fehler beim Hinzufügen.')
@@ -485,18 +610,12 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
   }
 
   const handleRemove = async accessId => {
-    try {
-      await client.delete(`/api/recipes/${recipeId}/access/${accessId}`)
-      onRefresh()
-    } catch {}
+    try { await client.delete(`/api/recipes/${recipeId}/access/${accessId}`); onRefresh() } catch {}
   }
 
   const handleUpdateExpiry = async (accessId, expiresDays, ohneLimit) => {
     try {
-      await client.patch(`/api/recipes/${recipeId}/access/${accessId}`, {
-        expires_days: ohneLimit ? null : expiresDays,
-        ohne_limit: ohneLimit,
-      })
+      await client.patch(`/api/recipes/${recipeId}/access/${accessId}`, { expires_days: ohneLimit ? null : expiresDays, ohne_limit: ohneLimit })
       onRefresh()
     } catch {}
   }
@@ -510,51 +629,30 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1.25rem', padding: 0, lineHeight: 1 }}>×</button>
         </div>
-
         {items.length === 0 ? (
           <p style={{ color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', margin: '0 0 1.25rem' }}>Keine Einzelfreigaben.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            {items.map(a => (
-              <AccessEntryRow key={a.id} entry={a} onRemove={() => handleRemove(a.id)} onUpdate={handleUpdateExpiry} />
-            ))}
+            {items.map(a => <AccessEntryRow key={a.id} entry={a} onRemove={() => handleRemove(a.id)} onUpdate={handleUpdateExpiry} />)}
           </div>
         )}
-
         <form onSubmit={handleAdd} style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
           <h4 style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.875rem' }}>
             Hinzufügen
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <input
-              type="email"
-              value={newEmail}
-              onChange={e => setNewEmail(e.target.value)}
-              placeholder="Email-Adresse"
-              required
-              style={{ ...inputStyle }}
-            />
+            <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email-Adresse" required style={{ ...inputStyle }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: 'var(--text)', cursor: 'pointer' }}>
                 <input type="checkbox" checked={newNoLimit} onChange={e => setNewNoLimit(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
                 Ohne Limit
               </label>
               {!newNoLimit && (
-                <input
-                  type="date"
-                  value={newExpiry}
-                  onChange={e => setNewExpiry(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  style={{ ...inputStyle, width: 'auto', flex: 1 }}
-                />
+                <input type="date" value={newExpiry} onChange={e => setNewExpiry(e.target.value)} min={new Date().toISOString().split('T')[0]} style={{ ...inputStyle, width: 'auto', flex: 1 }} />
               )}
             </div>
             {error && <p style={{ color: '#C84444', fontFamily: 'Inter, sans-serif', fontSize: '0.825rem', margin: 0 }}>{error}</p>}
-            <button
-              type="submit"
-              disabled={adding}
-              style={{ padding: '0.6rem 1.25rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-input)', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: adding ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: adding ? 0.7 : 1 }}
-            >
+            <button type="submit" disabled={adding} style={{ padding: '0.6rem 1.25rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-input)', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: adding ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: adding ? 0.7 : 1 }}>
               {adding ? 'Wird hinzugefügt …' : 'Hinzufügen'}
             </button>
           </div>
@@ -566,9 +664,7 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
 
 function AccessEntryRow({ entry, onRemove, onUpdate }) {
   const [editing, setEditing] = useState(false)
-  const [expiryDate, setExpiryDate] = useState(
-    entry.expires_at ? new Date(entry.expires_at).toISOString().split('T')[0] : ''
-  )
+  const [expiryDate, setExpiryDate] = useState(entry.expires_at ? new Date(entry.expires_at).toISOString().split('T')[0] : '')
   const [noLimit, setNoLimit] = useState(!entry.expires_at)
   const [saving, setSaving] = useState(false)
 
@@ -587,9 +683,7 @@ function AccessEntryRow({ entry, onRemove, onUpdate }) {
   return (
     <div style={{ padding: '0.625rem 0.75rem', background: 'var(--bg)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {entry.email}
-        </span>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.email}</span>
         <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
           <button onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.8rem', padding: 0, fontFamily: 'Inter, sans-serif' }}>
             {editing ? 'Abbrechen' : entry.expires_at ? new Date(entry.expires_at).toLocaleDateString('de-DE') : 'Ohne Limit'}
@@ -604,13 +698,8 @@ function AccessEntryRow({ entry, onRemove, onUpdate }) {
             Ohne Limit
           </label>
           {!noLimit && (
-            <input
-              type="date"
-              value={expiryDate}
-              onChange={e => setExpiryDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              style={{ ...inputStyle, width: 'auto', flex: 1, padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
-            />
+            <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} min={new Date().toISOString().split('T')[0]}
+              style={{ ...inputStyle, width: 'auto', flex: 1, padding: '0.2rem 0.5rem', fontSize: '0.8rem' }} />
           )}
           <button onClick={handleSave} disabled={saving} style={{ padding: '0.2rem 0.75rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
             {saving ? '…' : 'Speichern'}
@@ -622,25 +711,18 @@ function AccessEntryRow({ entry, onRemove, onUpdate }) {
 }
 
 const labelStyle = {
-  display: 'block',
-  fontSize: '0.775rem',
-  fontWeight: 600,
-  color: 'var(--subtext)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-  marginBottom: '0.375rem',
-  fontFamily: 'Inter, sans-serif',
+  display: 'block', fontSize: '0.775rem', fontWeight: 600, color: 'var(--subtext)',
+  textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem', fontFamily: 'Inter, sans-serif',
 }
 
 const inputStyle = {
-  width: '100%',
-  padding: '0.6rem 0.875rem',
-  border: '1.5px solid var(--border-input)',
-  borderRadius: 'var(--radius-input)',
-  background: 'var(--bg)',
-  color: 'var(--text)',
-  fontSize: '0.9rem',
-  fontFamily: 'Inter, sans-serif',
-  outline: 'none',
-  boxSizing: 'border-box',
+  width: '100%', padding: '0.6rem 0.875rem', border: '1.5px solid var(--border-input)',
+  borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)',
+  fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box',
+}
+
+const filterInputStyle = {
+  padding: '0.45rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)',
+  background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif',
+  outline: 'none', boxSizing: 'border-box',
 }

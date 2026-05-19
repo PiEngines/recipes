@@ -178,25 +178,30 @@ export default function Recipes() {
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
 
-  // Scroll-Position: save on unmount, restore on back-navigation via location.key
-  const scrollRestoredRef = useRef(false)
+  // Scroll-Position: save on unmount, restore on back-navigation via location.key.
+  // locationKeyRef captures the current key without stale-closure in the cleanup.
+  const locationKeyRef = useRef(location.key)
+  useEffect(() => { locationKeyRef.current = location.key }, [location.key])
+
   useEffect(() => {
     return () => {
       sessionStorage.setItem('recipes_scroll', String(window.scrollY))
-      sessionStorage.setItem('recipes_scroll_key', location.key)
+      sessionStorage.setItem('recipes_scroll_key', locationKeyRef.current)
     }
-  }, [location.key])
+  }, []) // empty deps: only mount/unmount
 
   useEffect(() => {
-    if (loading || scrollRestoredRef.current) return
+    if (loading) return
     const savedKey = sessionStorage.getItem('recipes_scroll_key')
     if (savedKey !== location.key) return
     const savedY = sessionStorage.getItem('recipes_scroll')
     if (!savedY) return
-    scrollRestoredRef.current = true
     sessionStorage.removeItem('recipes_scroll')
     sessionStorage.removeItem('recipes_scroll_key')
-    window.scrollTo(0, parseInt(savedY, 10))
+    // rAF ensures React has painted the grid before scrolling
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
+    })
   }, [loading, location.key])
 
   useEffect(() => {
