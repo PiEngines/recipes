@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { useNavigation } from '../context/NavigationContext'
 import { isChefkochOrAbove } from '../utils/roles'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -166,7 +165,6 @@ function PageBtn({ onClick, disabled, children }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Recipes() {
-  const { recipesScrollY, setRecipesScrollY } = useNavigation()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const search = searchParams.get('q') || ''
@@ -178,25 +176,6 @@ export default function Recipes() {
   const [primaryImages, setPrimaryImages] = useState({})
   const [loading, setLoading]         = useState(true)
   const [total, setTotal]             = useState(0)
-
-  // Capture scroll position at mount (before any state changes clear it)
-  const scrollToRef = useRef(recipesScrollY)
-
-  // Save scroll position to context when leaving
-  useEffect(() => {
-    return () => { setRecipesScrollY(window.scrollY) }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Restore after data loaded; 100ms gives layout time to settle after render
-  useEffect(() => {
-    if (loading) return
-    if (scrollToRef.current !== null) {
-      const pos = scrollToRef.current
-      scrollToRef.current = null
-      setRecipesScrollY(null)
-      setTimeout(() => window.scrollTo({ top: pos, behavior: 'instant' }), 100)
-    }
-  }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setLoading(true)
