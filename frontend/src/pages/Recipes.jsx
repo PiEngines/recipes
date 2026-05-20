@@ -178,6 +178,13 @@ export default function Recipes() {
   const [total, setTotal]             = useState(0)
 
   useEffect(() => {
+    return () => {
+      sessionStorage.setItem('recipes_scroll_y', window.scrollY)
+      sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+    }
+  }, [])
+
+  useEffect(() => {
     setLoading(true)
     const searchScope = scopeIng ? 'title,description,ingredients' : scopeDesc ? 'title,description' : 'title'
     const params = { page, page_size: PAGE_SIZE, search_scope: searchScope }
@@ -197,6 +204,19 @@ export default function Recipes() {
           const map = {}
           results.forEach(({ id, primary }) => { map[id] = primary })
           setPrimaryImages(map)
+          const savedY = sessionStorage.getItem('recipes_scroll_y')
+          const savedH = sessionStorage.getItem('recipes_scroll_height')
+          if (savedY !== null) {
+            sessionStorage.removeItem('recipes_scroll_y')
+            sessionStorage.removeItem('recipes_scroll_height')
+            const y = parseInt(savedY, 10)
+            const h = parseInt(savedH, 10)
+            document.body.style.minHeight = h + 'px'
+            window.scrollTo({ top: y, behavior: 'instant' })
+            requestAnimationFrame(() => {
+              document.body.style.minHeight = ''
+            })
+          }
         })
       })
       .catch(console.error)

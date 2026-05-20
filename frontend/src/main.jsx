@@ -31,7 +31,10 @@ function Layout() {
     && !pathname.startsWith('/users/')
   return (
     <>
-      <ScrollRestoration />
+      <ScrollRestoration getKey={(location) => {
+        if (location.pathname === '/') return 'no-restore'
+        return location.key
+      }} />
       {showNavbar && <Navbar />}
       <Outlet />
       <TimerWidgetGlobal />
