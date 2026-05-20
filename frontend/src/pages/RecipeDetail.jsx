@@ -763,12 +763,6 @@ export default function RecipeDetail() {
 
           {/* Main */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {recipe.is_pending_review && (
-              <div style={{ background: 'rgba(200,160,32,0.12)', border: '1px solid rgba(200,160,32,0.35)', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: '#A68000', lineHeight: 1.5 }}>
-                ⏳ Dieses Rezept wird gerade vom Admin geprüft und ist noch nicht vollständig freigegeben.
-              </div>
-            )}
-
             <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
             <MetaBar recipe={recipe} />
 
@@ -808,11 +802,6 @@ export default function RecipeDetail() {
                   <span>·</span>
                   <span>geändert {new Date(recipe.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                 </>
-              )}
-              {recipe.review_status === 'pending' && canEdit && (
-                <span style={{ background: 'rgba(200,160,32,0.15)', color: '#A68000', borderRadius: '6px', padding: '0.15rem 0.625rem', fontSize: '0.78rem', fontWeight: 600 }}>
-                  In Prüfung
-                </span>
               )}
             </div>
 

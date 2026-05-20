@@ -5,11 +5,11 @@ import Breadcrumb from '../components/Breadcrumb'
 
 const TABS = [
   { key: 'alle', label: 'Alle' },
-  { key: 'reviews', label: 'Ausstehende Reviews' },
+  { key: 'versionen', label: 'Versionskontrolle' },
   { key: 'papierkorb', label: 'Papierkorb' },
 ]
 
-const TAB_MAP = { all: 'alle', pending: 'reviews', trash: 'papierkorb' }
+const TAB_MAP = { all: 'alle', versions: 'versionen', trash: 'papierkorb' }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
@@ -23,9 +23,13 @@ export default function AdminRecipes() {
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
-  const [reviewRecipe, setReviewRecipe] = useState(null)
-  const [reviewComment, setReviewComment] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null)
+  const [selectedVersionId, setSelectedVersionId] = useState(null)
+  const [recipesList, setRecipesList] = useState([])
+  const [versionsList, setVersionsList] = useState([])
+  const [versionSnapshot, setVersionSnapshot] = useState(null)
+  const [confirmRestore, setConfirmRestore] = useState(false)
   const [confirmPermanentDelete, setConfirmPermanentDelete] = useState(null)
 
   // Access management
@@ -47,13 +51,8 @@ export default function AdminRecipes() {
 
   const fetchRecipes = useCallback(() => {
     setLoading(true)
-    setRecipes([])  // Fix 2: clear stale data immediately
-    if (tab === 'reviews') {
-      client.get('/api/recipes/pending-review', { params: { page: 1, page_size: 100 } })
-        .then(res => setRecipes(res.data))
-        .catch(console.error)
-        .finally(() => setLoading(false))
-    } else if (tab === 'alle') {
+    setRecipes([])
+    if (tab === 'alle') {
       client.get('/api/recipes', { params: { page_size: 100, page: 1 } })
         .then(res => setRecipes(res.data.items))
         .catch(console.error)
@@ -63,8 +62,11 @@ export default function AdminRecipes() {
         .then(res => setRecipes(res.data))
         .catch(console.error)
         .finally(() => setLoading(false))
+    } else if (tab === 'versionen') {
+      client.get('/api/recipes/versions/recipes-list')
+        .then(res => { setRecipesList(res.data); setLoading(false) })
+        .catch(() => setLoading(false))
     } else {
-      setRecipes([])
       setLoading(false)
     }
   }, [tab])
@@ -79,6 +81,11 @@ export default function AdminRecipes() {
     setFilterDateTo('')
     setPage(1)
     setEditingRecipeId(null)
+    setSelectedRecipeId(null)
+    setSelectedVersionId(null)
+    setVersionsList([])
+    setVersionSnapshot(null)
+    setConfirmRestore(false)
   }, [tab])
 
   // Reset to page 1 when any filter changes
@@ -151,15 +158,30 @@ export default function AdminRecipes() {
     setConfirmPermanentDelete(null)
   }
 
-  const handleReview = async (recipeId, approved) => {
+  // ── Versionskontrolle ─────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!selectedRecipeId) { setVersionsList([]); setSelectedVersionId(null); setVersionSnapshot(null); return }
+    client.get(`/api/recipes/${selectedRecipeId}/versions`)
+      .then(res => setVersionsList(res.data))
+      .catch(() => setVersionsList([]))
+  }, [selectedRecipeId])
+
+  useEffect(() => {
+    if (!selectedRecipeId || !selectedVersionId) { setVersionSnapshot(null); return }
+    client.get(`/api/recipes/${selectedRecipeId}/versions/${selectedVersionId}`)
+      .then(res => setVersionSnapshot(res.data))
+      .catch(() => setVersionSnapshot(null))
+  }, [selectedRecipeId, selectedVersionId])
+
+  const handleRestoreVersion = async () => {
     try {
-      await client.post(`/api/recipes/${recipeId}/review`, { approved, comment: reviewComment || null })
-      showToast(approved ? 'Genehmigt' : 'Abgelehnt')
-      setReviewRecipe(null)
-      setReviewComment('')
-      fetchRecipes()
+      await client.post(`/api/recipes/${selectedRecipeId}/versions/${selectedVersionId}/restore`)
+      showToast('Version wiederhergestellt')
+      setConfirmRestore(false)
     } catch (err) {
-      showToast(err.response?.data?.detail || 'Fehler')
+      showToast(err.response?.data?.detail || 'Fehler beim Wiederherstellen')
+      setConfirmRestore(false)
     }
   }
 
@@ -229,6 +251,53 @@ export default function AdminRecipes() {
         <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Wird geladen …</div>
+          ) : tab === 'versionen' ? (
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={labelStyle}>Rezept</label>
+                  <select
+                    value={selectedRecipeId || ''}
+                    onChange={e => { setSelectedRecipeId(e.target.value ? Number(e.target.value) : null); setSelectedVersionId(null) }}
+                    style={inputStyle}
+                  >
+                    <option value="">Rezept auswählen …</option>
+                    {recipesList.map(r => (
+                      <option key={r.id} value={r.id}>{r.title}{r.author ? ` — ${r.author}` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ flex: '1 1 260px', display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={labelStyle}>Version</label>
+                  <select
+                    value={selectedVersionId || ''}
+                    onChange={e => setSelectedVersionId(e.target.value ? Number(e.target.value) : null)}
+                    disabled={!selectedRecipeId || versionsList.length === 0}
+                    style={{ ...inputStyle, opacity: !selectedRecipeId ? 0.5 : 1, cursor: !selectedRecipeId ? 'not-allowed' : 'default' }}
+                  >
+                    <option value="">{!selectedRecipeId ? 'Erst Rezept wählen …' : versionsList.length === 0 ? 'Keine Versionen vorhanden' : 'Version auswählen …'}</option>
+                    {versionsList.map(v => (
+                      <option key={v.id} value={v.id}>
+                        {`v${v.version_number} · ${new Date(v.created_at).toLocaleDateString('de-DE')}${v.changed_fields_count ? ` · ${v.changed_fields_count} Feld${v.changed_fields_count !== 1 ? 'er' : ''}` : ''}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {versionSnapshot && (
+                <>
+                  <VersionSnapshotView snapshot={versionSnapshot.snapshot} />
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                    <button
+                      onClick={() => setConfirmRestore(true)}
+                      style={{ padding: '0.6rem 1.5rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-input)', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}
+                    >
+                      Diese Version wiederherstellen
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           ) : tab === 'papierkorb' ? (
             <>
               {visibleRecipes.length === 0 ? (
@@ -320,43 +389,6 @@ export default function AdminRecipes() {
               {visibleRecipes.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>
                   {hasFilter ? 'Keine Rezepte entsprechen den Filterkriterien.' : 'Keine Rezepte gefunden.'}
-                </div>
-              ) : tab === 'reviews' ? (
-                /* ── Reviews tab: table layout ── */
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                        {['Titel', 'Autor', 'Status', 'Erstellt', 'Aktionen'].map(h => (
-                          <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visibleRecipes.map(r => (
-                        <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            <button onClick={() => navigate(`/recipes/${r.id}`)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500, padding: 0, textAlign: 'left' }}>
-                              {r.title}
-                            </button>
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{r.author?.name || '—'}</td>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
-                            {new Date(r.created_at).toLocaleDateString('de-DE')}
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                              <ActionBtn onClick={() => { setReviewRecipe(r); setReviewComment('') }}>Review</ActionBtn>
-                              <ActionBtn danger onClick={() => setConfirmDelete(r)}>Löschen</ActionBtn>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               ) : (
                 /* ── Alle tab: list layout with access management ── */
@@ -474,33 +506,22 @@ export default function AdminRecipes() {
         </div>
       </div>
 
-      {/* Review modal */}
-      {reviewRecipe && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '480px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 600, margin: '0 0 0.5rem', color: 'var(--text)' }}>
-              Review: {reviewRecipe.title}
-            </h2>
-            <p style={{ color: 'var(--subtext)', fontSize: '0.85rem', margin: '0 0 1.25rem', fontFamily: 'Inter, sans-serif' }}>
-              Autor: {reviewRecipe.author?.name || '—'}
+      {/* Confirm restore version */}
+      {confirmRestore && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'var(--text)', margin: '0 0 0.5rem', lineHeight: 1.5, fontWeight: 600 }}>
+              Version wiederherstellen?
             </p>
-            <label style={labelStyle}>Kommentar (optional)</label>
-            <textarea
-              value={reviewComment}
-              onChange={e => setReviewComment(e.target.value)}
-              rows={3}
-              placeholder="Feedback für den Autor …"
-              style={{ ...inputStyle, resize: 'vertical', marginBottom: '1.25rem' }}
-            />
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--subtext)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+              Der aktuelle Rezeptstand wird durch diese Version ersetzt. Die Änderung kann über den Versionsverlauf rückgängig gemacht werden.
+            </p>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-              <button onClick={() => setReviewRecipe(null)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', cursor: 'pointer', fontSize: '0.875rem' }}>
+              <button onClick={() => setConfirmRestore(false)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', cursor: 'pointer', fontSize: '0.875rem' }}>
                 Abbrechen
               </button>
-              <button onClick={() => handleReview(reviewRecipe.id, false)} style={{ padding: '0.6rem 1.25rem', background: '#C84444', border: 'none', borderRadius: 'var(--radius-input)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
-                Ablehnen
-              </button>
-              <button onClick={() => handleReview(reviewRecipe.id, true)} style={{ padding: '0.6rem 1.25rem', background: '#4A7040', border: 'none', borderRadius: 'var(--radius-input)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
-                Genehmigen
+              <button onClick={handleRestoreVersion} style={{ padding: '0.6rem 1.25rem', background: 'var(--accent)', border: 'none', borderRadius: 'var(--radius-input)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
+                Wiederherstellen
               </button>
             </div>
           </div>
@@ -826,4 +847,82 @@ const filterInputStyle = {
   padding: '0.45rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)',
   background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif',
   outline: 'none', boxSizing: 'border-box',
+}
+
+// ── Version snapshot sub-components ──────────────────────────────────────────
+
+function VersionSnapshotView({ snapshot }) {
+  if (!snapshot) return null
+  const ingredients = snapshot.ingredients || []
+  const steps = snapshot.steps || []
+  const grouped = {}
+  for (const ing of ingredients) {
+    const key = ing.component_label || ''
+    if (!grouped[key]) grouped[key] = []
+    grouped[key].push(ing)
+  }
+  const groups = Object.entries(grouped)
+  const fmtTime = s => { const m = Math.floor(s / 60), sec = s % 60; return `${m}:${String(sec).padStart(2, '0')}` }
+
+  return (
+    <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-card)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', border: '1px solid var(--border)' }}>
+      <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', fontWeight: 600, margin: 0, color: 'var(--text)' }}>{snapshot.title}</h2>
+      {snapshot.description && (
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', color: 'var(--subtext)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>{snapshot.description}</p>
+      )}
+      {(snapshot.prep_time || snapshot.cook_time || snapshot.servings || snapshot.difficulty) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+          {snapshot.prep_time && <SnapMeta label="Vorbereitung" value={`${snapshot.prep_time} min`} />}
+          {snapshot.cook_time && <SnapMeta label="Kochen" value={`${snapshot.cook_time} min`} />}
+          {snapshot.servings && <SnapMeta label="Portionen" value={String(snapshot.servings)} />}
+          {snapshot.difficulty && <SnapMeta label="Schwierigkeit" value={`${snapshot.difficulty}/10`} />}
+        </div>
+      )}
+      {ingredients.length > 0 && (
+        <div>
+          <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: '0 0 0.625rem', color: 'var(--text)' }}>Zutaten</h3>
+          {groups.map(([label, items]) => (
+            <div key={label} style={{ marginBottom: label ? '0.75rem' : 0 }}>
+              {label && <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem', fontFamily: 'Inter, sans-serif' }}>{label}</div>}
+              {items.map(ing => (
+                <div key={ing.id} style={{ display: 'flex', gap: '0.5rem', padding: '0.2rem 0', borderBottom: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem' }}>
+                  <span style={{ flex: 1, color: 'var(--text)' }}>{ing.name}</span>
+                  {(ing.amount || ing.unit) && <span style={{ color: 'var(--subtext)', whiteSpace: 'nowrap' }}>{ing.amount}{ing.unit ? ` ${ing.unit}` : ''}</span>}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      {steps.length > 0 && (
+        <div>
+          <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: '0 0 0.625rem', color: 'var(--text)' }}>Zubereitung</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {steps.map((step, idx) => (
+              <div key={step.id || idx} style={{ display: 'flex', gap: '0.875rem' }}>
+                <div style={{ width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0, background: 'var(--border-input)', color: 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 700 }}>{idx + 1}</div>
+                <div style={{ flex: 1, paddingTop: '0.2rem' }}>
+                  {step.title && <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent)', marginBottom: '0.2rem' }}>{step.title}</div>}
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--text)', margin: 0, lineHeight: 1.6 }}>{step.instruction}</p>
+                  {step.timer_seconds && <span style={{ display: 'inline-block', marginTop: '0.3rem', fontSize: '0.78rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>⏱ {fmtTime(step.timer_seconds)}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {snapshot.source && (
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: 'var(--subtext)', margin: 0 }}>Quelle: {snapshot.source}</p>
+      )}
+    </div>
+  )
+}
+
+function SnapMeta({ label, value }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'Inter, sans-serif' }}>{label}</span>
+      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{value}</span>
+    </div>
+  )
 }

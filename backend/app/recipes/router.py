@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload, subqueryload
@@ -29,11 +29,6 @@ from app.recipes.schemas import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
-
-
-class ReviewBody(BaseModel):
-    approved: bool
-    comment: str | None = None
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -197,31 +192,6 @@ def list_recipes(
         page_size=page_size,
         pages=max(1, (total + page_size - 1) // page_size),
     )
-
-
-# ── Pending review ────────────────────────────────────────────────────────────
-
-@router.get("/pending-review", response_model=list[RecipeListItem])
-def list_pending_review(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    _admin: User = Depends(require_chefkoch_or_above),
-):
-    items = (
-        db.query(Recipe)
-        .options(
-            subqueryload(Recipe.categories),
-            subqueryload(Recipe.tags),
-            joinedload(Recipe.author),
-        )
-        .filter(Recipe.review_status == "pending", Recipe.deleted_at.is_(None))
-        .order_by(Recipe.updated_at.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
-    )
-    return items
 
 
 # ── Trash (must be before /{recipe_id}) ───────────────────────────────────────
@@ -438,7 +408,6 @@ def create_recipe(
 def update_recipe(
     recipe_id: int,
     body: RecipeUpdate,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -448,13 +417,13 @@ def update_recipe(
 
     from app.versioning import _recipe_snapshot, save_version
 
-    is_admin = current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
     is_author = (
         recipe.author_id == current_user.id or recipe.created_by == current_user.id
     )
-
-    # Non-admin, non-author: forbidden
-    if not is_admin and not is_author:
+    if (
+        current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
+        and not is_author
+    ):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
 
     # Capture snapshot before applying changes
@@ -492,26 +461,9 @@ def update_recipe(
                 db.delete(old_step)
         recipe.steps = new_steps
 
-    if is_admin:
-        # Admin edits go through directly
-        db.flush()
-        save_version(recipe, old_snapshot, current_user.id, db)
-        recipe.review_status = "none"
-        db.commit()
-    else:
-        # Autor edits: create a pending version for review
-        db.flush()
-        pending_ver = save_version(recipe, old_snapshot, current_user.id, db)
-        recipe.pending_version_id = pending_ver.id
-        recipe.review_status = "pending"
-        db.commit()
-        logger.info(
-            "Recipe %d submitted for review by user %d (version %d)",
-            recipe_id,
-            current_user.id,
-            pending_ver.version_number,
-        )
-
+    db.flush()
+    save_version(recipe, old_snapshot, current_user.id, db)
+    db.commit()
     return _load_full(recipe_id, db)
 
 
@@ -549,48 +501,6 @@ def toggle_status(
     )
     db.commit()
     return _load_full(recipe_id, db)
-
-
-@router.post("/{recipe_id}/review")
-def review_recipe(
-    recipe_id: int,
-    body: ReviewBody,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_chefkoch_or_above),
-):
-    from app.email_service import send_review_result_email
-
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
-    if not recipe:
-        raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
-    if recipe.review_status != "pending":
-        raise HTTPException(status_code=400, detail="Keine ausstehende Überprüfung")
-
-    if body.approved:
-        recipe.review_status = "none"
-        recipe.pending_version_id = None
-    else:
-        # Rollback: restore the snapshot from before the pending version
-        recipe.review_status = "none"
-        recipe.pending_version_id = None
-
-    db.commit()
-
-    # Notify the author
-    author_id = recipe.author_id or recipe.created_by
-    if author_id:
-        author = db.query(User).filter(User.id == author_id).first()
-        if author and author.email:
-            background_tasks.add_task(
-                send_review_result_email,
-                author.email,
-                recipe.title,
-                body.approved,
-                body.comment,
-            )
-
-    return {"detail": "Genehmigt" if body.approved else "Abgelehnt"}
 
 
 # ── Restore / Permanent delete ────────────────────────────────────────────────

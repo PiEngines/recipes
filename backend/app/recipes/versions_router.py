@@ -1,13 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_chefkoch_or_above
 from app.database import get_db
 from app.models import Recipe, User
 from app.models.recipe import RecipeVersion
 from app.models.user import UserRole
 
 router = APIRouter(prefix="/api/recipes", tags=["recipe_versions"])
+
+
+# ── Recipes list for version-control dropdown (before /{recipe_id}/versions) ──
+
+@router.get("/versions/recipes-list")
+def list_recipes_for_versions(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_chefkoch_or_above),
+):
+    recipes = (
+        db.query(Recipe)
+        .options(joinedload(Recipe.author))
+        .filter(Recipe.deleted_at.is_(None))
+        .order_by(Recipe.title)
+        .all()
+    )
+    return [
+        {
+            "id": r.id,
+            "title": r.title,
+            "author": r.author.name if r.author else None,
+        }
+        for r in recipes
+    ]
 
 
 @router.get("/{recipe_id}/versions")
