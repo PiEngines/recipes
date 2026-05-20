@@ -90,6 +90,59 @@ async def _warn_expiring_users() -> None:
         db.close()
 
 
+async def _cleanup_deleted_recipes() -> None:
+    from sqlalchemy import or_
+
+    from app.database import SessionLocal
+    from app.models import Recipe
+    from app.models.media import Media
+    from app.storage import storage
+
+    db = SessionLocal()
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+        expired = (
+            db.query(Recipe)
+            .filter(
+                Recipe.deleted_at.isnot(None),
+                Recipe.deleted_at < cutoff,
+            )
+            .all()
+        )
+        if not expired:
+            return
+        count = 0
+        for recipe in expired:
+            step_ids = [s.id for s in recipe.steps]
+            conditions = [(Media.entity_type == "recipe") & (Media.entity_id == recipe.id)]
+            if step_ids:
+                conditions.append(
+                    (Media.entity_type == "step") & Media.entity_id.in_(step_ids)
+                )
+            media_records = db.query(Media).filter(or_(*conditions)).all()
+            for m in media_records:
+                if m.storage_path:
+                    storage.delete_file(m.storage_path)
+                if m.thumbnail_path:
+                    storage.delete_file(m.thumbnail_path)
+                db.delete(m)
+            for img in recipe.images:
+                if img.file_path:
+                    storage.delete_file(img.file_path)
+            for vid in recipe.videos:
+                if vid.file_path:
+                    storage.delete_file(vid.file_path)
+            db.delete(recipe)
+            count += 1
+        db.commit()
+        logger.info("Recipe GC: permanently deleted %d expired recipe(s)", count)
+    except Exception:
+        db.rollback()
+        logger.exception("Recipe GC failed")
+    finally:
+        db.close()
+
+
 async def _seed_disposable_domains() -> None:
     import httpx
 
@@ -135,6 +188,8 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(_cleanup_deleted_users, "cron", hour=3, minute=0)
     # Daily warning for users about to be permanently deleted (3 days remaining)
     scheduler.add_job(_warn_expiring_users, "cron", hour=3, minute=15)
+    # Daily hard-delete of recipes soft-deleted more than 30 days ago
+    scheduler.add_job(_cleanup_deleted_recipes, "cron", hour=4, minute=0)
     scheduler.start()
 
     yield

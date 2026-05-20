@@ -39,7 +39,7 @@ class ReviewBody(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _get_or_404(recipe_id: int, db: Session) -> Recipe:
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
     return recipe
@@ -215,13 +215,37 @@ def list_pending_review(
             subqueryload(Recipe.tags),
             joinedload(Recipe.author),
         )
-        .filter(Recipe.review_status == "pending")
+        .filter(Recipe.review_status == "pending", Recipe.deleted_at.is_(None))
         .order_by(Recipe.updated_at.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
     )
     return items
+
+
+# ── Trash (must be before /{recipe_id}) ───────────────────────────────────────
+
+@router.get("/trash", response_model=list[RecipeListItem])
+def list_trash(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_chefkoch_or_above),
+):
+    return (
+        db.query(Recipe)
+        .options(
+            subqueryload(Recipe.categories),
+            subqueryload(Recipe.tags),
+            joinedload(Recipe.author),
+        )
+        .filter(Recipe.deleted_at.isnot(None))
+        .order_by(Recipe.deleted_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
 
 
 # ── Single ────────────────────────────────────────────────────────────────────
@@ -237,7 +261,7 @@ def get_recipe(
     from app.recipes.schemas import RecipeResponse as RecipeResponseSchema
 
     recipe = _load_full(recipe_id, db)
-    if not recipe:
+    if not recipe or recipe.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     now = datetime.now(timezone.utc)
@@ -320,7 +344,7 @@ def get_step_ingredients(
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
     if recipe.status != RecipeStatus.published and current_user is None:
@@ -419,7 +443,7 @@ def update_recipe(
     current_user: User = Depends(get_current_user),
 ):
     recipe = _load_full(recipe_id, db)
-    if not recipe:
+    if not recipe or recipe.deleted_at is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
 
     from app.versioning import _recipe_snapshot, save_version
@@ -493,15 +517,20 @@ def update_recipe(
 
 # ── Delete ────────────────────────────────────────────────────────────────────
 
-@router.delete("/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{recipe_id}")
 def delete_recipe(
     recipe_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
 ):
     recipe = _get_or_404(recipe_id, db)
-    db.delete(recipe)
+    is_admin = current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
+    is_author = recipe.author_id == current_user.id or recipe.created_by == current_user.id
+    if not is_admin and not is_author:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
+    recipe.deleted_at = datetime.now(timezone.utc)
     db.commit()
+    return {"detail": "Rezept wurde in den Papierkorb verschoben"}
 
 
 # ── Status toggle ─────────────────────────────────────────────────────────────
@@ -532,7 +561,7 @@ def review_recipe(
 ):
     from app.email_service import send_review_result_email
 
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
     if recipe.review_status != "pending":
@@ -562,6 +591,71 @@ def review_recipe(
             )
 
     return {"detail": "Genehmigt" if body.approved else "Abgelehnt"}
+
+
+# ── Restore / Permanent delete ────────────────────────────────────────────────
+
+@router.post("/{recipe_id}/restore")
+def restore_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_chefkoch_or_above),
+):
+    recipe = db.query(Recipe).filter(
+        Recipe.id == recipe_id, Recipe.deleted_at.isnot(None)
+    ).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Rezept nicht im Papierkorb")
+    recipe.deleted_at = None
+    db.commit()
+    return {"detail": "Rezept wiederhergestellt"}
+
+
+@router.delete("/{recipe_id}/permanent")
+def delete_recipe_permanent(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_chefkoch_or_above),
+):
+    from app.models.media import Media
+    from app.storage import storage
+
+    recipe = (
+        db.query(Recipe)
+        .options(
+            joinedload(Recipe.steps),
+            joinedload(Recipe.images),
+            joinedload(Recipe.videos),
+        )
+        .filter(Recipe.id == recipe_id, Recipe.deleted_at.isnot(None))
+        .first()
+    )
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Rezept nicht im Papierkorb")
+
+    step_ids = [s.id for s in recipe.steps]
+    conditions = [(Media.entity_type == "recipe") & (Media.entity_id == recipe_id)]
+    if step_ids:
+        conditions.append((Media.entity_type == "step") & Media.entity_id.in_(step_ids))
+    media_records = db.query(Media).filter(or_(*conditions)).all()
+
+    for m in media_records:
+        if m.storage_path:
+            storage.delete_file(m.storage_path)
+        if m.thumbnail_path:
+            storage.delete_file(m.thumbnail_path)
+        db.delete(m)
+
+    for img in recipe.images:
+        if img.file_path:
+            storage.delete_file(img.file_path)
+    for vid in recipe.videos:
+        if vid.file_path:
+            storage.delete_file(vid.file_path)
+
+    db.delete(recipe)
+    db.commit()
+    return {"detail": "Rezept endgültig gelöscht"}
 
 
 # ── Ingredient suggestions ────────────────────────────────────────────────────

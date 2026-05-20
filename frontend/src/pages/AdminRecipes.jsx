@@ -26,6 +26,7 @@ export default function AdminRecipes() {
   const [reviewRecipe, setReviewRecipe] = useState(null)
   const [reviewComment, setReviewComment] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmPermanentDelete, setConfirmPermanentDelete] = useState(null)
 
   // Access management
   const [accessData, setAccessData] = useState({})
@@ -48,7 +49,6 @@ export default function AdminRecipes() {
     setLoading(true)
     setRecipes([])  // Fix 2: clear stale data immediately
     if (tab === 'reviews') {
-      // pending-review endpoint already filters review_status == 'pending'
       client.get('/api/recipes/pending-review', { params: { page: 1, page_size: 100 } })
         .then(res => setRecipes(res.data))
         .catch(console.error)
@@ -56,6 +56,11 @@ export default function AdminRecipes() {
     } else if (tab === 'alle') {
       client.get('/api/recipes', { params: { page_size: 100, page: 1 } })
         .then(res => setRecipes(res.data.items))
+        .catch(console.error)
+        .finally(() => setLoading(false))
+    } else if (tab === 'papierkorb') {
+      client.get('/api/recipes/trash', { params: { page: 1, page_size: 100 } })
+        .then(res => setRecipes(res.data))
         .catch(console.error)
         .finally(() => setLoading(false))
     } else {
@@ -117,12 +122,33 @@ export default function AdminRecipes() {
   const handleDelete = async recipeId => {
     try {
       await client.delete(`/api/recipes/${recipeId}`)
-      showToast('Rezept gelöscht')
+      showToast('In den Papierkorb verschoben')
       fetchRecipes()
     } catch (err) {
       showToast(err.response?.data?.detail || 'Fehler beim Löschen')
     }
     setConfirmDelete(null)
+  }
+
+  const handleRestore = async recipeId => {
+    try {
+      await client.post(`/api/recipes/${recipeId}/restore`)
+      showToast('Rezept wiederhergestellt')
+      fetchRecipes()
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Fehler beim Wiederherstellen')
+    }
+  }
+
+  const handlePermanentDelete = async recipeId => {
+    try {
+      await client.delete(`/api/recipes/${recipeId}/permanent`)
+      showToast('Rezept endgültig gelöscht')
+      fetchRecipes()
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Fehler beim Löschen')
+    }
+    setConfirmPermanentDelete(null)
   }
 
   const handleReview = async (recipeId, approved) => {
@@ -204,10 +230,63 @@ export default function AdminRecipes() {
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>Wird geladen …</div>
           ) : tab === 'papierkorb' ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🗑️</div>
-              <p style={{ margin: 0, fontFamily: 'Inter, sans-serif' }}>Funktion in Vorbereitung</p>
-            </div>
+            <>
+              {visibleRecipes.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--subtext)' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🗑️</div>
+                  <p style={{ margin: 0, fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>Papierkorb ist leer.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                        {['Rezeptname', 'Autor', 'Gelöscht am', 'Aktionen'].map(h => (
+                          <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleRecipes.map(r => (
+                        <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '0.875rem 1rem', color: 'var(--text)', fontWeight: 500 }}>{r.title}</td>
+                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{r.author?.name || '—'}</td>
+                          <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
+                            {r.deleted_at ? new Date(r.deleted_at).toLocaleDateString('de-DE') : '—'}
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <ActionBtn onClick={() => handleRestore(r.id)}>Wiederherstellen</ActionBtn>
+                              <ActionBtn danger onClick={() => setConfirmPermanentDelete(r)}>Endgültig löschen</ActionBtn>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {filteredRecipes.length > 0 && (
+                <div style={{ padding: '0.625rem 1rem', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}>
+                    Seite {page} von {totalPages} ({filteredRecipes.length} Einträge)
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                      value={pageSize}
+                      onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+                      style={{ ...filterInputStyle, width: 'auto', padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                    >
+                      {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n} pro Seite</option>)}
+                    </select>
+                    <PaginationBtn onClick={() => setPage(1)} disabled={page === 1}>«</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>›</PaginationBtn>
+                    <PaginationBtn onClick={() => setPage(totalPages)} disabled={page === totalPages}>»</PaginationBtn>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <>
               {/* Filter bar */}
@@ -428,12 +507,34 @@ export default function AdminRecipes() {
         </div>
       )}
 
+      {/* Confirm permanent delete */}
+      {confirmPermanentDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'var(--text)', margin: '0 0 0.5rem', lineHeight: 1.5, fontWeight: 600 }}>
+              Rezept endgültig löschen?
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--subtext)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+              „{confirmPermanentDelete.title}" wird unwiderruflich gelöscht – inklusive aller Medien.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmPermanentDelete(null)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', cursor: 'pointer', fontSize: '0.875rem' }}>
+                Abbrechen
+              </button>
+              <button onClick={() => handlePermanentDelete(confirmPermanentDelete.id)} style={{ padding: '0.6rem 1.25rem', background: '#C84444', border: 'none', borderRadius: 'var(--radius-input)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
+                Endgültig löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirm delete */}
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '360px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'var(--text)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
-              Rezept „{confirmDelete.title}" wirklich löschen?
+              Rezept „{confirmDelete.title}" in den Papierkorb verschieben?
             </p>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setConfirmDelete(null)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', cursor: 'pointer', fontSize: '0.875rem' }}>

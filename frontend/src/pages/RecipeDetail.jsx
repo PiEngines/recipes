@@ -576,6 +576,7 @@ export default function RecipeDetail() {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxImages, setLightboxImages] = useState([])
   const [selectedIngredient, setSelectedIngredient] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const stepRefs = useRef({})
 
@@ -636,6 +637,18 @@ export default function RecipeDetail() {
   const canEdit = recipe
     ? (isAdmin || (isKochOrAbove(user) && recipe.created_by === user?.id))
     : false
+  const canDelete = recipe
+    ? (isAdmin || recipe.created_by === user?.id)
+    : false
+
+  const handleDeleteRecipe = async () => {
+    try {
+      await client.delete(`/api/recipes/${id}`)
+      navigate('/')
+    } catch {
+      setShowDeleteConfirm(false)
+    }
+  }
 
   // Load access info to show public badge (only for authorized editors)
   useEffect(() => {
@@ -679,31 +692,56 @@ export default function RecipeDetail() {
           { label: 'Alle Rezepte', path: '/' },
           { label: recipe?.title || '…', path: null },
         ]} />
-        {canEdit && recipe && (
-          <button
-            onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
-            style={{
-              padding: '0.4rem 1rem',
-              border: '1.5px solid var(--accent)',
-              borderRadius: 'var(--radius-pill)',
-              background: 'none',
-              color: 'var(--accent)',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-              transition: 'var(--transition)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-              flexShrink: 0,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-          >
-            ✏ Bearbeiten
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+          {canEdit && recipe && (
+            <button
+              onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
+              style={{
+                padding: '0.4rem 1rem',
+                border: '1.5px solid var(--accent)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'none',
+                color: 'var(--accent)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                transition: 'var(--transition)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            >
+              ✏ Bearbeiten
+            </button>
+          )}
+          {canDelete && recipe && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{
+                padding: '0.4rem 1rem',
+                border: '1.5px solid rgba(200,68,68,0.5)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'none',
+                color: '#C84444',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                transition: 'var(--transition)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,68,68,0.08)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            >
+              Löschen
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -857,6 +895,34 @@ export default function RecipeDetail() {
           startIndex={lightboxIndex}
           onClose={() => setLightboxOpen(false)}
         />
+      )}
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', color: 'var(--text)', margin: '0 0 0.5rem', lineHeight: 1.5, fontWeight: 600 }}>
+              Rezept löschen?
+            </p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--subtext)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+              „{recipe.title}" wird in den Papierkorb verschoben und nach 30 Tagen endgültig gelöscht.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', cursor: 'pointer', fontSize: '0.875rem' }}
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleDeleteRecipe}
+                style={{ padding: '0.6rem 1.25rem', background: '#C84444', border: 'none', borderRadius: 'var(--radius-input)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}
+              >
+                In den Papierkorb
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -155,6 +155,7 @@ class RecipeListItem(BaseModel):
     created_by: int | None = None
     created_at: datetime
     updated_at: datetime | None = None
+    deleted_at: datetime | None = None
     author: AuthorResponse | None = None
     categories: list[CategoryResponse]
     tags: list[TagResponse]
