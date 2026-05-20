@@ -178,9 +178,19 @@ export default function Recipes() {
   const [total, setTotal]             = useState(0)
 
   useEffect(() => {
+    let debounceTimer
+    const handler = () => {
+      if (window.location.pathname !== '/') return
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => {
+        sessionStorage.setItem('recipes_scroll_y', window.scrollY)
+        sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+      }, 200)
+    }
+    window.addEventListener('scroll', handler)
     return () => {
-      sessionStorage.setItem('recipes_scroll_y', window.scrollY)
-      sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+      clearTimeout(debounceTimer)
+      window.removeEventListener('scroll', handler)
     }
   }, [])
 
