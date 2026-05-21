@@ -408,6 +408,7 @@ def create_recipe(
 def update_recipe(
     recipe_id: int,
     body: RecipeUpdate,
+    skip_version: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -462,7 +463,8 @@ def update_recipe(
         recipe.steps = new_steps
 
     db.flush()
-    save_version(recipe, old_snapshot, current_user.id, db)
+    if not skip_version:
+        save_version(recipe, old_snapshot, current_user.id, db)
     db.commit()
     return _load_full(recipe_id, db)
 

@@ -633,6 +633,12 @@ export default function RecipeForm() {
       .finally(() => setLoadingRecipe(false))
   }, [id, isEdit, applySnapshot])
 
+  // Snapshot beim Editor-Einstieg (einmalig, nur Edit-Modus)
+  useEffect(() => {
+    if (!id) return
+    client.post(`/api/recipes/${id}/snapshot`).catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Build API payload from stateRef
   const buildPayload = useCallback((targetStatus) => {
     const s = stateRef.current
@@ -664,7 +670,7 @@ export default function RecipeForm() {
   }, [])
 
   // Core save
-  const doSave = useCallback(async (targetStatus) => {
+  const doSave = useCallback(async (targetStatus, skipVersion = false) => {
     const s = stateRef.current
     if (!s.title.trim()) return null
     if (savingRef.current) return null
@@ -676,7 +682,8 @@ export default function RecipeForm() {
       let result
       const rid = s.recipeId
       if (rid) {
-        result = await client.put(`/api/recipes/${rid}`, payload)
+        const params = skipVersion ? '?skip_version=true' : ''
+        result = await client.put(`/api/recipes/${rid}${params}`, payload)
       } else {
         result = await client.post('/api/recipes', payload)
         const newId = result.data.id
@@ -725,9 +732,9 @@ export default function RecipeForm() {
     return chars >= 80
   }, [])
 
-  // 30-second autosave
+  // 120-second autosave (no version)
   useEffect(() => {
-    const iv = setInterval(() => { if (canAutosave()) doSave() }, 30_000)
+    const iv = setInterval(() => { if (canAutosave()) doSave(undefined, true) }, 120_000)
     return () => clearInterval(iv)
   }, [canAutosave, doSave])
 
@@ -758,7 +765,7 @@ export default function RecipeForm() {
       const payload = buildPayload()
       const rid = s.recipeId
       const base = import.meta.env.VITE_API_BASE_URL || ''
-      const url = rid ? `${base}/api/recipes/${rid}` : `${base}/api/recipes`
+      const url = rid ? `${base}/api/recipes/${rid}?skip_version=true` : `${base}/api/recipes`
       const token = localStorage.getItem('access_token')
       fetch(url, { method: rid ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), keepalive: true }).catch(() => {})
     }

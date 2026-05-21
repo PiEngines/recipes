@@ -34,6 +34,28 @@ def list_recipes_for_versions(
     ]
 
 
+@router.post("/{recipe_id}/snapshot", status_code=201)
+def create_snapshot(
+    recipe_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
+    is_author = (
+        recipe.author_id == current_user.id or recipe.created_by == current_user.id
+    )
+    if current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin) and not is_author:
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
+
+    from app.versioning import _recipe_snapshot, save_version
+    snapshot = _recipe_snapshot(recipe)
+    save_version(recipe, snapshot, current_user.id, db)
+    db.commit()
+    return {"detail": "Snapshot gespeichert"}
+
+
 @router.get("/{recipe_id}/versions")
 def list_versions(
     recipe_id: int,
