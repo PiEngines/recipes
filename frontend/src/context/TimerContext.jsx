@@ -30,11 +30,15 @@ function loadFromStorage() {
     const timers = []
     const expired = []
     for (const t of saved) {
-      const remaining = Math.max(0, Math.round((t.endTime - now) / 1000))
-      if (remaining === 0) {
-        expired.push({ ...t, remaining: 0, expired: true })
+      if (t.paused) {
+        timers.push({ ...t, remaining: t.remainingAtPause ?? 0, expired: false })
       } else {
-        timers.push({ ...t, remaining, expired: false })
+        const remaining = Math.max(0, Math.round((t.endTime - now) / 1000))
+        if (remaining === 0) {
+          expired.push({ ...t, remaining: 0, expired: true })
+        } else {
+          timers.push({ ...t, remaining, expired: false })
+        }
       }
     }
     return { timers, expired }
@@ -49,6 +53,7 @@ function persistTimers(timers) {
       timers.map(t => ({
         id: t.id, recipeId: t.recipeId, recipeTitle: t.recipeTitle,
         stepIdx: t.stepIdx, label: t.label, total: t.total, endTime: t.endTime,
+        paused: t.paused ?? false, remainingAtPause: t.remainingAtPause ?? null,
       }))
     ))
   } catch {}
@@ -70,6 +75,7 @@ export function TimerProvider({ children }) {
       setTimers(prev => {
         const newExpired = []
         const active = prev.map(t => {
+          if (t.paused) return { ...t, remaining: t.remainingAtPause ?? t.remaining }
           const remaining = Math.max(0, Math.round((t.endTime - now) / 1000))
           if (remaining === 0 && !t.expired) {
             newExpired.push({ ...t, remaining: 0, expired: true })
@@ -91,21 +97,52 @@ export function TimerProvider({ children }) {
   const add = useCallback((recipeId, recipeTitle, stepIdx, label, seconds) => {
     const id = nextId.current++
     const endTime = Date.now() + seconds * 1000
-    setTimers(p => [...p, { id, recipeId, recipeTitle, stepIdx, label, total: seconds, remaining: seconds, endTime, expired: false }])
+    setTimers(p => [...p, {
+      id, recipeId, recipeTitle, stepIdx, label,
+      total: seconds, remaining: seconds, endTime,
+      expired: false, paused: false, remainingAtPause: null,
+    }])
     return id
   }, [])
 
   const remove = useCallback(id => setTimers(p => p.filter(t => t.id !== id)), [])
 
   const addTime = useCallback((id, secs) => setTimers(p =>
-    p.map(t => t.id === id ? { ...t, remaining: t.remaining + secs, total: t.total + secs, endTime: t.endTime + secs * 1000 } : t)
+    p.map(t => {
+      if (t.id !== id) return t
+      if (t.paused) {
+        const newRemaining = (t.remainingAtPause ?? t.remaining) + secs
+        return { ...t, remainingAtPause: newRemaining, remaining: newRemaining, total: t.total + secs }
+      }
+      return { ...t, remaining: t.remaining + secs, total: t.total + secs, endTime: t.endTime + secs * 1000 }
+    })
+  ), [])
+
+  const pause = useCallback(id => setTimers(p =>
+    p.map(t => t.id === id ? { ...t, paused: true, remainingAtPause: t.remaining } : t)
+  ), [])
+
+  const resume = useCallback(id => setTimers(p =>
+    p.map(t => t.id === id
+      ? { ...t, paused: false, endTime: Date.now() + (t.remainingAtPause ?? t.remaining) * 1000, remainingAtPause: null }
+      : t)
+  ), [])
+
+  const reset = useCallback(id => setTimers(p =>
+    p.map(t => t.id === id
+      ? { ...t, paused: false, remainingAtPause: null, endTime: Date.now() + t.total * 1000, remaining: t.total }
+      : t)
   ), [])
 
   const confirmExpired = useCallback(id => setExpiredTimers(p => p.filter(t => t.id !== id)), [])
   const confirmAllExpired = useCallback(() => setExpiredTimers([]), [])
 
   return (
-    <TimerContext.Provider value={{ timers, add, remove, addTime, expiredTimers, confirmExpired, confirmAllExpired }}>
+    <TimerContext.Provider value={{
+      timers, add, remove, addTime,
+      pause, resume, reset,
+      expiredTimers, confirmExpired, confirmAllExpired,
+    }}>
       {children}
     </TimerContext.Provider>
   )
