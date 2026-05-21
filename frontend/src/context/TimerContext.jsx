@@ -1,23 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import audioService from '../services/AudioService'
 
 const TimerContext = createContext(null)
-
-function playBeep() {
-  try {
-    const ctx = new AudioContext()
-    ;[880, 1100, 880].forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const g = ctx.createGain()
-      osc.connect(g); g.connect(ctx.destination)
-      osc.frequency.value = freq; osc.type = 'sine'
-      const t = ctx.currentTime + i * 0.22
-      g.gain.setValueAtTime(0.25, t)
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2)
-      osc.start(t); osc.stop(t + 0.22)
-    })
-    setTimeout(() => ctx.close(), 800)
-  } catch (_) {}
-}
 
 const STORAGE_KEY = 'piengines_timers'
 
@@ -84,7 +68,7 @@ export function TimerProvider({ children }) {
           return { ...t, remaining }
         }).filter(Boolean)
         if (newExpired.length > 0) {
-          playBeep()
+          audioService.play()
           setExpiredTimers(p => [...p, ...newExpired])
           persistTimers(active)
         }

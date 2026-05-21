@@ -82,6 +82,7 @@ export default function TimerWidgetGlobal() {
   const { timers, remove, addTime, pause, resume, reset } = useTimerContext()
   const [expanded, setExpanded] = useState(false)
   const [pos, setPos] = useState(loadPos)
+  const [alarm, setAlarm] = useState(false)
   const widgetRef = useRef(null)
   const mouseDragState = useRef(null)
   const touchDragState = useRef(null)
@@ -132,6 +133,16 @@ export default function TimerWidgetGlobal() {
     window.addEventListener('touchmove', onMove, { passive: false })
     window.addEventListener('touchend', onEnd)
     return () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd) }
+  }, [])
+
+  // Visual alarm feedback on timer-alarm event
+  useEffect(() => {
+    const handleAlarm = () => {
+      setAlarm(true)
+      setTimeout(() => setAlarm(false), 3000)
+    }
+    window.addEventListener('timer-alarm', handleAlarm)
+    return () => window.removeEventListener('timer-alarm', handleAlarm)
   }, [])
 
   // Collapse on click outside when expanded
@@ -212,6 +223,7 @@ export default function TimerWidgetGlobal() {
 
   return (
     <>
+      <style>{`@keyframes timerAlarm { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }`}</style>
       {timers.length > 0 && (
         <div
           ref={widgetRef}
@@ -219,7 +231,7 @@ export default function TimerWidgetGlobal() {
           onMouseUp={handleWidgetMouseUp}
           onTouchStart={handleWidgetTouchStart}
           onTouchEnd={handleWidgetTouchEnd}
-          style={{ ...posStyle, zIndex: 400, background: 'var(--card)', borderRadius: expanded ? '16px' : '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', minWidth: expanded ? '300px' : '200px', maxWidth: '340px', overflow: 'hidden', transition: 'min-width 0.2s ease, border-radius 0.2s ease', userSelect: 'none' }}
+          style={{ ...posStyle, zIndex: 400, background: 'var(--card)', borderRadius: expanded ? '16px' : '12px', boxShadow: alarm ? '0 0 20px rgba(200,96,42,0.6), 0 8px 32px rgba(0,0,0,0.2)' : '0 8px 32px rgba(0,0,0,0.2)', minWidth: expanded ? '300px' : '200px', maxWidth: '340px', overflow: 'hidden', transition: 'min-width 0.2s ease, border-radius 0.2s ease', userSelect: 'none', animation: alarm ? 'timerAlarm 0.5s ease-in-out 4' : 'none' }}
         >
           <div
             onMouseDown={startMouseDrag}
