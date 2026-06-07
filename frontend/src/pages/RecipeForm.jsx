@@ -42,7 +42,7 @@ function autoIsInteger(name) {
   return IS_INTEGER_WORDS.has(lower) || IS_INTEGER_WORDS.has(first)
 }
 const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '', is_integer: false, _auto_int: true })
-const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, dbId: null, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: false })
+const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, dbId: null, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: true })
 
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 

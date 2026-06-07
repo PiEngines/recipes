@@ -24,7 +24,7 @@ function diffColor(d) {
   return '#C8602A'
 }
 
-const EXACT_UNITS = new Set(['tsp', 'tbsp', 'pinch', 'TL', 'EL', 'Prise'])
+const EXACT_UNITS = new Set(['tsp', 'tbsp', 'pinch', 'Prise'])
 
 function roundToQuarter(n) {
   return Math.round(n * 4) / 4

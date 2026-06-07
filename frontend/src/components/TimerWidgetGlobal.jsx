@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useTimerContext } from '../context/TimerContext'
 
 const POS_KEY = 'piengines_timer_pos'
@@ -49,7 +49,7 @@ function TimerRow({ timer, expanded, onNavigate, onAddTime, onRemove, onPause, o
   const color = done ? '#6B7C4E' : timer.remaining < 30 ? '#C8602A' : 'var(--accent)'
   return (
     <div
-      style={{ background: 'var(--bg)', borderRadius: '8px', padding: expanded ? '0.625rem 0.75rem' : '0.375rem 0.625rem', cursor: expanded ? 'pointer' : 'default', transition: 'all 0.2s' }}
+      style={{ background: 'var(--bg)', borderRadius: '8px', padding: expanded ? '0.625rem 0.75rem' : '0.375rem 0.625rem', cursor: expanded && onNavigate ? 'pointer' : 'default', transition: 'all 0.2s' }}
       onClick={expanded ? onNavigate : undefined}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: expanded ? '0.5rem' : '0.25rem' }}>
@@ -79,6 +79,7 @@ function TimerRow({ timer, expanded, onNavigate, onAddTime, onRemove, onPause, o
 
 export default function TimerWidgetGlobal() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { timers, remove, addTime, pause, resume, reset } = useTimerContext()
   const [expanded, setExpanded] = useState(false)
   const [pos, setPos] = useState(loadPos)
@@ -250,7 +251,7 @@ export default function TimerWidgetGlobal() {
                 key={timer.id}
                 timer={timer}
                 expanded={expanded}
-                onNavigate={() => handleTimerClick(timer)}
+                onNavigate={location.pathname === `/recipes/${timer.recipeId}` ? undefined : () => handleTimerClick(timer)}
                 onAddTime={addTime}
                 onRemove={remove}
                 onPause={pause}
