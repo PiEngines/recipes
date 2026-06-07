@@ -654,10 +654,11 @@ export default function RecipeDetail() {
     const handler = e => {
       const { stepIdx } = e.detail
       const el = stepRefs.current[stepIdx]
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        setActiveStepIdx(stepIdx)
-      }
+      if (!el) return
+      const NAVBAR_HEIGHT = 64
+      const top = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT - 16
+      window.scrollTo({ top, behavior: 'smooth' })
+      setActiveStepIdx(stepIdx)
     }
     window.addEventListener('scroll-to-step', handler)
     return () => window.removeEventListener('scroll-to-step', handler)
