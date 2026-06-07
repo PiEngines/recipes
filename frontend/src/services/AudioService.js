@@ -13,10 +13,13 @@ class AudioService {
   }
 
   _setupUnlock() {
-    const unlock = () => {
+    const unlock = async () => {
       if (this.unlocked) return
       try {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)()
+        if (this.ctx.state === 'suspended') {
+          await this.ctx.resume()
+        }
         const osc = this.ctx.createOscillator()
         const gain = this.ctx.createGain()
         gain.gain.value = 0
@@ -33,17 +36,16 @@ class AudioService {
     document.addEventListener('click', unlock, { once: false })
   }
 
-  _ensureContext() {
+  async _ensureContext() {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)()
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume()
+      await this.ctx.resume()
     }
   }
 
   _playBeep() {
-    this._ensureContext()
     const ctx = this.ctx
     ;[0, 0.8].forEach(offset => {
       ;[880, 1100, 880].forEach((freq, i) => {
@@ -63,7 +65,6 @@ class AudioService {
   }
 
   _playChime() {
-    this._ensureContext()
     const ctx = this.ctx
     ;[0, 1.0].forEach(offset => {
       ;[523, 659, 784].forEach((freq, i) => {
@@ -83,7 +84,6 @@ class AudioService {
   }
 
   _playAlert() {
-    this._ensureContext()
     const ctx = this.ctx
     ;[0, 0.6].forEach(offset => {
       ;[1000, 800, 1000, 800].forEach((freq, i) => {
@@ -103,7 +103,6 @@ class AudioService {
   }
 
   _playSoft() {
-    this._ensureContext()
     const ctx = this.ctx
     ;[0, 1.2].forEach(offset => {
       const osc = ctx.createOscillator()
@@ -126,11 +125,12 @@ class AudioService {
     }
   }
 
-  play(preset = null) {
+  async play(preset = null) {
     const p = preset || this.currentPreset
     const method = this.PRESETS[p]
     if (method && this.ctx && this.unlocked) {
       try {
+        await this._ensureContext()
         this[method]()
       } catch (_) {}
     }
