@@ -36,7 +36,7 @@ from app.rate_limiter import check_rate_limit
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 _PASSWORD_RE = re.compile(r".*\d.*")
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_-]{3,30}$")
 
 
 def _validate_password(pw: str) -> None:
@@ -64,7 +64,7 @@ def _validate_username(username: str, db: Session, exclude_user_id: int | None =
     if not _USERNAME_RE.match(name):
         raise HTTPException(
             status_code=400,
-            detail="Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten",
+            detail="Username muss 3-30 Zeichen lang sein und darf nur a-z, A-Z, 0-9, _ und - enthalten",
         )
     query = db.query(User).filter(User.username == name)
     if exclude_user_id is not None:

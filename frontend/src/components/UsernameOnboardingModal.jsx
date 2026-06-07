@@ -15,8 +15,8 @@ export default function UsernameOnboardingModal() {
       setCheck({ status: 'idle', message: '' })
       return
     }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(trimmed)) {
-      setCheck({ status: 'invalid', message: 'Nur Buchstaben, Zahlen und _ (3-30 Zeichen)' })
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(trimmed)) {
+      setCheck({ status: 'invalid', message: 'Nur a-z, A-Z, 0-9, _ und - (3-30 Zeichen)' })
       return
     }
     setCheck({ status: 'checking', message: 'Prüfe Verfügbarkeit …' })
@@ -40,8 +40,8 @@ export default function UsernameOnboardingModal() {
     e.preventDefault()
     setError('')
     const trimmed = username.trim()
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(trimmed)) {
-      setError('Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten')
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(trimmed)) {
+      setError('Username muss 3-30 Zeichen lang sein und darf nur a-z, A-Z, 0-9, _ und - enthalten')
       return
     }
     if (check.status === 'taken') {

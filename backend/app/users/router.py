@@ -19,7 +19,7 @@ admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_-]{3,30}$")
 
 
 def _validate_username(username: str, db: Session, exclude_user_id: int | None = None) -> str:
@@ -27,7 +27,7 @@ def _validate_username(username: str, db: Session, exclude_user_id: int | None =
     if not _USERNAME_RE.match(name):
         raise HTTPException(
             status_code=400,
-            detail="Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten",
+            detail="Username muss 3-30 Zeichen lang sein und darf nur a-z, A-Z, 0-9, _ und - enthalten",
         )
     query = db.query(User).filter(User.username == name)
     if exclude_user_id is not None:
@@ -84,6 +84,10 @@ class PatchUsernameBody(BaseModel):
     username: str
 
 
+class ActivateUserBody(BaseModel):
+    role: str = "kuechenhilfe"
+
+
 # ── List users (chefkoch) ─────────────────────────────────────────────────────
 
 @router.get("", response_model=list[UserListItem])
@@ -91,7 +95,7 @@ def list_users(
     status: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
-    current_user: User = Depends(require_kuechenchef),
+    current_user: User = Depends(require_chefkoch_or_above),
     db: Session = Depends(get_db),
 ):
     q = db.query(User)
@@ -229,15 +233,25 @@ def patch_username(
 @router.patch("/{user_id}/activate")
 def activate_user(
     user_id: int,
+    body: ActivateUserBody,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_kuechenchef),
+    current_user: User = Depends(require_chefkoch_or_above),
     db: Session = Depends(get_db),
 ):
     from app.models.tokens import EmailVerificationToken
 
+    if current_user.role in (UserRole.kuechenchef, UserRole.admin):
+        allowed_roles = ["kuechenhilfe", "koch", "chefkoch", "kuechenchef"]
+    else:
+        allowed_roles = ["kuechenhilfe", "koch", "chefkoch"]
+    if body.role not in allowed_roles:
+        raise HTTPException(status_code=400, detail=f"Ungültige Rolle. Erlaubt: {allowed_roles}")
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+    user.role = UserRole(body.role)
+    db.commit()
 
     # Guard against duplicate emails on repeated clicks
     existing_token = (

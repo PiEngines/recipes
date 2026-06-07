@@ -29,8 +29,8 @@ export default function Register() {
       setUsernameCheck({ status: 'idle', message: '' })
       return
     }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(trimmed)) {
-      setUsernameCheck({ status: 'invalid', message: 'Nur Buchstaben, Zahlen und _ (3-30 Zeichen)' })
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(trimmed)) {
+      setUsernameCheck({ status: 'invalid', message: 'Nur a-z, A-Z, 0-9, _ und - (3-30 Zeichen)' })
       return
     }
     setUsernameCheck({ status: 'checking', message: 'Prüfe Verfügbarkeit …' })
@@ -63,8 +63,8 @@ export default function Register() {
       triggerShake()
       return
     }
-    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username.trim())) {
-      setError('Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten')
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username.trim())) {
+      setError('Username muss 3-30 Zeichen lang sein und darf nur a-z, A-Z, 0-9, _ und - enthalten')
       triggerShake()
       return
     }
@@ -191,6 +191,9 @@ export default function Register() {
             />
             <label htmlFor="reg-username">Username</label>
           </div>
+          <p style={{ color: 'var(--subtext)', fontSize: '0.775rem', margin: '-0.65rem 0 0.5rem', lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+            Erlaubte Zeichen: a-z, A-Z, 0-9, _ und -. 3-30 Zeichen, keine Leerzeichen, keine Umlaute.
+          </p>
           {usernameCheck.message && (
             <p style={{
               color: usernameCheck.status === 'available' ? '#3F7D4D'

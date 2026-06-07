@@ -12,6 +12,8 @@ const TABS = [
 ]
 
 const ROLES = ['kuechenhilfe', 'koch', 'chefkoch', 'kuechenchef']
+const ACTIVATION_ROLES_KUECHENCHEF = ['kuechenhilfe', 'koch', 'chefkoch', 'kuechenchef']
+const ACTIVATION_ROLES_CHEFKOCH = ['kuechenhilfe', 'koch', 'chefkoch']
 
 export default function AdminUsers() {
   const { user: currentUser } = useAuth()
@@ -27,6 +29,10 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [activatedIds, setActivatedIds] = useState(() => new Set())
+  const [activateRoles, setActivateRoles] = useState({})
+
+  const activationRoles = isKuechenchef ? ACTIVATION_ROLES_KUECHENCHEF : ACTIVATION_ROLES_CHEFKOCH
 
   // Invitation state
   const [inviteEmail, setInviteEmail] = useState('')
@@ -63,10 +69,11 @@ export default function AdminUsers() {
   }
 
   const handleActivate = async userId => {
+    const role = activateRoles[userId] || 'kuechenhilfe'
     try {
-      await client.patch(`/api/users/${userId}/activate`)
+      await client.patch(`/api/users/${userId}/activate`, { role })
       showToast('Benutzer freigeschaltet')
-      fetchUsers()
+      setActivatedIds(prev => new Set(prev).add(userId))
     } catch (err) {
       showToast(err.response?.data?.detail || 'Fehler')
     }
@@ -249,7 +256,13 @@ export default function AdminUsers() {
                         )}
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
-                        <StatusBadge status={u.status} />
+                        {tab === 'pending' && activatedIds.has(u.id) ? (
+                          <span style={{ color: '#4A7040', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'Inter, sans-serif' }}>
+                            Freigeschaltet – wartet auf Email-Bestätigung
+                          </span>
+                        ) : (
+                          <StatusBadge status={u.status} />
+                        )}
                       </td>
                       <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>
                         {new Date(u.created_at).toLocaleDateString('de-DE')}
@@ -261,8 +274,15 @@ export default function AdminUsers() {
                               Löschen
                             </ActionBtn>
                           )}
-                          {tab === 'pending' && (
+                          {tab === 'pending' && !activatedIds.has(u.id) && (
                             <>
+                              <select
+                                value={activateRoles[u.id] || 'kuechenhilfe'}
+                                onChange={e => setActivateRoles(prev => ({ ...prev, [u.id]: e.target.value }))}
+                                style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 'auto' }}
+                              >
+                                {activationRoles.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
+                              </select>
                               <ActionBtn onClick={() => handleActivate(u.id)}>Freischalten</ActionBtn>
                               <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'delete', name: u.name })}>Ablehnen</ActionBtn>
                             </>
