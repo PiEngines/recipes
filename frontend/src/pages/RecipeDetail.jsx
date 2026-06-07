@@ -643,11 +643,11 @@ export default function RecipeDetail() {
 
   // Deep-link to a step via URL hash, e.g. #step-2
   useEffect(() => {
-    if (!recipe) return
+    if (loading || !recipe) return
     const match = /^#step-(\d+)$/.exec(window.location.hash)
     if (!match) return
     window.dispatchEvent(new CustomEvent('scroll-to-step', { detail: { stepIdx: parseInt(match[1]) } }))
-  }, [recipe])
+  }, [loading, recipe])
 
   // Listen for cross-page scroll-to-step events from TimerWidgetGlobal
   useEffect(() => {
