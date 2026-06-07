@@ -82,15 +82,15 @@ export default function Login() {
           <div className="float-group">
             <input
               id="email"
-              type="email"
+              type="text"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder=" "
               required
-              autoComplete="email"
+              autoComplete="username"
               autoFocus
             />
-            <label htmlFor="email">E-Mail-Adresse</label>
+            <label htmlFor="email">Email oder Username</label>
           </div>
 
           <div className="float-group">

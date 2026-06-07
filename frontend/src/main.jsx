@@ -9,6 +9,7 @@ import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './components/Protec
 import Navbar from './components/Navbar.jsx'
 import TimerWidgetGlobal from './components/TimerWidgetGlobal.jsx'
 import NotificationsModal from './components/NotificationsModal.jsx'
+import UsernameOnboardingModal from './components/UsernameOnboardingModal.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminRecipes from './pages/AdminRecipes.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
@@ -39,6 +40,7 @@ function Layout() {
       <Outlet />
       <TimerWidgetGlobal />
       <NotificationsModal />
+      <UsernameOnboardingModal />
     </>
   )
 }

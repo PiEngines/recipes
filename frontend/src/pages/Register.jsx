@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 
@@ -8,6 +8,8 @@ export default function Register() {
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
+  const [usernameCheck, setUsernameCheck] = useState({ status: 'idle', message: '' })
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [error, setError] = useState('')
@@ -21,6 +23,31 @@ export default function Register() {
     setTimeout(() => setShake(false), 600)
   }
 
+  useEffect(() => {
+    const trimmed = username.trim()
+    if (!trimmed) {
+      setUsernameCheck({ status: 'idle', message: '' })
+      return
+    }
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(trimmed)) {
+      setUsernameCheck({ status: 'invalid', message: 'Nur Buchstaben, Zahlen und _ (3-30 Zeichen)' })
+      return
+    }
+    setUsernameCheck({ status: 'checking', message: 'Prüfe Verfügbarkeit …' })
+    const timeout = setTimeout(() => {
+      client.get(`/api/auth/check-username/${encodeURIComponent(trimmed)}`)
+        .then(res => {
+          setUsernameCheck(
+            res.data.available
+              ? { status: 'available', message: 'Verfügbar' }
+              : { status: 'taken', message: 'Bereits vergeben' }
+          )
+        })
+        .catch(() => setUsernameCheck({ status: 'idle', message: '' }))
+    }, 400)
+    return () => clearTimeout(timeout)
+  }, [username])
+
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
@@ -33,6 +60,16 @@ export default function Register() {
     }
     if (!email.trim()) {
       setError('Bitte gib eine E-Mail-Adresse ein')
+      triggerShake()
+      return
+    }
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username.trim())) {
+      setError('Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten')
+      triggerShake()
+      return
+    }
+    if (usernameCheck.status === 'taken') {
+      setError('Dieser Username ist bereits vergeben')
       triggerShake()
       return
     }
@@ -52,6 +89,7 @@ export default function Register() {
       const res = await client.post('/api/auth/register', {
         name: name.trim(),
         email: email.trim(),
+        username: username.trim(),
         password,
         token: token || undefined,
       })
@@ -60,8 +98,12 @@ export default function Register() {
     } catch (err) {
       const status = err.response?.status
       const detail = err.response?.data?.detail || ''
-      if (status === 409) {
+      if (status === 409 && detail.includes('Username')) {
+        setError('Dieser Username ist bereits vergeben.')
+      } else if (status === 409) {
         setError('Diese Email ist bereits registriert.')
+      } else if (status === 400 && detail.includes('Username')) {
+        setError(detail)
       } else if (status === 400 && detail.includes('Wegwerf')) {
         setError('Bitte verwende eine echte Email-Adresse.')
       } else if (status === 400 && detail.includes('Passwort')) {
@@ -136,6 +178,31 @@ export default function Register() {
             />
             <label htmlFor="reg-email">E-Mail-Adresse</label>
           </div>
+
+          <div className="float-group">
+            <input
+              id="reg-username"
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder=" "
+              required
+              autoComplete="username"
+            />
+            <label htmlFor="reg-username">Username</label>
+          </div>
+          {usernameCheck.message && (
+            <p style={{
+              color: usernameCheck.status === 'available' ? '#3F7D4D'
+                : usernameCheck.status === 'checking' ? '#6B6B68'
+                : '#C8602A',
+              fontSize: '0.8rem',
+              margin: '-0.65rem 0 0.85rem',
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              {usernameCheck.message}
+            </p>
+          )}
 
           <div className="float-group">
             <input

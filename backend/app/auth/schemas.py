@@ -31,6 +31,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    username: str | None = None
     role: str
     is_active: bool
     status: str = "active"
@@ -46,6 +47,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
+    username: str | None = None
     token: str | None = None
 
 
@@ -66,3 +68,7 @@ class InviteRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: str
+
+
+class SetUsernameRequest(BaseModel):
+    username: str

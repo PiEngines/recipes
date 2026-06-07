@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import { useAuth } from '../context/AuthContext'
 import { getRoleLabel } from '../utils/roles'
 import Breadcrumb from '../components/Breadcrumb'
 
@@ -13,6 +14,8 @@ const TABS = [
 const ROLES = ['kuechenhilfe', 'koch', 'chefkoch', 'kuechenchef']
 
 export default function AdminUsers() {
+  const { user: currentUser } = useAuth()
+  const isKuechenchef = currentUser?.role === 'kuechenchef' || currentUser?.role === 'admin'
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const initialTab = searchParams.get('tab') || 'active'
@@ -97,6 +100,18 @@ export default function AdminUsers() {
       fetchUsers()
     } catch (err) {
       showToast(err.response?.data?.detail || 'Fehler')
+    }
+  }
+
+  const handleUsernameChange = async (userId, username) => {
+    try {
+      await client.patch(`/api/users/${userId}/username`, { username })
+      showToast('Username aktualisiert')
+      fetchUsers()
+      return true
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Fehler')
+      return false
     }
   }
 
@@ -203,7 +218,7 @@ export default function AdminUsers() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Name', 'E-Mail', 'Rolle', 'Status', 'Beigetreten', 'Aktionen'].map(h => (
+                    {['Name', 'E-Mail', 'Username', 'Rolle', 'Status', 'Beigetreten', 'Aktionen'].map(h => (
                       <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
@@ -213,6 +228,13 @@ export default function AdminUsers() {
                     <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '0.875rem 1rem', color: 'var(--text)', fontWeight: 500 }}>{u.name}</td>
                       <td style={{ padding: '0.875rem 1rem', color: 'var(--subtext)' }}>{u.email}</td>
+                      <td style={{ padding: '0.875rem 1rem' }}>
+                        {isKuechenchef ? (
+                          <UsernameCell username={u.username} onSave={username => handleUsernameChange(u.id, username)} />
+                        ) : (
+                          <span style={{ color: 'var(--subtext)' }}>{u.username || '—'}</span>
+                        )}
+                      </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
                         {tab === 'active' ? (
                           <select
@@ -277,6 +299,49 @@ export default function AdminUsers() {
         </div>
       )}
     </div>
+  )
+}
+
+function UsernameCell({ username, onSave }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(username || '')
+  const [saving, setSaving] = useState(false)
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => { setValue(username || ''); setEditing(true) }}
+        style={{ background: 'none', border: 'none', padding: 0, color: username ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', cursor: 'pointer', textDecoration: 'underline dotted', textUnderlineOffset: '3px' }}
+        title="Username bearbeiten"
+      >
+        {username || '— bearbeiten'}
+      </button>
+    )
+  }
+
+  const commit = async () => {
+    const trimmed = value.trim()
+    if (trimmed === (username || '') || !trimmed) { setEditing(false); return }
+    setSaving(true)
+    const ok = await onSave(trimmed)
+    setSaving(false)
+    if (ok) setEditing(false)
+  }
+
+  return (
+    <input
+      type="text"
+      value={value}
+      autoFocus
+      disabled={saving}
+      onChange={e => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => {
+        if (e.key === 'Enter') { e.preventDefault(); commit() }
+        if (e.key === 'Escape') { setValue(username || ''); setEditing(false) }
+      }}
+      style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem', maxWidth: '160px' }}
+    />
   )
 }
 

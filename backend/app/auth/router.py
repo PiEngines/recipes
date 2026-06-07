@@ -16,6 +16,7 @@ from app.auth.schemas import (
     RegisterRequest,
     ResendVerificationRequest,
     ResetPasswordRequest,
+    SetUsernameRequest,
     TokenResponse,
     UserResponse,
 )
@@ -35,6 +36,7 @@ from app.rate_limiter import check_rate_limit
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 _PASSWORD_RE = re.compile(r".*\d.*")
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
 
 
 def _validate_password(pw: str) -> None:
@@ -57,13 +59,32 @@ def _is_disposable(email: str, db: Session) -> bool:
     )
 
 
+def _validate_username(username: str, db: Session, exclude_user_id: int | None = None) -> str:
+    name = username.strip()
+    if not _USERNAME_RE.match(name):
+        raise HTTPException(
+            status_code=400,
+            detail="Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten",
+        )
+    query = db.query(User).filter(User.username == name)
+    if exclude_user_id is not None:
+        query = query.filter(User.id != exclude_user_id)
+    if query.first() is not None:
+        raise HTTPException(status_code=409, detail="Username bereits vergeben")
+    return name
+
+
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     from app.auth.schemas import DeclinedShare, Notification
     from app.models.access import RecipeAccess
     from app.models.recipe import Recipe as RecipeModel
 
-    user = db.query(User).filter(User.email == body.email).first()
+    identifier = body.email.strip()
+    if "@" in identifier:
+        user = db.query(User).filter(User.email == identifier).first()
+    else:
+        user = db.query(User).filter(User.username == identifier).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -176,6 +197,7 @@ def register(
         raise HTTPException(status_code=400, detail="Wegwerf-Email-Adressen sind nicht erlaubt")
     if db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first():
         raise HTTPException(status_code=409, detail="Email bereits registriert")
+    username = _validate_username(body.username, db) if body.username else None
 
     was_invited = False
     inv = None
@@ -202,6 +224,7 @@ def register(
     user = User(
         name=body.name.strip(),
         email=email,
+        username=username,
         password_hash=hash_password(body.password),
         role=role,
         is_active=False,
@@ -435,3 +458,27 @@ def change_password(
     current_user.password_hash = hash_password(body.new_password)
     db.commit()
     return {"detail": "Passwort geändert"}
+
+
+# ── Username ──────────────────────────────────────────────────────────────────
+
+@router.get("/check-username/{username}")
+def check_username(username: str, db: Session = Depends(get_db)):
+    name = username.strip()
+    valid = bool(_USERNAME_RE.match(name))
+    available = valid and db.query(User).filter(User.username == name).first() is None
+    return {"valid": valid, "available": available}
+
+
+@router.post("/set-username", response_model=UserResponse)
+def set_username(
+    body: SetUsernameRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.username:
+        raise HTTPException(status_code=400, detail="Username bereits gesetzt")
+    current_user.username = _validate_username(body.username, db, exclude_user_id=current_user.id)
+    db.commit()
+    db.refresh(current_user)
+    return current_user

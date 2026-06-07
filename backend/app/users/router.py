@@ -1,3 +1,4 @@
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -18,6 +19,24 @@ admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,30}$")
+
+
+def _validate_username(username: str, db: Session, exclude_user_id: int | None = None) -> str:
+    name = username.strip()
+    if not _USERNAME_RE.match(name):
+        raise HTTPException(
+            status_code=400,
+            detail="Username muss 3-30 Zeichen lang sein und darf nur Buchstaben, Zahlen und _ enthalten",
+        )
+    query = db.query(User).filter(User.username == name)
+    if exclude_user_id is not None:
+        query = query.filter(User.id != exclude_user_id)
+    if query.first() is not None:
+        raise HTTPException(status_code=409, detail="Username bereits vergeben")
+    return name
+
+
 def _is_disposable(email: str, db: Session) -> bool:
     from app.models.access import DisposableEmailDomain
 
@@ -36,6 +55,7 @@ class UserListItem(BaseModel):
     id: int
     name: str
     email: str
+    username: str | None = None
     role: str
     status: str
     is_active: bool
@@ -58,6 +78,10 @@ class DeleteMeBody(BaseModel):
 
 class PatchRoleBody(BaseModel):
     role: str
+
+
+class PatchUsernameBody(BaseModel):
+    username: str
 
 
 # ── List users (chefkoch) ─────────────────────────────────────────────────────
@@ -177,6 +201,24 @@ def patch_role(
     if not user:
         raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
     user.role = UserRole(body.role)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+# ── Patch username (kuechenchef) ──────────────────────────────────────────────
+
+@router.patch("/{user_id}/username", response_model=UserListItem)
+def patch_username(
+    user_id: int,
+    body: PatchUsernameBody,
+    current_user: User = Depends(require_kuechenchef),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+    user.username = _validate_username(body.username, db, exclude_user_id=user.id)
     db.commit()
     db.refresh(user)
     return user
