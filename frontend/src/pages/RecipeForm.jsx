@@ -509,7 +509,7 @@ export default function RecipeForm() {
   const [prepTime, setPrepTime] = useState('')
   const [cookTime, setCookTime] = useState('')
   const [servings, setServings] = useState('')
-  const [difficulty, setDifficulty] = useState(5)
+  const [difficulty, setDifficulty] = useState(3)
   const [source, setSource] = useState('')
   const [status, setStatus] = useState('draft')
   const [selectedCats, setSelectedCats] = useState([])
@@ -884,13 +884,12 @@ export default function RecipeForm() {
           <div style={{ marginBottom: '1.25rem' }}>
             <FieldLabel>Schwierigkeit</FieldLabel>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.375rem' }}>
-              <input type="range" min="1" max="10" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
-              <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/10</span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', whiteSpace: 'nowrap' }}>{difficulty <= 3 ? 'Einfach' : difficulty <= 6 ? 'Mittel' : 'Schwer'}</span>
+              <input type="range" min="1" max="5" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
+              <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/5</span>
             </div>
-            <span style={{ display: 'inline-flex', gap: '2px' }} title={`${difficulty}/10`}>
+            <span style={{ display: 'inline-flex', gap: '2px' }} title={`${difficulty}/5`}>
               {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} style={{ display: 'inline-block', fontSize: '1.1rem', color: '#C8602A', opacity: i < Math.ceil(difficulty / 2) ? 1 : 0.2, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
+                <span key={i} style={{ display: 'inline-block', fontSize: '1.1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.2, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
               ))}
             </span>
           </div>

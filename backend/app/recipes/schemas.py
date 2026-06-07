@@ -116,7 +116,7 @@ class RecipeCreate(BaseModel):
     prep_time: int | None = None
     cook_time: int | None = None
     servings: int | None = None
-    difficulty: int | None = Field(None, ge=1, le=10)
+    difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus = RecipeStatus.draft
     source: str | None = None
     category_ids: list[int] = []
@@ -131,7 +131,7 @@ class RecipeUpdate(BaseModel):
     prep_time: int | None = None
     cook_time: int | None = None
     servings: int | None = None
-    difficulty: int | None = Field(None, ge=1, le=10)
+    difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus | None = None
     source: str | None = None
     category_ids: list[int] | None = None

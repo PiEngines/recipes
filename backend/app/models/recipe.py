@@ -28,7 +28,7 @@ class Recipe(Base):
     prep_time = Column(Integer)
     cook_time = Column(Integer)
     servings = Column(Integer)
-    difficulty = Column(Integer)  # 1–10
+    difficulty = Column(Integer)  # 1–5
     status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.draft)
     source = Column(String(500))
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)

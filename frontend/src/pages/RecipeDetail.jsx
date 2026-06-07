@@ -88,9 +88,9 @@ function buildHighlightedHtml(text, ingredientName) {
 // ── Difficulty spoons ─────────────────────────────────────────────────────────
 
 function DifficultySpoons({ difficulty }) {
-  const filled = Math.ceil(difficulty / 2)
+  const filled = difficulty
   return (
-    <span title={`${difficulty}/10`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
+    <span title={`${difficulty}/5`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
       {Array.from({ length: 5 }).map((_, i) => (
         <span key={i} style={{ display: 'inline-block', fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
       ))}

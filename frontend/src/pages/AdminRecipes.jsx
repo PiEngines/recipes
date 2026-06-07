@@ -875,7 +875,7 @@ function VersionSnapshotView({ snapshot }) {
           {snapshot.prep_time && <SnapMeta label="Vorbereitung" value={`${snapshot.prep_time} min`} />}
           {snapshot.cook_time && <SnapMeta label="Kochen" value={`${snapshot.cook_time} min`} />}
           {snapshot.servings && <SnapMeta label="Portionen" value={String(snapshot.servings)} />}
-          {snapshot.difficulty && <SnapMeta label="Schwierigkeit" value={`${snapshot.difficulty}/10`} />}
+          {snapshot.difficulty && <SnapMeta label="Schwierigkeit" value={`${snapshot.difficulty}/5`} />}
         </div>
       )}
       {ingredients.length > 0 && (
