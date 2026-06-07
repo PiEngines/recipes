@@ -592,7 +592,7 @@ export default function RecipeDetail() {
   const [ingredientView, setIngredientView] = useState('grouped')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [recipeMedia, setRecipeMedia] = useState([])
-  const [stepMedia, setStepMedia] = useState({})
+  const [stepMedia, setStepMedia] = useState(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxImages, setLightboxImages] = useState([])
@@ -643,11 +643,11 @@ export default function RecipeDetail() {
 
   // Deep-link to a step via URL hash, e.g. #step-2
   useEffect(() => {
-    if (loading || !recipe) return
+    if (loading || !recipe || !stepMedia) return
     const match = /^#step-(\d+)$/.exec(window.location.hash)
     if (!match) return
     window.dispatchEvent(new CustomEvent('scroll-to-step', { detail: { stepIdx: parseInt(match[1]) } }))
-  }, [loading, recipe])
+  }, [loading, recipe, stepMedia])
 
   // Listen for cross-page scroll-to-step events from TimerWidgetGlobal
   useEffect(() => {
@@ -856,7 +856,7 @@ export default function RecipeDetail() {
                   onClick={() => { setActiveStepIdx(idx); setSelectedIngredient(null) }}
                   onAddTimer={() => addTimer(recipe.id, recipe.title, idx, step.timer_label || step.title || `Timer ${idx + 1}`, step.timer_seconds)}
                   hasActiveTimer={timers.some(t => t.stepIdx === idx && t.remaining > 0)}
-                  stepImages={(stepMedia[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)}
+                  stepImages={(stepMedia?.[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)}
                   onImageClick={openStepLightbox}
                   selectedIngredient={selectedIngredient}
                 />
