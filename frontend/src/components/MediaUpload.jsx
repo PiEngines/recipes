@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import client from '../api/client'
+import ImageCropModal from './ImageCropModal'
 
 const POLL_INTERVAL = 3000
 
@@ -131,6 +132,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
   const [error, setError] = useState(null)
   const isUploading = uploadProgress !== null
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [cropTarget, setCropTarget] = useState(null) // { mediaId, imageUrl, mode: 'upload' | 'set-primary' }
   const [uploadToast, setUploadToast] = useState(null)
   const [uploadToastFading, setUploadToastFading] = useState(false)
   const inputRef = useRef(null)
@@ -247,6 +249,13 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
         return updated
       })
       showUploadToast('Bild gespeichert')
+
+      if (entityType === 'recipe') {
+        const titleImage = newMedia.find(m => m.media_type === 'image' && m.is_primary)
+        if (titleImage) {
+          setCropTarget({ mediaId: titleImage.id, imageUrl: titleImage.url, mode: 'upload' })
+        }
+      }
     }
     setUploadProgress(null)
     // Auto-clear error slots after 5 seconds
@@ -277,16 +286,58 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
     })
   }
 
-  const handleSetPrimary = async (mediaId) => {
+  const applySetPrimary = async (mediaId, cropResult) => {
     try {
+      if (cropResult) {
+        await client.post(`/api/media/${mediaId}/crop-thumbnail`, cropResult)
+      }
       const { data } = await client.patch(`/api/media/${mediaId}/set-primary`)
       setMediaList(prev => {
-        const updated = prev.map(m => ({ ...m, is_primary: m.id === data.id }))
+        const updated = prev.map(m => (m.id === data.id ? { ...m, ...data } : { ...m, is_primary: false }))
         onMediaChange?.(updated)
         return updated
       })
     } catch (err) {
       setError('Konnte Titelbild nicht setzen')
+    }
+  }
+
+  const handleSetPrimary = (mediaId) => {
+    if (entityType === 'recipe') {
+      const media = mediaList.find(m => m.id === mediaId)
+      if (media) {
+        setCropTarget({ mediaId, imageUrl: media.url, mode: 'set-primary' })
+        return
+      }
+    }
+    applySetPrimary(mediaId, null)
+  }
+
+  const handleCropConfirm = async (box) => {
+    const target = cropTarget
+    setCropTarget(null)
+    if (!target) return
+    if (target.mode === 'upload') {
+      try {
+        const { data } = await client.post(`/api/media/${target.mediaId}/crop-thumbnail`, box)
+        setMediaList(prev => {
+          const updated = prev.map(m => (m.id === data.id ? { ...m, ...data } : m))
+          onMediaChange?.(updated)
+          return updated
+        })
+      } catch {
+        setError('Bildausschnitt konnte nicht gespeichert werden')
+      }
+    } else if (target.mode === 'set-primary') {
+      await applySetPrimary(target.mediaId, box)
+    }
+  }
+
+  const handleCropCancel = () => {
+    const target = cropTarget
+    setCropTarget(null)
+    if (target?.mode === 'set-primary') {
+      applySetPrimary(target.mediaId, null)
     }
   }
 
@@ -382,6 +433,22 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
             <UploadSlot key={slot.key} status={slot.status} />
           ))}
         </div>
+      )}
+
+      {/* Hint: crop is adjustable later */}
+      {entityType === 'recipe' && mediaList.some(m => m.is_primary) && (
+        <p style={{ margin: '0.625rem 0 0', fontSize: '0.78rem', color: 'var(--subtext)' }}>
+          💡 Der Bildausschnitt des Titelbilds kann jederzeit nachträglich angepasst werden – einfach erneut auf „★ Titelbild" klicken.
+        </p>
+      )}
+
+      {/* Crop modal for recipe title images */}
+      {cropTarget && (
+        <ImageCropModal
+          imageUrl={cropTarget.imageUrl}
+          onConfirm={handleCropConfirm}
+          onCancel={handleCropCancel}
+        />
       )}
 
       {/* Delete confirmation toast */}

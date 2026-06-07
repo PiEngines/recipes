@@ -1,15 +1,17 @@
+import io
 import os
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, get_optional_user
 from app.config import settings
 from app.database import SessionLocal, get_db
 from app.media.schemas import MediaOut, MediaStatusOut
-from app.media_processing import process_image, process_video
+from app.media_processing import THUMB_SIZE_WIDE, crop_resize, process_image, process_video
 from app.models import User, UserRole
 from app.models.media import Media
 from app.models.recipe import Recipe, RecipeStep
@@ -227,6 +229,54 @@ def set_primary(
     ).update({"is_primary": False})
 
     media.is_primary = True
+    db.commit()
+    db.refresh(media)
+    return media
+
+
+# ── Crop thumbnail (recipe title images only) ────────────────────────────────
+
+class _CropBox(_Base):
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+@router.post("/{media_id}/crop-thumbnail", response_model=MediaOut)
+def crop_thumbnail(
+    media_id: int,
+    body: _CropBox,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    media = db.query(Media).filter(Media.id == media_id, Media.deleted_at.is_(None)).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="Medium nicht gefunden")
+
+    _check_owner(media.entity_type, media.entity_id, current_user, db)
+
+    if media.entity_type != "recipe" or media.media_type != "image":
+        raise HTTPException(status_code=400, detail="Bildausschnitt nur für Rezept-Titelbilder möglich")
+
+    full_path = os.path.join(settings.media_root, media.storage_path)
+    try:
+        with open(full_path, "rb") as f:
+            img = Image.open(io.BytesIO(f.read())).convert("RGB")
+        thumb = crop_resize(img, (body.x, body.y, body.width, body.height), *THUMB_SIZE_WIDE)
+        buf = io.BytesIO()
+        thumb.save(buf, format="WEBP", quality=80)
+        thumbnail_bytes = buf.getvalue()
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Bildausschnitt fehlgeschlagen: {e}")
+
+    old_thumb_path = media.thumbnail_path
+    new_thumb_path = f"{media.entity_type}/{media.entity_id}/images/thumbnails/{uuid.uuid4()}.webp"
+    storage.save_file(thumbnail_bytes, new_thumb_path)
+    if old_thumb_path:
+        storage.delete_file(old_thumb_path)
+
+    media.thumbnail_path = new_thumb_path
     db.commit()
     db.refresh(media)
     return media

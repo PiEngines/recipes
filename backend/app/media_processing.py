@@ -17,6 +17,7 @@ from PIL import Image
 
 MAX_LONG_SIDE = 2400
 THUMB_SIZE = 400
+THUMB_SIZE_WIDE = (480, 270)  # 16:9, used for custom-cropped recipe title thumbnails
 
 
 def _center_crop_resize(img: Image.Image, size: int) -> Image.Image:
@@ -25,6 +26,16 @@ def _center_crop_resize(img: Image.Image, size: int) -> Image.Image:
     top = (img.height - min_dim) // 2
     img = img.crop((left, top, left + min_dim, top + min_dim))
     return img.resize((size, size), Image.LANCZOS)
+
+
+def crop_resize(img: Image.Image, box: tuple[float, float, float, float], target_w: int, target_h: int) -> Image.Image:
+    x, y, w, h = box
+    left = max(0, min(x, img.width))
+    top = max(0, min(y, img.height))
+    right = max(left + 1, min(x + w, img.width))
+    bottom = max(top + 1, min(y + h, img.height))
+    img = img.crop((round(left), round(top), round(right), round(bottom)))
+    return img.resize((target_w, target_h), Image.LANCZOS)
 
 
 def process_image(file_bytes: bytes, original_filename: str) -> tuple[bytes, bytes, int, int]:

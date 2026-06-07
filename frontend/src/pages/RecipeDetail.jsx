@@ -654,12 +654,9 @@ export default function RecipeDetail() {
     const handler = e => {
       const { stepIdx } = e.detail
       const el = stepRefs.current[stepIdx]
-      console.log('[scroll-to-step]', { stepIdx, found: !!el })
       if (!el) return
       const NAVBAR_HEIGHT = 64
-      const rectTop = el.getBoundingClientRect().top
-      const top = rectTop + window.scrollY - NAVBAR_HEIGHT - 16
-      console.log('[scroll-to-step]', { rectTop, scrollY: window.scrollY, computedTop: top })
+      const top = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT - 16
       window.scrollTo({ top, behavior: 'smooth' })
       setActiveStepIdx(stepIdx)
     }
