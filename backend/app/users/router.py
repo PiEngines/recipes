@@ -301,6 +301,7 @@ def soft_delete_user(
     user.deleted_at = now
     user.status = "deleted"
     user.is_active = False
+    user.username = None
 
     # Soft delete user's recipes
     db.query(Recipe).filter(Recipe.created_by == user_id).update({"deleted_at": now})
@@ -329,6 +330,35 @@ def restore_user(
     db.query(Recipe).filter(Recipe.created_by == user_id).update({"deleted_at": None})
     db.commit()
     return {"detail": "Benutzer wiederhergestellt"}
+
+
+# ── Hard-delete user (kuechenchef) ────────────────────────────────────────────
+
+@router.delete("/{user_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+def hard_delete_user(
+    user_id: int,
+    current_user: User = Depends(require_kuechenchef),
+    db: Session = Depends(get_db),
+):
+    from sqlalchemy.exc import IntegrityError
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht gefunden")
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Eigenen Account nicht löschbar")
+    if not user.deleted_at:
+        raise HTTPException(status_code=400, detail="Benutzer muss zuerst in den Papierkorb verschoben werden")
+
+    try:
+        db.delete(user)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Benutzer kann nicht endgültig gelöscht werden – es bestehen noch verknüpfte Daten",
+        )
 
 
 # ── Shared recipes for current user ──────────────────────────────────────────

@@ -195,8 +195,8 @@ def register(
     email = body.email.lower().strip()
     if _is_disposable(email, db):
         raise HTTPException(status_code=400, detail="Wegwerf-Email-Adressen sind nicht erlaubt")
-    if db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first():
-        raise HTTPException(status_code=409, detail="Email bereits registriert")
+    if db.query(User).filter(User.email == email).first():
+        raise HTTPException(status_code=409, detail="Diese Email-Adresse ist bereits vergeben")
     username = _validate_username(body.username, db) if body.username else None
 
     was_invited = False

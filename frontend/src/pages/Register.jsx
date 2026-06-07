@@ -100,8 +100,10 @@ export default function Register() {
       const detail = err.response?.data?.detail || ''
       if (status === 409 && detail.includes('Username')) {
         setError('Dieser Username ist bereits vergeben.')
+      } else if (status === 409 && detail.includes('Email')) {
+        setError('Diese Email-Adresse ist bereits vergeben.')
       } else if (status === 409) {
-        setError('Diese Email ist bereits registriert.')
+        setError(detail || 'Diese Email-Adresse ist bereits vergeben.')
       } else if (status === 400 && detail.includes('Username')) {
         setError(detail)
       } else if (status === 400 && detail.includes('Wegwerf')) {

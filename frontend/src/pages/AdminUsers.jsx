@@ -90,6 +90,17 @@ export default function AdminUsers() {
     setConfirmDialog(null)
   }
 
+  const handleHardDelete = async userId => {
+    try {
+      await client.delete(`/api/users/${userId}/permanent`)
+      showToast('Benutzer endgültig gelöscht')
+      fetchUsers()
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Fehler')
+    }
+    setConfirmDialog(null)
+  }
+
   const handleRestore = async userId => {
     try {
       await client.post(`/api/users/${userId}/restore`)
@@ -251,6 +262,14 @@ export default function AdminUsers() {
                           >
                             {ROLES.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
                           </select>
+                        ) : tab === 'pending' && !activatedIds.has(u.id) ? (
+                          <select
+                            value={activateRoles[u.id] || 'kuechenhilfe'}
+                            onChange={e => setActivateRoles(prev => ({ ...prev, [u.id]: e.target.value }))}
+                            style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                          >
+                            {activationRoles.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
+                          </select>
                         ) : (
                           <span style={{ color: 'var(--subtext)' }}>{getRoleLabel(u.role)}</span>
                         )}
@@ -276,19 +295,17 @@ export default function AdminUsers() {
                           )}
                           {tab === 'pending' && !activatedIds.has(u.id) && (
                             <>
-                              <select
-                                value={activateRoles[u.id] || 'kuechenhilfe'}
-                                onChange={e => setActivateRoles(prev => ({ ...prev, [u.id]: e.target.value }))}
-                                style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem', width: 'auto' }}
-                              >
-                                {activationRoles.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
-                              </select>
                               <ActionBtn onClick={() => handleActivate(u.id)}>Freischalten</ActionBtn>
                               <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'delete', name: u.name })}>Ablehnen</ActionBtn>
                             </>
                           )}
                           {tab === 'deleted' && (
-                            <ActionBtn onClick={() => handleRestore(u.id)}>Wiederherstellen</ActionBtn>
+                            <>
+                              <ActionBtn onClick={() => handleRestore(u.id)}>Wiederherstellen</ActionBtn>
+                              <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'hard-delete', name: u.name })}>
+                                Endgültig löschen
+                              </ActionBtn>
+                            </>
                           )}
                         </div>
                       </td>
@@ -304,9 +321,14 @@ export default function AdminUsers() {
       {/* Confirm dialog */}
       {confirmDialog && (
         <ConfirmDialog
-          message={`${confirmDialog.action === 'delete' ? 'Benutzer' : ''} "${confirmDialog.name}" wirklich ${confirmDialog.action === 'delete' ? 'löschen' : 'fortfahren'}?`}
+          message={
+            confirmDialog.action === 'hard-delete'
+              ? `Benutzer "${confirmDialog.name}" und alle zugehörigen Daten werden unwiderruflich aus der Datenbank gelöscht. Diese Aktion kann nicht rückgängig gemacht werden. Fortfahren?`
+              : `Benutzer "${confirmDialog.name}" wirklich löschen?`
+          }
           onConfirm={() => {
             if (confirmDialog.action === 'delete') handleDelete(confirmDialog.userId)
+            if (confirmDialog.action === 'hard-delete') handleHardDelete(confirmDialog.userId)
           }}
           onCancel={() => setConfirmDialog(null)}
         />
@@ -326,6 +348,33 @@ function UsernameCell({ username, onSave }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(username || '')
   const [saving, setSaving] = useState(false)
+  const [check, setCheck] = useState({ status: 'idle', message: '' })
+
+  useEffect(() => {
+    if (!editing) return
+    const trimmed = value.trim()
+    if (!trimmed || trimmed === (username || '')) {
+      setCheck({ status: 'idle', message: '' })
+      return
+    }
+    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(trimmed)) {
+      setCheck({ status: 'invalid', message: 'Nur a-z, A-Z, 0-9, _ und - (3-30 Zeichen)' })
+      return
+    }
+    setCheck({ status: 'checking', message: 'Prüfe …' })
+    const timeout = setTimeout(() => {
+      client.get(`/api/auth/check-username/${encodeURIComponent(trimmed)}`)
+        .then(res => {
+          setCheck(
+            res.data.available
+              ? { status: 'available', message: 'Verfügbar' }
+              : { status: 'taken', message: 'Bereits vergeben' }
+          )
+        })
+        .catch(() => setCheck({ status: 'idle', message: '' }))
+    }, 400)
+    return () => clearTimeout(timeout)
+  }, [value, editing, username])
 
   if (!editing) {
     return (
@@ -342,6 +391,7 @@ function UsernameCell({ username, onSave }) {
   const commit = async () => {
     const trimmed = value.trim()
     if (trimmed === (username || '') || !trimmed) { setEditing(false); return }
+    if (check.status === 'taken' || check.status === 'invalid') { return }
     setSaving(true)
     const ok = await onSave(trimmed)
     setSaving(false)
@@ -349,19 +399,33 @@ function UsernameCell({ username, onSave }) {
   }
 
   return (
-    <input
-      type="text"
-      value={value}
-      autoFocus
-      disabled={saving}
-      onChange={e => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={e => {
-        if (e.key === 'Enter') { e.preventDefault(); commit() }
-        if (e.key === 'Escape') { setValue(username || ''); setEditing(false) }
-      }}
-      style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem', maxWidth: '160px' }}
-    />
+    <div>
+      <input
+        type="text"
+        value={value}
+        autoFocus
+        disabled={saving}
+        onChange={e => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === 'Enter') { e.preventDefault(); commit() }
+          if (e.key === 'Escape') { setValue(username || ''); setEditing(false) }
+        }}
+        style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem', maxWidth: '160px' }}
+      />
+      {check.message && (
+        <div style={{
+          color: check.status === 'available' ? '#3F7D4D'
+            : check.status === 'checking' ? 'var(--subtext)'
+            : '#C8602A',
+          fontSize: '0.7rem',
+          marginTop: '0.25rem',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          {check.message}
+        </div>
+      )}
+    </div>
   )
 }
 
