@@ -212,7 +212,7 @@ export default function TimerWidgetGlobal() {
   }
 
   const handleTimerClick = timer => {
-    navigate(`/recipes/${timer.recipeId}`)
+    navigate(`/recipes/${timer.recipeId}#step-${timer.stepIdx}`)
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('scroll-to-step', { detail: { stepIdx: timer.stepIdx } }))
     }, 300)

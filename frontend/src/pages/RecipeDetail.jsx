@@ -40,20 +40,32 @@ function fmtScaled(n) {
   return `${whole} ${fracStr}`
 }
 
+function parseScaledValue(amount, factor) {
+  const frac = /^(\d+)\s*\/\s*(\d+)$/.exec(amount.trim())
+  if (frac) return (parseInt(frac[1]) / parseInt(frac[2])) * factor
+  const n = parseFloat(amount)
+  return isNaN(n) ? null : n * factor
+}
+
 function scaleAmount(amount, factor, unit, isInteger) {
   if (!amount || factor === 1) return amount
   if (unit && EXACT_UNITS.has(unit)) return amount
-  const frac = /^(\d+)\s*\/\s*(\d+)$/.exec(amount.trim())
-  let n
-  if (frac) {
-    n = (parseInt(frac[1]) / parseInt(frac[2])) * factor
-  } else {
-    n = parseFloat(amount)
-    if (isNaN(n)) return amount
-    n *= factor
-  }
+  let n = parseScaledValue(amount, factor)
+  if (n === null) return amount
+  if (n > 0 && n < 0.25) n = 0.25
   if (isInteger) return String(Math.ceil(n))
   return fmtScaled(roundToQuarter(n))
+}
+
+// Would reducing servings by one push any ingredient's scaled amount below the practical minimum?
+function wouldDropBelowMin(ingredients, servings, baseServings) {
+  if (!baseServings) return false
+  const factor = (servings - 1) / baseServings
+  return ingredients.some(ing => {
+    if (!ing.amount || (ing.unit && EXACT_UNITS.has(ing.unit))) return false
+    const n = parseScaledValue(ing.amount, factor)
+    return n !== null && n > 0 && n < 0.25
+  })
 }
 
 function fmtTime(s) {
@@ -283,6 +295,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
 
 function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, view, onViewChange, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
+  const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
   return (
     <aside className="hidden md:block" style={{
       width: '260px',
@@ -320,7 +333,7 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
       {recipe.servings && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.5rem 0', borderBottom: '1px solid var(--border)' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', flex: 1 }}>Portionen</span>
-          <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} style={adjBtn}>−</button>
+          <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}>−</button>
           <span style={{ fontSize: '1rem', fontWeight: 600, minWidth: '1.5rem', textAlign: 'center', color: 'var(--text)' }}>{servings}</span>
           <button onClick={() => onServingsChange(s => s + 1)} style={adjBtn}>+</button>
         </div>
@@ -354,10 +367,18 @@ const adjBtn = {
   fontFamily: 'Inter, sans-serif',
 }
 
+const adjBtnDisabled = {
+  ...adjBtn,
+  cursor: 'default',
+  opacity: 0.4,
+  color: 'var(--subtext)',
+}
+
 // ── Mobile ingredients drawer ─────────────────────────────────────────────────
 
 function MobileDrawer({ recipe, servings, baseServings, onServingsChange, activeIds, onClose, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
+  const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
   return (
     <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 300 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
@@ -376,7 +397,7 @@ function MobileDrawer({ recipe, servings, baseServings, onServingsChange, active
         {recipe.servings && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
             <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', flex: 1 }}>Portionen</span>
-            <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} style={adjBtn}>−</button>
+            <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}>−</button>
             <span style={{ fontSize: '1.1rem', fontWeight: 600, minWidth: '1.5rem', textAlign: 'center', color: 'var(--text)' }}>{servings}</span>
             <button onClick={() => onServingsChange(s => s + 1)} style={adjBtn}>+</button>
           </div>
@@ -619,6 +640,14 @@ export default function RecipeDetail() {
       .then(res => setStepIngredients(p => ({ ...p, [step.id]: res.data })))
       .catch(() => setStepIngredients(p => ({ ...p, [step.id]: [] })))
   }, [activeStepIdx, recipe])
+
+  // Deep-link to a step via URL hash, e.g. #step-2
+  useEffect(() => {
+    if (!recipe) return
+    const match = /^#step-(\d+)$/.exec(window.location.hash)
+    if (!match) return
+    window.dispatchEvent(new CustomEvent('scroll-to-step', { detail: { stepIdx: parseInt(match[1]) } }))
+  }, [recipe])
 
   // Listen for cross-page scroll-to-step events from TimerWidgetGlobal
   useEffect(() => {
