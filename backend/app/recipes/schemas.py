@@ -33,6 +33,7 @@ class AllergenResponse(BaseModel):
 class AuthorResponse(BaseModel):
     id: int
     name: str
+    username: str | None = None
     model_config = {"from_attributes": True}
 
 

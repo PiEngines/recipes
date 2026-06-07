@@ -16,6 +16,7 @@ from app.models.recipe import (
 from app.models.media import Media
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
+from app.models.user_favorite import UserFavorite
 
 __all__ = [
     "User",
@@ -45,4 +46,5 @@ __all__ = [
     "EmailVerificationToken",
     "RecipeAccess",
     "DisposableEmailDomain",
+    "UserFavorite",
 ]

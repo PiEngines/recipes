@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { FavoritesProvider } from './context/FavoritesContext.jsx'
 import { TimerProvider } from './context/TimerContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
 import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute.jsx'
@@ -49,11 +50,13 @@ const router = createBrowserRouter([
   {
     element: (
       <AuthProvider>
-        <TimerProvider>
-          <NavigationProvider>
-            <Layout />
-          </NavigationProvider>
-        </TimerProvider>
+        <FavoritesProvider>
+          <TimerProvider>
+            <NavigationProvider>
+              <Layout />
+            </NavigationProvider>
+          </TimerProvider>
+        </FavoritesProvider>
       </AuthProvider>
     ),
     children: [

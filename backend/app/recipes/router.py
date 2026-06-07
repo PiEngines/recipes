@@ -86,6 +86,7 @@ def list_recipes(
     search: str | None = Query(None),
     search_scope: str = Query("title"),
     author_id: int | None = Query(None),
+    author: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
@@ -171,6 +172,9 @@ def list_recipes(
 
     if author_id is not None:
         q = q.filter(Recipe.created_by == author_id)
+
+    if author:
+        q = q.join(User, Recipe.created_by == User.id).filter(User.username == author)
 
     total = q.count()
     items = (

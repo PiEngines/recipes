@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.router import router as auth_router
 from app.categories.router import router as categories_router
 from app.config import settings
+from app.favorites.router import router as favorites_router
 from app.media.router import router as media_router
 from app.recipes.access_router import router as access_router
 from app.recipes.router import router as recipes_router
@@ -214,6 +215,7 @@ app.include_router(access_router)
 app.include_router(categories_router)
 app.include_router(tags_router)
 app.include_router(media_router)
+app.include_router(favorites_router)
 app.include_router(users_router)
 app.include_router(admin_router)
 

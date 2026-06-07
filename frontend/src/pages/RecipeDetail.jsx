@@ -6,6 +6,8 @@ import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import Breadcrumb from '../components/Breadcrumb'
+import FavoriteHeart from '../components/FavoriteHeart'
+import AuthorLink from '../components/AuthorLink'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
@@ -135,6 +137,7 @@ function HeroSection({ recipe, media, onImageClick }) {
           cursor: primary ? 'zoom-in' : 'default',
         }}
       >
+        <FavoriteHeart recipeId={recipe.id} size={26} style={{ position: 'absolute', top: '0.875rem', left: '0.875rem', zIndex: 3 }} />
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
@@ -820,9 +823,7 @@ export default function RecipeDetail() {
               {recipe.author && (
                 <span>
                   von{' '}
-                  <Link to={`/users/${recipe.author.id}`} style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-                    {recipe.author.name}
-                  </Link>
+                  <AuthorLink author={recipe.author} />
                 </span>
               )}
               {recipe.author && <span>·</span>}
