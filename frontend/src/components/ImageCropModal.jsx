@@ -1,5 +1,8 @@
-import { useCallback, useState } from 'react'
-import Cropper from 'react-easy-crop'
+import { useRef, useState } from 'react'
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
+
+const ASPECT = 16 / 9
 
 const BTN_PRIMARY = {
   padding: '0.55rem 1.25rem',
@@ -24,22 +27,34 @@ const BTN_SECONDARY = {
   fontFamily: 'Inter, sans-serif',
 }
 
-export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+function centerAspectCrop(mediaWidth, mediaHeight) {
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 90 }, ASPECT, mediaWidth, mediaHeight),
+    mediaWidth,
+    mediaHeight,
+  )
+}
 
-  const handleCropComplete = useCallback((_, areaPixels) => {
-    setCroppedAreaPixels(areaPixels)
-  }, [])
+export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
+  const [crop, setCrop] = useState()
+  const [completedCrop, setCompletedCrop] = useState(null)
+  const imgRef = useRef(null)
+
+  const onImageLoad = e => {
+    const { width, height } = e.currentTarget
+    setCrop(centerAspectCrop(width, height))
+  }
 
   const handleConfirm = () => {
-    if (!croppedAreaPixels) return
+    const img = imgRef.current
+    if (!img || !completedCrop?.width) return
+    const scaleX = img.naturalWidth / img.width
+    const scaleY = img.naturalHeight / img.height
     onConfirm({
-      x: Math.round(croppedAreaPixels.x),
-      y: Math.round(croppedAreaPixels.y),
-      width: Math.round(croppedAreaPixels.width),
-      height: Math.round(croppedAreaPixels.height),
+      x: Math.round(completedCrop.x * scaleX),
+      y: Math.round(completedCrop.y * scaleY),
+      width: Math.round(completedCrop.width * scaleX),
+      height: Math.round(completedCrop.height * scaleY),
     })
   }
 
@@ -48,38 +63,34 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
       <div style={{ padding: '1rem 1.25rem', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
         <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Bildausschnitt für Titelbild wählen</h3>
         <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)' }}>
-          💡 Der Bildausschnitt kann später jederzeit angepasst werden.
+          💡 Der Bildausschnitt kann später jederzeit über das ✂-Symbol angepasst werden.
         </p>
       </div>
 
-      <div style={{ position: 'relative', flex: 1 }}>
-        <Cropper
-          image={imageUrl}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', padding: '1rem', minHeight: 0 }}>
+        <ReactCrop
           crop={crop}
-          zoom={zoom}
-          aspect={16 / 9}
-          onCropChange={setCrop}
-          onZoomChange={setZoom}
-          onCropComplete={handleCropComplete}
-        />
+          onChange={(_, percentCrop) => setCrop(percentCrop)}
+          onComplete={c => setCompletedCrop(c)}
+          aspect={ASPECT}
+          minWidth={40}
+          keepSelection
+        >
+          <img
+            ref={imgRef}
+            src={imageUrl}
+            onLoad={onImageLoad}
+            alt=""
+            style={{ maxWidth: '100%', maxHeight: '70vh', display: 'block' }}
+          />
+        </ReactCrop>
       </div>
 
-      <div style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <input
-          type="range"
-          min={1}
-          max={3}
-          step={0.05}
-          value={zoom}
-          onChange={e => setZoom(Number(e.target.value))}
-          style={{ flex: 1, maxWidth: '240px' }}
-        />
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
-          <button onClick={onCancel} style={BTN_SECONDARY}>Abbrechen</button>
-          <button onClick={handleConfirm} disabled={!croppedAreaPixels} style={{ ...BTN_PRIMARY, opacity: croppedAreaPixels ? 1 : 0.5 }}>
-            Übernehmen
-          </button>
-        </div>
+      <div style={{ padding: '1rem 1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+        <button onClick={onCancel} style={BTN_SECONDARY}>Abbrechen</button>
+        <button onClick={handleConfirm} disabled={!completedCrop?.width} style={{ ...BTN_PRIMARY, opacity: completedCrop?.width ? 1 : 0.5 }}>
+          Übernehmen
+        </button>
       </div>
     </div>
   )

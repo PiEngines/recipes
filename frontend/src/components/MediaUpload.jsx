@@ -22,7 +22,7 @@ function Spinner() {
 
 // ── Media thumbnail card ───────────────────────────────────────────────────────
 
-function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveLeft, onMoveRight }) {
+function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveLeft, onMoveRight, onCrop, cropEnabled }) {
   const isProcessing = media.processing_status === 'processing'
   const isError = media.processing_status === 'error'
   const isPrimary = media.is_primary
@@ -72,13 +72,24 @@ function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveL
         style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
       >×</button>
 
-      {/* Set primary button (images only, not already primary, only if >1 image) */}
-      {media.media_type === 'image' && !isPrimary && !isProcessing && !isError && imageCount > 1 && (
-        <button
-          onClick={() => onSetPrimary(media.id)}
-          title="Als Titelbild setzen"
-          style={{ position: 'absolute', top: '4px', left: '4px', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
-        >★ Titelbild</button>
+      {/* Top-left action buttons: set primary / crop */}
+      {media.media_type === 'image' && !isProcessing && !isError && (
+        <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>
+          {!isPrimary && imageCount > 1 && (
+            <button
+              onClick={() => onSetPrimary(media.id)}
+              title="Als Titelbild setzen"
+              style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
+            >★ Titelbild</button>
+          )}
+          {cropEnabled && (
+            <button
+              onClick={() => onCrop(media.id)}
+              title="Bildausschnitt anpassen"
+              style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+            >✂</button>
+          )}
+        </div>
       )}
 
       {/* Move left / right arrows (bottom, only if not first/last) */}
@@ -313,21 +324,31 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
     applySetPrimary(mediaId, null)
   }
 
+  const handleCropImage = (mediaId) => {
+    const media = mediaList.find(m => m.id === mediaId)
+    if (!media) return
+    setCropTarget({ mediaId, imageUrl: media.url, mode: 'standalone' })
+  }
+
+  const applyCropThumbnail = async (mediaId, box) => {
+    try {
+      const { data } = await client.post(`/api/media/${mediaId}/crop-thumbnail`, box)
+      setMediaList(prev => {
+        const updated = prev.map(m => (m.id === data.id ? { ...m, ...data } : m))
+        onMediaChange?.(updated)
+        return updated
+      })
+    } catch {
+      setError('Bildausschnitt konnte nicht gespeichert werden')
+    }
+  }
+
   const handleCropConfirm = async (box) => {
     const target = cropTarget
     setCropTarget(null)
     if (!target) return
-    if (target.mode === 'upload') {
-      try {
-        const { data } = await client.post(`/api/media/${target.mediaId}/crop-thumbnail`, box)
-        setMediaList(prev => {
-          const updated = prev.map(m => (m.id === data.id ? { ...m, ...data } : m))
-          onMediaChange?.(updated)
-          return updated
-        })
-      } catch {
-        setError('Bildausschnitt konnte nicht gespeichert werden')
-      }
+    if (target.mode === 'upload' || target.mode === 'standalone') {
+      await applyCropThumbnail(target.mediaId, box)
     } else if (target.mode === 'set-primary') {
       await applySetPrimary(target.mediaId, box)
     }
@@ -427,6 +448,8 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
               onRequestDelete={setConfirmDeleteId}
               onMoveLeft={idx => handleMove(idx, idx - 1)}
               onMoveRight={idx => handleMove(idx, idx + 1)}
+              onCrop={handleCropImage}
+              cropEnabled={entityType === 'recipe'}
             />
           ))}
           {uploadSlots.map(slot => (
@@ -438,7 +461,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
       {/* Hint: crop is adjustable later */}
       {entityType === 'recipe' && mediaList.some(m => m.is_primary) && (
         <p style={{ margin: '0.625rem 0 0', fontSize: '0.78rem', color: 'var(--subtext)' }}>
-          💡 Der Bildausschnitt des Titelbilds kann jederzeit nachträglich angepasst werden – einfach erneut auf „★ Titelbild" klicken.
+          💡 Der Bildausschnitt des Titelbilds kann jederzeit nachträglich angepasst werden – einfach auf das ✂-Symbol auf dem Bild klicken.
         </p>
       )}
 
