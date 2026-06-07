@@ -129,7 +129,7 @@ function HeroSection({ recipe, media, onImageClick }) {
           position: 'relative',
           height: '280px',
           background: primary ? undefined : gradient,
-          backgroundImage: primary ? `url(${primary.url})` : undefined,
+          backgroundImage: primary ? `url(${primary.thumbnail_url || primary.url})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           cursor: primary ? 'zoom-in' : 'default',
