@@ -43,6 +43,14 @@ body {
   box-shadow: 0 0 0 3px rgba(200, 96, 42, 0.15);
 }
 
+.float-group input:-webkit-autofill,
+.float-group input:-webkit-autofill:hover,
+.float-group input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0px 1000px var(--card) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .float-group label {
   position: absolute;
   left: 0.875rem;

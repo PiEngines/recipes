@@ -3,6 +3,8 @@
 }
 
 :80 {
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
     handle /media/* {
         root * /srv/media
         uri strip_prefix /media

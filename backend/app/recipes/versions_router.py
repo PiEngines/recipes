@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.auth.dependencies import get_current_user, require_chefkoch_or_above
 from app.database import get_db
-from app.models import Recipe, User
+from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User
 from app.models.recipe import RecipeVersion
 from app.models.user import UserRole
 
@@ -165,5 +165,33 @@ def restore_version(
     recipe.servings = snap.get("servings")
     recipe.difficulty = snap.get("difficulty")
     recipe.source = snap.get("source")
+
+    recipe.ingredients = [
+        Ingredient(
+            name=ing.get("name"),
+            amount=ing.get("amount"),
+            unit=ing.get("unit"),
+            component_label=ing.get("component_label"),
+            sort_order=ing.get("sort_order", 0),
+        )
+        for ing in snap.get("ingredients") or []
+    ]
+
+    recipe.steps = [
+        RecipeStep(
+            sort_order=step.get("sort_order", 0),
+            title=step.get("title"),
+            instruction=step.get("instruction"),
+            timer_seconds=step.get("timer_seconds"),
+        )
+        for step in snap.get("steps") or []
+    ]
+
+    tag_ids = snap.get("tag_ids") or []
+    recipe.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+
+    category_ids = snap.get("category_ids") or []
+    recipe.categories = db.query(Category).filter(Category.id.in_(category_ids)).all() if category_ids else []
+
     db.commit()
     return {"detail": "Version wiederhergestellt"}

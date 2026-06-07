@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Scissors } from 'lucide-react'
 import client from '../api/client'
 import ImageCropModal from './ImageCropModal'
 
@@ -86,8 +87,8 @@ function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveL
             <button
               onClick={() => onCrop(media.id)}
               title="Bildausschnitt anpassen"
-              style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
-            >✂</button>
+              style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+            ><Scissors size={13} color="#fff" /></button>
           )}
         </div>
       )}
