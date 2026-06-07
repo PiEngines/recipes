@@ -73,24 +73,22 @@ function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveL
         style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
       >×</button>
 
-      {/* Top-left action buttons: set primary / crop */}
-      {media.media_type === 'image' && !isProcessing && !isError && (
-        <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>
-          {!isPrimary && imageCount > 1 && (
-            <button
-              onClick={() => onSetPrimary(media.id)}
-              title="Als Titelbild setzen"
-              style={{ padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
-            >★ Titelbild</button>
-          )}
-          {cropEnabled && (
-            <button
-              onClick={() => onCrop(media.id)}
-              title="Bildausschnitt anpassen"
-              style={{ width: '22px', height: '22px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
-            ><Scissors size={13} color="#fff" /></button>
-          )}
-        </div>
+      {/* Crop button (top-left, fixed position — identical on every card, mirrors × at top-right) */}
+      {cropEnabled && media.media_type === 'image' && !isProcessing && !isError && (
+        <button
+          onClick={() => onCrop(media.id)}
+          title="Bildausschnitt anpassen"
+          style={{ position: 'absolute', top: '4px', left: '4px', width: '22px', height: '22px', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
+        ><Scissors size={13} color="#fff" /></button>
+      )}
+
+      {/* Set-primary button (top-left, offset to clear the crop button when both are shown) */}
+      {!isPrimary && imageCount > 1 && media.media_type === 'image' && !isProcessing && !isError && (
+        <button
+          onClick={() => onSetPrimary(media.id)}
+          title="Als Titelbild setzen"
+          style={{ position: 'absolute', top: '4px', left: cropEnabled ? '32px' : '4px', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(0,0,0,0.55)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.6rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap' }}
+        >★ Titelbild</button>
       )}
 
       {/* Move left / right arrows (bottom, only if not first/last) */}

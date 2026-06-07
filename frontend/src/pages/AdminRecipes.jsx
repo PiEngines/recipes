@@ -160,18 +160,27 @@ export default function AdminRecipes() {
 
   // ── Versionskontrolle ─────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!selectedRecipeId) { setVersionsList([]); setSelectedVersionId(null); setVersionSnapshot(null); return }
-    client.get(`/api/recipes/${selectedRecipeId}/versions`)
+  const loadVersions = recipeId => {
+    if (!recipeId) { setVersionsList([]); return }
+    client.get(`/api/recipes/${recipeId}/versions`)
       .then(res => setVersionsList(res.data))
       .catch(() => setVersionsList([]))
-  }, [selectedRecipeId])
+  }
 
-  useEffect(() => {
+  const loadVersionSnapshot = () => {
     if (!selectedRecipeId || !selectedVersionId) { setVersionSnapshot(null); return }
     client.get(`/api/recipes/${selectedRecipeId}/versions/${selectedVersionId}`)
       .then(res => setVersionSnapshot(res.data))
       .catch(() => setVersionSnapshot(null))
+  }
+
+  useEffect(() => {
+    if (!selectedRecipeId) { setVersionsList([]); setSelectedVersionId(null); setVersionSnapshot(null); return }
+    loadVersions(selectedRecipeId)
+  }, [selectedRecipeId])
+
+  useEffect(() => {
+    loadVersionSnapshot()
   }, [selectedRecipeId, selectedVersionId])
 
   const handleRestoreVersion = async () => {
@@ -179,6 +188,8 @@ export default function AdminRecipes() {
       await client.post(`/api/recipes/${selectedRecipeId}/versions/${selectedVersionId}/restore`)
       showToast('Version wiederhergestellt')
       setConfirmRestore(false)
+      loadVersions(selectedRecipeId)
+      loadVersionSnapshot()
     } catch (err) {
       showToast(err.response?.data?.detail || 'Fehler beim Wiederherstellen')
       setConfirmRestore(false)
