@@ -93,8 +93,8 @@ function RecipeCard({ recipe, primaryImage }) {
     >
       <div className="recipe-card" style={{ height: '100%', minHeight: '280px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {topArea}
-        <FavoriteHeart recipeId={recipe.id} size={20} style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 3 }} />
-        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem' }}>
+        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem', position: 'relative' }}>
+          <FavoriteHeart recipeId={recipe.id} size={20} outline={false} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }} />
           <div style={{ flex: 1 }}>
             {recipe.description ? (
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
