@@ -115,7 +115,7 @@ function NavSearchInput({ value, onChange }) {
   )
 }
 
-function ScopeCheckboxes({ scopeDesc, scopeIng, onToggleDesc, onToggleIng }) {
+function ScopeCheckboxes({ scopeDesc, scopeIng, scopeAuthor, onToggleDesc, onToggleIng, onToggleAuthor }) {
   return (
     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
@@ -125,6 +125,10 @@ function ScopeCheckboxes({ scopeDesc, scopeIng, onToggleDesc, onToggleIng }) {
       <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
         <input type="checkbox" checked={scopeIng} onChange={e => onToggleIng(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
         Zutaten einbeziehen
+      </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
+        <input type="checkbox" checked={scopeAuthor} onChange={e => onToggleAuthor(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+        Nur nach Autor
       </label>
     </div>
   )
@@ -151,6 +155,7 @@ export default function Navbar() {
   const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
   const scopeDesc = searchParams.get('scopeDesc') === '1'
   const scopeIng = searchParams.get('scopeIng') === '1'
+  const scopeAuthor = searchParams.get('scopeAuthor') === '1'
   const hasSearch = Boolean(inputValue)
 
   // Keep a ref to location.pathname so debounce closure is never stale
@@ -178,8 +183,18 @@ export default function Navbar() {
   const toggleScope = (key, val) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev)
-      if (val) next.set(key, '1')
-      else next.delete(key)
+      if (val) {
+        next.set(key, '1')
+        // "Nur nach Autor" is mutually exclusive with the other scope checkboxes
+        if (key === 'scopeAuthor') {
+          next.delete('scopeDesc')
+          next.delete('scopeIng')
+        } else {
+          next.delete('scopeAuthor')
+        }
+      } else {
+        next.delete(key)
+      }
       next.delete('page')
       return next
     }, { replace: true })
@@ -308,8 +323,10 @@ export default function Navbar() {
             <ScopeCheckboxes
               scopeDesc={scopeDesc}
               scopeIng={scopeIng}
+              scopeAuthor={scopeAuthor}
               onToggleDesc={v => toggleScope('scopeDesc', v)}
               onToggleIng={v => toggleScope('scopeIng', v)}
+              onToggleAuthor={v => toggleScope('scopeAuthor', v)}
             />
           </div>
         )}
@@ -338,8 +355,10 @@ export default function Navbar() {
               <ScopeCheckboxes
                 scopeDesc={scopeDesc}
                 scopeIng={scopeIng}
+                scopeAuthor={scopeAuthor}
                 onToggleDesc={v => toggleScope('scopeDesc', v)}
                 onToggleIng={v => toggleScope('scopeIng', v)}
+                onToggleAuthor={v => toggleScope('scopeAuthor', v)}
               />
             )}
           </div>

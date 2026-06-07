@@ -272,9 +272,13 @@ export default function Recipes() {
   const search = searchParams.get('q') || ''
   const scopeDesc = searchParams.get('scopeDesc') === '1'
   const scopeIng = searchParams.get('scopeIng') === '1'
+  const scopeAuthor = searchParams.get('scopeAuthor') === '1'
   const page = parseInt(searchParams.get('page') || '1', 10)
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
   const authorFilter = searchParams.get('author') || ''
+
+  // Explicit author-link filter wins; otherwise "Nur nach Autor" turns the search box into a username search
+  const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
 
   const [recipes, setRecipes]         = useState([])
   const [primaryImages, setPrimaryImages] = useState({})
@@ -315,12 +319,12 @@ export default function Recipes() {
 
     if (showFavorites) {
       let list = favorites
-      if (search) {
+      if (effectiveAuthor) {
+        const term = effectiveAuthor.toLowerCase()
+        list = list.filter(r => r.author?.username?.toLowerCase().includes(term))
+      } else if (search) {
         const term = search.toLowerCase()
         list = list.filter(r => r.title.toLowerCase().includes(term))
-      }
-      if (authorFilter) {
-        list = list.filter(r => r.author?.username === authorFilter)
       }
       const start = (page - 1) * PAGE_SIZE
       const items = list.slice(start, start + PAGE_SIZE)
@@ -332,8 +336,11 @@ export default function Recipes() {
 
     const searchScope = scopeIng ? 'title,description,ingredients' : scopeDesc ? 'title,description' : 'title'
     const params = { page, page_size: PAGE_SIZE, search_scope: searchScope }
-    if (search) { params.search = search }
-    if (authorFilter) { params.author = authorFilter }
+    if (effectiveAuthor) {
+      params.author = effectiveAuthor
+    } else if (search) {
+      params.search = search
+    }
     client.get('/api/recipes', { params })
       .then(res => {
         const items = res.data.items
@@ -357,7 +364,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, showFavorites, authorFilter, favorites])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, effectiveAuthor, favorites])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
