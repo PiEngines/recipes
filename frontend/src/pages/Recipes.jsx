@@ -272,7 +272,6 @@ export default function Recipes() {
   const search = searchParams.get('q') || ''
   const scopeDesc = searchParams.get('scopeDesc') === '1'
   const scopeIng = searchParams.get('scopeIng') === '1'
-  const scopeSteps = searchParams.get('scopeSteps') === '1'
   const scopeAuthor = searchParams.get('scopeAuthor') === '1'
   const page = parseInt(searchParams.get('page') || '1', 10)
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
@@ -336,9 +335,8 @@ export default function Recipes() {
     }
 
     const scopeParts = ['title']
-    if (scopeDesc || scopeIng || scopeSteps) scopeParts.push('description')
+    if (scopeDesc) scopeParts.push('description', 'steps')
     if (scopeIng) scopeParts.push('ingredients')
-    if (scopeSteps) scopeParts.push('steps')
     const searchScope = scopeParts.join(',')
     const params = { page, page_size: PAGE_SIZE, search_scope: searchScope }
     if (effectiveAuthor) {
@@ -369,7 +367,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeSteps, scopeAuthor, showFavorites, authorFilter, effectiveAuthor])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, effectiveAuthor])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
