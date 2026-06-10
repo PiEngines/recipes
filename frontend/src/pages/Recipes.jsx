@@ -34,7 +34,7 @@ function DifficultySpoons({ difficulty }) {
 
 // ── Recipe card ───────────────────────────────────────────────────────────────
 
-function RecipeCard({ recipe, primaryImage }) {
+function RecipeCard({ recipe, primaryImage, dimmed }) {
   const { user } = useAuth()
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
   const isDraft = recipe.status === 'draft'
@@ -88,8 +88,8 @@ function RecipeCard({ recipe, primaryImage }) {
   return (
     <Link
       to={`/recipes/${recipe.id}`}
-      style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: isPendingReview ? 0.65 : 1, pointerEvents: blockClick ? 'none' : 'auto' }}
-      tabIndex={blockClick ? -1 : 0}
+      style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: dimmed ? 0.4 : isPendingReview ? 0.65 : 1, pointerEvents: dimmed ? 'none' : blockClick ? 'none' : 'auto' }}
+      tabIndex={dimmed || blockClick ? -1 : 0}
     >
       <div className="recipe-card" style={{ height: '100%', minHeight: '280px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {topArea}
@@ -267,7 +267,7 @@ function PageBtn({ onClick, disabled, children }) {
 export default function Recipes() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
-  const { favorites } = useFavorites()
+  const { favorites, favoriteIds } = useFavorites()
 
   const search = searchParams.get('q') || ''
   const scopeDesc = searchParams.get('scopeDesc') === '1'
@@ -364,7 +364,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, effectiveAuthor, favorites])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, effectiveAuthor])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -423,7 +423,7 @@ export default function Recipes() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             {recipes.map(r => r.deleted_at
               ? <DeletedFavoriteCard key={r.id} recipe={r} />
-              : <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} />
+              : <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={showFavorites && !favoriteIds.has(r.id)} />
             )}
           </div>
         )}
