@@ -96,7 +96,7 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
             onChange={e => setForceAspect(e.target.checked)}
             style={{ accentColor: '#C8602A' }}
           />
-          16:9 erzwingen
+          Kachelformat
         </label>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button onClick={onCancel} style={BTN_SECONDARY}>Abbrechen</button>

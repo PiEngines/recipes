@@ -51,12 +51,10 @@ def crop_blur_pad(img: Image.Image, box: tuple[float, float, float, float], targ
     target_ratio = target_w / target_h
 
     # Scale the crop down to fit within the canvas, preserving its aspect ratio
-    crop_ratio = crop.width / crop.height
-    if crop_ratio > target_ratio:
-        fit_w, fit_h = target_w, round(target_w / crop_ratio)
-    else:
-        fit_h, fit_w = target_h, round(target_h * crop_ratio)
-    crop_resized = crop.resize((max(1, fit_w), max(1, fit_h)), Image.LANCZOS)
+    scale = min(target_w / crop.width, target_h / crop.height)
+    fit_w = min(target_w, max(1, round(crop.width * scale)))
+    fit_h = min(target_h, max(1, round(crop.height * scale)))
+    crop_resized = crop.resize((fit_w, fit_h), Image.LANCZOS)
 
     # Cover-fill the canvas with the original image, then blur it for the background
     bg_ratio = img.width / img.height
