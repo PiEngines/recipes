@@ -174,7 +174,10 @@ def list_recipes(
         q = q.filter(Recipe.created_by == author_id)
 
     if author:
-        q = q.join(User, Recipe.created_by == User.id).filter(User.username.ilike(f"%{author}%"))
+        term = f"%{author}%"
+        q = q.join(User, Recipe.created_by == User.id).filter(
+            User.username.ilike(term) | User.email.ilike(term)
+        )
 
     total = q.count()
     items = (
