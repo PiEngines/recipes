@@ -64,6 +64,29 @@ function ConfirmDialog({ message, onConfirm, onCancel, confirmLabel = 'Fortfahre
   )
 }
 
+function ReviewNavDialog({ onSaveAndGo, onDiscardAndGo, onCancel }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        <p style={{ margin: '0 0 1.5rem', color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          Du hast ungespeicherte Änderungen. Wie möchtest du fortfahren?
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+          <button onClick={onSaveAndGo} style={{ padding: '0.625rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+            Speichern &amp; weiter
+          </button>
+          <button onClick={onDiscardAndGo} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
+            Ohne Speichern weiter
+          </button>
+          <button onClick={onCancel} style={{ padding: '0.625rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
+            Abbrechen
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
 function FieldLabel({ children, required }) {
@@ -498,6 +521,7 @@ export default function RecipeForm() {
   const [loadingRecipe, setLoadingRecipe] = useState(isEdit)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [showReviewDialog, setShowReviewDialog] = useState(false)
   const pendingNavRef = useRef(null)
 
   // Snapshot for discard
@@ -793,6 +817,24 @@ export default function RecipeForm() {
 
   const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('draft') }
   const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('published') }
+
+  const handleReviewClick = () => {
+    if (!recipeId) return
+    if (isDirty) setShowReviewDialog(true)
+    else navigate(`/recipes/${recipeId}/review`)
+  }
+
+  const handleReviewSaveAndGo = async () => {
+    setShowReviewDialog(false)
+    if (savingRef.current || !title.trim()) return
+    const data = await doSave(undefined)
+    if (data) navigate(`/recipes/${data.id}/review`)
+  }
+
+  const handleReviewDiscardAndGo = () => {
+    setShowReviewDialog(false)
+    navigate(`/recipes/${recipeId}/review`)
+  }
   const handleDiscard = () => setShowDiscardConfirm(true)
   const handleDiscardConfirm = () => {
     setShowDiscardConfirm(false)
@@ -863,6 +905,15 @@ export default function RecipeForm() {
           onCancel={() => setShowDiscardConfirm(false)}
           confirmLabel="Verwerfen"
           confirmDanger
+        />
+      )}
+
+      {/* Review-Navigation: ungespeicherte Änderungen */}
+      {showReviewDialog && (
+        <ReviewNavDialog
+          onSaveAndGo={handleReviewSaveAndGo}
+          onDiscardAndGo={handleReviewDiscardAndGo}
+          onCancel={() => setShowReviewDialog(false)}
         />
       )}
 
@@ -990,6 +1041,17 @@ export default function RecipeForm() {
         {isEdit && (
           <button onClick={handleDiscard} style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 }}>
             Verwerfen
+          </button>
+        )}
+
+        {isKochOrAbove(user) && (
+          <button
+            onClick={handleReviewClick}
+            disabled={!recipeId}
+            title={!recipeId ? 'Erst speichern, um Zutaten zu überprüfen' : undefined}
+            style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: !recipeId ? 'var(--subtext)' : 'var(--accent)', cursor: !recipeId ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, opacity: !recipeId ? 0.5 : 1 }}
+          >
+            🥕 Zutaten überprüfen
           </button>
         )}
 
