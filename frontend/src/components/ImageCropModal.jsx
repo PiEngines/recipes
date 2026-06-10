@@ -38,6 +38,7 @@ function centerAspectCrop(mediaWidth, mediaHeight) {
 export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
   const [crop, setCrop] = useState()
   const [completedCrop, setCompletedCrop] = useState(null)
+  const [forceAspect, setForceAspect] = useState(true)
   const imgRef = useRef(null)
 
   const onImageLoad = e => {
@@ -55,6 +56,7 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
       y: Math.round(completedCrop.y * scaleY),
       width: Math.round(completedCrop.width * scaleX),
       height: Math.round(completedCrop.height * scaleY),
+      thumbnail_style: forceAspect ? 'crop' : 'blur',
     })
   }
 
@@ -72,7 +74,7 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
           crop={crop}
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           onComplete={c => setCompletedCrop(c)}
-          aspect={ASPECT}
+          aspect={forceAspect ? ASPECT : undefined}
           minWidth={40}
           keepSelection
         >
@@ -86,11 +88,22 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
         </ReactCrop>
       </div>
 
-      <div style={{ padding: '1rem 1.25rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-        <button onClick={onCancel} style={BTN_SECONDARY}>Abbrechen</button>
-        <button onClick={handleConfirm} disabled={!completedCrop?.width} style={{ ...BTN_PRIMARY, opacity: completedCrop?.width ? 1 : 0.5 }}>
-          Übernehmen
-        </button>
+      <div style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: '#fff', fontFamily: 'Inter, sans-serif', cursor: 'pointer', userSelect: 'none' }}>
+          <input
+            type="checkbox"
+            checked={forceAspect}
+            onChange={e => setForceAspect(e.target.checked)}
+            style={{ accentColor: '#C8602A' }}
+          />
+          16:9 erzwingen
+        </label>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={onCancel} style={BTN_SECONDARY}>Abbrechen</button>
+          <button onClick={handleConfirm} disabled={!completedCrop?.width} style={{ ...BTN_PRIMARY, opacity: completedCrop?.width ? 1 : 0.5 }}>
+            Übernehmen
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -11,7 +11,7 @@ from app.auth.dependencies import get_current_user, get_optional_user
 from app.config import settings
 from app.database import SessionLocal, get_db
 from app.media.schemas import MediaOut, MediaStatusOut
-from app.media_processing import THUMB_SIZE_WIDE, crop_resize, process_image, process_video
+from app.media_processing import THUMB_SIZE_WIDE, crop_blur_pad, crop_resize, process_image, process_video
 from app.models import User, UserRole
 from app.models.media import Media
 from app.models.recipe import Recipe, RecipeStep
@@ -241,6 +241,7 @@ class _CropBox(_Base):
     y: float
     width: float
     height: float
+    thumbnail_style: str = "crop"
 
 
 @router.post("/{media_id}/crop-thumbnail", response_model=MediaOut)
@@ -259,11 +260,18 @@ def crop_thumbnail(
     if media.entity_type != "recipe" or media.media_type != "image":
         raise HTTPException(status_code=400, detail="Bildausschnitt nur für Rezept-Titelbilder möglich")
 
+    if body.thumbnail_style not in ("crop", "blur"):
+        raise HTTPException(status_code=422, detail="Ungültiger thumbnail_style")
+
     full_path = os.path.join(settings.media_root, media.storage_path)
     try:
         with open(full_path, "rb") as f:
             img = Image.open(io.BytesIO(f.read())).convert("RGB")
-        thumb = crop_resize(img, (body.x, body.y, body.width, body.height), *THUMB_SIZE_WIDE)
+        box = (body.x, body.y, body.width, body.height)
+        if body.thumbnail_style == "blur":
+            thumb = crop_blur_pad(img, box, *THUMB_SIZE_WIDE)
+        else:
+            thumb = crop_resize(img, box, *THUMB_SIZE_WIDE)
         buf = io.BytesIO()
         thumb.save(buf, format="WEBP", quality=80)
         thumbnail_bytes = buf.getvalue()
@@ -279,6 +287,12 @@ def crop_thumbnail(
     media.thumbnail_path = new_thumb_path
     db.commit()
     db.refresh(media)
+
+    recipe = db.query(Recipe).filter(Recipe.id == media.entity_id).first()
+    if recipe:
+        recipe.thumbnail_style = body.thumbnail_style
+        db.commit()
+
     return media
 
 

@@ -13,7 +13,7 @@ try:
 except ImportError:
     pass
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 MAX_LONG_SIDE = 2400
 THUMB_SIZE = 400
@@ -36,6 +36,44 @@ def crop_resize(img: Image.Image, box: tuple[float, float, float, float], target
     bottom = max(top + 1, min(y + h, img.height))
     img = img.crop((round(left), round(top), round(right), round(bottom)))
     return img.resize((target_w, target_h), Image.LANCZOS)
+
+
+def crop_blur_pad(img: Image.Image, box: tuple[float, float, float, float], target_w: int, target_h: int) -> Image.Image:
+    """Crop the selected region, place it centered on a target_w x target_h canvas,
+    and fill the surrounding area with a heavily blurred, cover-fitted copy of the original image."""
+    x, y, w, h = box
+    left = max(0, min(x, img.width))
+    top = max(0, min(y, img.height))
+    right = max(left + 1, min(x + w, img.width))
+    bottom = max(top + 1, min(y + h, img.height))
+    crop = img.crop((round(left), round(top), round(right), round(bottom)))
+
+    target_ratio = target_w / target_h
+
+    # Scale the crop down to fit within the canvas, preserving its aspect ratio
+    crop_ratio = crop.width / crop.height
+    if crop_ratio > target_ratio:
+        fit_w, fit_h = target_w, round(target_w / crop_ratio)
+    else:
+        fit_h, fit_w = target_h, round(target_h * crop_ratio)
+    crop_resized = crop.resize((max(1, fit_w), max(1, fit_h)), Image.LANCZOS)
+
+    # Cover-fill the canvas with the original image, then blur it for the background
+    bg_ratio = img.width / img.height
+    if bg_ratio > target_ratio:
+        bg_h, bg_w = target_h, round(target_h * bg_ratio)
+    else:
+        bg_w, bg_h = target_w, round(target_w / bg_ratio)
+    bg = img.resize((bg_w, bg_h), Image.LANCZOS)
+    bg_left = (bg_w - target_w) // 2
+    bg_top = (bg_h - target_h) // 2
+    bg = bg.crop((bg_left, bg_top, bg_left + target_w, bg_top + target_h))
+    bg = bg.filter(ImageFilter.GaussianBlur(radius=20))
+
+    paste_x = (target_w - crop_resized.width) // 2
+    paste_y = (target_h - crop_resized.height) // 2
+    bg.paste(crop_resized, (paste_x, paste_y))
+    return bg
 
 
 def process_image(file_bytes: bytes, original_filename: str) -> tuple[bytes, bytes, int, int]:

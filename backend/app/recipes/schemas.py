@@ -166,6 +166,7 @@ class RecipeListItem(BaseModel):
     difficulty: int | None
     status: str
     review_status: str | None = None
+    thumbnail_style: str = "crop"
     created_by: int | None = None
     created_at: datetime
     updated_at: datetime | None = None
@@ -189,6 +190,7 @@ class RecipeResponse(BaseModel):
     status: str
     source: str | None
     review_status: str | None = None
+    thumbnail_style: str = "crop"
     created_by: int | None = None
     created_at: datetime
     updated_at: datetime

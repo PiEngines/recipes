@@ -38,6 +38,7 @@ class Recipe(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     pending_version_id = Column(Integer, ForeignKey("recipe_versions.id"), nullable=True)
     review_status = Column(String(20), nullable=False, default="none")
+    thumbnail_style = Column(String(20), nullable=False, default="crop")  # "crop" | "blur"
     matching_reviewed_at = Column(DateTime(timezone=True), nullable=True)  # NULL = ingredient matching never reviewed
 
     author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
