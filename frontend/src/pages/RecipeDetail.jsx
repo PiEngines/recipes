@@ -137,7 +137,7 @@ function HeroSection({ recipe, media, onImageClick }) {
           cursor: primary ? 'zoom-in' : 'default',
         }}
       >
-        <FavoriteHeart recipeId={recipe.id} size={26} style={{ position: 'absolute', top: '0.875rem', left: '0.875rem', zIndex: 3 }} />
+        <FavoriteHeart recipeId={recipe.id} size={24} outline={false} style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 3 }} />
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
@@ -461,8 +461,12 @@ function StepImageRow({ images, onImageClick }) {
 
 // ── Step card ─────────────────────────────────────────────────────────────────
 
-const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages, onImageClick, selectedIngredient }, ref) {
-  const matches = selectedIngredient ? fuzzyMatch(step.instruction, selectedIngredient.name) : false
+const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, onAddTimer, hasActiveTimer, stepImages, onImageClick, selectedIngredient, stepIngredientsForStep }, ref) {
+  const matches = selectedIngredient
+    ? (stepIngredientsForStep
+        ? stepIngredientsForStep.some(i => i.id === selectedIngredient.id)
+        : fuzzyMatch(step.instruction, selectedIngredient.name))
+    : false
   const dimmed = selectedIngredient && !matches
 
   const borderColor = selectedIngredient
@@ -667,6 +671,12 @@ export default function RecipeDetail() {
     return () => window.removeEventListener('scroll-to-step', handler)
   }, [])
 
+  // Click on an ingredient: clear the active step, mark all steps containing it
+  const handleSelectIngredient = (ing) => {
+    setSelectedIngredient(ing)
+    setActiveStepIdx(null)
+  }
+
   const canEdit = recipe
     ? (isAdmin || (isKochOrAbove(user) && recipe.created_by === user?.id))
     : false
@@ -720,12 +730,12 @@ export default function RecipeDetail() {
       <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
 
       {/* Nav bar */}
-      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <Breadcrumb items={[
           { label: 'Alle Rezepte', path: '/' },
           { label: recipe?.title || '…', path: null },
         ]} />
-        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {canEdit && recipe && (
             <button
               onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
@@ -815,7 +825,7 @@ export default function RecipeDetail() {
             view={ingredientView}
             onViewChange={setIngredientView}
             selectedIngredient={selectedIngredient}
-            onSelectIngredient={setSelectedIngredient}
+            onSelectIngredient={handleSelectIngredient}
           />
 
           {/* Main */}
@@ -881,6 +891,7 @@ export default function RecipeDetail() {
                   stepImages={(stepMedia?.[step.id] || []).filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)}
                   onImageClick={openStepLightbox}
                   selectedIngredient={selectedIngredient}
+                  stepIngredientsForStep={stepIngredients[step.id]}
                 />
               ))
             )}
@@ -928,7 +939,7 @@ export default function RecipeDetail() {
           activeIds={activeIds}
           onClose={() => setDrawerOpen(false)}
           selectedIngredient={selectedIngredient}
-          onSelectIngredient={setSelectedIngredient}
+          onSelectIngredient={handleSelectIngredient}
         />
       )}
 

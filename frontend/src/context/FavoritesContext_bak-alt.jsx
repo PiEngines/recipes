@@ -49,8 +49,7 @@ export function FavoritesProvider({ children }) {
     setFavoriteIds(prev => new Set(prev).add(recipeId))
     try {
       await client.post(`/api/favorites/${recipeId}`)
-      // Kein refresh() hier – der optimistische State-Update reicht.
-      // refresh() würde favorites neu setzen → useEffect in Recipes.jsx triggern → Flackern
+      refresh()
     } catch {
       setFavoriteIds(prev => {
         const next = new Set(prev)
@@ -58,7 +57,7 @@ export function FavoritesProvider({ children }) {
         return next
       })
     }
-  }, [])
+  }, [refresh])
 
   const toggleFavorite = useCallback((recipeId) => {
     if (favoriteIds.has(recipeId)) return removeFavorite(recipeId)

@@ -97,7 +97,7 @@ function RecipeCard({ recipe, primaryImage }) {
           <FavoriteHeart recipeId={recipe.id} size={20} outline={false} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3 }} />
           <div style={{ flex: 1 }}>
             {recipe.description ? (
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', paddingRight: '2rem' }}>
                 {recipe.description}
               </p>
             ) : (
