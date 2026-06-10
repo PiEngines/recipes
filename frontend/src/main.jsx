@@ -15,6 +15,7 @@ import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminRecipes from './pages/AdminRecipes.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
+import IngredientReview from './pages/IngredientReview.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
 import PublicProfile from './pages/PublicProfile.jsx'
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
       { path: '/', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
       { path: '/recipes/new', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
+      { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },

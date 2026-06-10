@@ -109,6 +109,19 @@ class StepIngredientResponse(BaseModel):
     auto_detected: bool
 
 
+class StepIngredientsResponse(BaseModel):
+    ingredients: list[StepIngredientResponse]
+    suspicious_tokens: list[str]
+
+
+class RematchResponse(BaseModel):
+    steps_updated: int
+
+
+class StepIngredientIdsUpdate(BaseModel):
+    ingredient_ids: list[int]
+
+
 # ── Recipe ────────────────────────────────────────────────────────────────────
 
 class RecipeCreate(BaseModel):

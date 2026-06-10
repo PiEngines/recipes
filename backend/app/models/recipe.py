@@ -38,6 +38,7 @@ class Recipe(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     pending_version_id = Column(Integer, ForeignKey("recipe_versions.id"), nullable=True)
     review_status = Column(String(20), nullable=False, default="none")
+    matching_reviewed_at = Column(DateTime(timezone=True), nullable=True)  # NULL = ingredient matching never reviewed
 
     author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
     steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
@@ -90,6 +91,7 @@ class RecipeStep(Base):
     image_path = Column(String(500))
     video_path = Column(String(500))
     ingredient_ids = Column(JSONB, nullable=True)  # manual override; None = use auto-detection
+    ingredient_ids_auto = Column(JSONB, nullable=True)  # system-suggested matches, overwritten on every rematch
 
     recipe = relationship("Recipe", back_populates="steps")
 
@@ -105,6 +107,7 @@ class Ingredient(Base):
     unit = Column(String(100))
     sort_order = Column(Integer, nullable=False, default=0)
     is_integer = Column(Boolean, nullable=False, default=False)
+    bls_id = Column(String(50), nullable=True)  # reference into the Bundeslebensmittelschlüssel, for future nutrition data
 
     recipe = relationship("Recipe", back_populates="ingredients")
 

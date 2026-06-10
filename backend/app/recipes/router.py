@@ -17,13 +17,17 @@ from app.auth.dependencies import (
 from app.database import get_db
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
+from app.recipes import matching
 from app.recipes.schemas import (
     PaginatedRecipes,
     RecipeCreate,
     RecipeListItem,
     RecipeResponse,
     RecipeUpdate,
+    RematchResponse,
+    StepIngredientIdsUpdate,
     StepIngredientResponse,
+    StepIngredientsResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -70,6 +74,7 @@ def _resolve_tags(ids: list[int], db: Session) -> list[Tag]:
     return db.query(Tag).filter(Tag.id.in_(ids)).all()
 
 
+# TODO: deprecated, replaced by matching.py
 def _word_tokens(text: str) -> set[str]:
     return set(re.findall(r"\b\w+\b", text.lower()))
 
@@ -314,7 +319,7 @@ def get_recipe(
 
 # ── Step ingredients ──────────────────────────────────────────────────────────
 
-@router.get("/{recipe_id}/steps/{step_id}/ingredients", response_model=list[StepIngredientResponse])
+@router.get("/{recipe_id}/steps/{step_id}/ingredients", response_model=StepIngredientsResponse)
 def get_step_ingredients(
     recipe_id: int,
     step_id: int,
@@ -339,39 +344,106 @@ def get_step_ingredients(
         db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
     )
 
-    if step.ingredient_ids is not None:
-        # Manual assignment: return exactly the specified ingredients
-        id_set = set(step.ingredient_ids)
-        return [
-            StepIngredientResponse(
-                id=ing.id,
-                name=ing.name,
-                amount=ing.amount,
-                unit=ing.unit,
-                component_label=ing.component_label,
-                auto_detected=False,
-            )
-            for ing in all_ingredients
-            if ing.id in id_set
-        ]
+    suspicious_tokens = matching.get_suspicious_tokens(step.instruction, all_ingredients)
 
-    # Auto-detection: all words of the ingredient name must appear in the instruction
-    instr_tokens = _word_tokens(step.instruction)
-    result = []
-    for ing in all_ingredients:
-        ing_tokens = _word_tokens(ing.name)
-        if ing_tokens and ing_tokens.issubset(instr_tokens):
-            result.append(
-                StepIngredientResponse(
-                    id=ing.id,
-                    name=ing.name,
-                    amount=ing.amount,
-                    unit=ing.unit,
-                    component_label=ing.component_label,
-                    auto_detected=True,
-                )
-            )
-    return result
+    # Priority: manual override -> system-suggested auto match -> live matching
+    if step.ingredient_ids is not None:
+        id_set = set(step.ingredient_ids)
+        auto_detected = False
+    elif step.ingredient_ids_auto is not None:
+        id_set = set(step.ingredient_ids_auto)
+        auto_detected = True
+    else:
+        id_set = set(matching.match_ingredients(step.instruction, all_ingredients))
+        auto_detected = True
+
+    ingredients = [
+        StepIngredientResponse(
+            id=ing.id,
+            name=ing.name,
+            amount=ing.amount,
+            unit=ing.unit,
+            component_label=ing.component_label,
+            auto_detected=auto_detected,
+        )
+        for ing in all_ingredients
+        if ing.id in id_set
+    ]
+
+    return StepIngredientsResponse(ingredients=ingredients, suspicious_tokens=suspicious_tokens)
+
+
+# ── Rematch ───────────────────────────────────────────────────────────────────
+
+@router.post("/{recipe_id}/rematch", response_model=RematchResponse)
+def rematch_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    all_ingredients = db.query(Ingredient).filter(Ingredient.recipe_id == recipe_id).all()
+    steps = db.query(RecipeStep).filter(RecipeStep.recipe_id == recipe_id).all()
+
+    for step in steps:
+        step.ingredient_ids_auto = matching.match_ingredients(step.instruction, all_ingredients)
+
+    recipe.matching_reviewed_at = None
+    db.commit()
+
+    return RematchResponse(steps_updated=len(steps))
+
+
+# ── Ingredient matching review flow ────────────────────────────────────────────
+
+def _require_author_or_chef(recipe: Recipe, current_user: User) -> None:
+    is_author = recipe.author_id == current_user.id or recipe.created_by == current_user.id
+    if current_user.role not in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin) and not is_author:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+
+
+@router.patch("/{recipe_id}/steps/{step_id}/ingredients")
+def update_step_ingredients(
+    recipe_id: int,
+    step_id: int,
+    body: StepIngredientIdsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    step = (
+        db.query(RecipeStep)
+        .filter(RecipeStep.id == step_id, RecipeStep.recipe_id == recipe_id)
+        .first()
+    )
+    if not step:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Step not found")
+
+    valid_ids = {
+        ing_id for (ing_id,) in db.query(Ingredient.id).filter(Ingredient.recipe_id == recipe_id)
+    }
+    step.ingredient_ids = [i for i in body.ingredient_ids if i in valid_ids]
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/{recipe_id}/matching-review")
+def complete_matching_review(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    recipe.matching_reviewed_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"ok": True}
 
 
 # ── Create ────────────────────────────────────────────────────────────────────

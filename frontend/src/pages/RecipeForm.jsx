@@ -773,8 +773,26 @@ export default function RecipeForm() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [buildPayload, canAutosave])
 
-  const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await doSave('draft') }
-  const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await doSave('published') }
+  // After saving, route to the ingredient-matching review flow when needed:
+  // new recipes always go through it once; edits only if the ingredient list changed.
+  const handleSaveAndMaybeReview = useCallback(async (targetStatus) => {
+    const wasNew = !stateRef.current.recipeId
+    const prevNames = new Set(
+      stateRef.current.ingredients.filter(i => i.name.trim()).map(i => i.name.trim().toLowerCase())
+    )
+    const data = await doSave(targetStatus)
+    if (!data) return
+    if (wasNew) {
+      navigate(`/recipes/${data.id}/review`)
+      return
+    }
+    const newNames = new Set((data.ingredients || []).map(i => i.name.trim().toLowerCase()))
+    const changed = newNames.size !== prevNames.size || [...newNames].some(n => !prevNames.has(n))
+    if (changed) navigate(`/recipes/${data.id}/review`)
+  }, [doSave, navigate])
+
+  const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('draft') }
+  const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('published') }
   const handleDiscard = () => setShowDiscardConfirm(true)
   const handleDiscardConfirm = () => {
     setShowDiscardConfirm(false)

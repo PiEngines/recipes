@@ -13,3 +13,5 @@ pillow-heif==0.21.0
 resend==2.9.0
 apscheduler==3.10.4
 httpx==0.28.1
+openpyxl==3.1.5
+rapidfuzz==3.10.1

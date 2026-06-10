@@ -640,7 +640,7 @@ export default function RecipeDetail() {
     const step = recipe.steps[activeStepIdx]
     if (!step || stepIngredients[step.id] !== undefined) return
     client.get(`/api/recipes/${id}/steps/${step.id}/ingredients`)
-      .then(res => setStepIngredients(p => ({ ...p, [step.id]: res.data })))
+      .then(res => setStepIngredients(p => ({ ...p, [step.id]: res.data.ingredients })))
       .catch(() => setStepIngredients(p => ({ ...p, [step.id]: [] })))
   }, [activeStepIdx, recipe])
 
@@ -748,6 +748,30 @@ export default function RecipeDetail() {
               onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
             >
               ✏ Bearbeiten
+            </button>
+          )}
+          {canEdit && recipe && (
+            <button
+              onClick={() => navigate(`/recipes/${recipe.id}/review`)}
+              style={{
+                padding: '0.4rem 1rem',
+                border: '1.5px solid var(--accent)',
+                borderRadius: 'var(--radius-pill)',
+                background: 'none',
+                color: 'var(--accent)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                transition: 'var(--transition)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+            >
+              🥕 Zutaten überprüfen
             </button>
           )}
           {canDelete && recipe && (

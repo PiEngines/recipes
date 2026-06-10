@@ -11,7 +11,8 @@
       "Bash(Out-Null)",
       "Bash(New-Item -ItemType Directory -Force D:\\\\engines\\\\recipes\\\\backend\\\\app\\\\tags)",
       "Bash(Write-Host \"Created directories\")",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "WebFetch(domain:blsdb.de)"
     ]
   }
 }
