@@ -164,16 +164,14 @@ def list_recipes(
 
     if search:
         term = f"%{search}%"
+        conditions = [Recipe.title.ilike(term)]
+        if "description" in search_scope:
+            conditions.append(Recipe.description.ilike(term))
         if "ingredients" in search_scope:
-            q = q.filter(
-                Recipe.title.ilike(term)
-                | Recipe.description.ilike(term)
-                | Recipe.ingredients.any(Ingredient.name.ilike(term))
-            )
-        elif "description" in search_scope:
-            q = q.filter(Recipe.title.ilike(term) | Recipe.description.ilike(term))
-        else:
-            q = q.filter(Recipe.title.ilike(term))
+            conditions.append(Recipe.ingredients.any(Ingredient.name.ilike(term)))
+        if "steps" in search_scope:
+            conditions.append(Recipe.steps.any(RecipeStep.instruction.ilike(term)))
+        q = q.filter(or_(*conditions))
 
     if author_id is not None:
         q = q.filter(Recipe.created_by == author_id)
