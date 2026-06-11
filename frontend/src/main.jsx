@@ -26,6 +26,7 @@ import RecipeForm from './pages/RecipeForm.jsx'
 import Recipes from './pages/Recipes.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 
 const NO_NAVBAR_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email']
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
       { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
+      { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },
       { path: '/admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },

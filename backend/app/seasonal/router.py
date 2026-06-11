@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/api/seasonal", tags=["seasonal"])
 
@@ -25,8 +25,26 @@ MONTH_NAMES = {
 
 
 def _load_data() -> dict:
+    if not DATA_PATH.exists():
+        raise HTTPException(status_code=404, detail="Saisondaten nicht gefunden")
     with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _full_category(items: list[dict]) -> list[dict]:
+    result = []
+    for item in items:
+        entry = {
+            "id": item["id"],
+            "name": item["name"],
+            "months": item.get("months", {}),
+        }
+        if "plant" in item:
+            entry["plant"] = item["plant"]
+        if "harvest" in item:
+            entry["harvest"] = item["harvest"]
+        result.append(entry)
+    return result
 
 
 def _filter_category(items: list[dict], month: int) -> list[dict]:
@@ -45,6 +63,17 @@ def _filter_category(items: list[dict], month: int) -> list[dict]:
             entry["plant"] = item["plant"]
         result.append(entry)
     return result
+
+
+@router.get("/all")
+def get_all_seasonal():
+    data = _load_data()
+    return {
+        "vegetables": _full_category(data.get("vegetables", [])),
+        "fruits": _full_category(data.get("fruits", [])),
+        "salads": _full_category(data.get("salads", [])),
+        "herbs": _full_category(data.get("herbs", [])),
+    }
 
 
 @router.get("/current")
