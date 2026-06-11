@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
+import StepSuggestionDialog from '../components/StepSuggestionDialog'
 
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -28,6 +29,14 @@ export default function IngredientReview() {
   const [loadingStep, setLoadingStep] = useState(true)
   const [saving, setSaving] = useState(false)
 
+  // Unmatched-step-token suggestions, keyed by step id
+  const [suggestionsMap, setSuggestionsMap] = useState({})
+  const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
+  const [dialogSuggestion, setDialogSuggestion] = useState(null)
+  const [suggestionSaving, setSuggestionSaving] = useState(false)
+  const [feedback, setFeedback] = useState(null)
+  const autoOpenedSteps = useRef(new Set())
+
   useEffect(() => {
     client.get(`/api/recipes/${id}`)
       .then(({ data }) => setRecipe(data))
@@ -35,10 +44,23 @@ export default function IngredientReview() {
   }, [id, navigate])
 
   useEffect(() => {
+    client.get(`/api/recipes/${id}/step-suggestions`)
+      .then(({ data }) => {
+        const map = {}
+        for (const group of data) map[group.step_id] = group.suggestions
+        setSuggestionsMap(map)
+      })
+      .catch(() => {})
+      .finally(() => setSuggestionsLoaded(true))
+  }, [id])
+
+  useEffect(() => {
     if (!recipe) return
     const step = recipe.steps[stepIdx]
     if (!step) return
     setLoadingStep(true)
+    setDialogSuggestion(null)
+    setFeedback(null)
     client.get(`/api/recipes/${id}/steps/${step.id}/ingredients`)
       .then(({ data }) => {
         setStepData(data)
@@ -47,6 +69,26 @@ export default function IngredientReview() {
       .catch(() => setStepData({ ingredients: [], suspicious_tokens: [] }))
       .finally(() => setLoadingStep(false))
   }, [recipe, stepIdx, id])
+
+  // Auto-open the dialog once per step for "eindeutig" suggestions
+  useEffect(() => {
+    if (!recipe || !suggestionsLoaded) return
+    if (autoOpenedSteps.current.has(stepIdx)) return
+    autoOpenedSteps.current.add(stepIdx)
+    const step = recipe.steps[stepIdx]
+    if (!step) return
+    const eindeutig = (suggestionsMap[step.id] || []).find(
+      s => s.confidence === 'eindeutig' && s.status === 'open'
+    )
+    if (eindeutig) setDialogSuggestion(eindeutig)
+  }, [recipe, stepIdx, suggestionsLoaded, suggestionsMap])
+
+  // Inline feedback auto-dismiss
+  useEffect(() => {
+    if (!feedback) return
+    const t = setTimeout(() => setFeedback(null), 2500)
+    return () => clearTimeout(t)
+  }, [feedback])
 
   if (!recipe || loadingStep || !stepData) return <LoadingScreen />
 
@@ -63,24 +105,116 @@ export default function IngredientReview() {
     })
   }
 
+  const stepSuggestions = suggestionsMap[step.id] || []
+  const openVerdachtSuggestions = stepSuggestions.filter(s => s.status === 'open' && s.confidence === 'verdacht')
+
   const renderInstruction = () => {
-    const tokens = stepData.suspicious_tokens
-    if (!tokens.length) return step.instruction
-    const pattern = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`, 'gi')
+    const suspicious = stepData.suspicious_tokens
+    const tokenMap = new Map()
+    for (const t of suspicious) {
+      tokenMap.set(t.toLowerCase(), { type: 'suspicious' })
+    }
+    for (const s of openVerdachtSuggestions) {
+      tokenMap.set(s.token.toLowerCase(), { type: 'suggestion', suggestion: s })
+    }
+    if (tokenMap.size === 0) return step.instruction
+
+    const pattern = new RegExp(`(${[...tokenMap.keys()].map(escapeRegExp).join('|')})`, 'gi')
     const parts = step.instruction.split(pattern)
-    return parts.map((part, i) =>
-      tokens.some(t => t.toLowerCase() === part.toLowerCase())
-        ? (
+    return parts.map((part, i) => {
+      const entry = tokenMap.get(part.toLowerCase())
+      if (!entry) return <span key={i}>{part}</span>
+      if (entry.type === 'suggestion') {
+        return (
           <span
             key={i}
-            title="Zutat nicht in Liste"
-            style={{ textDecoration: 'underline wavy #C8602A', textDecorationThickness: '2px', cursor: 'help' }}
+            onClick={() => setDialogSuggestion(entry.suggestion)}
+            title="Mögliche Zutat gefunden"
+            style={{ textDecoration: 'underline dashed #C8602A', textDecorationThickness: '2px', cursor: 'pointer' }}
           >
             {part}
           </span>
         )
-        : <span key={i}>{part}</span>
-    )
+      }
+      return (
+        <span
+          key={i}
+          title="Zutat nicht in Liste"
+          style={{ textDecoration: 'underline wavy #C8602A', textDecorationThickness: '2px', cursor: 'help' }}
+        >
+          {part}
+        </span>
+      )
+    })
+  }
+
+  // A suggestion's token may appear in multiple steps; collect all step ids
+  // that currently have an open suggestion for the same token.
+  const findStepIdsForToken = (token) => {
+    const lower = token.toLowerCase()
+    const ids = []
+    for (const [stepId, sugs] of Object.entries(suggestionsMap)) {
+      if (sugs.some(s => s.token.toLowerCase() === lower && s.status === 'open')) {
+        ids.push(Number(stepId))
+      }
+    }
+    return ids.length ? ids : [step.id]
+  }
+
+  const removeSuggestionsByToken = (token) => {
+    const lower = token.toLowerCase()
+    setSuggestionsMap(prev => {
+      const next = {}
+      for (const [stepId, sugs] of Object.entries(prev)) {
+        next[stepId] = sugs.filter(s => s.token.toLowerCase() !== lower)
+      }
+      return next
+    })
+  }
+
+  const removeSuggestionById = (suggestionId) => {
+    setSuggestionsMap(prev => {
+      const next = {}
+      for (const [stepId, sugs] of Object.entries(prev)) {
+        next[stepId] = sugs.filter(s => s.id !== suggestionId)
+      }
+      return next
+    })
+  }
+
+  const handleAcceptSuggestion = async ({ name, quantity, unit }) => {
+    if (!dialogSuggestion) return
+    setSuggestionSaving(true)
+    try {
+      await client.post(`/api/recipes/${id}/step-suggestions/${dialogSuggestion.id}/accept`, {
+        name,
+        quantity,
+        unit,
+        step_ids: findStepIdsForToken(dialogSuggestion.token),
+      })
+      removeSuggestionsByToken(dialogSuggestion.token)
+      setDialogSuggestion(null)
+      setFeedback('Zutat hinzugefügt')
+    } catch {
+      setFeedback('Hinzufügen fehlgeschlagen')
+    } finally {
+      setSuggestionSaving(false)
+    }
+  }
+
+  const handleDismissSuggestion = async () => {
+    if (!dialogSuggestion) return
+    setSuggestionSaving(true)
+    try {
+      await client.post(`/api/recipes/${id}/step-suggestions/${dialogSuggestion.id}/dismiss`)
+      removeSuggestionById(dialogSuggestion.id)
+      setDialogSuggestion(null)
+      setFeedback('Übersprungen')
+    } catch {
+      setFeedback('Fehler beim Überspringen')
+    } finally {
+      setSuggestionSaving(false)
+    }
   }
 
   const handleNext = async () => {
@@ -133,6 +267,11 @@ export default function IngredientReview() {
             <div style={{ fontWeight: 600, marginBottom: '0.4rem', fontFamily: 'Inter, sans-serif' }}>{step.title}</div>
           )}
           <div style={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{renderInstruction()}</div>
+          {feedback && (
+            <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', fontWeight: 600, color: '#C8602A', fontFamily: 'Inter, sans-serif' }}>
+              ✓ {feedback}
+            </div>
+          )}
         </div>
 
         {/* Ingredient chips */}
@@ -189,6 +328,16 @@ export default function IngredientReview() {
           {saving ? 'Speichern …' : isLast ? 'Fertig' : 'Weiter'}
         </button>
       </div>
+
+      {dialogSuggestion && (
+        <StepSuggestionDialog
+          suggestion={dialogSuggestion}
+          saving={suggestionSaving}
+          onAccept={handleAcceptSuggestion}
+          onDismiss={handleDismissSuggestion}
+          onClose={() => setDialogSuggestion(null)}
+        />
+      )}
     </div>
   )
 }

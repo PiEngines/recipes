@@ -11,7 +11,7 @@ export default function MediaLightbox({ images, startIndex = 0, onClose }) {
   const touchStartX = useRef(null)
 
   const navigate = useCallback((dir) => {
-    if (isAnimating) return
+    if (isAnimating || images.length <= 1) return
     setDirection(dir)
     setPrevIdx(idx)
     setIdx(i => dir === 'left' ? (i + 1) % images.length : (i - 1 + images.length) % images.length)
