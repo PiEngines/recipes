@@ -191,6 +191,7 @@ export default function IngredientReview() {
 
   const handleAcceptSuggestion = async ({ name, quantity, unit }) => {
     if (!dialogSuggestion) return
+    console.log('[DEBUG ACCEPT]', { dialogSuggestion, name, quantity, unit })
     setSuggestionSaving(true)
     try {
       await client.post(`/api/recipes/${id}/step-suggestions/${dialogSuggestion.id}/accept`, {
