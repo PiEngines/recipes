@@ -85,6 +85,55 @@ def _word_tokens(text: str) -> set[str]:
     return set(re.findall(r"\b\w+\b", text.lower()))
 
 
+def _apply_visibility_filter(q, current_user: User | None, db: Session):
+    from app.models.access import RecipeAccess
+
+    now = datetime.now(timezone.utc)
+
+    if current_user is None:
+        # Unauthenticated: only active free_for_all recipes
+        free_sq = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.access_type == "free_for_all",
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        return q.filter(Recipe.id.in_(free_sq))
+
+    if current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
+        # Küchenchef + Chefkoch sees everything
+        return q
+
+    # Koch / Küchenhilfe: own + free_for_all + individual access
+    free_sq = (
+        db.query(RecipeAccess.recipe_id)
+        .filter(
+            RecipeAccess.access_type == "free_for_all",
+            RecipeAccess.declined_at.is_(None),
+            or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+        )
+        .subquery()
+    )
+    individual_sq = (
+        db.query(RecipeAccess.recipe_id)
+        .filter(
+            RecipeAccess.email == current_user.email,
+            RecipeAccess.declined_at.is_(None),
+            or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+        )
+        .subquery()
+    )
+    visible = (
+        (Recipe.created_by == current_user.id)
+        | Recipe.id.in_(free_sq)
+        | Recipe.id.in_(individual_sq)
+    )
+    return q.filter(visible)
+
+
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=PaginatedRecipes)
@@ -207,6 +256,29 @@ def list_recipes(
         page=page,
         page_size=page_size,
         pages=max(1, (total + page_size - 1) // page_size),
+    )
+
+
+# ── Random (must be before /{recipe_id}) ──────────────────────────────────────
+
+@router.get("/random", response_model=list[RecipeListItem])
+def get_random_recipes(
+    count: int = Query(3, ge=1, le=10),
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+):
+    q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
+    q = _apply_visibility_filter(q, current_user, db)
+
+    return (
+        q.options(
+            subqueryload(Recipe.categories),
+            subqueryload(Recipe.tags),
+            joinedload(Recipe.author),
+        )
+        .order_by(func.random())
+        .limit(count)
+        .all()
     )
 
 

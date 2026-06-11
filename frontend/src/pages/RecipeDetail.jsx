@@ -721,7 +721,7 @@ export default function RecipeDetail() {
       {/* Nav bar */}
       <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <Breadcrumb items={[
-          { label: 'Alle Rezepte', path: '/' },
+          { label: 'Alle Rezepte', path: '/recipes' },
           { label: recipe?.title || '…', path: null },
         ]} />
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

@@ -17,6 +17,7 @@ import AdminRecipes from './pages/AdminRecipes.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
 import Favorites from './pages/Favorites.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
+import Home from './pages/Home.jsx'
 import IngredientReview from './pages/IngredientReview.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
@@ -71,7 +72,7 @@ const router = createBrowserRouter([
       { path: '/reset-password', element: <PublicOnlyRoute><ResetPassword /></PublicOnlyRoute> },
       { path: '/verify-email', element: <PublicOnlyRoute><VerifyEmail /></PublicOnlyRoute> },
       { path: '/recipes', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
-      { path: '/', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
+      { path: '/', element: <ProtectedRoute><Home /></ProtectedRoute> },
       { path: '/recipes/new', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
