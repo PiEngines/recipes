@@ -60,15 +60,18 @@ function RecipeCard({ recipe, primaryImage, dimmed }) {
     </span>
   )
 
+  const isBlurThumb = recipe.thumbnail_style === 'blur'
+
   const topArea = primaryImage ? (
-    <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: isBlurThumb ? 'var(--card)' : undefined }}>
       <div
         className="card-image-bg"
         style={{
           position: 'absolute', inset: 0,
           backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`,
-          backgroundSize: 'cover',
+          backgroundSize: isBlurThumb ? 'contain' : 'cover',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           transition: 'transform 0.3s ease',
         }}
       />

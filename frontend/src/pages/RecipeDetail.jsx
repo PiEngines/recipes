@@ -118,6 +118,7 @@ function HeroSection({ recipe, media, onImageClick }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const primary = media.find(m => m.is_primary && m.media_type === 'image')
   const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+  const isBlurThumb = recipe.thumbnail_style === 'blur'
 
   return (
     <>
@@ -130,10 +131,11 @@ function HeroSection({ recipe, media, onImageClick }) {
           marginBottom: '1.5rem',
           position: 'relative',
           height: '280px',
-          background: primary ? undefined : gradient,
+          background: primary ? (isBlurThumb ? 'var(--card)' : undefined) : gradient,
           backgroundImage: primary ? `url(${primary.thumbnail_url || primary.url})` : undefined,
-          backgroundSize: 'cover',
+          backgroundSize: isBlurThumb ? 'contain' : 'cover',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
           cursor: primary ? 'zoom-in' : 'default',
         }}
       >
