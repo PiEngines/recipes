@@ -82,6 +82,7 @@ export default function IngredientReview() {
     )
     if (eindeutig) {
       autoOpenedSteps.current.add(stepIdx)
+      console.log('[DEBUG DIALOG]', eindeutig)
       setDialogSuggestion(eindeutig)
     }
   }, [recipe, stepIdx, suggestionsLoaded, suggestionsMap])
