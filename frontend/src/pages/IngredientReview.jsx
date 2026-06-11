@@ -81,6 +81,7 @@ export default function IngredientReview() {
       s => s.confidence === 'eindeutig' && s.status === 'open'
     )
     console.log('[DEBUG FIND]', { candidates: suggestionsMap[String(step.id)], eindeutig })
+    console.log('[DEBUG STRING]', JSON.stringify(suggestionsMap[String(step.id)]?.[3]?.confidence))
     if (eindeutig) {
       autoOpenedSteps.current.add(stepIdx)
       console.log('[DEBUG DIALOG]', eindeutig)
