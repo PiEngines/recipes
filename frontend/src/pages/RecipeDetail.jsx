@@ -130,7 +130,7 @@ function HeroSection({ recipe, media, onImageClick }) {
           overflow: 'hidden',
           marginBottom: '1.5rem',
           position: 'relative',
-          height: '280px',
+          ...(isBlurThumb ? { paddingTop: '56.25%', height: 0 } : { height: '280px' }),
           background: primary ? (isBlurThumb ? 'var(--card)' : undefined) : gradient,
           backgroundImage: primary ? `url(${primary.thumbnail_url || primary.url})` : undefined,
           backgroundSize: isBlurThumb ? 'contain' : 'cover',
