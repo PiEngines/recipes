@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -22,8 +22,9 @@ function pickRandom(arr) {
 
 // ── Carousel card ─────────────────────────────────────────────────────────────
 
-function CarouselCard({ recipe, label, labelColor, onClick, trackId }) {
+function CarouselCard({ recipe, primaryImage, label, labelColor, onClick, trackId }) {
   if (!recipe) return null
+  const imageUrl = primaryImage?.thumbnail_url || primaryImage?.url
   return (
     <div
       onClick={onClick}
@@ -40,7 +41,9 @@ function CarouselCard({ recipe, label, labelColor, onClick, trackId }) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        backgroundImage: 'linear-gradient(135deg, #C8602A 0%, #E8A07A 100%)',
+        backgroundImage: imageUrl ? `url(${imageUrl})` : 'linear-gradient(135deg, #C8602A 0%, #E8A07A 100%)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
       <span
@@ -77,13 +80,14 @@ export default function Home() {
 
   const [randomRecipes, setRandomRecipes] = useState(null)
   const [primaryImages, setPrimaryImages] = useState({})
+  const [carouselImages, setCarouselImages] = useState({})
   const [discoverRecipe, setDiscoverRecipe] = useState(null)
   const [seasonalRecipe, setSeasonalRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
   const carouselRef = useRef(null)
 
-  const favoriteRecipe = pickRandom(favorites)
+  const favoriteRecipe = useMemo(() => pickRandom(favorites), [favorites])
 
   useEffect(() => {
     document.title = 'PiEngines Recipes'
@@ -127,6 +131,28 @@ export default function Home() {
       })
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    const entries = [
+      ['discover', discoverRecipe],
+      ['seasonal', seasonalRecipe],
+      ['favorite', favoriteRecipe],
+    ].filter(([, recipe]) => recipe)
+
+    if (entries.length === 0) return
+
+    Promise.all(
+      entries.map(([key, recipe]) =>
+        client.get(`/api/media/entity/recipe/${recipe.id}`)
+          .then(({ data }) => ({ key, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
+          .catch(() => ({ key, primary: null }))
+      )
+    ).then(results => {
+      const map = {}
+      results.forEach(({ key, primary }) => { map[key] = primary })
+      setCarouselImages(map)
+    })
+  }, [discoverRecipe, seasonalRecipe, favoriteRecipe])
 
   // Auto-rotate carousel every 5 seconds
   useEffect(() => {
@@ -178,6 +204,7 @@ export default function Home() {
             <>
               <CarouselCard
                 recipe={seasonalRecipe}
+                primaryImage={carouselImages.seasonal ?? null}
                 label="🌿 Saisonal"
                 labelColor="rgba(107,124,78,0.8)"
                 onClick={() => navigate('/seasonal')}
@@ -185,6 +212,7 @@ export default function Home() {
               />
               <CarouselCard
                 recipe={favoriteRecipe}
+                primaryImage={carouselImages.favorite ?? null}
                 label="❤️ Favorit"
                 labelColor="rgba(200,96,42,0.8)"
                 onClick={() => favoriteRecipe && navigate(`/recipes/${favoriteRecipe.id}`)}
@@ -192,6 +220,7 @@ export default function Home() {
               />
               <CarouselCard
                 recipe={discoverRecipe}
+                primaryImage={carouselImages.discover ?? null}
                 label="✨ Entdecken"
                 labelColor="rgba(139,105,20,0.8)"
                 onClick={() => discoverRecipe && navigate(`/recipes/${discoverRecipe.id}`)}
