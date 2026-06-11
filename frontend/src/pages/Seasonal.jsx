@@ -206,7 +206,7 @@ export default function Seasonal() {
         ) : items.length === 0 ? (
           <p style={{ color: 'var(--subtext)' }}>Keine Daten verfügbar.</p>
         ) : (
-          <div style={{ overflowX: 'auto', paddingRight: '2rem' }}>
+          <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 220px)', paddingRight: '2rem' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '760px' }}>
               <thead>
                 <tr>
