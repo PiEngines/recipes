@@ -122,6 +122,35 @@ class StepIngredientIdsUpdate(BaseModel):
     ingredient_ids: list[int]
 
 
+# ── Step suggestions (unmatched-token review) ─────────────────────────────────
+
+class StepSuggestionItem(BaseModel):
+    id: int
+    step_id: int
+    token: str
+    bls_id: str
+    bls_name: str
+    confidence: str
+    model_config = {"from_attributes": True}
+
+
+class StepSuggestionGroup(BaseModel):
+    step_id: int
+    suggestions: list[StepSuggestionItem]
+
+
+class StepSuggestionAccept(BaseModel):
+    name: str
+    quantity: str | None = None
+    unit: str | None = None
+    step_ids: list[int]
+
+    @field_validator('name')
+    @classmethod
+    def trim_name(cls, v: str) -> str:
+        return v.strip()
+
+
 # ── Recipe ────────────────────────────────────────────────────────────────────
 
 class RecipeCreate(BaseModel):

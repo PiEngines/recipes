@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload, subqueryload
@@ -15,10 +15,13 @@ from app.auth.dependencies import (
     require_koch_or_above,
 )
 from app.database import get_db
+from app.matching import step_scanner
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
 from app.models.recipe import RecipeStatus
+from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.recipes import matching
 from app.recipes.schemas import (
+    IngredientResponse,
     PaginatedRecipes,
     RecipeCreate,
     RecipeListItem,
@@ -28,6 +31,9 @@ from app.recipes.schemas import (
     StepIngredientIdsUpdate,
     StepIngredientResponse,
     StepIngredientsResponse,
+    StepSuggestionAccept,
+    StepSuggestionGroup,
+    StepSuggestionItem,
 )
 
 logger = logging.getLogger(__name__)
@@ -444,11 +450,126 @@ def complete_matching_review(
     return {"ok": True}
 
 
+# ── Step suggestions (unmatched-token review) ──────────────────────────────────
+
+@router.get("/{recipe_id}/step-suggestions", response_model=list[StepSuggestionGroup])
+def get_step_suggestions(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    rows = (
+        db.query(StepUnmatchedSuggestion)
+        .filter(
+            StepUnmatchedSuggestion.recipe_id == recipe_id,
+            StepUnmatchedSuggestion.status == "open",
+        )
+        .order_by(StepUnmatchedSuggestion.step_id, StepUnmatchedSuggestion.id)
+        .all()
+    )
+
+    grouped: dict[int, list[StepSuggestionItem]] = {}
+    for row in rows:
+        grouped.setdefault(row.step_id, []).append(StepSuggestionItem.model_validate(row))
+
+    return [
+        StepSuggestionGroup(step_id=step_id, suggestions=items)
+        for step_id, items in grouped.items()
+    ]
+
+
+@router.post("/{recipe_id}/step-suggestions/{suggestion_id}/accept", response_model=IngredientResponse)
+def accept_step_suggestion(
+    recipe_id: int,
+    suggestion_id: int,
+    body: StepSuggestionAccept,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    suggestion = (
+        db.query(StepUnmatchedSuggestion)
+        .filter(
+            StepUnmatchedSuggestion.id == suggestion_id,
+            StepUnmatchedSuggestion.recipe_id == recipe_id,
+        )
+        .first()
+    )
+    if not suggestion:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vorschlag nicht gefunden")
+
+    max_sort_order = (
+        db.query(func.max(Ingredient.sort_order))
+        .filter(Ingredient.recipe_id == recipe_id)
+        .scalar()
+    ) or 0
+
+    ingredient = Ingredient(
+        recipe_id=recipe_id,
+        name=body.name,
+        amount=body.quantity,
+        unit=body.unit,
+        sort_order=max_sort_order + 1,
+    )
+    db.add(ingredient)
+    db.flush()
+
+    steps = (
+        db.query(RecipeStep)
+        .filter(RecipeStep.recipe_id == recipe_id, RecipeStep.id.in_(body.step_ids))
+        .all()
+    )
+    for step in steps:
+        current_ids = step.ingredient_ids if step.ingredient_ids is not None else (step.ingredient_ids_auto or [])
+        if ingredient.id not in current_ids:
+            step.ingredient_ids = [*current_ids, ingredient.id]
+
+    suggestion.status = "accepted"
+    db.commit()
+
+    step_scanner.revalidate_open_suggestions(recipe_id, db)
+
+    db.refresh(ingredient)
+    return ingredient
+
+
+@router.post("/{recipe_id}/step-suggestions/{suggestion_id}/dismiss")
+def dismiss_step_suggestion(
+    recipe_id: int,
+    suggestion_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    suggestion = (
+        db.query(StepUnmatchedSuggestion)
+        .filter(
+            StepUnmatchedSuggestion.id == suggestion_id,
+            StepUnmatchedSuggestion.recipe_id == recipe_id,
+        )
+        .first()
+    )
+    if not suggestion:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vorschlag nicht gefunden")
+
+    suggestion.status = "dismissed"
+    db.commit()
+    return {"ok": True}
+
+
 # ── Create ────────────────────────────────────────────────────────────────────
 
 @router.post("", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
 def create_recipe(
     body: RecipeCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_koch_or_above),
 ):
@@ -476,6 +597,7 @@ def create_recipe(
     recipe.tags = _resolve_tags(body.tag_ids, db)
 
     db.commit()
+    background_tasks.add_task(step_scanner.trigger_step_scan, recipe.id)
     return _load_full(recipe.id, db)
 
 
@@ -485,6 +607,7 @@ def create_recipe(
 def update_recipe(
     recipe_id: int,
     body: RecipeUpdate,
+    background_tasks: BackgroundTasks,
     skip_version: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -517,9 +640,11 @@ def update_recipe(
     if body.tag_ids is not None:
         recipe.tags = _resolve_tags(body.tag_ids, db)
 
+    ingredients_changed = body.ingredients is not None
     if body.ingredients is not None:
         recipe.ingredients = [Ingredient(**ing.model_dump()) for ing in body.ingredients]
 
+    steps_changed = False
     if body.steps is not None:
         existing = {s.id: s for s in recipe.steps}
         new_steps = []
@@ -533,16 +658,24 @@ def update_recipe(
                 new_steps.append(s)
             else:
                 new_steps.append(RecipeStep(**d, recipe_id=recipe.id))
+                steps_changed = True
         new_ids = {s.id for s in new_steps if s.id}
         for old_id, old_step in existing.items():
             if old_id not in new_ids:
                 db.delete(old_step)
+                steps_changed = True
         recipe.steps = new_steps
 
     db.flush()
     if not skip_version:
         save_version(recipe, old_snapshot, current_user.id, db)
     db.commit()
+
+    if steps_changed:
+        background_tasks.add_task(step_scanner.trigger_step_scan, recipe_id)
+    if ingredients_changed:
+        step_scanner.revalidate_open_suggestions(recipe_id, db)
+
     return _load_full(recipe_id, db)
 
 

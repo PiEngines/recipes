@@ -17,11 +17,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "recipes",
-        sa.Column("thumbnail_style", sa.String(length=20), nullable=False, server_default="crop"),
-    )
+    # 0015 already adds this column; guard against double-apply so this
+    # migration is safe regardless of which revision a given DB came from.
+    bind = op.get_bind()
+    columns = [c["name"] for c in sa.inspect(bind).get_columns("recipes")]
+    if "thumbnail_style" not in columns:
+        op.add_column(
+            "recipes",
+            sa.Column("thumbnail_style", sa.String(length=20), nullable=False, server_default="crop"),
+        )
 
 
 def downgrade() -> None:
-    op.drop_column("recipes", "thumbnail_style")
+    # Column lifecycle is owned by 0015's downgrade.
+    pass

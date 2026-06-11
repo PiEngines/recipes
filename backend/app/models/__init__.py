@@ -14,6 +14,7 @@ from app.models.recipe import (
     RecipeVideo,
 )
 from app.models.media import Media
+from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
 from app.models.user_favorite import UserFavorite
@@ -47,4 +48,5 @@ __all__ = [
     "RecipeAccess",
     "DisposableEmailDomain",
     "UserFavorite",
+    "StepUnmatchedSuggestion",
 ]
