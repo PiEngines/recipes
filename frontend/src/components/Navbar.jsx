@@ -268,17 +268,6 @@ export default function Navbar() {
   const canCreate = isKochOrAbove(user)
   const initials = user?.name?.[0]?.toUpperCase() ?? '?'
 
-  const newRecipeButton = (label) => (
-    <button
-      onClick={() => navigate('/recipes/new')}
-      style={{ padding: '0.5rem 0.75rem', background: 'transparent', border: '1.5px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', flexShrink: 0, whiteSpace: 'nowrap' }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-    >
-      {label}
-    </button>
-  )
-
   // Whether to show mobile row 2 at all (needs search or new-recipe button)
   const hasRow2Content = !hideSearch || (!hideCreate && canCreate)
 
@@ -307,11 +296,6 @@ export default function Navbar() {
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
-            {canCreate && !hideCreate && (
-              <div className="hidden sm:block">
-                {newRecipeButton('+ Neues Rezept')}
-              </div>
-            )}
             <IconBtn onClick={toggle} title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>
               {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </IconBtn>

@@ -115,12 +115,11 @@ export function RecipeCard({ recipe, primaryImage, dimmed }) {
           <div>
             {(recipe.prep_time || recipe.cook_time) && (
               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
-                {recipe.prep_time && (
-                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>⏱ {recipe.prep_time} min</span>
-                )}
-                {recipe.cook_time && (
-                  <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: 'var(--secondary)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>🍳 {recipe.cook_time} min</span>
-                )}
+                <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                  ⏱ {recipe.prep_time && recipe.cook_time
+                    ? `${recipe.prep_time} + ${recipe.cook_time} Min.`
+                    : `${recipe.prep_time || recipe.cook_time} Min.`}
+                </span>
               </div>
             )}
             {recipe.difficulty && <DifficultySpoons difficulty={recipe.difficulty} />}

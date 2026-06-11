@@ -76,6 +76,7 @@ export default function Home() {
   const { favorites } = useFavorites()
 
   const [randomRecipes, setRandomRecipes] = useState(null)
+  const [primaryImages, setPrimaryImages] = useState({})
   const [discoverRecipe, setDiscoverRecipe] = useState(null)
   const [seasonalRecipe, setSeasonalRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -106,6 +107,18 @@ export default function Home() {
         setRandomRecipes(randomRes.data)
         setDiscoverRecipe(discoverRes.data[0] ?? null)
         setSeasonalRecipe(seasonalRes.data[0] ?? null)
+
+        Promise.all(
+          randomRes.data.map(r =>
+            client.get(`/api/media/entity/recipe/${r.id}`)
+              .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
+              .catch(() => ({ id: r.id, primary: null }))
+          )
+        ).then(results => {
+          const map = {}
+          results.forEach(({ id, primary }) => { map[id] = primary })
+          setPrimaryImages(map)
+        })
       })
       .catch(() => {
         setRandomRecipes([])
@@ -199,7 +212,7 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             {(randomRecipes || []).map(r => (
-              <RecipeCard key={r.id} recipe={r} primaryImage={null} />
+              <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} />
             ))}
           </div>
         )}
