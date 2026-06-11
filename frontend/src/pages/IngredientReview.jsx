@@ -73,6 +73,7 @@ export default function IngredientReview() {
   // Auto-open the dialog once per step for "eindeutig" suggestions
   useEffect(() => {
     if (!recipe || !suggestionsLoaded) return
+    console.log('[DEBUG EFFECT]', { recipe: !!recipe, suggestionsLoaded, stepIdx, stepId: recipe?.steps?.[stepIdx]?.id })
     const step = recipe.steps[stepIdx]
     if (!step) return
     if (autoOpenedSteps.current.has(stepIdx)) return
