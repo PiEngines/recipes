@@ -2,34 +2,37 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
-const ITEMS = [
-  {
-    icon: 'ti-home', label: 'Start', route: '/', trackId: 'bottom-nav-home-click',
-    isActive: (pathname) => pathname === '/',
-  },
-  {
-    icon: 'ti-heart', label: 'Favoriten', route: '/favorites', trackId: 'bottom-nav-favorites-click',
-    isActive: (pathname) => pathname === '/favorites',
-  },
-  {
-    icon: 'ti-user', label: 'Eigene', route: '/recipes?author=me', trackId: 'bottom-nav-own-click', requiresKoch: true,
-    isActive: (pathname, searchParams) => pathname === '/recipes' && searchParams.get('author') === 'me',
-  },
-  {
-    icon: 'ti-plus', label: 'Neu', route: '/recipes/new', trackId: 'bottom-nav-new-click', requiresKoch: true,
-    isActive: (pathname) => pathname === '/recipes/new',
-  },
-  {
-    icon: 'ti-calendar', label: 'Saison', route: '/seasonal', trackId: 'bottom-nav-seasonal-click',
-    isActive: (pathname) => pathname === '/seasonal',
-  },
-]
+function buildItems(userId) {
+  return [
+    {
+      icon: 'ti-home', label: 'Start', route: '/', trackId: 'bottom-nav-home-click',
+      isActive: (pathname) => pathname === '/',
+    },
+    {
+      icon: 'ti-heart', label: 'Favoriten', route: '/favorites', trackId: 'bottom-nav-favorites-click',
+      isActive: (pathname) => pathname === '/favorites',
+    },
+    {
+      icon: 'ti-user', label: 'Eigene', route: `/recipes?author_id=${userId}`, trackId: 'bottom-nav-own-click', requiresKoch: true,
+      isActive: (pathname, searchParams) => pathname === '/recipes' && searchParams.get('author_id') === String(userId),
+    },
+    {
+      icon: 'ti-plus', label: 'Neu', route: '/recipes/new', trackId: 'bottom-nav-new-click', requiresKoch: true,
+      isActive: (pathname) => pathname === '/recipes/new',
+    },
+    {
+      icon: 'ti-calendar', label: 'Saison', route: '/seasonal', trackId: 'bottom-nav-seasonal-click',
+      isActive: (pathname) => pathname === '/seasonal',
+    },
+  ]
+}
 
 export default function BottomNav() {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const canCreate = isKochOrAbove(user)
+  const ITEMS = buildItems(user?.id)
 
   return (
     <nav
