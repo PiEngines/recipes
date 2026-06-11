@@ -207,7 +207,7 @@ export default function Home() {
                 primaryImage={carouselImages.seasonal ?? null}
                 label="🌿 Saisonal"
                 labelColor="rgba(107,124,78,0.8)"
-                onClick={() => navigate('/seasonal')}
+                onClick={() => seasonalRecipe && navigate(`/recipes/${seasonalRecipe.id}`)}
                 trackId="home-carousel-seasonal-click"
               />
               <CarouselCard
