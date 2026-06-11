@@ -134,3 +134,17 @@ input[type="date"] {
 [data-theme="dark"] input[type="date"] {
   color-scheme: dark;
 }
+
+/* ── Bottom navigation (mobile) ──────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 56px;
+  }
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
+  }
+}

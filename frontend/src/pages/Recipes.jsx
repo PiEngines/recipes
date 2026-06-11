@@ -34,7 +34,7 @@ function DifficultySpoons({ difficulty }) {
 
 // ── Recipe card ───────────────────────────────────────────────────────────────
 
-function RecipeCard({ recipe, primaryImage, dimmed }) {
+export function RecipeCard({ recipe, primaryImage, dimmed }) {
   const { user } = useAuth()
   const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
   const isDraft = recipe.status === 'draft'
@@ -133,7 +133,7 @@ function RecipeCard({ recipe, primaryImage, dimmed }) {
 
 // ── Skeleton card ─────────────────────────────────────────────────────────────
 
-function SkeletonCard() {
+export function SkeletonCard() {
   return (
     <div className="recipe-card skeleton" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="skeleton-block" style={{ height: '180px', flexShrink: 0 }} />

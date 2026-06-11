@@ -8,12 +8,14 @@ import { TimerProvider } from './context/TimerContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
 import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute.jsx'
 import Navbar from './components/Navbar.jsx'
+import BottomNav from './components/BottomNav.jsx'
 import TimerWidgetGlobal from './components/TimerWidgetGlobal.jsx'
 import NotificationsModal from './components/NotificationsModal.jsx'
 import UsernameOnboardingModal from './components/UsernameOnboardingModal.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminRecipes from './pages/AdminRecipes.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
+import Favorites from './pages/Favorites.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import IngredientReview from './pages/IngredientReview.jsx'
 import Login from './pages/Login.jsx'
@@ -40,6 +42,7 @@ function Layout() {
       }} />
       {showNavbar && <Navbar />}
       <Outlet />
+      {showNavbar && <BottomNav />}
       <TimerWidgetGlobal />
       <NotificationsModal />
       <UsernameOnboardingModal />
@@ -72,6 +75,7 @@ const router = createBrowserRouter([
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
+      { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },
       { path: '/admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },

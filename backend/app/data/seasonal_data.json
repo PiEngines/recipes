@@ -1,0 +1,3936 @@
+{
+  "vegetables": [
+    {
+      "id": "tomate",
+      "name": "Tomate",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "gurke",
+      "name": "Gurke",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "zucchini",
+      "name": "Zucchini",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "paprika",
+      "name": "Paprika",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "aubergine",
+      "name": "Aubergine",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "karotte",
+      "name": "Karotte",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "kartoffel",
+      "name": "Kartoffel",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "zwiebel",
+      "name": "Zwiebel",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "knoblauch",
+      "name": "Knoblauch",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "stored",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "stored",
+        "9": "stored",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        9,
+        10
+      ],
+      "harvest": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "lauch",
+      "name": "Lauch/Porree",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "brokkoli",
+      "name": "Brokkoli",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "blumenkohl",
+      "name": "Blumenkohl",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "weißkohl",
+      "name": "Weißkohl",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "rotkohl",
+      "name": "Rotkohl",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "wirsing",
+      "name": "Wirsing",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        9,
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "rosenkohl",
+      "name": "Rosenkohl",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "kohlrabi",
+      "name": "Kohlrabi",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "spinat",
+      "name": "Spinat",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        8,
+        9
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "mangold",
+      "name": "Mangold",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "rote-bete",
+      "name": "Rote Bete",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "sellerie-knolle",
+      "name": "Sellerie (Knolle)",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        2,
+        3
+      ],
+      "harvest": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "pastinake",
+      "name": "Pastinake",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "petersilienwurzel",
+      "name": "Petersilienwurzel",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "rettich",
+      "name": "Rettich",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "radieschen",
+      "name": "Radieschen",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "kuerbis",
+      "name": "Kürbis",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "bohnen-gruen",
+      "name": "Bohnen (grün)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "erbsen",
+      "name": "Erbsen",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "mais",
+      "name": "Mais",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "fenchel-knolle",
+      "name": "Fenchel (Knolle)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "spargel",
+      "name": "Spargel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "artischocke",
+      "name": "Artischocke",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "pak-choi",
+      "name": "Pak Choi",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        8,
+        9
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "topinambur",
+      "name": "Topinambur",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "schwarzwurzel",
+      "name": "Schwarzwurzel",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "mairübe",
+      "name": "Mairübe",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "steckrübe",
+      "name": "Steckrübe",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "stored"
+      },
+      "plant": [
+        5,
+        6
+      ],
+      "harvest": [
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "grünkohl",
+      "name": "Grünkohl",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "rhabarber",
+      "name": "Rhabarber",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "zuckerschote",
+      "name": "Zuckerschote",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "ruccola",
+      "name": "Rucola",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    }
+  ],
+  "fruits": [
+    {
+      "id": "erdbeere",
+      "name": "Erdbeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "himbeere",
+      "name": "Himbeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "heidelbeere",
+      "name": "Heidelbeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "johannisbeere-rot",
+      "name": "Johannisbeere (rot)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "johannisbeere-schwarz",
+      "name": "Johannisbeere (schwarz)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "stachelbeere",
+      "name": "Stachelbeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "brombeere",
+      "name": "Brombeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "apfel",
+      "name": "Apfel",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "stored",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "harvest": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "birne",
+      "name": "Birne",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "pflaume",
+      "name": "Pflaume/Zwetschge",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "kirsche-sauer",
+      "name": "Sauerkirsche",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        7
+      ]
+    },
+    {
+      "id": "kirsche-süss",
+      "name": "Süßkirsche",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "mirabelle",
+      "name": "Mirabelle",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8
+      ]
+    },
+    {
+      "id": "quitte",
+      "name": "Quitte",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "stored",
+        "12": "none"
+      },
+      "harvest": [
+        10,
+        11
+      ]
+    },
+    {
+      "id": "weintraube",
+      "name": "Weintraube",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": "melone",
+      "name": "Melone",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "holunder-beere",
+      "name": "Holunderbeere",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        9
+      ]
+    },
+    {
+      "id": "haselnuss",
+      "name": "Haselnuss",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "none"
+      },
+      "harvest": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": "walnuss",
+      "name": "Walnuss",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "harvest": [
+        10,
+        11
+      ]
+    },
+    {
+      "id": "sanddorn",
+      "name": "Sanddorn",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        9
+      ]
+    },
+    {
+      "id": "aronia",
+      "name": "Aronia",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        9
+      ]
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi (DE)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        10
+      ]
+    },
+    {
+      "id": "feige",
+      "name": "Feige (DE)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "harvest": [
+        8,
+        9
+      ]
+    },
+    {
+      "id": "avocado",
+      "name": "Avocado",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "stored",
+        "4": "stored",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "harvest": [
+        11,
+        12,
+        1,
+        2
+      ]
+    }
+  ],
+  "salads": [
+    {
+      "id": "kopfsalat",
+      "name": "Kopfsalat",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "feldsalat",
+      "name": "Feldsalat",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        8,
+        9
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "rucola-salat",
+      "name": "Rucola",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "eisbergsalat",
+      "name": "Eisbergsalat",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "romanasalat",
+      "name": "Romanasalat",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "endivie",
+      "name": "Endivie",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "none"
+      },
+      "plant": [
+        6,
+        7
+      ],
+      "harvest": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "chicorée",
+      "name": "Chicorée",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        5,
+        6
+      ],
+      "harvest": [
+        11,
+        12,
+        1,
+        2
+      ]
+    },
+    {
+      "id": "radicchio",
+      "name": "Radicchio",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "none"
+      },
+      "plant": [
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "lollo-rosso",
+      "name": "Lollo Rosso",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "batavia",
+      "name": "Batavia",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "spinat-baby",
+      "name": "Babyspinat",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        8,
+        9
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "mangold-salat",
+      "name": "Mangold (jung)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "kresse",
+      "name": "Kresse",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "harvest": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "mizuna",
+      "name": "Mizuna",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    }
+  ],
+  "herbs": [
+    {
+      "id": "basilikum",
+      "name": "Basilikum",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "petersilie-glatt",
+      "name": "Petersilie (glatt)",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        7,
+        8
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "petersilie-kraus",
+      "name": "Petersilie (kraus)",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        2,
+        3,
+        4,
+        7,
+        8
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "schnittlauch",
+      "name": "Schnittlauch",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "dill",
+      "name": "Dill",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "koriander",
+      "name": "Koriander",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5,
+        8,
+        9
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "rosmarin",
+      "name": "Rosmarin",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "thymian",
+      "name": "Thymian",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "id": "oregano",
+      "name": "Oregano",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "majoran",
+      "name": "Majoran",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "salbei",
+      "name": "Salbei",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "pfefferminze",
+      "name": "Pfefferminze",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "spearmint",
+      "name": "Spearmint",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "marokkanische-minze",
+      "name": "Marokkanische Minze",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "zitronenmelisse",
+      "name": "Zitronenmelisse",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "estragon",
+      "name": "Estragon",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "liebstoeckel",
+      "name": "Liebstöckel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "bohnenkraut",
+      "name": "Bohnenkraut",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "kerbel",
+      "name": "Kerbel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        2,
+        3,
+        8,
+        9
+      ],
+      "harvest": [
+        4,
+        5,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "lavendel",
+      "name": "Lavendel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "lorbeer",
+      "name": "Lorbeer",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "fenchel-kraut",
+      "name": "Fenchel (Kraut)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "sellerie-blatt",
+      "name": "Sellerie (Blatt)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "id": "schnittknoblauch",
+      "name": "Schnittknoblauch",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "pimpinelle",
+      "name": "Pimpinelle",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        8
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "portulak",
+      "name": "Portulak",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "brennnessel",
+      "name": "Brennnessel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "giersch",
+      "name": "Giersch",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "baerlauch",
+      "name": "Bärlauch",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        9,
+        10
+      ],
+      "harvest": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "loewenzahn",
+      "name": "Löwenzahn",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5,
+        9
+      ]
+    },
+    {
+      "id": "schafgarbe",
+      "name": "Schafgarbe",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "spitzwegerich",
+      "name": "Spitzwegerich",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "johanniskraut",
+      "name": "Johanniskraut",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "kamille",
+      "name": "Kamille",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "ringelblume",
+      "name": "Ringelblume",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "holunder-bluete",
+      "name": "Holunder (Blüte)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "sauerampfer",
+      "name": "Sauerampfer",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        3,
+        4,
+        5,
+        6,
+        9
+      ]
+    },
+    {
+      "id": "borretsch",
+      "name": "Borretsch",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5,
+        6
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "kapuzinerkresse",
+      "name": "Kapuzinerkresse",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "gundelrebe",
+      "name": "Gundelrebe",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "waldmeister",
+      "name": "Waldmeister",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        9,
+        10
+      ],
+      "harvest": [
+        4,
+        5
+      ]
+    },
+    {
+      "id": "beifuss",
+      "name": "Beifuß",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "echinacea",
+      "name": "Echinacea",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "none",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "baldrian",
+      "name": "Echter Baldrian",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4
+      ],
+      "harvest": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": "schachtelhalm",
+      "name": "Zinnkraut/Schachtelhalm",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "12": "none",
+        "11": "none"
+      },
+      "plant": [],
+      "harvest": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "zitronenverbene",
+      "name": "Zitronenverbene",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "thai-basilikum",
+      "name": "Thai-Basilikum",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "vietnamesischer-koriander",
+      "name": "Vietnamesischer Koriander",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "stevia",
+      "name": "Stevia",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "ysop",
+      "name": "Ysop",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "bergbohnenkraut",
+      "name": "Bergbohnenkraut",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "currykraut",
+      "name": "Currykraut",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "id": "shiso",
+      "name": "Shiso (Perilla)",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "none",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [
+        4,
+        5
+      ],
+      "harvest": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "zitronenthymian",
+      "name": "Zitronenthymian",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "griechischer-oregano",
+      "name": "Griechischer Oregano",
+      "months": {
+        "1": "stored",
+        "2": "stored",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "fresh",
+        "7": "fresh",
+        "8": "fresh",
+        "9": "fresh",
+        "10": "stored",
+        "11": "stored",
+        "12": "stored"
+      },
+      "plant": [
+        3,
+        4,
+        5
+      ],
+      "harvest": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": "knoblauchsrauke",
+      "name": "Knoblauchsrauke",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "postelein",
+      "name": "Postelein",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "none",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "fresh",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [
+        8,
+        9
+      ],
+      "harvest": [
+        10,
+        11,
+        12,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "taubnessel",
+      "name": "Taubnessel",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "vogelmiere",
+      "name": "Vogelmiere",
+      "months": {
+        "1": "fresh",
+        "2": "fresh",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "none",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "fresh",
+        "11": "fresh",
+        "12": "fresh"
+      },
+      "plant": [],
+      "harvest": [
+        1,
+        2,
+        3,
+        4,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "id": "gundermann",
+      "name": "Gundermann",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "fresh",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "wiesenschaumkraut",
+      "name": "Wiesenschaumkraut",
+      "months": {
+        "1": "none",
+        "2": "none",
+        "3": "none",
+        "4": "fresh",
+        "5": "fresh",
+        "6": "none",
+        "7": "none",
+        "8": "none",
+        "9": "none",
+        "10": "none",
+        "11": "none",
+        "12": "none"
+      },
+      "plant": [],
+      "harvest": [
+        4,
+        5
+      ]
+    }
+  ]
+}
