@@ -47,7 +47,7 @@ export default function IngredientReview() {
     client.get(`/api/recipes/${id}/step-suggestions`)
       .then(({ data }) => {
         const map = {}
-        for (const group of data) map[group.step_id] = group.suggestions
+        for (const group of data) map[String(group.step_id)] = group.suggestions
         setSuggestionsMap(map)
       })
       .catch(() => {})
@@ -77,7 +77,7 @@ export default function IngredientReview() {
     autoOpenedSteps.current.add(stepIdx)
     const step = recipe.steps[stepIdx]
     if (!step) return
-    const eindeutig = (suggestionsMap[step.id] || []).find(
+    const eindeutig = (suggestionsMap[String(step.id)] || []).find(
       s => s.confidence === 'eindeutig' && s.status === 'open'
     )
     if (eindeutig) setDialogSuggestion(eindeutig)
@@ -105,7 +105,7 @@ export default function IngredientReview() {
     })
   }
 
-  const stepSuggestions = suggestionsMap[step.id] || []
+  const stepSuggestions = suggestionsMap[String(step.id)] || []
   const openVerdachtSuggestions = stepSuggestions.filter(s => s.status === 'open' && s.confidence === 'verdacht')
 
   const renderInstruction = () => {
