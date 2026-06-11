@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -40,6 +40,7 @@ class Recipe(Base):
     review_status = Column(String(20), nullable=False, default="none")
     thumbnail_style = Column(String(20), nullable=False, default="crop")  # "crop" | "blur"
     matching_reviewed_at = Column(DateTime(timezone=True), nullable=True)  # NULL = ingredient matching never reviewed
+    seasonal_tags = Column(ARRAY(String), nullable=True, server_default="{}")
 
     author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
     steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
