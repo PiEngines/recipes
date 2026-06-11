@@ -115,21 +115,48 @@ function NavSearchInput({ value, onChange }) {
   )
 }
 
+function ScopePill({ active, onClick, icon, children }) {
+  return (
+    <span
+      role="checkbox"
+      aria-checked={active}
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.3rem',
+        borderRadius: '999px',
+        border: `1px solid ${active ? '#C8602A' : 'var(--border-input)'}`,
+        padding: '5px 12px',
+        fontSize: '13px',
+        background: active ? '#C8602A' : 'transparent',
+        color: active ? '#fff' : 'var(--subtext)',
+        cursor: 'pointer',
+        fontFamily: 'Inter, sans-serif',
+        userSelect: 'none',
+        transition: 'var(--transition)',
+      }}
+    >
+      {icon && <i className={`ti ${icon}`} aria-hidden="true" />}
+      {children}
+    </span>
+  )
+}
+
 function ScopeCheckboxes({ scopeDesc, scopeIng, scopeAuthor, onToggleDesc, onToggleIng, onToggleAuthor }) {
   return (
-    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
-        <input type="checkbox" checked={scopeDesc} onChange={e => onToggleDesc(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <ScopePill active={scopeDesc} onClick={() => onToggleDesc(!scopeDesc)} icon="ti-search">
         Rezept durchsuchen
-      </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
-        <input type="checkbox" checked={scopeIng} onChange={e => onToggleIng(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+      </ScopePill>
+      <ScopePill active={scopeIng} onClick={() => onToggleIng(!scopeIng)} icon="ti-leaf">
         mit Zutaten
-      </label>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none' }}>
-        <input type="checkbox" checked={scopeAuthor} onChange={e => onToggleAuthor(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+      </ScopePill>
+      <ScopePill active={scopeAuthor} onClick={() => onToggleAuthor(!scopeAuthor)} icon="ti-user">
         Nur Autor
-      </label>
+      </ScopePill>
     </div>
   )
 }
@@ -263,7 +290,7 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', height: '64px' }}>
 
           {/* Logo */}
-          <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
+          <Link to="/recipes" style={{ textDecoration: 'none', flexShrink: 0 }}>
             <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
               🍽️ PiEngines
             </span>

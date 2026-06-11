@@ -66,6 +66,7 @@ const router = createBrowserRouter([
       { path: '/forgot-password', element: <PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute> },
       { path: '/reset-password', element: <PublicOnlyRoute><ResetPassword /></PublicOnlyRoute> },
       { path: '/verify-email', element: <PublicOnlyRoute><VerifyEmail /></PublicOnlyRoute> },
+      { path: '/recipes', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
       { path: '/', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
       { path: '/recipes/new', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },

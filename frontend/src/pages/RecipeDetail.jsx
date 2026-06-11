@@ -635,7 +635,7 @@ export default function RecipeDetail() {
           })
         }
       })
-      .catch(() => navigate('/'))
+      .catch(() => navigate('/recipes'))
       .finally(() => setLoading(false))
   }, [id])
 
