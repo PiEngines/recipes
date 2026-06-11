@@ -73,18 +73,14 @@ export default function IngredientReview() {
   // Auto-open the dialog once per step for "eindeutig" suggestions
   useEffect(() => {
     if (!recipe || !suggestionsLoaded) return
-    console.log('[DEBUG EFFECT]', { recipe: !!recipe, suggestionsLoaded, stepIdx, stepId: recipe?.steps?.[stepIdx]?.id })
     const step = recipe.steps[stepIdx]
     if (!step) return
     if (autoOpenedSteps.current.has(stepIdx)) return
     const eindeutig = (suggestionsMap[String(step.id)] || []).find(
       s => s.confidence === 'eindeutig'
     )
-    console.log('[DEBUG FIND]', { candidates: suggestionsMap[String(step.id)], eindeutig })
-    console.log('[DEBUG STRING]', JSON.stringify(suggestionsMap[String(step.id)]?.[3]?.confidence))
     if (eindeutig) {
       autoOpenedSteps.current.add(stepIdx)
-      console.log('[DEBUG DIALOG]', eindeutig)
       setDialogSuggestion(eindeutig)
     }
   }, [recipe, stepIdx, suggestionsLoaded, suggestionsMap])
@@ -99,7 +95,6 @@ export default function IngredientReview() {
   if (!recipe || loadingStep || !stepData) return <LoadingScreen />
 
   const step = recipe.steps[stepIdx]
-  console.log('[DEBUG SUGGESTIONS]', { stepId: step?.id, stepIdString: String(step?.id), mapKeys: Object.keys(suggestionsMap), matches: suggestionsMap[String(step?.id)] })
   const total = recipe.steps.length
   const isLast = stepIdx === total - 1
 
@@ -191,7 +186,6 @@ export default function IngredientReview() {
 
   const handleAcceptSuggestion = async ({ name, quantity, unit }) => {
     if (!dialogSuggestion) return
-    console.log('[DEBUG ACCEPT]', { dialogSuggestion, name, quantity, unit })
     setSuggestionSaving(true)
     try {
       await client.post(`/api/recipes/${id}/step-suggestions/${dialogSuggestion.id}/accept`, {
