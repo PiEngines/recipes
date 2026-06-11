@@ -73,14 +73,16 @@ export default function IngredientReview() {
   // Auto-open the dialog once per step for "eindeutig" suggestions
   useEffect(() => {
     if (!recipe || !suggestionsLoaded) return
-    if (autoOpenedSteps.current.has(stepIdx)) return
-    autoOpenedSteps.current.add(stepIdx)
     const step = recipe.steps[stepIdx]
     if (!step) return
+    if (autoOpenedSteps.current.has(stepIdx)) return
     const eindeutig = (suggestionsMap[String(step.id)] || []).find(
       s => s.confidence === 'eindeutig' && s.status === 'open'
     )
-    if (eindeutig) setDialogSuggestion(eindeutig)
+    if (eindeutig) {
+      autoOpenedSteps.current.add(stepIdx)
+      setDialogSuggestion(eindeutig)
+    }
   }, [recipe, stepIdx, suggestionsLoaded, suggestionsMap])
 
   // Inline feedback auto-dismiss
