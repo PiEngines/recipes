@@ -1,16 +1,33 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
 const ITEMS = [
-  { icon: 'ti-home', label: 'Start', route: '/', trackId: 'bottom-nav-home-click' },
-  { icon: 'ti-plus', label: 'Neu', route: '/recipes/new', requiresKoch: true, trackId: 'bottom-nav-new-click' },
-  { icon: 'ti-heart', label: 'Favoriten', route: '/favorites', trackId: 'bottom-nav-favorites-click' },
-  { icon: 'ti-calendar', label: 'Saison', route: '/seasonal', trackId: 'bottom-nav-seasonal-click' },
+  {
+    icon: 'ti-home', label: 'Start', route: '/', trackId: 'bottom-nav-home-click',
+    isActive: (pathname) => pathname === '/',
+  },
+  {
+    icon: 'ti-heart', label: 'Favoriten', route: '/favorites', trackId: 'bottom-nav-favorites-click',
+    isActive: (pathname) => pathname === '/favorites',
+  },
+  {
+    icon: 'ti-user', label: 'Eigene', route: '/recipes?author=me', trackId: 'bottom-nav-own-click', requiresKoch: true,
+    isActive: (pathname, searchParams) => pathname === '/recipes' && searchParams.get('author') === 'me',
+  },
+  {
+    icon: 'ti-plus', label: 'Neu', route: '/recipes/new', trackId: 'bottom-nav-new-click', requiresKoch: true,
+    isActive: (pathname) => pathname === '/recipes/new',
+  },
+  {
+    icon: 'ti-calendar', label: 'Saison', route: '/seasonal', trackId: 'bottom-nav-seasonal-click',
+    isActive: (pathname) => pathname === '/seasonal',
+  },
 ]
 
 export default function BottomNav() {
   const { pathname } = useLocation()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const canCreate = isKochOrAbove(user)
 
@@ -29,8 +46,8 @@ export default function BottomNav() {
         zIndex: 100,
       }}
     >
-      {ITEMS.map(({ icon, label, route, requiresKoch, trackId }) => {
-        const active = pathname === route
+      {ITEMS.map(({ icon, label, route, requiresKoch, trackId, isActive }) => {
+        const active = isActive(pathname, searchParams)
         const disabled = requiresKoch && !canCreate
         const color = active ? '#C8602A' : 'var(--subtext)'
         const content = (

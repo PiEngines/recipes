@@ -376,7 +376,6 @@ export default function Navbar() {
                   <NavSearchInput value={inputValue} onChange={setInputValue} />
                 </div>
               )}
-              {!hideCreate && canCreate && newRecipeButton('+ Neu')}
             </div>
             {!hideSearch && hasSearch && (
               <ScopeCheckboxes
