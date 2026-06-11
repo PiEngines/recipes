@@ -71,14 +71,14 @@ function LegendItem({ color, label }) {
   )
 }
 
-function SeasonalRow({ item, currentMonth, expanded, onToggle }) {
+function SeasonalRow({ item, currentMonth, expanded, onToggle, hideStored }) {
   const months = item.months || {}
   const freshMonths = []
   const seasonMonths = []
   for (let m = 1; m <= 12; m++) {
     const status = months[String(m)]
     if (status === 'fresh') { freshMonths.push(m); seasonMonths.push(m) }
-    else if (status === 'stored') { seasonMonths.push(m) }
+    else if (status === 'stored' && !hideStored) { seasonMonths.push(m) }
   }
   const edgeMonths = new Set(freshMonths.length > 0 ? [Math.min(...freshMonths), Math.max(...freshMonths)] : [])
   const plantMonths = item.plant || []
@@ -96,7 +96,7 @@ function SeasonalRow({ item, currentMonth, expanded, onToggle }) {
         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => {
           const status = months[String(m)]
           let seasonColor = 'transparent'
-          if (status === 'stored') seasonColor = COLOR_STORED
+          if (status === 'stored' && !hideStored) seasonColor = COLOR_STORED
           else if (status === 'fresh') seasonColor = edgeMonths.has(m) ? COLOR_FRESH_EDGE : COLOR_FRESH_CORE
           const plantColor = plantMonths.includes(m) ? COLOR_PLANT : 'transparent'
           const isCurrent = m === currentMonth
@@ -155,7 +155,10 @@ export default function Seasonal() {
       .finally(() => setLoading(false))
   }, [])
 
-  const items = useMemo(() => data?.[category] || [], [data, category])
+  const items = useMemo(
+    () => [...(data?.[category] || [])].sort((a, b) => a.name.localeCompare(b.name, 'de')),
+    [data, category]
+  )
 
   return (
     <div data-track-id="seasonal-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -175,7 +178,7 @@ export default function Seasonal() {
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
           <LegendItem color={COLOR_FRESH_CORE} label="Frisch" />
           <LegendItem color={COLOR_FRESH_EDGE} label="Randzeit" />
-          <LegendItem color={COLOR_STORED} label="Lager" />
+          {category !== 'herbs' && <LegendItem color={COLOR_STORED} label="Lager" />}
           <LegendItem color={COLOR_PLANT} label="Pflanzen" />
         </div>
 
@@ -203,11 +206,11 @@ export default function Seasonal() {
         ) : items.length === 0 ? (
           <p style={{ color: 'var(--subtext)' }}>Keine Daten verfügbar.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', paddingRight: '2rem' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '760px' }}>
               <thead>
                 <tr>
-                  <th className="seasonal-name-col" style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.78rem', color: 'var(--subtext)', position: 'sticky', left: 0, zIndex: 1, background: 'var(--bg)' }} />
+                  <th className="seasonal-name-col" style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.78rem', color: 'var(--subtext)', position: 'sticky', left: 0, top: 0, zIndex: 3, background: 'var(--bg)' }} />
                   {MONTH_LABELS.map((label, i) => {
                     const m = i + 1
                     const isCurrent = m === currentMonth
@@ -219,8 +222,11 @@ export default function Seasonal() {
                           fontSize: '0.75rem',
                           fontWeight: isCurrent ? 700 : 500,
                           color: isCurrent ? '#C8602A' : 'var(--subtext)',
-                          background: isCurrent ? 'rgba(200,96,42,0.05)' : 'transparent',
+                          background: isCurrent ? 'rgba(200,96,42,0.05)' : 'var(--bg)',
                           textAlign: 'center',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 2,
                         }}
                       >
                         {label}
@@ -237,6 +243,7 @@ export default function Seasonal() {
                     currentMonth={currentMonth}
                     expanded={expandedId === item.id}
                     onToggle={() => setExpandedId(prev => prev === item.id ? null : item.id)}
+                    hideStored={category === 'herbs'}
                   />
                 ))}
               </tbody>
