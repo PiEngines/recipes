@@ -196,7 +196,7 @@ export default function IngredientReview() {
     try {
       await client.post(`/api/recipes/${id}/step-suggestions/${dialogSuggestion.id}/accept`, {
         name,
-        quantity,
+        quantity: String(quantity),
         unit,
         step_ids: findStepIdsForToken(dialogSuggestion.token),
       })
