@@ -109,7 +109,7 @@ function SeasonalRow({ item, currentMonth, expanded, onToggle, hideStored }) {
             </td>
           )
         })}
-        <td />
+        <td style={{ width: '2rem', minWidth: '2rem' }} />
       </tr>
       {expanded && (
         <tr>
@@ -208,7 +208,7 @@ export default function Seasonal() {
           <p style={{ color: 'var(--subtext)' }}>Keine Daten verfügbar.</p>
         ) : (
           <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 220px)' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '760px' }}>
+            <table style={{ borderCollapse: 'collapse', minWidth: '760px' }}>
               <thead>
                 <tr>
                   <th className="seasonal-name-col" style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.78rem', color: 'var(--subtext)', position: 'sticky', left: 0, top: 0, zIndex: 3, background: 'var(--bg)' }} />
@@ -234,7 +234,7 @@ export default function Seasonal() {
                       </th>
                     )
                   })}
-                  <th style={{ width: '2rem', position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg)' }} />
+                  <th style={{ width: '2rem', minWidth: '2rem', position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg)' }} />
                 </tr>
               </thead>
               <tbody>
