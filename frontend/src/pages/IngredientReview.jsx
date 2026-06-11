@@ -95,6 +95,7 @@ export default function IngredientReview() {
   if (!recipe || loadingStep || !stepData) return <LoadingScreen />
 
   const step = recipe.steps[stepIdx]
+  console.log('[DEBUG SUGGESTIONS]', { stepId: step?.id, stepIdString: String(step?.id), mapKeys: Object.keys(suggestionsMap), matches: suggestionsMap[String(step?.id)] })
   const total = recipe.steps.length
   const isLast = stepIdx === total - 1
 
