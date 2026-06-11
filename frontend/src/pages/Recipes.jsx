@@ -278,6 +278,7 @@ export default function Recipes() {
   const page = parseInt(searchParams.get('page') || '1', 10)
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
   const authorFilter = searchParams.get('author') || ''
+  const authorIdFilter = searchParams.get('author_id') || null
 
   // Explicit author-link filter wins; otherwise "Nur nach Autor" turns the search box into a username search
   const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
@@ -341,7 +342,9 @@ export default function Recipes() {
     if (scopeIng) scopeParts.push('ingredients')
     const searchScope = scopeParts.join(',')
     const params = { page, page_size: PAGE_SIZE, search_scope: searchScope }
-    if (effectiveAuthor) {
+    if (authorIdFilter) {
+      params.author_id = authorIdFilter
+    } else if (effectiveAuthor) {
       params.author = effectiveAuthor
     } else if (search) {
       params.search = search
@@ -369,7 +372,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, effectiveAuthor])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
