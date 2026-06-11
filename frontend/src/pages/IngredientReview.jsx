@@ -78,7 +78,7 @@ export default function IngredientReview() {
     if (!step) return
     if (autoOpenedSteps.current.has(stepIdx)) return
     const eindeutig = (suggestionsMap[String(step.id)] || []).find(
-      s => s.confidence === 'eindeutig' && s.status === 'open'
+      s => s.confidence === 'eindeutig'
     )
     console.log('[DEBUG FIND]', { candidates: suggestionsMap[String(step.id)], eindeutig })
     console.log('[DEBUG STRING]', JSON.stringify(suggestionsMap[String(step.id)]?.[3]?.confidence))
