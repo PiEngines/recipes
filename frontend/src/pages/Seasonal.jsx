@@ -90,7 +90,7 @@ function SeasonalRow({ item, currentMonth, expanded, onToggle }) {
         data-track-id="seasonal-row-expand"
         style={{ cursor: 'pointer' }}
       >
-        <td style={{ width: '80px', minWidth: '80px', padding: '0.4rem 0.5rem', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, zIndex: 1, background: 'var(--bg)' }}>
+        <td className="seasonal-name-col" style={{ padding: '0.4rem 0.5rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, zIndex: 1, background: 'var(--bg)' }}>
           {item.name}
         </td>
         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => {
@@ -179,6 +179,25 @@ export default function Seasonal() {
           <LegendItem color={COLOR_PLANT} label="Pflanzen" />
         </div>
 
+        <style>{`
+          .seasonal-name-col {
+            width: 100px;
+            min-width: 100px;
+          }
+          td.seasonal-name-col {
+            font-size: 0.85rem;
+          }
+          @media (max-width: 480px) {
+            .seasonal-name-col {
+              width: 80px;
+              min-width: 80px;
+            }
+            td.seasonal-name-col {
+              font-size: 11px;
+            }
+          }
+        `}</style>
+
         {loading ? (
           <p style={{ color: 'var(--subtext)' }}>Lädt …</p>
         ) : items.length === 0 ? (
@@ -188,7 +207,7 @@ export default function Seasonal() {
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: '760px' }}>
               <thead>
                 <tr>
-                  <th style={{ width: '80px', minWidth: '80px', textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.78rem', color: 'var(--subtext)', position: 'sticky', left: 0, zIndex: 1, background: 'var(--bg)' }} />
+                  <th className="seasonal-name-col" style={{ textAlign: 'left', padding: '0.4rem 0.5rem', fontSize: '0.78rem', color: 'var(--subtext)', position: 'sticky', left: 0, zIndex: 1, background: 'var(--bg)' }} />
                   {MONTH_LABELS.map((label, i) => {
                     const m = i + 1
                     const isCurrent = m === currentMonth

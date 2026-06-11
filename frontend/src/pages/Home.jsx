@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
@@ -79,6 +79,8 @@ export default function Home() {
   const [discoverRecipe, setDiscoverRecipe] = useState(null)
   const [seasonalRecipe, setSeasonalRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const carouselRef = useRef(null)
 
   const favoriteRecipe = pickRandom(favorites)
 
@@ -113,15 +115,37 @@ export default function Home() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Auto-rotate carousel every 5 seconds
+  useEffect(() => {
+    if (loading) return
+    const timer = setInterval(() => {
+      setActiveIndex(prev => (prev + 1) % 3)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [loading])
+
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const cardWidth = 260 + 16 // card width + gap (1rem)
+    el.scrollTo({ left: activeIndex * cardWidth, behavior: 'smooth' })
+  }, [activeIndex])
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.75rem', color: 'var(--text)', margin: '0 0 1.5rem' }}>
-          {getGreeting()}{user?.username ? `, ${user.username}` : ''}!
-        </h1>
+        <div style={{ margin: '0 0 1.5rem' }}>
+          <div style={{ fontSize: '13px', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+            {getGreeting()}
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', color: 'var(--text)', margin: 0 }}>
+            {user?.username ? `${user.username}!` : 'Willkommen!'}
+          </h1>
+        </div>
 
         {/* ── Carousel ── */}
         <div
+          ref={carouselRef}
           style={{
             display: 'flex',
             gap: '1rem',
@@ -179,6 +203,16 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+          <Link
+            to="/recipes"
+            data-track-id="home-all-recipes-click"
+            style={{ color: 'var(--accent)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'none' }}
+          >
+            Alle Rezepte →
+          </Link>
+        </div>
       </main>
     </div>
   )
