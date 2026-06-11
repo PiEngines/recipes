@@ -215,7 +215,10 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
-        needs_tagging = db.query(Recipe).filter(Recipe.seasonal_tags.is_(None)).first() is not None
+        needs_tagging = any(
+            recipe.seasonal_tags is None or len(recipe.seasonal_tags) == 0
+            for recipe in db.query(Recipe).all()
+        )
     finally:
         db.close()
     if needs_tagging:
