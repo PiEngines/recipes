@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,7 @@ from app.media.router import router as media_router
 from app.recipes.access_router import router as access_router
 from app.recipes.router import router as recipes_router
 from app.recipes.versions_router import router as versions_router
+from app.seasonal.matcher import run_seasonal_matching
 from app.seasonal.router import router as seasonal_router
 from app.seed import seed_admin, seed_garbage_collector
 from app.tags.router import router as tags_router
@@ -178,6 +180,18 @@ async def _seed_disposable_domains() -> None:
         db.close()
 
 
+async def _run_seasonal_matching() -> None:
+    from app.database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        run_seasonal_matching(db)
+    except Exception:
+        logger.exception("Seasonal matching failed")
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_admin()
@@ -192,7 +206,20 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(_warn_expiring_users, "cron", hour=3, minute=15)
     # Daily hard-delete of recipes soft-deleted more than 30 days ago
     scheduler.add_job(_cleanup_deleted_recipes, "cron", hour=4, minute=0)
+    # AI-based seasonal tagging of recipes, every 3 days
+    scheduler.add_job(_run_seasonal_matching, "interval", days=3)
     scheduler.start()
+
+    from app.database import SessionLocal
+    from app.models import Recipe
+
+    db = SessionLocal()
+    try:
+        needs_tagging = db.query(Recipe).filter(Recipe.seasonal_tags.is_(None)).first() is not None
+    finally:
+        db.close()
+    if needs_tagging:
+        asyncio.create_task(_run_seasonal_matching())
 
     yield
 
