@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.models.recipe import RecipeStatus
+from app.models.recipe import RecipeStatus, RecipeType
 
 
 class CategoryResponse(BaseModel):
@@ -161,6 +161,7 @@ class RecipeCreate(BaseModel):
     servings: int | None = None
     difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus = RecipeStatus.draft
+    type: RecipeType = RecipeType.kochen
     source: str | None = None
     category_ids: list[int] = []
     tag_ids: list[int] = []
@@ -176,6 +177,7 @@ class RecipeUpdate(BaseModel):
     servings: int | None = None
     difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus | None = None
+    type: RecipeType | None = None
     source: str | None = None
     category_ids: list[int] | None = None
     tag_ids: list[int] | None = None
@@ -194,6 +196,7 @@ class RecipeListItem(BaseModel):
     servings: int | None
     difficulty: int | None
     status: str
+    type: str = "kochen"
     review_status: str | None = None
     thumbnail_style: str = "crop"
     created_by: int | None = None
@@ -217,6 +220,7 @@ class RecipeResponse(BaseModel):
     servings: int | None
     difficulty: int | None
     status: str
+    type: str = "kochen"
     source: str | None
     review_status: str | None = None
     thumbnail_style: str = "crop"

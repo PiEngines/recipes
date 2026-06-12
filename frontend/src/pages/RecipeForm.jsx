@@ -536,6 +536,7 @@ export default function RecipeForm() {
   const [difficulty, setDifficulty] = useState(3)
   const [source, setSource] = useState('')
   const [status, setStatus] = useState('draft')
+  const [type, setType] = useState('kochen')
   const [selectedCats, setSelectedCats] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
@@ -559,7 +560,7 @@ export default function RecipeForm() {
   useEffect(() => {
     stateRef.current = {
       title, description, prepTime, cookTime, servings,
-      difficulty, source, status,
+      difficulty, source, status, type,
       selectedCats, selectedTags,
       ingredients, steps,
       recipeId,
@@ -599,6 +600,7 @@ export default function RecipeForm() {
     setDifficulty(snap.difficulty)
     setSource(snap.source)
     setStatus(snap.status)
+    setType(snap.type)
     setSelectedCats(snap.selectedCats)
     setSelectedTags(snap.selectedTags)
     setIngredients(snap.ingredients)
@@ -622,6 +624,7 @@ export default function RecipeForm() {
           difficulty: r.difficulty ?? 5,
           source: r.source || '',
           status: r.status,
+          type: r.type || 'kochen',
           selectedCats: r.categories,
           selectedTags: r.tags,
           ingredients: ings.length
@@ -674,6 +677,7 @@ export default function RecipeForm() {
       servings: s.servings !== '' ? parseInt(s.servings) : null,
       difficulty: s.difficulty || null,
       status: targetStatus ?? s.status,
+      type: s.type,
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
       tag_ids: s.selectedTags.map(t => t.id),
@@ -961,6 +965,31 @@ export default function RecipeForm() {
                 <span key={i} style={{ display: 'inline-block', fontSize: '1.1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.2, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
               ))}
             </span>
+          </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <FieldLabel required>Art</FieldLabel>
+            <div style={{ display: 'flex', gap: '0.625rem' }}>
+              {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => { setType(value); markDirty() }}
+                  style={{
+                    padding: '0.5rem 1.25rem',
+                    border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`,
+                    borderRadius: 'var(--radius-pill)',
+                    background: type === value ? '#C8602A' : 'var(--card)',
+                    color: type === value ? '#fff' : 'var(--text)',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    transition: 'var(--transition)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><FieldLabel>Quelle / Inspiration</FieldLabel><StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" /></div>

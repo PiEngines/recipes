@@ -17,7 +17,7 @@ from app.auth.dependencies import (
 from app.database import get_db
 from app.matching import step_scanner
 from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
-from app.models.recipe import RecipeStatus
+from app.models.recipe import RecipeStatus, RecipeType
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.recipes import matching
 from app.recipes.schemas import (
@@ -147,6 +147,7 @@ def list_recipes(
     search_scope: str = Query("title"),
     author_id: int | None = Query(None),
     author: str | None = Query(None),
+    type: str | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
@@ -210,6 +211,12 @@ def list_recipes(
                 raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
         else:
             q = q.filter(visible)
+
+    if type is not None:
+        try:
+            q = q.filter(Recipe.type == RecipeType(type).value)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid type '{type}'")
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
@@ -653,6 +660,7 @@ def create_recipe(
         servings=body.servings,
         difficulty=body.difficulty,
         status=body.status,
+        type=body.type,
         source=body.source,
         created_by=current_user.id,
     )
@@ -702,7 +710,7 @@ def update_recipe(
     # Capture snapshot before applying changes
     old_snapshot = _recipe_snapshot(recipe)
 
-    scalar_fields = {"title", "description", "prep_time", "cook_time", "servings", "difficulty", "status", "source"}
+    scalar_fields = {"title", "description", "prep_time", "cook_time", "servings", "difficulty", "status", "type", "source"}
     for field in body.model_fields_set & scalar_fields:
         setattr(recipe, field, getattr(body, field))
 
