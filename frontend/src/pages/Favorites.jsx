@@ -23,7 +23,7 @@ function EmptyFavoritesState() {
 }
 
 export default function Favorites() {
-  const { favorites, loading } = useFavorites()
+  const { favorites, favoriteIds, loading } = useFavorites()
   const [primaryImages, setPrimaryImages] = useState({})
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function Favorites() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             {favorites.map(r => (
               <div key={r.id} data-track-id="favorites-recipe-card-click">
-                <RecipeCard recipe={r} primaryImage={primaryImages[r.id] ?? null} />
+                <RecipeCard recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={!favoriteIds.has(r.id)} />
               </div>
             ))}
           </div>
