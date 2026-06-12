@@ -190,6 +190,12 @@ function MetaBar({ recipe }) {
     }}>
       {recipe.prep_time && <MetaStat icon="⏱" label="Vorbereitung" value={`${recipe.prep_time} min`} />}
       {recipe.cook_time && <MetaStat icon="🍳" label="Kochen" value={`${recipe.cook_time} min`} />}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Art</span>
+        <span style={{ padding: '0.2rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.75rem', fontWeight: 500, background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', display: 'inline-block', alignSelf: 'flex-start' }}>
+          {recipe.type === 'backen' ? 'Backen' : 'Kochen'}
+        </span>
+      </div>
       {recipe.servings && <MetaStat icon="🍽️" label="Portionen" value={String(recipe.servings)} />}
       {recipe.difficulty && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

@@ -113,15 +113,18 @@ export function RecipeCard({ recipe, primaryImage, dimmed }) {
             )}
           </div>
           <div>
-            {(recipe.prep_time || recipe.cook_time) && (
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
+              {(recipe.prep_time || recipe.cook_time) && (
                 <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
                   ⏱ {recipe.prep_time && recipe.cook_time
                     ? `${recipe.prep_time} + ${recipe.cook_time} Min.`
                     : `${recipe.prep_time || recipe.cook_time} Min.`}
                 </span>
-              </div>
-            )}
+              )}
+              <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                {recipe.type === 'backen' ? 'Backen' : 'Kochen'}
+              </span>
+            </div>
             {recipe.difficulty && <DifficultySpoons difficulty={recipe.difficulty} />}
           </div>
         </div>
@@ -279,6 +282,7 @@ export default function Recipes() {
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
   const authorFilter = searchParams.get('author') || ''
   const authorIdFilter = searchParams.get('author_id') || null
+  const typeFilter = searchParams.get('type') || ''
 
   // Explicit author-link filter wins; otherwise "Nur nach Autor" turns the search box into a username search
   const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
@@ -329,6 +333,9 @@ export default function Recipes() {
         const term = search.toLowerCase()
         list = list.filter(r => r.title.toLowerCase().includes(term))
       }
+      if (typeFilter) {
+        list = list.filter(r => (r.type || 'kochen') === typeFilter)
+      }
       const start = (page - 1) * PAGE_SIZE
       const items = list.slice(start, start + PAGE_SIZE)
       setRecipes(items)
@@ -348,6 +355,9 @@ export default function Recipes() {
       params.author = effectiveAuthor
     } else if (search) {
       params.search = search
+    }
+    if (typeFilter) {
+      params.type = typeFilter
     }
     client.get('/api/recipes', { params })
       .then(res => {
@@ -372,7 +382,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeFilter])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -398,7 +408,15 @@ export default function Recipes() {
     return next
   }, { replace: true })
 
-  const showFilterBar = isKochOrAbove(user) || authorFilter
+  const toggleTypeFilter = (t) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev)
+    if (typeFilter === t) next.delete('type')
+    else next.set('type', t)
+    next.delete('page')
+    return next
+  }, { replace: true })
+
+  const showFilterBar = true
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -411,6 +429,12 @@ export default function Recipes() {
                 Favoriten
               </FilterButton>
             )}
+            <FilterButton active={typeFilter === 'kochen'} onClick={() => toggleTypeFilter('kochen')}>
+              Kochen
+            </FilterButton>
+            <FilterButton active={typeFilter === 'backen'} onClick={() => toggleTypeFilter('backen')}>
+              Backen
+            </FilterButton>
             {authorFilter && <AuthorFilterChip author={authorFilter} onClear={clearAuthorFilter} />}
           </div>
         )}
