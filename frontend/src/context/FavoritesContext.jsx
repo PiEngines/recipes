@@ -37,11 +37,6 @@ export function FavoritesProvider({ children }) {
       next.delete(recipeId)
       return next
     })
-    // Anders als bei addFavorite muss favorites hier aktualisiert werden:
-    // die Favoriten-Ansicht in Recipes.jsx filtert direkt über favorites,
-    // das erneute Triggern ihres useEffect ist hier erwünscht (Liste muss
-    // den entfernten Eintrag verlieren), kein unerwünschtes Flackern.
-    setFavorites(prev => prev.filter(r => r.id !== recipeId))
     try {
       await client.delete(`/api/favorites/${recipeId}`)
     } catch {
