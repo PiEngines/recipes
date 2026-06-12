@@ -8,7 +8,7 @@ import { isKochOrAbove } from '../utils/roles'
 const HEART_OUTLINE_FILTER = [
   [1.4, 0], [-1.4, 0], [0, 1.4], [0, -1.4],
   [1, 1], [-1, 1], [1, -1], [-1, -1],
-].map(([x, y]) => `drop-shadow(${x}px ${y}px 0 #fff)`).join(' ')
+].map(([x, y]) => `drop-shadow(${x}px ${y}px 0 #fff)`).join(' ') + ' drop-shadow(0px 0px 3px rgba(0,0,0,0.6))'
 
 export default function FavoriteHeart({ recipeId, recipe, size = 20, outline = true, style = {} }) {
   const { user } = useAuth()
