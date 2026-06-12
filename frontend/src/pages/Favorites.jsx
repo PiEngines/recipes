@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import client from '../api/client'
 import { useFavorites } from '../context/FavoritesContext'
 import { RecipeCard, SkeletonCard } from './Recipes.jsx'
 
@@ -23,10 +24,25 @@ function EmptyFavoritesState() {
 
 export default function Favorites() {
   const { favorites, loading } = useFavorites()
+  const [primaryImages, setPrimaryImages] = useState({})
 
   useEffect(() => {
     document.title = 'Meine Favoriten – PiEngines Recipes'
   }, [])
+
+  useEffect(() => {
+    Promise.all(
+      favorites.filter(r => !r.deleted_at).map(r =>
+        client.get(`/api/media/entity/recipe/${r.id}`)
+          .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
+          .catch(() => ({ id: r.id, primary: null }))
+      )
+    ).then(results => {
+      const map = {}
+      results.forEach(({ id, primary }) => { map[id] = primary })
+      setPrimaryImages(map)
+    })
+  }, [favorites])
 
   return (
     <div data-track-id="favorites-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -41,7 +57,7 @@ export default function Favorites() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             {favorites.map(r => (
               <div key={r.id} data-track-id="favorites-recipe-card-click">
-                <RecipeCard recipe={r} primaryImage={null} />
+                <RecipeCard recipe={r} primaryImage={primaryImages[r.id] ?? null} />
               </div>
             ))}
           </div>
