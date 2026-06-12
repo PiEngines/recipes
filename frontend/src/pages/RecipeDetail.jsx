@@ -139,7 +139,7 @@ function HeroSection({ recipe, media, onImageClick }) {
           cursor: primary ? 'zoom-in' : 'default',
         }}
       >
-        <FavoriteHeart recipeId={recipe.id} size={24} outline={false} style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 3 }} />
+        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={24} outline={false} style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 3 }} />
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',

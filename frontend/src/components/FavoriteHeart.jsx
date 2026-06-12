@@ -10,7 +10,7 @@ const HEART_OUTLINE_FILTER = [
   [1, 1], [-1, 1], [1, -1], [-1, -1],
 ].map(([x, y]) => `drop-shadow(${x}px ${y}px 0 #fff)`).join(' ')
 
-export default function FavoriteHeart({ recipeId, size = 20, outline = true, style = {} }) {
+export default function FavoriteHeart({ recipeId, recipe, size = 20, outline = true, style = {} }) {
   const { user } = useAuth()
   const { favoriteIds, toggleFavorite } = useFavorites()
 
@@ -20,7 +20,7 @@ export default function FavoriteHeart({ recipeId, size = 20, outline = true, sty
 
   return (
     <button
-      onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(recipeId) }}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(recipeId, recipe) }}
       title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
       aria-label={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
       style={{

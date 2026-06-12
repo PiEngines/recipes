@@ -49,8 +49,9 @@ export function FavoritesProvider({ children }) {
     }
   }, [refresh])
 
-  const addFavorite = useCallback(async (recipeId) => {
+  const addFavorite = useCallback(async (recipeId, recipe) => {
     setFavoriteIds(prev => new Set(prev).add(recipeId))
+    setFavorites(prev => [...prev, recipe])
     try {
       await client.post(`/api/favorites/${recipeId}`)
       // Kein refresh() hier – der optimistische State-Update reicht.
@@ -61,12 +62,13 @@ export function FavoritesProvider({ children }) {
         next.delete(recipeId)
         return next
       })
+      setFavorites(prev => prev.filter(r => r.id !== recipeId))
     }
   }, [])
 
-  const toggleFavorite = useCallback((recipeId) => {
+  const toggleFavorite = useCallback((recipeId, recipe) => {
     if (favoriteIds.has(recipeId)) return removeFavorite(recipeId)
-    return addFavorite(recipeId)
+    return addFavorite(recipeId, recipe)
   }, [favoriteIds, removeFavorite, addFavorite])
 
   return (
