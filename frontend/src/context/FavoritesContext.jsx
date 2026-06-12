@@ -46,7 +46,7 @@ export function FavoritesProvider({ children }) {
 
   const addFavorite = useCallback(async (recipeId, recipe) => {
     setFavoriteIds(prev => new Set(prev).add(recipeId))
-    setFavorites(prev => [...prev, recipe])
+    setFavorites(prev => prev.some(r => r.id === recipeId) ? prev : [...prev, recipe])
     try {
       await client.post(`/api/favorites/${recipeId}`)
       // Kein refresh() hier – der optimistische State-Update reicht.
