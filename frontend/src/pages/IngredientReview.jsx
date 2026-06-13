@@ -39,7 +39,13 @@ export default function IngredientReview() {
 
   useEffect(() => {
     client.get(`/api/recipes/${id}`)
-      .then(({ data }) => setRecipe(data))
+      .then(({ data }) => {
+        setRecipe(data)
+        if (!data.steps || data.steps.length === 0) {
+          navigate(`/recipes/${data.id}`)
+          return
+        }
+      })
       .catch(() => navigate('/recipes'))
   }, [id, navigate])
 

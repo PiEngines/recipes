@@ -192,8 +192,8 @@ export default function Navbar() {
   // Debounce: write input to URL, navigate to / if needed
   useEffect(() => {
     const t = setTimeout(() => {
-      if (pathnameRef.current !== '/') {
-        if (inputValue) navigate(`/?q=${encodeURIComponent(inputValue)}`)
+      if (pathnameRef.current !== '/recipes') {
+        if (inputValue) navigate(`/recipes?q=${encodeURIComponent(inputValue)}`)
         return
       }
       setSearchParams(prev => {
