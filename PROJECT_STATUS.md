@@ -51,19 +51,40 @@
 
 ### 🔲 Offen – Modul-System (Konzept fertig, nicht implementiert)
 
+#### Konzept-Entscheidungen (für Claude Code)
+
+- **Modell:** Snapshot-Referenz, kein Fork. 1000 Einbindungen = 1000 Referenzen auf denselben Snapshot
+- **Einbinden:** immer ganzes Rezept, keine Teilgruppen (V1)
+- **Auslagern:** Button "Als eigenes Rezept auslagern" auf Gruppe → Gruppe wird im Original automatisch durch Modul-Referenz ersetzt
+- **Zusätzliche Zutaten:** manuelle Zutaten zusätzlich in einer Modul-Gruppe erlaubt (Modul ergänzen, nicht ersetzen)
+- **Schritte:** Modul-Schritte als Block anhängen, kein Mischen mit Hauptrezept-Schritten
+- **Schritte-Präfix:** nur Modul-Schritte bekommen Gruppenname als Präfix ("BBQ-Sauce: Schritt 1"), Hauptrezept-Schritte bleiben nummeriert wie bisher
+- **Skalierung:** `modul_menge * hauptrezept_portionen / modul_portionen`; Override A: `servings_override` (feste Portionszahl); Override B: `scale_factor` (Prozent-Eingabe im UI, Dezimalzahl im Backend, z.B. 80% → 0.8); wenn beide gesetzt: `servings_override` hat Vorrang, `scale_factor` wird zusätzlich angewendet
+- **Nicht-parsbare Mengen** (`nach Geschmack`, `etwas`, `1 Prise`): unverändert übernehmen, kein Flag, keine Warnung
+- **Bruch-Parsing:** Python `fractions.Fraction` + eigener String-Normalizer, keine externe Dependency
+- **Zirkelreferenz:** rekursive CTE, direkt + indirekt; Fehlermeldung: "Dieses Rezept kann nicht eingebunden werden – es ist bereits Bestandteil dieses Rezepts."
+- **Modul-Suche:** Freitext + Tag + Kategorie filterbar
+- **Autor-Anzeige:** bei Fremdmodulen Original-Autor verlinken → Link zur Rezeptliste gefiltert nach diesem Autor
+- **Rückverweise:** "Wird verwendet in X Rezepten" – nur COUNT, keine Liste
+
+#### Implementierungs-Tasks
+
 | Task | Priorität | Aufwand | Notiz |
 |---|---|---|---|
-| DB-Migration: `recipe_components` + `servings_override` + `referenced_version_id` | Hoch | Klein | Nächste wäre 0021 |
-| Backend: Zirkelreferenz-Prüfung (rekursive CTE PostgreSQL) | Hoch | Mittel | Direkt + indirekt |
-| Backend: Ingredient `amount` Bruch-Parsing (z.B. `1/2`) | Hoch | Mittel | Bibliothek oder eigene Logik |
-| Backend: Portionsskalierung (`modul_menge * hauptrezept / modul_portionen`) | Hoch | Mittel | Skalierung im Backend, nicht Frontend |
+| DB-Migration 0021: `recipe_components` + `servings_override` + `scale_factor` + `referenced_version_id` | Hoch | Klein | `scale_factor DECIMAL` neu hinzu |
+| Backend: Zirkelreferenz-Prüfung (rekursive CTE) | Hoch | Mittel | Direkt + indirekt |
+| Backend: Bruch-Parsing (`fractions.Fraction` + String-Normalizer) | Hoch | Mittel | Keine externe Dependency |
+| Backend: Portionsskalierung inkl. beide Overrides | Hoch | Mittel | Im Backend, nicht Frontend |
 | Backend: Snapshot beim Einbinden (RecipeVersion) | Hoch | Mittel | Nicht beim Speichern des Hauptrezepts |
-| API: `POST /api/recipes/:id/components` | Hoch | Mittel | Modul einbinden + Snapshot |
+| Backend: "Als eigenes Rezept auslagern" Endpunkt | Mittel | Mittel | Gruppe → eigenes Rezept + automatisch Modul-Referenz im Original |
+| API: `POST /api/recipes/:id/components` | Hoch | Mittel | Modul einbinden + Snapshot erstellen |
 | API: `GET /api/recipes/:id/used-in` | Niedrig | Klein | Nur COUNT zurückgeben |
-| API: `GET /api/recipes/search?as_module=true` | Mittel | Klein | Nur einbindbare Rezepte |
-| API: `GET /api/recipes/:id` erweitern | Hoch | Mittel | Snapshots auflösen + Skalierung |
-| Frontend: Modul-Toggle in Zutaten-Gruppe | Mittel | Groß | Dropdown + Suche + Portionen-Override |
-| Frontend: Modul-Zutaten + Schritte in Detailansicht | Mittel | Mittel | |
+| API: `GET /api/recipes/search?as_module=true` | Mittel | Klein | Filter: Freitext + Tag + Kategorie |
+| API: `GET /api/recipes/:id` erweitern | Hoch | Mittel | Snapshots auflösen + Skalierung anwenden |
+| Frontend: Modul-Toggle in Zutaten-Gruppe | Mittel | Groß | Dropdown mit Freitext + Tag + Kategorie + Portionen-Override + scale_factor |
+| Frontend: "Als eigenes Rezept auslagern"-Button auf Gruppe | Mittel | Mittel | |
+| Frontend: Modul-Zutaten + Schritte in Detailansicht | Mittel | Mittel | Schritte mit Gruppenname-Präfix |
+| Frontend: Autor-Link bei Fremdmodulen | Niedrig | Klein | Link → Rezeptliste gefiltert nach Autor |
 | Frontend: "Wird verwendet in X Rezepten" in Detailansicht | Niedrig | Klein | Nur Zahl, keine Liste |
 
 ---
@@ -76,6 +97,8 @@
 | Drag & Drop für Schritte | Voraussetzung für freie Modul-Schritt-Sortierung |
 | Foto-Upload vor erstem Speichern | Technische Lösung ausstehend |
 | Herzchen-Bug auf RDP | Favs-Context-Update, keine Bilder bei Favs |
+| Modul-System: Einzelne Gruppe direkt einbinden | Aktuell muss Gruppe erst als eigenes Rezept ausgelagert werden. Später: Gruppe direkt als Modul referenzieren ohne Auslagern |
+| Modul-System: Varianten-Gruppierung im Dropdown | Varianten desselben Rezepts gruppiert anzeigen – erst relevant wenn Fremdrezepte als Module häufig genutzt werden |
 
 ---
 
