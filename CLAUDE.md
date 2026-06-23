@@ -4,17 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**PiEngines Recipes** — a recipe database web app, accessible at `recipes.piengines.com`.
+PiEngines Recipes — a recipe database web app, accessible at `recipes.piengines.com`.
 
 ## Stack
 
-| Layer        | Technology                        |
-|--------------|-----------------------------------|
-| Backend      | Python 3.12, FastAPI, SQLAlchemy, Alembic |
-| Frontend     | React, Vite                       |
-| Database     | PostgreSQL 16                     |
-| Reverse Proxy| Caddy 2                           |
-| Container    | Docker Compose                    |
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12, FastAPI, SQLAlchemy, Alembic |
+| Frontend | React, Vite, Tailwind |
+| Database | PostgreSQL 16 |
+| Reverse Proxy | Caddy 2 |
+| Container | Docker Compose |
+| Runtime | Raspberry Pi 5, Cloudflare Tunnel |
+| Dev OS | Windows (D:\engines\recipes) |
 
 ## Running the project
 
@@ -41,10 +43,10 @@ All services run in an internal Docker network (`internal`). Only Caddy exposes 
 
 ```
 Internet → Caddy (80/443)
-              ├── /api/* → backend:8000  (FastAPI)
-              └── /*     → frontend:3000 (Vite build served via `serve`)
-                               ↑
-                             db:5432 (PostgreSQL) ← backend
+├── /api/* → backend:8000 (FastAPI)
+└── /* → frontend:3000 (Vite build served via `serve`)
+           ↑
+db:5432 (PostgreSQL) ← backend
 ```
 
 - **backend** (`./backend`) — FastAPI app, entry point `app.main:app`, port 8000
@@ -68,7 +70,36 @@ All variables are defined in `.env` (copy from `.env.example`). Key variables:
 ## Backend dependencies (requirements.txt)
 
 Notable packages beyond FastAPI/SQLAlchemy:
+
 - `alembic` — DB migrations
 - `python-jose[cryptography]` + `passlib[bcrypt]` — JWT auth and password hashing
 - `python-multipart` — file upload support
 - `Pillow` — image processing
+
+## Coding conventions
+
+### General
+- Saubere Lösungen vor schnellen Lösungen
+- Keine Änderungen außerhalb des Aufgabenscopes
+- Vor jedem größeren Teil: Umfang einschätzen, ggf. in a/b/c aufbrechen
+
+### Frontend
+- Alle neuen Komponenten bekommen `data-track-id` Attribute
+- Schema: `{seite}-{element}-{aktion}` (z.B. `recipe-form-submit`, `detail-favorite-toggle`)
+
+### Backend
+- Bei Analyse: konkrete `grep`-Befehle mitliefern
+- Migrations-Nummerierung: fortlaufend (aktuell bis 0020)
+
+### Deploy
+- Befehle immer vollständig ausgeben (lokal UND Pi, am Stück kopierbar)
+- Plattform beim Wechsel zwischen Pi/Lokal immer explizit kennzeichnen
+
+### Windows / PowerShell
+- Kein `-Recurse` bei `Select-String`
+- Stattdessen: `Get-ChildItem ... | Select-String`
+- Befehle immer einzeilig ausgeben (`;` als Trenner), sodass sie direkt einfügbar sind – nie mehrzeilig
+
+## Project status & backlog
+
+→ Siehe `PROJECT_STATUS.md` im Root des Repos
