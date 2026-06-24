@@ -79,6 +79,9 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 | Herzchen-Bug auf RDP | Favs-Context-Update, keine Bilder bei Favs |
 | Modul-System: Einzelne Gruppe direkt einbinden | Aktuell muss Gruppe erst ausgelagert werden. Später: direkt referenzieren ohne Auslagern |
 | Modul-System: Varianten-Gruppierung im Dropdown | Varianten desselben Rezepts gruppiert anzeigen – erst relevant wenn Fremdrezepte als Module häufig genutzt werden |
+| Medien-Upload Owner-Check | Sicherheitslücke: POST media/router.py hat keinen Owner-Check — jeder authentifizierte User kann Medien zu fremden Rezepten hochladen. PATCH/DELETE sind korrekt abgesichert. |
+| AdminUsers.jsx Frontend-Guards | Rollen-Dropdown, Delete, Restore für Chefkoch sichtbar, aber Backend blockiert (require_kuechenchef). Frontend-Guards fehlen. |
+| Module: kein Chefkoch-Override | modules/router.py prüft nur Owner, kein Rollen-Fallback für Chefkoch/Küchenchef bei einbinden/auslagern/entfernen. Wird mit Entwurf-Status-Task bereinigt. |
 
 ---
 
