@@ -16,16 +16,20 @@ from app.auth.dependencies import (
 )
 from app.database import get_db
 from app.matching import step_scanner
-from app.models import Category, Ingredient, Recipe, RecipeStep, Tag, User, UserRole
+from app.models import Category, Ingredient, Recipe, RecipeComponent, RecipeStep, RecipeVersion, Tag, User, UserRole
 from app.models.recipe import RecipeStatus, RecipeType
+from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.recipes import matching
 from app.recipes.schemas import (
+    AuthorResponse,
+    ComponentEmbedInfo,
     IngredientResponse,
     PaginatedRecipes,
     RecipeCreate,
     RecipeListItem,
     RecipeResponse,
+    RecipeStepResponse,
     RecipeUpdate,
     RematchResponse,
     StepIngredientIdsUpdate,
@@ -148,6 +152,7 @@ def list_recipes(
     author_id: int | None = Query(None),
     author: str | None = Query(None),
     type: str | None = Query(None),
+    as_module: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ):
@@ -211,6 +216,33 @@ def list_recipes(
                 raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
         else:
             q = q.filter(visible)
+
+    # When browsing for embeddable modules, restrict every authenticated user to
+    # own recipes + recipes shared with them — regardless of their role.
+    if as_module and current_user is not None:
+        free_sq_m = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.access_type == "free_for_all",
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        individual_sq_m = (
+            db.query(RecipeAccess.recipe_id)
+            .filter(
+                RecipeAccess.email == current_user.email,
+                RecipeAccess.declined_at.is_(None),
+                or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+            )
+            .subquery()
+        )
+        q = q.filter(
+            (Recipe.created_by == current_user.id)
+            | Recipe.id.in_(free_sq_m)
+            | Recipe.id.in_(individual_sq_m)
+        )
 
     if type is not None:
         try:
@@ -313,6 +345,151 @@ def list_trash(
     )
 
 
+# ── Module resolution ─────────────────────────────────────────────────────────
+
+def _build_module_response(
+    recipe: Recipe,
+    db: Session,
+    is_pending_review: bool,
+) -> RecipeResponse:
+    """Merge flat-module ingredients and steps into the parent recipe's response."""
+    flat_components = sorted(
+        [c for c in recipe.child_components if c.flatten_into_parent],
+        key=lambda c: c.sort_order,
+    )
+
+    base = RecipeResponse.model_validate(recipe)
+    if is_pending_review:
+        base = base.model_copy(update={"is_pending_review": True})
+
+    extra_ingredients: list[IngredientResponse] = []
+    extra_steps: list[RecipeStepResponse] = []
+    embed_infos: list[ComponentEmbedInfo] = []
+    module_author_map: dict[int, AuthorResponse] = {}
+    next_step_sort = max((s.sort_order for s in base.steps), default=0) + 1
+
+    for comp in flat_components:
+        module_title: str | None = None
+        module_servings: int | None = None
+        raw_ingredients: list[dict] = []
+        raw_steps: list[dict] = []
+        module_created_by: int | None = None
+        module_author_obj = None
+
+        if comp.referenced_version_id is not None:
+            version = db.get(RecipeVersion, comp.referenced_version_id)
+            if version:
+                snap = version.snapshot
+                module_title = snap.get("title", "Modul")
+                module_servings = snap.get("servings")
+                raw_ingredients = snap.get("ingredients", [])
+                raw_steps = snap.get("steps", [])
+                # Author info comes from the live child (created_by doesn't change)
+                child_for_author = db.get(Recipe, comp.child_recipe_id)
+                if child_for_author:
+                    module_created_by = child_for_author.created_by
+                    if child_for_author.created_by != recipe.created_by:
+                        module_author_obj = child_for_author.author
+
+        if module_title is None:
+            # Fallback: live child recipe
+            child = (
+                db.query(Recipe)
+                .options(
+                    joinedload(Recipe.author),
+                    joinedload(Recipe.ingredients),
+                    joinedload(Recipe.steps),
+                )
+                .filter(Recipe.id == comp.child_recipe_id)
+                .first()
+            )
+            if child is None:
+                continue
+            module_title = child.title
+            module_servings = child.servings
+            module_created_by = child.created_by
+            raw_ingredients = [
+                {
+                    "id": i.id, "name": i.name, "amount": i.amount,
+                    "unit": i.unit, "component_label": i.component_label,
+                    "sort_order": i.sort_order, "is_integer": i.is_integer,
+                }
+                for i in sorted(child.ingredients, key=lambda x: x.sort_order)
+            ]
+            raw_steps = [
+                {
+                    "id": s.id, "sort_order": s.sort_order, "title": s.title,
+                    "instruction": s.instruction, "timer_seconds": s.timer_seconds,
+                }
+                for s in sorted(child.steps, key=lambda x: x.sort_order)
+            ]
+            if child.created_by != recipe.created_by and child.author:
+                module_author_obj = child.author
+
+        if module_author_obj and module_created_by and module_created_by not in module_author_map:
+            module_author_map[module_created_by] = AuthorResponse.model_validate(module_author_obj)
+
+        embed_infos.append(ComponentEmbedInfo(
+            id=comp.child_recipe_id,
+            child_recipe_id=comp.child_recipe_id,
+            child_recipe_title=module_title,
+            sort_order=comp.sort_order,
+            servings_override=comp.servings_override,
+            scale_factor=float(comp.scale_factor) if comp.scale_factor is not None else None,
+        ))
+
+        parent_servings = recipe.servings or 1
+        module_servings_eff = module_servings or 1
+        sf = float(comp.scale_factor) if comp.scale_factor is not None else None
+
+        for ing in raw_ingredients:
+            amount = ing.get("amount")
+            if amount:
+                amount = scale_amount(
+                    amount,
+                    module_servings=module_servings_eff,
+                    parent_servings=parent_servings,
+                    servings_override=comp.servings_override,
+                    scale_factor=sf,
+                )
+            extra_ingredients.append(
+                IngredientResponse(
+                    id=ing["id"],
+                    name=ing["name"],
+                    amount=amount,
+                    unit=ing.get("unit"),
+                    component_label=ing.get("component_label") or module_title,
+                    sort_order=ing.get("sort_order", 0),
+                    is_integer=ing.get("is_integer", False),
+                )
+            )
+
+        for n, step in enumerate(
+            sorted(raw_steps, key=lambda s: s.get("sort_order", 0)), start=1
+        ):
+            extra_steps.append(
+                RecipeStepResponse(
+                    id=step["id"],
+                    sort_order=next_step_sort,
+                    title=f"{module_title}: Schritt {n}",
+                    instruction=step["instruction"],
+                    timer_seconds=step.get("timer_seconds"),
+                    timer_label=None,
+                    image_path=None,
+                    video_path=None,
+                    ingredient_ids=None,
+                )
+            )
+            next_step_sort += 1
+
+    return base.model_copy(update={
+        "ingredients": list(base.ingredients) + extra_ingredients,
+        "steps": list(base.steps) + extra_steps,
+        "module_authors": list(module_author_map.values()) or None,
+        "components": embed_infos,
+    })
+
+
 # ── Single ────────────────────────────────────────────────────────────────────
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
@@ -382,6 +559,7 @@ def get_recipe(
                 raise HTTPException(status_code=404, detail="Recipe not found")
 
     # Check if current user has pending-review access (recipient sees review flag)
+    is_pending_review = False
     if current_user and current_user.email:
         pending_access = (
             db.query(RecipeAccess)
@@ -393,10 +571,17 @@ def get_recipe(
             .first()
         )
         if pending_access:
-            return RecipeResponseSchema.model_validate(recipe).model_copy(
-                update={"is_pending_review": True}
-            )
+            is_pending_review = True
 
+    # Resolve flat modules if any — recipes without modules behave exactly as before.
+    flat_components = [c for c in recipe.child_components if c.flatten_into_parent]
+    if flat_components:
+        return _build_module_response(recipe, db, is_pending_review)
+
+    if is_pending_review:
+        return RecipeResponseSchema.model_validate(recipe).model_copy(
+            update={"is_pending_review": True}
+        )
     return recipe
 
 

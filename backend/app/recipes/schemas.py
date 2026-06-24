@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -153,6 +154,15 @@ class StepSuggestionAccept(BaseModel):
 
 # ── Recipe ────────────────────────────────────────────────────────────────────
 
+class ComponentEmbedInfo(BaseModel):
+    id: int
+    child_recipe_id: int
+    child_recipe_title: str
+    sort_order: int
+    servings_override: int | None
+    scale_factor: float | None
+
+
 class RecipeCreate(BaseModel):
     title: str
     description: str | None = None
@@ -236,7 +246,44 @@ class RecipeResponse(BaseModel):
     allergens: list[AllergenResponse]
     images: list[RecipeImageResponse]
     is_pending_review: bool = False
+    module_authors: list[AuthorResponse] | None = None
+    components: list[ComponentEmbedInfo] = []
     model_config = {"from_attributes": True}
+
+
+# ── Modules ───────────────────────────────────────────────────────────────────
+
+class ComponentCreate(BaseModel):
+    child_recipe_id: int
+    sort_order: int = 0
+    servings_override: Optional[int] = None
+    scale_factor: Optional[float] = Field(None, ge=0.1, le=10.0)
+
+
+class ComponentResponse(BaseModel):
+    parent_recipe_id: int
+    child_recipe_id: int
+    sort_order: int
+    flatten_into_parent: bool
+    servings_override: int | None
+    scale_factor: float | None
+    referenced_version_id: int | None
+    model_config = {"from_attributes": True}
+
+
+class UsedInResponse(BaseModel):
+    count: int
+
+
+class ExtractComponentBody(BaseModel):
+    component_label: str
+    new_recipe_title: str
+
+
+class ExtractComponentResponse(BaseModel):
+    new_recipe_id: int
+    new_recipe_title: str
+    component_id: int
 
 
 class PaginatedRecipes(BaseModel):

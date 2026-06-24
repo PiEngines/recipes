@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import ARRAY, Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import ARRAY, Boolean, Column, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -152,9 +152,13 @@ class RecipeComponent(Base):
     child_recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True)
     sort_order = Column(Integer, nullable=False, default=0)
     flatten_into_parent = Column(Boolean, nullable=False, default=False)
+    servings_override = Column(Integer, nullable=True)
+    scale_factor = Column(Numeric(precision=10, scale=4), nullable=True)
+    referenced_version_id = Column(Integer, ForeignKey("recipe_versions.id", ondelete="SET NULL"), nullable=True)
 
     parent_recipe = relationship("Recipe", foreign_keys=[parent_recipe_id], back_populates="child_components")
     child_recipe = relationship("Recipe", foreign_keys=[child_recipe_id], back_populates="parent_components")
+    referenced_version = relationship("RecipeVersion", foreign_keys=[referenced_version_id])
 
 
 class RecipeVersion(Base):

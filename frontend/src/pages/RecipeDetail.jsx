@@ -612,6 +612,7 @@ export default function RecipeDetail() {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxImages, setLightboxImages] = useState([])
   const [selectedIngredient, setSelectedIngredient] = useState(null)
+  const [usedIn, setUsedIn] = useState(null)
 
   const stepRefs = useRef({})
 
@@ -693,6 +694,14 @@ export default function RecipeDetail() {
     if (!recipe || !isKochOrAbove(user) || !canEdit) return
     client.get(`/api/recipes/${recipe.id}/access`, { params: { page: 1, page_size: 10 } })
       .then(({ data }) => setHasFreeAccess(data.items?.some(a => a.access_type === 'free_for_all') ?? false))
+      .catch(() => {})
+  }, [recipe?.id, user?.id])
+
+  // Fetch how often this recipe is used as a module (only for logged-in users)
+  useEffect(() => {
+    if (!recipe || !user) return
+    client.get(`/api/recipes/${recipe.id}/used-in`)
+      .then(res => setUsedIn(res.data.count))
       .catch(() => {})
   }, [recipe?.id, user?.id])
 
@@ -778,6 +787,25 @@ export default function RecipeDetail() {
           {/* Main */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
+
+            {user && usedIn > 0 && (
+              <div
+                data-track-id="detail-module-used-in"
+                style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--subtext)',
+                  marginBottom: '1rem',
+                  padding: '0.4rem 0.875rem',
+                  background: 'var(--card)',
+                  borderRadius: 'var(--radius-card)',
+                  boxShadow: 'var(--shadow)',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                Wird als Modul verwendet in {usedIn} {usedIn === 1 ? 'Rezept' : 'Rezepten'}
+              </div>
+            )}
+
             <MetaBar recipe={recipe} />
 
             {/* Freigaben verwalten (only for Koch and above) */}
@@ -816,6 +844,21 @@ export default function RecipeDetail() {
                 </>
               )}
             </div>
+
+            {/* Module author attribution (foreign modules only) */}
+            {recipe.module_authors?.filter(a => a.id !== user?.id).length > 0 && (
+              <div style={{ marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {recipe.module_authors.filter(a => a.id !== user?.id).map(author => (
+                  <div
+                    key={author.id}
+                    data-track-id="detail-module-author-link"
+                    style={{ fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Enthält Rezept von <AuthorLink author={author} />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Steps */}
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, margin: '0 0 1.25rem', color: 'var(--text)' }}>

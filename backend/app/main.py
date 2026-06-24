@@ -12,6 +12,7 @@ from app.categories.router import router as categories_router
 from app.config import settings
 from app.favorites.router import router as favorites_router
 from app.media.router import router as media_router
+from app.modules.router import router as modules_router
 from app.recipes.access_router import router as access_router
 from app.recipes.router import router as recipes_router
 from app.recipes.versions_router import router as versions_router
@@ -241,6 +242,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(recipes_router)
+app.include_router(modules_router)
 app.include_router(versions_router)
 app.include_router(access_router)
 app.include_router(categories_router)

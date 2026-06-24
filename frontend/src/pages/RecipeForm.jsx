@@ -41,8 +41,20 @@ function autoIsInteger(name) {
   const first = lower.split(/\s+/)[0]
   return IS_INTEGER_WORDS.has(lower) || IS_INTEGER_WORDS.has(first)
 }
-const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '', is_integer: false, _auto_int: true })
+const mkIng = () => ({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: '', name: '', amount: '', unit: '', is_integer: false, _auto_int: true, _module_recipe_id: null, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: false })
 const mkStep = () => ({ _key: `step_${Date.now()}_${Math.random()}`, dbId: null, title: '', instruction: '', timer_minutes: '', timer_label: '', timer_label_use_title: true })
+
+function groupIngsByLabel(ings) {
+  if (!ings.length) return []
+  const groups = []
+  let cur = { label: ings[0].component_label, items: [ings[0]] }
+  for (let i = 1; i < ings.length; i++) {
+    if (ings[i].component_label === cur.label) { cur.items.push(ings[i]) }
+    else { groups.push(cur); cur = { label: ings[i].component_label, items: [ings[i]] } }
+  }
+  groups.push(cur)
+  return groups
+}
 
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 
@@ -334,7 +346,7 @@ function UnitCombobox({ value, onChange }) {
 
 // ── IngredientRow ─────────────────────────────────────────────────────────────
 
-function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
+function IngredientRow({ item, index, total, onChange, onMove, onRemove, hideLabel }) {
   return (
     <div style={{ padding: '0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', marginBottom: '0.5rem' }}>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.4rem' }}>
@@ -342,9 +354,11 @@ function IngredientRow({ item, index, total, onChange, onMove, onRemove }) {
           <MoveBtn onClick={() => onMove(-1)} disabled={index === 0} title="Nach oben">↑</MoveBtn>
           <MoveBtn onClick={() => onMove(1)} disabled={index === total - 1} title="Nach unten">↓</MoveBtn>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <SmallInput value={item.component_label} onChange={v => onChange('component_label', v)} placeholder="Komponente (optional)" />
-        </div>
+        {!hideLabel && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <SmallInput value={item.component_label} onChange={v => onChange('component_label', v)} placeholder="Gruppe (optional)" />
+          </div>
+        )}
         <button onClick={onRemove} title="Entfernen" style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'none', border: '1.5px solid var(--border-input)', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>×</button>
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', paddingLeft: '3.5rem' }}>
@@ -541,6 +555,10 @@ export default function RecipeForm() {
   const [selectedTags, setSelectedTags] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
   const [steps, setSteps] = useState([mkStep()])
+  const [moduleSearch, setModuleSearch] = useState({})
+  const moduleSearchTimers = useRef({})
+  const [extractDialog, setExtractDialog] = useState(null)
+  const [extracting, setExtracting] = useState(false)
 
   // Media state (managed independently of recipe API payload)
   const [recipeMedia, setRecipeMedia] = useState([])
@@ -627,9 +645,41 @@ export default function RecipeForm() {
           type: r.type || 'kochen',
           selectedCats: r.categories,
           selectedTags: r.tags,
-          ingredients: ings.length
-            ? ings.map(i => ({ _key: `ing_${i.id}`, component_label: i.component_label || '', name: i.name, amount: i.amount || '', unit: i.unit || '', is_integer: (i.is_integer ?? false) || autoIsInteger(i.name), _auto_int: false }))
-            : [mkIng()],
+          ingredients: (() => {
+            if (!ings.length) return [mkIng()]
+            const compByTitle = {}
+            for (const comp of (r.components || [])) {
+              if (!compByTitle[comp.child_recipe_title]) compByTitle[comp.child_recipe_title] = comp
+            }
+            const mapped = ings.map(i => ({
+              _key: `ing_${i.id}`,
+              component_label: i.component_label || '',
+              name: i.name,
+              amount: i.amount || '',
+              unit: i.unit || '',
+              is_integer: (i.is_integer ?? false) || autoIsInteger(i.name),
+              _auto_int: false,
+              _module_recipe_id: null,
+              _module_component_id: null,
+              _servings_override: '',
+              _scale_factor: '',
+              _module_is_new: false,
+            }))
+            let curLabel = null
+            for (const ing of mapped) {
+              if (ing.component_label !== curLabel) {
+                curLabel = ing.component_label
+                const comp = curLabel ? compByTitle[curLabel] : null
+                if (comp) {
+                  ing._module_recipe_id = comp.child_recipe_id
+                  ing._module_component_id = comp.id
+                  ing._servings_override = comp.servings_override != null ? String(comp.servings_override) : ''
+                  ing._scale_factor = comp.scale_factor != null ? String(comp.scale_factor) : ''
+                }
+              }
+            }
+            return mapped
+          })(),
           steps: sps.length
             ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false, media: [] }))
             : [mkStep()],
@@ -681,9 +731,15 @@ export default function RecipeForm() {
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
       tag_ids: s.selectedTags.map(t => t.id),
-      ingredients: s.ingredients
-        .filter(i => i.name.trim())
-        .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
+      ingredients: (() => {
+        let curLabel = null, curIsModule = false
+        return s.ingredients
+          .filter(i => {
+            if (i.component_label !== curLabel) { curLabel = i.component_label; curIsModule = !!i._module_recipe_id }
+            return i.name.trim() && !curIsModule
+          })
+          .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false }))
+      })(),
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({
@@ -805,11 +861,32 @@ export default function RecipeForm() {
   // new recipes always go through it once; edits only if the ingredient list changed.
   const handleSaveAndMaybeReview = useCallback(async (targetStatus) => {
     const wasNew = !stateRef.current.recipeId
+    const capturedIngs = [...stateRef.current.ingredients]
     const prevNames = new Set(
-      stateRef.current.ingredients.filter(i => i.name.trim()).map(i => i.name.trim().toLowerCase())
+      capturedIngs.filter(i => i.name.trim()).map(i => i.name.trim().toLowerCase())
     )
     const data = await doSave(targetStatus)
     if (!data) return
+
+    let curLabel = null
+    for (const ing of capturedIngs) {
+      if (ing.component_label !== curLabel) {
+        curLabel = ing.component_label
+        if (ing._module_recipe_id && ing._module_is_new) {
+          try {
+            await client.post(`/api/recipes/${data.id}/components`, {
+              child_recipe_id: ing._module_recipe_id,
+              sort_order: 0,
+              servings_override: ing._servings_override ? parseInt(ing._servings_override) || null : null,
+              scale_factor: ing._scale_factor ? parseFloat(ing._scale_factor) || null : null,
+            })
+          } catch {
+            setToast('Ein Modul konnte nicht eingebunden werden.')
+          }
+        }
+      }
+    }
+
     if (wasNew) {
       navigate(`/recipes/${data.id}/review`)
       return
@@ -818,6 +895,31 @@ export default function RecipeForm() {
     const changed = newNames.size !== prevNames.size || [...newNames].some(n => !prevNames.has(n))
     if (changed) navigate(`/recipes/${data.id}/review`)
   }, [doSave, navigate])
+
+  const handleExtract = useCallback(async () => {
+    if (!extractDialog || extracting || !recipeId) return
+    setExtracting(true)
+    try {
+      const res = await client.post(`/api/recipes/${recipeId}/components/extract`, {
+        component_label: extractDialog.label,
+        new_recipe_title: extractDialog.title.trim() || 'Neue Zubereitung',
+      })
+      const { new_recipe_id, new_recipe_title, component_id } = res.data
+      const firstKey = extractDialog.firstKey
+      setIngredients(prev => {
+        const arr = [...prev]
+        const fi = arr.findIndex(i => i._key === firstKey)
+        if (fi >= 0) arr[fi] = { ...arr[fi], _module_recipe_id: new_recipe_id, _module_component_id: component_id, _module_is_new: false }
+        return arr
+      })
+      setToast(`'${new_recipe_title}' wurde als eigenes Rezept angelegt`)
+      setExtractDialog(null)
+    } catch (e) {
+      setToast(e.response?.data?.detail || 'Fehler beim Auslagern')
+    } finally {
+      setExtracting(false)
+    }
+  }, [extractDialog, extracting, recipeId])
 
   const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('draft') }
   const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('published') }
@@ -921,6 +1023,39 @@ export default function RecipeForm() {
         />
       )}
 
+      {/* Extract ingredient group dialog */}
+      {extractDialog && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.75rem', maxWidth: '400px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <p style={{ margin: '0 0 0.875rem', color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              Gruppe als eigenes Rezept auslagern?
+            </p>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.775rem', fontWeight: 600, color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Titel des neuen Rezepts</label>
+              <StyledInput
+                value={extractDialog.title}
+                onChange={v => setExtractDialog(prev => ({ ...prev, title: v }))}
+                placeholder="Titel …"
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button onClick={() => setExtractDialog(null)} style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
+                Abbrechen
+              </button>
+              <button
+                data-track-id="form-ingredient-group-extract-confirm"
+                onClick={handleExtract}
+                disabled={extracting || !extractDialog.title.trim()}
+                style={{ padding: '0.5rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: (extracting || !extractDialog.title.trim()) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (extracting || !extractDialog.title.trim()) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}
+              >
+                {extracting ? 'Wird ausgelagert …' : 'Auslagern'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky top bar */}
       <header style={{ position: 'sticky', top: '64px', zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1013,13 +1148,176 @@ export default function RecipeForm() {
 
         {/* 3. Zutaten */}
         <SectionCard title="Zutaten" icon="🥕">
-          {ingredients.map((ing, idx) => (
-            <IngredientRow key={ing._key} item={ing} index={idx} total={ingredients.length}
-              onChange={(field, val) => { setIngredients(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it)); markDirty() }}
-              onMove={dir => { setIngredients(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-              onRemove={() => { setIngredients(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-            />
-          ))}
+          {groupIngsByLabel(ingredients).map(group => {
+            const firstIng = group.items[0]
+            const firstIdx = ingredients.findIndex(i => i._key === firstIng._key)
+            const isModule = !!firstIng._module_recipe_id
+            const srch = moduleSearch[firstIng._key] || {}
+
+            return (
+              <div key={firstIng._key} style={{ marginBottom: '0.75rem', ...(isModule ? { borderLeft: '3px solid #C8602A', paddingLeft: '0.75rem', borderRadius: '0 var(--radius-input) var(--radius-input) 0' } : {}) }}>
+                {/* Group header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <SmallInput
+                      value={group.label}
+                      onChange={v => {
+                        const oldLabel = firstIng.component_label
+                        const firstKey = firstIng._key
+                        setIngredients(prev => {
+                          const arr = [...prev]
+                          const si = arr.findIndex(x => x._key === firstKey)
+                          if (si < 0) return arr
+                          for (let i = si; i < arr.length; i++) {
+                            if (i > si && arr[i].component_label !== oldLabel) break
+                            arr[i] = { ...arr[i], component_label: v }
+                          }
+                          return arr
+                        })
+                        markDirty()
+                      }}
+                      placeholder="Gruppe (optional)"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (isModule) {
+                        if (firstIng._module_component_id) {
+                          client.delete(`/api/recipes/${recipeId}/components/${firstIng._module_component_id}`)
+                            .catch(() => setToast('Modul konnte nicht entfernt werden.'))
+                        }
+                        setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _module_recipe_id: null, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: false } : it))
+                        markDirty()
+                      } else if (srch.open) {
+                        setModuleSearch(prev => { const n = { ...prev }; delete n[firstIng._key]; return n })
+                      } else {
+                        setModuleSearch(prev => ({ ...prev, [firstIng._key]: { query: '', results: [], open: true, loading: false } }))
+                      }
+                    }}
+                    style={{ padding: '0.25rem 0.625rem', border: `1.5px solid ${isModule ? '#C8602A' : (srch.open ? 'var(--accent)' : 'var(--border-input)')}`, borderRadius: 'var(--radius-pill)', background: isModule ? 'rgba(200,96,42,0.1)' : 'none', color: isModule ? '#C8602A' : (srch.open ? 'var(--accent)' : 'var(--subtext)'), cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, transition: 'var(--transition)' }}
+                  >
+                    {isModule ? '🔗 Modul' : (srch.open ? '✕ Schließen' : 'Als Modul')}
+                  </button>
+                  {!isModule && (
+                    <button
+                      data-track-id="form-ingredient-group-extract"
+                      onClick={() => {
+                        if (!recipeId) return
+                        setExtractDialog({ firstKey: firstIng._key, label: group.label, title: group.label || 'Neue Zubereitung' })
+                      }}
+                      disabled={!recipeId}
+                      title={!recipeId ? 'Speichere das Rezept zuerst' : 'Als eigenes Rezept auslagern'}
+                      style={{ padding: '0.25rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: recipeId ? 'var(--subtext)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, transition: 'var(--transition)' }}
+                    >
+                      Auslagern
+                    </button>
+                  )}
+                </div>
+
+                {/* Module settings (when already linked) */}
+                {isModule && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                    <input
+                      type="number" min="1"
+                      value={firstIng._servings_override}
+                      onChange={e => { setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _servings_override: e.target.value } : it)); markDirty() }}
+                      placeholder="Portionen-Override"
+                      style={{ flex: 1, padding: '0.45rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', minWidth: 0 }}
+                    />
+                    <input
+                      type="number" min="0.1" max="10" step="0.1"
+                      value={firstIng._scale_factor}
+                      onChange={e => { setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _scale_factor: e.target.value } : it)); markDirty() }}
+                      placeholder="Skalierungsfaktor"
+                      style={{ flex: 1, padding: '0.45rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', minWidth: 0 }}
+                    />
+                  </div>
+                )}
+
+                {/* Module search (when toggled, not yet linked) */}
+                {!isModule && srch.open && (
+                  <div style={{ marginBottom: '0.35rem', position: 'relative' }}>
+                    <SmallInput
+                      value={srch.query || ''}
+                      onChange={v => {
+                        const key = firstIng._key
+                        setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], query: v } }))
+                        clearTimeout(moduleSearchTimers.current[key])
+                        if (!v.trim()) {
+                          setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], results: [], loading: false } }))
+                          return
+                        }
+                        setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], loading: true } }))
+                        moduleSearchTimers.current[key] = setTimeout(async () => {
+                          try {
+                            const res = await client.get('/api/recipes', { params: { as_module: true, search: v.trim(), search_scope: 'title', page_size: 8 } })
+                            setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], results: res.data.items || [], loading: false } }))
+                          } catch {
+                            setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], loading: false } }))
+                          }
+                        }, 300)
+                      }}
+                      placeholder="Modul-Rezept suchen …"
+                    />
+                    {(srch.loading || (srch.results || []).length > 0 || (srch.query && !srch.loading)) && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 100, maxHeight: '180px', overflowY: 'auto' }}>
+                        {srch.loading && <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)' }}>Suche …</div>}
+                        {(srch.results || []).map((r, ri) => (
+                          <button
+                            key={r.id}
+                            onMouseDown={e => {
+                              e.preventDefault()
+                              const oldLabel = group.label
+                              const firstKey = firstIng._key
+                              setIngredients(prev => {
+                                const arr = [...prev]
+                                const si = arr.findIndex(x => x._key === firstKey)
+                                if (si < 0) return arr
+                                for (let i = si; i < arr.length; i++) {
+                                  if (i > si && arr[i].component_label !== oldLabel) break
+                                  arr[i] = { ...arr[i], component_label: r.title }
+                                  if (i === si) arr[i] = { ...arr[i], _module_recipe_id: r.id, _module_component_id: null, _module_is_new: true }
+                                }
+                                return arr
+                              })
+                              setModuleSearch(prev => { const n = { ...prev }; delete n[firstKey]; return n })
+                              markDirty()
+                            }}
+                            style={{ width: '100%', padding: '0.4rem 0.75rem', background: 'none', border: 'none', borderTop: ri > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+                          >
+                            <span>{r.title}</span>
+                            {r.servings && <span style={{ color: 'var(--subtext)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>{r.servings} Port.</span>}
+                          </button>
+                        ))}
+                        {!srch.loading && srch.query && !(srch.results || []).length && (
+                          <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)' }}>Keine Ergebnisse</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Ingredient rows */}
+                {group.items.map(ing => {
+                  const idx = ingredients.findIndex(i => i._key === ing._key)
+                  return (
+                    <IngredientRow
+                      key={ing._key}
+                      item={ing}
+                      index={idx}
+                      total={ingredients.length}
+                      hideLabel
+                      onChange={(field, val) => { setIngredients(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it)); markDirty() }}
+                      onMove={dir => { setIngredients(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+                      onRemove={() => { setIngredients(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+                    />
+                  )
+                })}
+              </div>
+            )
+          })}
           <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>+ Zutat hinzufügen</AddRowBtn>
         </SectionCard>
 
