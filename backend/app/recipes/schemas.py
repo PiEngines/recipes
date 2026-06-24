@@ -96,6 +96,7 @@ class RecipeStepResponse(BaseModel):
     image_path: str | None
     video_path: str | None
     ingredient_ids: list[int] | None
+    is_module_step: bool = False
     model_config = {"from_attributes": True}
 
 

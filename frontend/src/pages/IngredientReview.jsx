@@ -40,8 +40,9 @@ export default function IngredientReview() {
   useEffect(() => {
     client.get(`/api/recipes/${id}`)
       .then(({ data }) => {
-        setRecipe(data)
-        if (!data.steps || data.steps.length === 0) {
+        const ownSteps = (data.steps || []).filter(s => !s.is_module_step)
+        setRecipe({ ...data, steps: ownSteps })
+        if (ownSteps.length === 0) {
           navigate(`/recipes/${data.id}`)
           return
         }

@@ -478,6 +478,7 @@ def _build_module_response(
                     image_path=None,
                     video_path=None,
                     ingredient_ids=None,
+                    is_module_step=True,
                 )
             )
             next_step_sort += 1
