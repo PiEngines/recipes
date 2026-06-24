@@ -651,34 +651,48 @@ export default function RecipeForm() {
             for (const comp of (r.components || [])) {
               if (!compByTitle[comp.child_recipe_title]) compByTitle[comp.child_recipe_title] = comp
             }
-            const mapped = ings.map(i => ({
-              _key: `ing_${i.id}`,
-              component_label: i.component_label || '',
-              name: i.name,
-              amount: i.amount || '',
-              unit: i.unit || '',
-              is_integer: (i.is_integer ?? false) || autoIsInteger(i.name),
-              _auto_int: false,
-              _module_recipe_id: null,
-              _module_component_id: null,
-              _servings_override: '',
-              _scale_factor: '',
-              _module_is_new: false,
-            }))
-            let curLabel = null
-            for (const ing of mapped) {
-              if (ing.component_label !== curLabel) {
-                curLabel = ing.component_label
-                const comp = curLabel ? compByTitle[curLabel] : null
-                if (comp) {
-                  ing._module_recipe_id = comp.child_recipe_id
-                  ing._module_component_id = comp.id
-                  ing._servings_override = comp.servings_override != null ? String(comp.servings_override) : ''
-                  ing._scale_factor = comp.scale_factor != null ? String(comp.scale_factor) : ''
+            const moduleTitles = new Set(Object.keys(compByTitle))
+            const seenModuleLabels = new Set()
+            const mapped = []
+            for (const i of ings) {
+              const label = i.component_label || ''
+              if (moduleTitles.has(label)) {
+                if (!seenModuleLabels.has(label)) {
+                  seenModuleLabels.add(label)
+                  const comp = compByTitle[label]
+                  mapped.push({
+                    _key: `mod_${comp.child_recipe_id}`,
+                    component_label: label,
+                    name: label,
+                    amount: '',
+                    unit: '',
+                    is_integer: false,
+                    _auto_int: false,
+                    _module_recipe_id: comp.child_recipe_id,
+                    _module_component_id: comp.id,
+                    _servings_override: comp.servings_override != null ? String(comp.servings_override) : '',
+                    _scale_factor: comp.scale_factor != null ? String(comp.scale_factor) : '',
+                    _module_is_new: false,
+                  })
                 }
+              } else {
+                mapped.push({
+                  _key: `ing_${i.id}`,
+                  component_label: label,
+                  name: i.name,
+                  amount: i.amount || '',
+                  unit: i.unit || '',
+                  is_integer: (i.is_integer ?? false) || autoIsInteger(i.name),
+                  _auto_int: false,
+                  _module_recipe_id: null,
+                  _module_component_id: null,
+                  _servings_override: '',
+                  _scale_factor: '',
+                  _module_is_new: false,
+                })
               }
             }
-            return mapped
+            return mapped.length ? mapped : [mkIng()]
           })(),
           steps: sps.length
             ? sps.map(s => ({ _key: `step_${s.id}`, dbId: s.id, title: s.title || '', instruction: s.instruction, timer_minutes: s.timer_seconds ? String(Math.round(s.timer_seconds / 60)) : '', timer_label: s.timer_label || '', timer_label_use_title: false, media: [] }))
