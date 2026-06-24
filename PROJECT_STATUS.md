@@ -66,6 +66,7 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 | DB: `form_expert_mode BOOLEAN DEFAULT false` auf User-Tabelle | Mittel | Klein | Unklar ob in Migration 0006 enthalten – prüfen! |
 | Zutaten-Block: Info-Icon + Tooltip | Niedrig | Klein | |
 | Zutaten-Block: Immer mit 1 Gruppe öffnen, Gruppenname optional | Mittel | Klein | |
+| Zutaten: Mengenfeld-Validierung | Mittel | Klein | Nur Frontend. Erlaubt: ganze Zahlen, Dezimalzahlen (0.5), Brüche (1/2, ¾), Bereiche (2-3). Alles andere ablehnen. Backend-Validierung nicht nötig solange kein direkter API-Zugriff. |
 
 ---
 
