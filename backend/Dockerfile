@@ -9,8 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements-dev.txt .
 ARG DEV=false
+RUN pip install --no-cache-dir -r requirements.txt
 RUN if [ "$DEV" = "true" ]; then pip install --no-cache-dir -r requirements-dev.txt; fi
 
 
