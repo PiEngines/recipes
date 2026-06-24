@@ -11,6 +11,17 @@
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
 
+## Claude-Zugriff auf den Code
+
+Claude (claude.ai) kann den Code direkt via Browser-Plugin lesen:
+- Tool: "Claude in Chrome" (Browser-Plugin, muss verbunden sein)
+- Methode: `get_page_text` auf GitHub-Seiten liefert echten Text, kein Bild
+- Repo: https://github.com/PiEngines/recipes
+- Workflow: Claude navigiert selbst zu Dateien und liest sie — kein CC als Zwischenstufe für Analysen nötig
+
+Voraussetzung: Browser mit GitHub-Tab offen und Plugin aktiv.
+Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbunden ist.
+
 ---
 
 ## Aktueller Stand
