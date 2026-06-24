@@ -745,15 +745,9 @@ export default function RecipeForm() {
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
       tag_ids: s.selectedTags.map(t => t.id),
-      ingredients: (() => {
-        let curLabel = null, curIsModule = false
-        return s.ingredients
-          .filter(i => {
-            if (i.component_label !== curLabel) { curLabel = i.component_label; curIsModule = !!i._module_recipe_id }
-            return i.name.trim() && !curIsModule
-          })
-          .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false }))
-      })(),
+      ingredients: s.ingredients
+          .filter(i => i.name.trim() && !i._module_recipe_id)
+          .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
       steps: s.steps
         .filter(st => st.instruction.trim())
         .map((st, idx) => ({
