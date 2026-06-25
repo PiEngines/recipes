@@ -424,7 +424,6 @@ export default function AdminRecipes() {
                                 von {r.author.name}
                               </span>
                             )}
-                            <RecipeStatusBadge status={r.status} reviewStatus={r.review_status} />
                             {isFree && (
                               <span style={{ fontSize: '0.72rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                                 🌍 Öffentlich
@@ -603,18 +602,6 @@ export default function AdminRecipes() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-
-function RecipeStatusBadge({ status, reviewStatus }) {
-  if (reviewStatus === 'pending') {
-    return <span style={{ background: 'rgba(200,160,32,0.15)', color: '#A68000', borderRadius: '6px', padding: '0.2rem 0.625rem', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Inter, sans-serif' }}>In Prüfung</span>
-  }
-  const colors = {
-    published: { bg: 'rgba(107,124,78,0.15)', color: '#4A7040' },
-    draft: { bg: 'rgba(107,107,107,0.12)', color: '#6B6B68' },
-  }
-  const c = colors[status] || colors.draft
-  return <span style={{ background: c.bg, color: c.color, borderRadius: '6px', padding: '0.2rem 0.625rem', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'Inter, sans-serif' }}>{status === 'published' ? 'Veröffentlicht' : 'Entwurf'}</span>
-}
 
 function ActionBtn({ onClick, children, danger }) {
   const [hov, setHov] = useState(false)

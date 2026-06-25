@@ -171,7 +171,7 @@ class RecipeCreate(BaseModel):
     cook_time: int | None = None
     servings: int | None = None
     difficulty: int | None = Field(None, ge=1, le=5)
-    status: RecipeStatus = RecipeStatus.draft
+    status: RecipeStatus = RecipeStatus.published
     type: RecipeType = RecipeType.kochen
     source: str | None = None
     category_ids: list[int] = []

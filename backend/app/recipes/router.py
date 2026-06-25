@@ -17,7 +17,7 @@ from app.auth.dependencies import (
 from app.database import get_db
 from app.matching import step_scanner
 from app.models import Category, Ingredient, Recipe, RecipeComponent, RecipeStep, RecipeVersion, Tag, User, UserRole
-from app.models.recipe import RecipeStatus, RecipeType
+from app.models.recipe import RecipeType
 from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.recipes import matching
@@ -146,7 +146,6 @@ def list_recipes(
     page_size: int = Query(20, ge=1, le=100),
     category: int | None = Query(None),
     tag: int | None = Query(None),
-    status_filter: str | None = Query(None, alias="status"),
     search: str | None = Query(None),
     search_scope: str = Query("title"),
     author_id: int | None = Query(None),
@@ -176,12 +175,7 @@ def list_recipes(
         q = q.filter(Recipe.id.in_(free_sq))
 
     elif current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
-        # Küchenchef + Chefkoch sees everything
-        if status_filter is not None:
-            try:
-                q = q.filter(Recipe.status == RecipeStatus(status_filter))
-            except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
+        pass  # Küchenchef + Chefkoch sees everything
 
     else:
         # Koch / Küchenhilfe: own + free_for_all + individual access
@@ -208,14 +202,7 @@ def list_recipes(
             | Recipe.id.in_(free_sq)
             | Recipe.id.in_(individual_sq)
         )
-        if status_filter is not None:
-            try:
-                sf = RecipeStatus(status_filter)
-                q = q.filter(visible & (Recipe.status == sf))
-            except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid status '{status_filter}'")
-        else:
-            q = q.filter(visible)
+        q = q.filter(visible)
 
     # When browsing for embeddable modules, restrict every authenticated user to
     # own recipes + recipes shared with them — regardless of their role.
@@ -598,7 +585,7 @@ def get_step_ingredients(
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    if recipe.status != RecipeStatus.published and current_user is None:
+    if current_user is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     step = (
@@ -961,24 +948,6 @@ def delete_recipe(
     recipe.deleted_at = datetime.now(timezone.utc)
     db.commit()
     return {"detail": "Rezept wurde in den Papierkorb verschoben"}
-
-
-# ── Status toggle ─────────────────────────────────────────────────────────────
-
-@router.patch("/{recipe_id}/status", response_model=RecipeResponse)
-def toggle_status(
-    recipe_id: int,
-    db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
-):
-    recipe = _get_or_404(recipe_id, db)
-    recipe.status = (
-        RecipeStatus.published
-        if recipe.status == RecipeStatus.draft
-        else RecipeStatus.draft
-    )
-    db.commit()
-    return _load_full(recipe_id, db)
 
 
 # ── Restore / Permanent delete ────────────────────────────────────────────────

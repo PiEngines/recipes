@@ -340,10 +340,9 @@ export default function Profile() {
                         <Link to={`/recipes/${r.id}`} style={{ color: 'var(--text)', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500 }}>
                           {r.title}
                         </Link>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                          {r.status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
-                          {r.review_status === 'pending' && <span style={{ marginLeft: '0.4rem', color: '#A68000' }}>· In Prüfung</span>}
-                        </div>
+                        {r.review_status === 'pending' && (
+                          <div style={{ fontSize: '0.75rem', color: '#A68000', fontFamily: 'Inter, sans-serif' }}>In Prüfung</div>
+                        )}
                         {isFree && (
                           <span style={{ fontSize: '0.72rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: '5px', padding: '0.15rem 0.5rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
                             🌍 Öffentlich

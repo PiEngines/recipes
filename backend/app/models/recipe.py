@@ -15,7 +15,6 @@ from app.models.associations import (
 
 
 class RecipeStatus(str, enum.Enum):
-    draft = "draft"
     published = "published"
 
 
@@ -34,7 +33,7 @@ class Recipe(Base):
     cook_time = Column(Integer)
     servings = Column(Integer)
     difficulty = Column(Integer)  # 1–5
-    status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.draft)
+    status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.published)
     type = Column(String(10), nullable=False, default=RecipeType.kochen.value)
     source = Column(String(500))
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)

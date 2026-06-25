@@ -549,7 +549,6 @@ export default function RecipeForm() {
   const [servings, setServings] = useState('')
   const [difficulty, setDifficulty] = useState(3)
   const [source, setSource] = useState('')
-  const [status, setStatus] = useState('draft')
   const [type, setType] = useState('kochen')
   const [selectedCats, setSelectedCats] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
@@ -578,7 +577,7 @@ export default function RecipeForm() {
   useEffect(() => {
     stateRef.current = {
       title, description, prepTime, cookTime, servings,
-      difficulty, source, status, type,
+      difficulty, source, type,
       selectedCats, selectedTags,
       ingredients, steps,
       recipeId,
@@ -617,7 +616,6 @@ export default function RecipeForm() {
     setServings(snap.servings)
     setDifficulty(snap.difficulty)
     setSource(snap.source)
-    setStatus(snap.status)
     setType(snap.type)
     setSelectedCats(snap.selectedCats)
     setSelectedTags(snap.selectedTags)
@@ -641,7 +639,6 @@ export default function RecipeForm() {
           servings: r.servings != null ? String(r.servings) : '',
           difficulty: r.difficulty ?? 5,
           source: r.source || '',
-          status: r.status,
           type: r.type || 'kochen',
           selectedCats: r.categories,
           selectedTags: r.tags,
@@ -731,7 +728,7 @@ export default function RecipeForm() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build API payload from stateRef
-  const buildPayload = useCallback((targetStatus) => {
+  const buildPayload = useCallback(() => {
     const s = stateRef.current
     return {
       title: s.title,
@@ -740,7 +737,7 @@ export default function RecipeForm() {
       cook_time: s.cookTime !== '' ? parseInt(s.cookTime) : null,
       servings: s.servings !== '' ? parseInt(s.servings) : null,
       difficulty: s.difficulty || null,
-      status: targetStatus ?? s.status,
+      status: 'published',
       type: s.type,
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
@@ -767,10 +764,10 @@ export default function RecipeForm() {
     if (!s.title.trim()) return null
     if (savingRef.current) return null
     savingRef.current = true
-    setSavingAs(targetStatus ?? s.status)
+    setSavingAs('published')
     setSaveError(null)
     try {
-      const payload = buildPayload(targetStatus)
+      const payload = buildPayload()
       let result
       const rid = s.recipeId
       if (rid) {
@@ -783,16 +780,9 @@ export default function RecipeForm() {
         stateRef.current.recipeId = newId
         navigate(`/recipes/${newId}/edit`, { replace: true })
       }
-      if (targetStatus) { setStatus(targetStatus); stateRef.current.status = targetStatus }
       setSavedAt(new Date())
       setIsDirty(false)
-      if (targetStatus) {
-        const wasPublished = s.status === 'published'
-        const toastMsg = targetStatus === 'draft'
-          ? (wasPublished ? 'Rezept zurückgezogen' : 'Als Entwurf gespeichert')
-          : (wasPublished ? 'Änderungen gespeichert' : 'Veröffentlicht')
-        setToast(toastMsg)
-      }
+      if (!skipVersion) setToast('Gespeichert')
       // Map DB step IDs back into form state
       const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
       setSteps(prev => {
@@ -867,13 +857,13 @@ export default function RecipeForm() {
 
   // After saving, route to the ingredient-matching review flow when needed:
   // new recipes always go through it once; edits only if the ingredient list changed.
-  const handleSaveAndMaybeReview = useCallback(async (targetStatus) => {
+  const handleSaveAndMaybeReview = useCallback(async () => {
     const wasNew = !stateRef.current.recipeId
     const capturedIngs = [...stateRef.current.ingredients]
     const prevNames = new Set(
       capturedIngs.filter(i => i.name.trim()).map(i => i.name.trim().toLowerCase())
     )
-    const data = await doSave(targetStatus)
+    const data = await doSave()
     if (!data) return
 
     let curLabel = null
@@ -929,8 +919,7 @@ export default function RecipeForm() {
     }
   }, [extractDialog, extracting, recipeId])
 
-  const handleDraft = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('draft') }
-  const handlePublish = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview('published') }
+  const handleSave = async () => { if (savingRef.current || !title.trim()) return; await handleSaveAndMaybeReview() }
 
   const handleReviewClick = () => {
     if (!recipeId) return
@@ -941,7 +930,7 @@ export default function RecipeForm() {
   const handleReviewSaveAndGo = async () => {
     setShowReviewDialog(false)
     if (savingRef.current || !title.trim()) return
-    const data = await doSave(undefined)
+    const data = await doSave()
     if (data) navigate(`/recipes/${data.id}/review`)
   }
 
@@ -1134,15 +1123,9 @@ export default function RecipeForm() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><FieldLabel>Quelle / Inspiration</FieldLabel><StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" /></div>
-            <div>
-              <FieldLabel>Status</FieldLabel>
-              <button onClick={() => { setStatus(s => s === 'draft' ? 'published' : 'draft'); markDirty() }} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${status === 'published' ? 'var(--secondary)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: status === 'published' ? 'rgba(107,124,78,0.08)' : 'transparent', color: status === 'published' ? 'var(--secondary)' : 'var(--subtext)', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textAlign: 'left', transition: 'var(--transition)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: status === 'published' ? 'var(--secondary)' : 'var(--border-input)', display: 'inline-block', flexShrink: 0 }} />
-                {status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
-              </button>
-            </div>
+          <div>
+            <FieldLabel>Quelle / Inspiration</FieldLabel>
+            <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
           </div>
         </SectionCard>
 
@@ -1390,14 +1373,10 @@ export default function RecipeForm() {
           </button>
         )}
 
-        <button onClick={handleDraft} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: (savingAs || !title.trim() || !isDirty) ? 'var(--subtext)' : 'var(--text)', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}>
-          {savingAs === 'draft' ? 'Wird gespeichert …' : status === 'published' ? 'Als Entwurf zurückziehen' : 'Als Entwurf speichern'}
-        </button>
-
-        <button onClick={handlePublish} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}
+        <button onClick={handleSave} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}
           onMouseEnter={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent-hover)' }}
           onMouseLeave={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent)' }}>
-          {savingAs === 'published' ? 'Wird gespeichert …' : status === 'published' ? 'Änderungen speichern' : 'Veröffentlichen'}
+          {savingAs ? 'Wird gespeichert …' : 'Speichern'}
         </button>
         </div>
       </div>

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
 from app.database import get_db
-from app.models import Ingredient, Recipe, RecipeComponent, User
+from app.models import Ingredient, Recipe, RecipeComponent, User, UserRole
 from app.models.recipe import RecipeStatus
 from app.modules.service import embed_module
 from app.recipes.schemas import (
@@ -16,6 +16,13 @@ from app.recipes.schemas import (
 )
 
 router = APIRouter(prefix="/api/recipes", tags=["modules"])
+
+_CHEF_ROLES = (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
+
+
+def _check_recipe_access(recipe: Recipe, user: User) -> None:
+    if recipe.created_by != user.id and user.role not in _CHEF_ROLES:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
 
 
 @router.post(
@@ -32,8 +39,7 @@ def add_component(
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
-    if recipe.created_by != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+    _check_recipe_access(recipe, current_user)
 
     component = embed_module(
         db=db,
@@ -65,8 +71,7 @@ def extract_component(
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
-    if recipe.created_by != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+    _check_recipe_access(recipe, current_user)
 
     if body.component_label:
         group_ings = (
@@ -99,7 +104,7 @@ def extract_component(
             title=body.new_recipe_title,
             created_by=current_user.id,
             author_id=current_user.id,
-            status=RecipeStatus.draft,
+            status=RecipeStatus.published,
             type=recipe.type,
         )
         db.add(new_recipe)
@@ -153,8 +158,7 @@ def remove_component(
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
-    if recipe.created_by != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Zugriff verweigert")
+    _check_recipe_access(recipe, current_user)
 
     component = db.query(RecipeComponent).filter(
         RecipeComponent.parent_recipe_id == recipe_id,
