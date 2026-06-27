@@ -313,6 +313,22 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
 
 // ── Ingredient sidebar (desktop) ──────────────────────────────────────────────
 
+const adjBtn = {
+  width: '28px', height: '28px', borderRadius: '50%',
+  border: '1.5px solid var(--border-input)', background: 'none',
+  cursor: 'pointer', fontSize: '1rem', color: 'var(--text)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  flexShrink: 0,
+  fontFamily: 'Inter, sans-serif',
+}
+
+const adjBtnDisabled = {
+  ...adjBtn,
+  cursor: 'default',
+  opacity: 0.4,
+  color: 'var(--subtext)',
+}
+
 function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, view, onViewChange, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
   const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
@@ -376,22 +392,6 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
       />
     </aside>
   )
-}
-
-const adjBtn = {
-  width: '28px', height: '28px', borderRadius: '50%',
-  border: '1.5px solid var(--border-input)', background: 'none',
-  cursor: 'pointer', fontSize: '1rem', color: 'var(--text)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  flexShrink: 0,
-  fontFamily: 'Inter, sans-serif',
-}
-
-const adjBtnDisabled = {
-  ...adjBtn,
-  cursor: 'default',
-  opacity: 0.4,
-  color: 'var(--subtext)',
 }
 
 // ── Mobile ingredient panel (left pull-tab + left slide panel) ────────────────
