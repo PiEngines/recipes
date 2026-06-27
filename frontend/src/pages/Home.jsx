@@ -35,15 +35,17 @@ function imgSrc(img) {
   return img?.thumbnail_url || img?.url || null
 }
 
-function loadMediaBatch(ids, setImages) {
-  ids.forEach(id => {
-    client.get(`/api/media/entity/recipe/${id}`)
-      .then(({ data }) => {
-        const imgs = data.filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
-        const p = imgs.find(m => m.is_primary) ?? imgs[0] ?? null
-        setImages(prev => ({ ...prev, [id]: p }))
-      })
-      .catch(() => {})
+function loadPrimaryImages(items, setImages) {
+  return Promise.all(
+    items.map(r =>
+      client.get(`/api/media/entity/recipe/${r.id}`)
+        .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
+        .catch(() => ({ id: r.id, primary: null }))
+    )
+  ).then(results => {
+    const map = {}
+    results.forEach(({ id, primary }) => { map[id] = primary })
+    setImages(prev => ({ ...prev, ...map }))
   })
 }
 
@@ -58,11 +60,10 @@ function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height }
       style={{
         borderRadius: 18, overflow: 'hidden', cursor: recipe ? 'pointer' : 'default',
         position: 'relative', height, userSelect: 'none',
-        backgroundImage: src ? `url(${src})` : undefined,
         background: src ? undefined : cardGradient(recipe),
-        backgroundSize: 'cover', backgroundPosition: 'center',
       }}
     >
+      {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px)' }} />
       <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
         <span style={{ fontSize: 11, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{labelIcon}&nbsp;{label}</span>
@@ -101,7 +102,8 @@ function MiniCard({ recipe, image, onClick }) {
   return (
     <div onClick={onClick} data-track-id="home-neue-card-click"
       style={{ width: 158, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 118, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : cardGradient(recipe), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+      <div style={{ height: 118, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
+        {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
         <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
           style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
       </div>
@@ -125,7 +127,9 @@ function FeedCard({ recipe, image, onClick }) {
   return (
     <div onClick={onClick} data-track-id="home-feed-card-click"
       style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 118, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : cardGradient(recipe), backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div style={{ height: 118, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
+        {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
+      </div>
       <div style={{ padding: '9px 11px 11px' }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 5px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -164,9 +168,8 @@ export default function Home() {
       setCarouselRecipes([seasonal ?? null, newest ?? null])
       const neueItems = neueRes.data || []
       setNeue(neueItems)
-      const carIds = [seasonal, newest].filter(Boolean).map(r => r.id)
-      loadMediaBatch(carIds, setCarouselImgs)
-      loadMediaBatch(neueItems.map(r => r.id), setNeueImgs)
+      loadPrimaryImages([seasonal, newest].filter(Boolean), setCarouselImgs)
+      loadPrimaryImages(neueItems, setNeueImgs)
     })
   }, [])
 
@@ -181,7 +184,7 @@ export default function Home() {
         if (items.length < 6) st.done = true
         st.page += 1
         setFeed(prev => [...prev, ...items])
-        loadMediaBatch(items.map(r => r.id), setFeedImgs)
+        loadPrimaryImages(items, setFeedImgs)
       })
       .catch(() => {})
       .finally(() => { st.loading = false; setFeedLoading(false) })
@@ -304,7 +307,8 @@ export default function Home() {
           {neue.map(r => (
             <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
               style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-              <div style={{ height: 142, backgroundImage: imgSrc(neueImgs[r.id]) ? `url(${imgSrc(neueImgs[r.id])})` : undefined, background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+              <div style={{ height: 142, position: 'relative', overflow: 'hidden', background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r) }}>
+                {imgSrc(neueImgs[r.id]) && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgSrc(neueImgs[r.id])})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
                 <FavoriteHeart recipeId={r.id} recipe={r} size={14} outline={false}
                   style={{ position: 'absolute', top: 9, right: 9, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
               </div>

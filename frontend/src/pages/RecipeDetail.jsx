@@ -117,7 +117,7 @@ function DifficultySpoons({ difficulty }) {
 function HeroSection({ recipe, media, onImageClick }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const images = media
-    .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+    .filter(m => m.media_type === 'image')
     .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
   const [activeIdx, setActiveIdx] = useState(0)
   const active = images[activeIdx]
@@ -130,12 +130,11 @@ function HeroSection({ recipe, media, onImageClick }) {
         style={{
           borderRadius: 16, overflow: 'hidden', position: 'relative', height: 250,
           marginBottom: images.length > 1 ? 8 : 12,
-          backgroundImage: active ? `url(${active.thumbnail_url || active.url})` : undefined,
           background: active ? undefined : gradient,
-          backgroundSize: 'cover', backgroundPosition: 'center',
           cursor: active ? 'zoom-in' : 'default',
         }}
       >
+        {active && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${active.thumbnail_url || active.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,.62) 100%)' }} />
         <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false}
           style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.88)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
@@ -779,7 +778,7 @@ export default function RecipeDetail() {
 
   const openRecipeLightbox = (url) => {
     const list = recipeMedia
-      .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+      .filter(m => m.media_type === 'image')
       .map(m => ({ url: m.url, caption: '' }))
     const idx = list.findIndex(img => img.url === url)
     setLightboxImages(list)
