@@ -1,261 +1,357 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import { useFavorites } from '../context/FavoritesContext'
-import { RecipeCard, SkeletonCard } from './Recipes.jsx'
+import FavoriteHeart from '../components/FavoriteHeart'
 
-const RANDOM_CACHE_KEY = 'home_random_recipes'
+const CARD_GRADIENTS = [
+  'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
+  'linear-gradient(148deg, #5C3A1E 0%, #8B6540 100%)',
+  'linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%)',
+  'linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%)',
+  'linear-gradient(148deg, #6B5A3E 0%, #3E3020 100%)',
+  'linear-gradient(148deg, #8A3E18 0%, #C47040 100%)',
+  'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)',
+  'linear-gradient(148deg, #7A4A2A 0%, #B07050 100%)',
+]
+
+const cardGradient = r => CARD_GRADIENTS[(r?.id ?? 0) % CARD_GRADIENTS.length]
 
 function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour >= 5 && hour <= 11) return 'Guten Morgen'
-  if (hour >= 12 && hour <= 17) return 'Guten Tag'
-  if (hour >= 18 && hour <= 22) return 'Guten Abend'
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'Guten Morgen'
+  if (h >= 12 && h < 18) return 'Guten Tag'
+  if (h >= 18 && h < 23) return 'Guten Abend'
   return 'Hallo'
 }
 
-function pickRandom(arr) {
-  if (!arr || arr.length === 0) return null
-  return arr[Math.floor(Math.random() * arr.length)]
+function fmtTime(r) {
+  const t = (r?.prep_time || 0) + (r?.cook_time || 0)
+  if (!t) return null
+  return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
 }
 
-// ── Carousel card ─────────────────────────────────────────────────────────────
+function imgSrc(img) {
+  return img?.thumbnail_url || img?.url || null
+}
 
-function CarouselCard({ recipe, primaryImage, label, labelColor, onClick, trackId }) {
-  if (!recipe) return null
-  const imageUrl = primaryImage?.thumbnail_url || primaryImage?.url
+function loadMediaBatch(ids, setImages) {
+  ids.forEach(id => {
+    client.get(`/api/media/entity/recipe/${id}`)
+      .then(({ data }) => {
+        const p = data.find(m => m.is_primary && m.media_type === 'image') ?? null
+        setImages(prev => ({ ...prev, [id]: p }))
+      })
+      .catch(() => {})
+  })
+}
+
+// ── HeuteCard ────────────────────────────────────────────────────────────────
+
+function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height }) {
+  const src = imgSrc(image)
   return (
     <div
       onClick={onClick}
       data-track-id={trackId}
       style={{
-        flex: '0 0 260px',
-        scrollSnapAlign: 'start',
-        cursor: 'pointer',
-        borderRadius: 'var(--radius-card)',
-        overflow: 'hidden',
-        position: 'relative',
-        background: 'var(--card)',
-        height: '180px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-        backgroundImage: imageUrl ? `url(${imageUrl})` : 'linear-gradient(135deg, #C8602A 0%, #E8A07A 100%)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        borderRadius: 18, overflow: 'hidden', cursor: recipe ? 'pointer' : 'default',
+        position: 'relative', height, userSelect: 'none',
+        backgroundImage: src ? `url(${src})` : undefined,
+        background: src ? undefined : cardGradient(recipe),
+        backgroundSize: 'cover', backgroundPosition: 'center',
       }}
     >
-      <span
-        style={{
-          position: 'absolute',
-          top: '0.625rem',
-          left: '0.625rem',
-          padding: '0.2rem 0.6rem',
-          borderRadius: 'var(--radius-pill)',
-          background: labelColor,
-          color: '#fff',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-        }}
-      >
-        {label}
-      </span>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
-      <div style={{ position: 'relative', padding: '0.875rem 1rem' }}>
-        <span style={{ color: '#fff', fontFamily: 'Playfair Display, serif', fontSize: '1.05rem', fontWeight: 600, textShadow: '0 1px 6px rgba(0,0,0,0.45)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {recipe.title}
-        </span>
+      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px)' }} />
+      <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
+        <span style={{ fontSize: 11, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{labelIcon}&nbsp;{label}</span>
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.58))' }}>
+        <p style={{ fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {recipe?.title ?? '—'}
+        </p>
       </div>
     </div>
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+function KrauterCard({ height, onClick }) {
+  return (
+    <div onClick={onClick} data-track-id="home-carousel-kraeuter-click"
+      style={{ borderRadius: 18, overflow: 'hidden', cursor: 'pointer', position: 'relative', height, background: 'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)', userSelect: 'none' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 9px)' }} />
+      <div style={{ position: 'absolute', right: -8, top: -8, fontSize: height > 180 ? 100 : 80, opacity: .14, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>🌿</div>
+      <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
+        <span style={{ fontSize: 11, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>🌱&nbsp;Kräuterschule</span>
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.6))' }}>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontFamily: 'Inter, sans-serif', margin: '0 0 3px' }}>Kraut der Woche</p>
+        <p style={{ fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, margin: 0 }}>Liebstöckel</p>
+      </div>
+    </div>
+  )
+}
+
+// ── MiniCard ─────────────────────────────────────────────────────────────────
+
+function MiniCard({ recipe, image, onClick }) {
+  const src = imgSrc(image)
+  const t = fmtTime(recipe)
+  return (
+    <div onClick={onClick} data-track-id="home-neue-card-click"
+      style={{ width: 158, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+      <div style={{ height: 118, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : cardGradient(recipe), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
+          style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
+      </div>
+      <div style={{ padding: '9px 11px 11px' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 5px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
+        {t && (
+          <div style={{ display: 'inline-flex', background: '#F5F2EE', borderRadius: 999, padding: '2px 8px' }}>
+            <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{t}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── FeedCard ─────────────────────────────────────────────────────────────────
+
+function FeedCard({ recipe, image, onClick }) {
+  const src = imgSrc(image)
+  const t = fmtTime(recipe)
+  return (
+    <div onClick={onClick} data-track-id="home-feed-card-click"
+      style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+      <div style={{ height: 118, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : cardGradient(recipe), backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div style={{ padding: '9px 11px 11px' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 5px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {recipe.author?.username && <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{recipe.author.username}</span>}
+          {recipe.author?.username && t && <span style={{ fontSize: 11, color: 'var(--border-input)' }}>·</span>}
+          {t && <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>{t}</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Home ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { favorites } = useFavorites()
 
-  const [randomRecipes, setRandomRecipes] = useState(null)
-  const [primaryImages, setPrimaryImages] = useState({})
-  const [carouselImages, setCarouselImages] = useState({})
-  const [discoverRecipe, setDiscoverRecipe] = useState(null)
-  const [seasonalRecipe, setSeasonalRecipe] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const carouselRef = useRef(null)
-
-  const favoriteRecipe = useMemo(() => pickRandom(favorites), [favorites])
+  const [carouselRecipes, setCarouselRecipes] = useState([null, null])
+  const [carouselImgs, setCarouselImgs] = useState({})
+  const [neue, setNeue] = useState([])
+  const [neueImgs, setNeueImgs] = useState({})
+  const [feed, setFeed] = useState([])
+  const [feedImgs, setFeedImgs] = useState({})
+  const [feedLoading, setFeedLoading] = useState(false)
+  const feedState = useRef({ page: 1, loading: false, done: false })
+  const sentinelRef = useRef(null)
 
   useEffect(() => {
     document.title = 'PiEngines Recipes'
-  }, [])
-
-  useEffect(() => {
-    const cached = sessionStorage.getItem(RANDOM_CACHE_KEY)
-    const randomReq = cached
-      ? Promise.resolve({ data: JSON.parse(cached) })
-      : client.get('/api/recipes/random', { params: { count: 3 } }).then(res => {
-          sessionStorage.setItem(RANDOM_CACHE_KEY, JSON.stringify(res.data))
-          return res
-        })
-
     Promise.all([
-      randomReq,
-      client.get('/api/recipes/random', { params: { count: 1 } }),
-      client.get('/api/recipes/random', { params: { count: 1 } }),
-    ])
-      .then(([randomRes, discoverRes, seasonalRes]) => {
-        setRandomRecipes(randomRes.data)
-        setDiscoverRecipe(discoverRes.data[0] ?? null)
-        setSeasonalRecipe(seasonalRes.data[0] ?? null)
-
-        Promise.all(
-          randomRes.data.map(r =>
-            client.get(`/api/media/entity/recipe/${r.id}`)
-              .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
-              .catch(() => ({ id: r.id, primary: null }))
-          )
-        ).then(results => {
-          const map = {}
-          results.forEach(({ id, primary }) => { map[id] = primary })
-          setPrimaryImages(map)
-        })
-      })
-      .catch(() => {
-        setRandomRecipes([])
-        setDiscoverRecipe(null)
-        setSeasonalRecipe(null)
-      })
-      .finally(() => setLoading(false))
+      client.get('/api/recipes/random', { params: { count: 2 } }).catch(() => ({ data: [] })),
+      client.get('/api/recipes/random', { params: { count: 8 } }).catch(() => ({ data: [] })),
+    ]).then(([carRes, neueRes]) => {
+      const [seasonal, newest] = carRes.data
+      setCarouselRecipes([seasonal ?? null, newest ?? null])
+      const neueItems = neueRes.data || []
+      setNeue(neueItems)
+      const carIds = [seasonal, newest].filter(Boolean).map(r => r.id)
+      loadMediaBatch(carIds, setCarouselImgs)
+      loadMediaBatch(neueItems.map(r => r.id), setNeueImgs)
+    })
   }, [])
 
-  useEffect(() => {
-    const entries = [
-      ['discover', discoverRecipe],
-      ['seasonal', seasonalRecipe],
-      ['favorite', favoriteRecipe],
-    ].filter(([, recipe]) => recipe)
+  const loadFeed = useCallback(() => {
+    const st = feedState.current
+    if (st.loading || st.done) return
+    st.loading = true
+    setFeedLoading(true)
+    client.get('/api/recipes', { params: { page: st.page, page_size: 6 } })
+      .then(({ data }) => {
+        const items = data.items || []
+        if (items.length < 6) st.done = true
+        st.page += 1
+        setFeed(prev => [...prev, ...items])
+        loadMediaBatch(items.map(r => r.id), setFeedImgs)
+      })
+      .catch(() => {})
+      .finally(() => { st.loading = false; setFeedLoading(false) })
+  }, [])
 
-    if (entries.length === 0) return
-
-    Promise.all(
-      entries.map(([key, recipe]) =>
-        client.get(`/api/media/entity/recipe/${recipe.id}`)
-          .then(({ data }) => ({ key, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
-          .catch(() => ({ key, primary: null }))
-      )
-    ).then(results => {
-      const map = {}
-      results.forEach(({ key, primary }) => { map[key] = primary })
-      setCarouselImages(map)
-    })
-  }, [discoverRecipe, seasonalRecipe, favoriteRecipe])
-
-  // Auto-rotate carousel every 5 seconds
-  useEffect(() => {
-    if (loading) return
-    const timer = setInterval(() => {
-      setActiveIndex(prev => (prev + 1) % 3)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [loading])
+  useEffect(() => { loadFeed() }, [loadFeed])
 
   useEffect(() => {
-    const el = carouselRef.current
+    const el = sentinelRef.current
     if (!el) return
-    const cardWidth = 260 + 16 // card width + gap (1rem)
-    el.scrollTo({ left: activeIndex * cardWidth, behavior: 'smooth' })
-  }, [activeIndex])
+    const obs = new IntersectionObserver(
+      entries => { if (entries[0].isIntersecting) loadFeed() },
+      { rootMargin: '300px' }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [loadFeed])
+
+  const [seasonal, newest] = carouselRecipes
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ margin: '0 0 1.5rem' }}>
-          <div style={{ fontSize: '13px', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-            {getGreeting()}
-          </div>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', color: 'var(--text)', margin: 0 }}>
-            {user?.username ? `${user.username}!` : 'Willkommen!'}
-          </h1>
-        </div>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 24 }}>
 
-        {/* ── Carousel ── */}
+      {/* Greeting */}
+      <div style={{ padding: '24px 16px 28px' }}>
+        <p style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', margin: '0 0 4px' }}>
+          {getGreeting()}
+        </p>
+        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(30px, 5vw, 42px)', fontWeight: 700, fontStyle: 'italic', color: 'var(--text)', letterSpacing: '-.5px', lineHeight: 1.15, margin: 0 }}>
+          {user?.username ? `${user.username}!` : 'Willkommen!'}
+        </h1>
+      </div>
+
+      {/* Heute für dich */}
+      <section style={{ paddingBottom: 32 }} aria-label="Heute für dich">
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.65px', padding: '0 16px', margin: '0 0 12px' }}>
+          Heute für dich
+        </p>
+        <div className="md:hidden" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+          <div style={{ width: 272, flexShrink: 0 }}>
+            <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={178}
+              onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
+          </div>
+          <div style={{ width: 272, flexShrink: 0 }}>
+            <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
+          </div>
+          <div style={{ width: 272, flexShrink: 0 }}>
+            <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={178}
+              onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
+          </div>
+        </div>
+        <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14, padding: '0 32px' }}>
+          <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
+            onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
+          <KrauterCard height={204} onClick={() => navigate('/seasonal')} />
+          <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={204}
+            onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
+        </div>
+      </section>
+
+      {/* Fratcher Teaser */}
+      <div style={{ padding: '0 16px 32px' }} className="md:px-8">
         <div
-          ref={carouselRef}
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            overflowX: 'auto',
-            scrollSnapType: 'x mandatory',
-            paddingBottom: '0.5rem',
-            marginBottom: '2.5rem',
-          }}
+          onClick={() => navigate('/seasonal')}
+          data-track-id="home-fratcher-teaser-click"
+          style={{ background: 'linear-gradient(135deg, #3E5228 0%, #5E7840 100%)', borderRadius: 18, cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
         >
-          {loading ? (
-            <>
-              <div style={{ flex: '0 0 260px', height: '180px' }}><SkeletonCard /></div>
-              <div style={{ flex: '0 0 260px', height: '180px' }}><SkeletonCard /></div>
-              <div style={{ flex: '0 0 260px', height: '180px' }}><SkeletonCard /></div>
-            </>
-          ) : (
-            <>
-              <CarouselCard
-                recipe={seasonalRecipe}
-                primaryImage={carouselImages.seasonal ?? null}
-                label="🌿 Saisonal"
-                labelColor="rgba(107,124,78,0.8)"
-                onClick={() => seasonalRecipe && navigate(`/recipes/${seasonalRecipe.id}`)}
-                trackId="home-carousel-seasonal-click"
-              />
-              <CarouselCard
-                recipe={favoriteRecipe}
-                primaryImage={carouselImages.favorite ?? null}
-                label="❤️ Favorit"
-                labelColor="rgba(200,96,42,0.8)"
-                onClick={() => favoriteRecipe && navigate(`/recipes/${favoriteRecipe.id}`)}
-                trackId="home-carousel-favorite-click"
-              />
-              <CarouselCard
-                recipe={discoverRecipe}
-                primaryImage={carouselImages.discover ?? null}
-                label="✨ Entdecken"
-                labelColor="rgba(139,105,20,0.8)"
-                onClick={() => discoverRecipe && navigate(`/recipes/${discoverRecipe.id}`)}
-                trackId="home-carousel-discover-click"
-              />
-            </>
-          )}
-        </div>
-
-        {/* ── Discover section ── */}
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', color: 'var(--text)', margin: '0 0 1rem' }}>
-          Entdecke etwas Neues
-        </h2>
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-            <SkeletonCard /><SkeletonCard /><SkeletonCard />
+          <div className="md:hidden" style={{ padding: '20px 20px 18px' }}>
+            <div style={{ position: 'absolute', right: -18, top: -24, width: 120, height: 120, borderRadius: 999, background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
+            <i className="ti ti-fridge" style={{ fontSize: 26, color: 'rgba(255,255,255,.65)', display: 'block', marginBottom: 9, position: 'relative' }} />
+            <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 17, fontWeight: 600, color: '#fff', margin: '0 0 6px', lineHeight: 1.35, position: 'relative' }}>
+              Was kannst du heute kochen?
+            </h3>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.72)', fontFamily: 'Inter, sans-serif', margin: '0 0 16px', lineHeight: 1.5, position: 'relative' }}>
+              Entdecke Rezepte mit deinen Zutaten.
+            </p>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '9px 16px', position: 'relative' }}>
+              <span style={{ fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Kühlschrank prüfen</span>
+              <i className="ti ti-arrow-right" style={{ fontSize: 14, color: '#fff' }} />
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-            {(randomRecipes || []).map(r => (
-              <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} />
-            ))}
+          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 24, padding: '22px 28px' }}>
+            <div style={{ position: 'absolute', right: -18, top: -30, width: 200, height: 200, borderRadius: 999, background: 'rgba(255,255,255,.05)', pointerEvents: 'none' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'relative', zIndex: 1 }}>
+              <i className="ti ti-fridge" style={{ fontSize: 34, color: 'rgba(255,255,255,.65)', flexShrink: 0 }} />
+              <div>
+                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 19, fontWeight: 600, color: '#fff', margin: '0 0 5px', lineHeight: 1.3 }}>
+                  Was kannst du heute kochen?
+                </h3>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.72)', fontFamily: 'Inter, sans-serif', margin: 0, lineHeight: 1.5 }}>
+                  Entdecke Rezepte mit deinen Zutaten.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '12px 22px', position: 'relative', zIndex: 1, flexShrink: 0 }}>
+              <span style={{ fontSize: 14, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Kühlschrank prüfen</span>
+              <i className="ti ti-arrow-right" style={{ fontSize: 15, color: '#fff' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Neue Rezepte */}
+      <section style={{ paddingBottom: 28 }} aria-label="Neue Rezepte">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', marginBottom: 12 }} className="md:px-8">
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
+            Neue Rezepte
+          </h2>
+          <button onClick={() => navigate('/recipes')} data-track-id="home-neue-mehr-click"
+            style={{ fontSize: 13, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
+            Mehr →
+          </button>
+        </div>
+        <div className="md:hidden" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+          {neue.map(r => (
+            <MiniCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+          ))}
+        </div>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: '0 32px' }}>
+          {neue.map(r => (
+            <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
+              style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+              <div style={{ height: 142, backgroundImage: imgSrc(neueImgs[r.id]) ? `url(${imgSrc(neueImgs[r.id])})` : undefined, background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r), backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                <FavoriteHeart recipeId={r.id} recipe={r} size={14} outline={false}
+                  style={{ position: 'absolute', top: 9, right: 9, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
+              </div>
+              <div style={{ padding: '10px 12px 12px' }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 6px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.title}</p>
+                {fmtTime(r) && (
+                  <div style={{ display: 'inline-flex', background: '#F5F2EE', borderRadius: 999, padding: '2px 8px' }}>
+                    <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{fmtTime(r)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Entdecken Feed */}
+      <section id="home-feed" aria-label="Entdecken" style={{ padding: '0 16px 20px' }} className="md:px-8">
+        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
+          Entdecken
+        </h2>
+        <div className="md:hidden">
+          {Array.from({ length: Math.ceil(feed.length / 2) }).map((_, i) => {
+            const a = feed[i * 2], b = feed[i * 2 + 1]
+            return (
+              <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {a && <FeedCard recipe={a} image={feedImgs[a.id]} onClick={() => navigate(`/recipes/${a.id}`)} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {b && <FeedCard recipe={b} image={feedImgs[b.id]} onClick={() => navigate(`/recipes/${b.id}`)} />}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          {feed.map(r => (
+            <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+          ))}
+        </div>
+        {feedLoading && (
+          <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>
+            Lädt …
           </div>
         )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-          <Link
-            to="/recipes"
-            data-track-id="home-all-recipes-click"
-            style={{ color: 'var(--accent)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'none' }}
-          >
-            Alle Rezepte →
-          </Link>
-        </div>
-      </main>
+        <div ref={sentinelRef} style={{ height: 1 }} />
+      </section>
     </div>
   )
 }

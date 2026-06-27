@@ -116,100 +116,92 @@ function DifficultySpoons({ difficulty }) {
 
 function HeroSection({ recipe, media, onImageClick }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
-  const primary = media.find(m => m.is_primary && m.media_type === 'image')
-  const gallery = media.filter(m => !m.is_primary && m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
-  const isBlurThumb = recipe.thumbnail_style === 'blur'
+  const images = media
+    .filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+    .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+  const [activeIdx, setActiveIdx] = useState(0)
+  const active = images[activeIdx]
 
   return (
-    <>
-      {/* Hero */}
+    <div style={{ margin: '0 0 12px' }} className="md:mx-0">
+      {/* Main hero */}
       <div
-        onClick={primary ? () => onImageClick?.(primary.url) : undefined}
+        onClick={active ? () => onImageClick?.(active.url) : undefined}
         style={{
-          borderRadius: 'var(--radius-card)',
-          overflow: 'hidden',
-          marginBottom: '1.5rem',
-          position: 'relative',
-          ...(isBlurThumb ? { paddingTop: '56.25%', height: 0 } : { height: '280px' }),
-          backgroundColor: primary && isBlurThumb ? 'var(--card)' : undefined,
-          backgroundImage: primary ? `url(${primary.thumbnail_url || primary.url})` : gradient,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          cursor: primary ? 'zoom-in' : 'default',
+          borderRadius: 16, overflow: 'hidden', position: 'relative', height: 250,
+          marginBottom: images.length > 1 ? 8 : 12,
+          backgroundImage: active ? `url(${active.thumbnail_url || active.url})` : undefined,
+          background: active ? undefined : gradient,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          cursor: active ? 'zoom-in' : 'default',
         }}
       >
-        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={24} outline={false} style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 3 }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
-          display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-          padding: '1.5rem',
-        }}>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 600, color: '#fff', margin: '0 0 0.5rem', textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.25 }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,.62) 100%)' }} />
+        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false}
+          style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.88)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px' }}>
+          {recipe.description && (
+            <div style={{ background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,.9)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', fontFamily: 'Inter, sans-serif' }}>
+                {recipe.description}
+              </p>
+            </div>
+          )}
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, fontStyle: 'italic', color: '#fff', margin: 0, textShadow: '0 2px 8px rgba(0,0,0,.4)', lineHeight: 1.2 }}>
             {recipe.title}
           </h1>
-          {recipe.description && (
-            <p style={{ color: 'rgba(255,255,255,0.85)', margin: 0, fontSize: '0.95rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {recipe.description}
-            </p>
-          )}
         </div>
       </div>
 
-      {/* Galerie */}
-      {gallery.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.625rem', overflowX: 'auto', marginBottom: '1.5rem', paddingBottom: '0.25rem' }}>
-          {gallery.map(m => (
-            <img
-              key={m.id}
-              src={m.url}
-              alt=""
-              onClick={e => { e.stopPropagation(); onImageClick?.(m.url) }}
-              style={{ height: '80px', width: 'auto', borderRadius: 'var(--radius-input)', objectFit: 'cover', display: 'block', cursor: 'zoom-in', flexShrink: 0 }}
+      {/* Gallery strip */}
+      {images.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}>
+          {images.map((img, i) => (
+            <div
+              key={img.id}
+              onClick={e => { e.stopPropagation(); setActiveIdx(i) }}
+              style={{
+                width: 68, height: 52, flexShrink: 0, borderRadius: 6, cursor: 'pointer',
+                backgroundImage: `url(${img.thumbnail_url || img.url})`,
+                backgroundSize: 'cover', backgroundPosition: 'center',
+                border: `2px solid ${i === activeIdx ? 'var(--accent)' : 'transparent'}`,
+                boxSizing: 'border-box',
+                transition: 'border-color .15s',
+              }}
             />
           ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
 
 // ── Meta bar ──────────────────────────────────────────────────────────────────
 
 function MetaBar({ recipe }) {
-  const color = recipe.difficulty ? diffColor(recipe.difficulty) : null
-  return (
-    <div style={{
-      display: 'flex', flexWrap: 'wrap', gap: '1rem',
-      padding: '1rem 1.25rem',
-      background: 'var(--card)',
-      borderRadius: 'var(--radius-card)',
-      marginBottom: '1.5rem',
-      boxShadow: 'var(--shadow)',
-    }}>
-      {recipe.prep_time && <MetaStat icon="⏱" label="Vorbereitung" value={`${recipe.prep_time} min`} />}
-      {recipe.cook_time && <MetaStat icon="🍳" label="Kochen" value={`${recipe.cook_time} min`} />}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Art</span>
-        <span style={{ padding: '0.2rem 0.65rem', borderRadius: 'var(--radius-pill)', fontSize: '0.75rem', fontWeight: 500, background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', display: 'inline-block', alignSelf: 'flex-start' }}>
-          {recipe.type === 'backen' ? 'Backen' : 'Kochen'}
-        </span>
-      </div>
-      {recipe.servings && <MetaStat icon="🍽️" label="Portionen" value={String(recipe.servings)} />}
-      {recipe.difficulty && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Schwierigkeit</span>
-          <DifficultySpoons difficulty={recipe.difficulty} />
-        </div>
-      )}
+  const cols = [
+    recipe.prep_time ? { label: 'Vorbereitung', value: `${recipe.prep_time} Min.`, accent: true } : null,
+    recipe.cook_time ? { label: 'Kochen', value: `${recipe.cook_time} Min.`, accent: true } : null,
+    { label: 'Art', value: recipe.type === 'backen' ? 'Backen' : 'Kochen', accent: false },
+    recipe.difficulty ? { label: 'Schwierigkeit', value: recipe.difficulty, isDiff: true } : null,
+  ].filter(Boolean)
 
-      {(recipe.diet_labels?.length > 0 || recipe.allergens?.length > 0) && (
-        <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
-          {recipe.diet_labels?.map(d => <Pill key={d.id} color="var(--secondary)">{d.name}</Pill>)}
-          {recipe.allergens?.map(a => <Pill key={a.id} color="#C8A020">{a.name}</Pill>)}
+  return (
+    <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', overflow: 'hidden', marginBottom: '1rem', display: 'flex' }}>
+      {cols.map((col, i) => (
+        <div key={i} style={{ flex: 1, padding: '12px 4px', textAlign: 'center', borderRight: i < cols.length - 1 ? '1px solid var(--border)' : 'none' }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: col.accent ? 'var(--accent)' : 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '.5px', margin: '0 0 4px', fontFamily: 'Inter, sans-serif' }}>
+            {col.label}
+          </p>
+          {col.isDiff ? (
+            <DifficultySpoons difficulty={col.value} />
+          ) : (
+            <p style={{ fontSize: 14, fontWeight: 600, color: col.accent ? 'var(--accent)' : 'var(--text)', margin: 0, fontFamily: 'Inter, sans-serif' }}>
+              {col.value}
+            </p>
+          )}
         </div>
-      )}
+      ))}
     </div>
   )
 }
@@ -385,25 +377,52 @@ const adjBtnDisabled = {
   color: 'var(--subtext)',
 }
 
-// ── Mobile ingredients drawer ─────────────────────────────────────────────────
+// ── Mobile ingredient panel (left pull-tab + left slide panel) ────────────────
 
-function MobileDrawer({ recipe, servings, baseServings, onServingsChange, activeIds, onClose, selectedIngredient, onSelectIngredient }) {
+function MobileIngredientPanel({ recipe, servings, baseServings, onServingsChange, activeIds, open, onOpen, onClose, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
   const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
   return (
-    <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 300 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }} />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        background: 'var(--card)',
-        borderRadius: '20px 20px 0 0',
-        padding: '1.25rem 1.5rem 2rem',
-        maxHeight: '75vh',
-        overflowY: 'auto',
-      }}>
+    <>
+      {/* Pull tab */}
+      <div
+        className="md:hidden"
+        onClick={open ? onClose : onOpen}
+        data-track-id="detail-ingredient-pull-tab"
+        style={{ position: 'fixed', left: 0, top: '50%', transform: 'translateY(-50%)', zIndex: 100, background: 'var(--accent)', borderRadius: '0 10px 10px 0', padding: '14px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}
+      >
+        <i className="ti ti-basket" style={{ fontSize: 18, color: '#fff' }} />
+        {activeIds.size > 0 && (
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(0,0,0,.22)', borderRadius: 999, minWidth: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', lineHeight: 1 }}>
+            {activeIds.size}
+          </span>
+        )}
+      </div>
+
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="md:hidden"
+          onClick={onClose}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', zIndex: 190 }}
+        />
+      )}
+
+      {/* Slide panel */}
+      <div
+        className="md:hidden"
+        style={{
+          position: 'fixed', left: 0, top: 0, bottom: 0, width: '65%', maxWidth: 280,
+          background: 'var(--card)', zIndex: 200, overflowY: 'auto',
+          transform: open ? 'none' : 'translateX(-100%)',
+          transition: 'transform .28s ease',
+          padding: '1.25rem 1.25rem 2rem',
+          boxShadow: open ? '4px 0 24px rgba(0,0,0,.18)' : 'none',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.2rem', fontWeight: 600, margin: 0, color: 'var(--text)' }}>Zutaten</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--subtext)', lineHeight: 1 }}>✕</button>
+          <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)' }}>Zutaten</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: 'var(--subtext)', lineHeight: 1 }}>✕</button>
         </div>
         {recipe.servings && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
@@ -421,6 +440,32 @@ function MobileDrawer({ recipe, servings, baseServings, onServingsChange, active
           selectedIngredient={selectedIngredient}
           onSelectIngredient={onSelectIngredient}
         />
+      </div>
+    </>
+  )
+}
+
+// ── Suggestion card (Dazu passt auch) ────────────────────────────────────────
+
+const SUGG_GRADIENTS = [
+  'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
+  'linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%)',
+  'linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%)',
+  'linear-gradient(148deg, #6B5A3E 0%, #3E3020 100%)',
+]
+
+function SuggestionCard({ recipe, image, onClick }) {
+  const src = image?.thumbnail_url || image?.url || null
+  const bg = SUGG_GRADIENTS[recipe.id % SUGG_GRADIENTS.length]
+  const t = (recipe.prep_time || 0) + (recipe.cook_time || 0)
+  const timeStr = t ? (t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`) : null
+  return (
+    <div onClick={onClick} data-track-id="detail-suggestion-click"
+      style={{ width: 148, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+      <div style={{ height: 100, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : bg, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div style={{ padding: '8px 10px 10px' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 4px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
+        {timeStr && <span style={{ fontSize: 10, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{timeStr}</span>}
       </div>
     </div>
   )
@@ -605,8 +650,10 @@ export default function RecipeDetail() {
   const [servings, setServings] = useState(4)
   const [stepIngredients, setStepIngredients] = useState({})
   const [ingredientView, setIngredientView] = useState('grouped')
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(false)
   const [recipeMedia, setRecipeMedia] = useState([])
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestionImgs, setSuggestionImgs] = useState({})
   const [stepMedia, setStepMedia] = useState(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -704,6 +751,25 @@ export default function RecipeDetail() {
       .then(res => setUsedIn(res.data.count))
       .catch(() => {})
   }, [recipe?.id, user?.id])
+
+  // Fetch suggestions (Dazu passt auch)
+  useEffect(() => {
+    if (!recipe) return
+    client.get('/api/recipes/random', { params: { count: 4 } })
+      .then(({ data }) => {
+        const items = (data || []).filter(r => r.id !== recipe.id).slice(0, 3)
+        setSuggestions(items)
+        items.forEach(r => {
+          client.get(`/api/media/entity/recipe/${r.id}`)
+            .then(({ data: mData }) => {
+              const p = mData.find(m => m.is_primary && m.media_type === 'image') ?? null
+              setSuggestionImgs(prev => ({ ...prev, [r.id]: p }))
+            })
+            .catch(() => {})
+        })
+      })
+      .catch(() => {})
+  }, [recipe?.id])
 
   if (loading) return <LoadingScreen />
   if (!recipe) return null
@@ -885,53 +951,42 @@ export default function RecipeDetail() {
                 />
               ))
             )}
+
+            {/* Dazu passt auch */}
+            {suggestions.length > 0 && (
+              <div style={{ marginTop: '2.5rem' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', fontWeight: 600, margin: '0 0 1rem', color: 'var(--text)' }}>
+                  Dazu passt auch
+                </h2>
+                <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}>
+                  {suggestions.map(r => (
+                    <SuggestionCard
+                      key={r.id}
+                      recipe={r}
+                      image={suggestionImgs[r.id]}
+                      onClick={() => navigate(`/recipes/${r.id}`)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile floating ingredients button */}
-      <div className="md:hidden" style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 90 }}>
-        <button
-          onClick={() => setDrawerOpen(true)}
-          style={{
-            width: '48px', height: '48px', borderRadius: '50%',
-            background: 'var(--secondary)', color: '#fff',
-            border: 'none', cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.2rem', position: 'relative',
-          }}
-          title="Zutaten anzeigen"
-        >
-          🥗
-          {activeIds.size > 0 && (
-            <span style={{
-              position: 'absolute', top: '-3px', right: '-3px',
-              background: 'var(--accent)', color: '#fff',
-              borderRadius: '999px', fontSize: '0.6rem', fontWeight: 700,
-              minWidth: '16px', height: '16px', padding: '0 3px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              lineHeight: 1,
-            }}>
-              {activeIds.size}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <MobileDrawer
-          recipe={recipe}
-          servings={servings}
-          baseServings={baseServings}
-          onServingsChange={setServings}
-          activeIds={activeIds}
-          onClose={() => setDrawerOpen(false)}
-          selectedIngredient={selectedIngredient}
-          onSelectIngredient={handleSelectIngredient}
-        />
-      )}
+      {/* Mobile ingredient panel (left pull-tab + slide panel) */}
+      <MobileIngredientPanel
+        recipe={recipe}
+        servings={servings}
+        baseServings={baseServings}
+        onServingsChange={setServings}
+        activeIds={activeIds}
+        open={panelOpen}
+        onOpen={() => setPanelOpen(true)}
+        onClose={() => setPanelOpen(false)}
+        selectedIngredient={selectedIngredient}
+        onSelectIngredient={handleSelectIngredient}
+      />
 
       {/* Lightbox */}
       {lightboxOpen && lightboxImages.length > 0 && (
