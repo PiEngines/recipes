@@ -51,14 +51,16 @@ function loadPrimaryImages(items, setImages) {
 
 // ── HeuteCard ────────────────────────────────────────────────────────────────
 
-function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height }) {
+function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height, fullWidth }) {
   const src = imgSrc(image)
   return (
     <div
       onClick={onClick}
       data-track-id={trackId}
       style={{
-        width: 'calc(100vw - 48px)', maxWidth: 320, flexShrink: 0,
+        width: fullWidth ? '100%' : 'calc(100vw - 48px)',
+        maxWidth: fullWidth ? 'none' : 320,
+        flexShrink: 0,
         borderRadius: 18, overflow: 'hidden', cursor: recipe ? 'pointer' : 'default',
         position: 'relative', height, userSelect: 'none',
         background: src ? undefined : cardGradient(recipe),
@@ -78,10 +80,10 @@ function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height }
   )
 }
 
-function KrauterCard({ height, onClick }) {
+function KrauterCard({ height, onClick, fullWidth }) {
   return (
     <div onClick={onClick} data-track-id="home-carousel-kraeuter-click"
-      style={{ width: 'calc(100vw - 48px)', maxWidth: 320, flexShrink: 0, borderRadius: 18, overflow: 'hidden', cursor: 'pointer', position: 'relative', height, background: 'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)', userSelect: 'none' }}>
+      style={{ width: fullWidth ? '100%' : 'calc(100vw - 48px)', maxWidth: fullWidth ? 'none' : 320, flexShrink: 0, borderRadius: 18, overflow: 'hidden', cursor: 'pointer', position: 'relative', height, background: 'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)', userSelect: 'none' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 9px)' }} />
       <div style={{ position: 'absolute', right: -8, top: -8, fontSize: height > 180 ? 100 : 80, opacity: .14, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>🌿</div>
       <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
@@ -232,10 +234,10 @@ export default function Home() {
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
         <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
-          <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
+          <HeuteCard fullWidth recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <KrauterCard height={204} onClick={() => navigate('/seasonal')} />
-          <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={204}
+          <KrauterCard fullWidth height={204} onClick={() => navigate('/seasonal')} />
+          <HeuteCard fullWidth recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={204}
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
       </section>
@@ -293,12 +295,12 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {neue.map(r => (
-            <MiniCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+            <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {neue.map(r => (
             <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
               style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
@@ -325,7 +327,7 @@ export default function Home() {
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
           Entdecken
         </h2>
-        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {feed.map(r => (
             <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}

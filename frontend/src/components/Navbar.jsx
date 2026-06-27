@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import { isChefkochOrAbove } from '../utils/roles'
@@ -88,145 +88,13 @@ function MenuItem({ onClick, children }) {
   )
 }
 
-function NavSearchInput({ value, onChange }) {
-  const [focused, setFocused] = useState(false)
-  return (
-    <input
-      type="search"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      placeholder="Rezepte suchen …"
-      style={{
-        width: '100%',
-        padding: '0.5rem 1rem',
-        border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-        borderRadius: 'var(--radius-pill)',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-        fontSize: '0.9rem',
-        fontFamily: 'Inter, sans-serif',
-        outline: 'none',
-        transition: 'var(--transition)',
-        boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
-      }}
-    />
-  )
-}
-
-function ScopePill({ active, onClick, icon, children }) {
-  return (
-    <span
-      role="checkbox"
-      aria-checked={active}
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.3rem',
-        borderRadius: '999px',
-        border: `1px solid ${active ? '#C8602A' : 'var(--border-input)'}`,
-        padding: '5px 12px',
-        fontSize: '13px',
-        background: active ? '#C8602A' : 'transparent',
-        color: active ? '#fff' : 'var(--subtext)',
-        cursor: 'pointer',
-        fontFamily: 'Inter, sans-serif',
-        userSelect: 'none',
-        transition: 'var(--transition)',
-      }}
-    >
-      {icon && <i className={`ti ${icon}`} aria-hidden="true" />}
-      {children}
-    </span>
-  )
-}
-
-function ScopeCheckboxes({ scopeDesc, scopeIng, scopeAuthor, onToggleDesc, onToggleIng, onToggleAuthor }) {
-  return (
-    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-      <ScopePill active={scopeDesc} onClick={() => onToggleDesc(!scopeDesc)} icon="ti-search">
-        Rezept durchsuchen
-      </ScopePill>
-      <ScopePill active={scopeIng} onClick={() => onToggleIng(!scopeIng)} icon="ti-leaf">
-        mit Zutaten
-      </ScopePill>
-      <ScopePill active={scopeAuthor} onClick={() => onToggleAuthor(!scopeAuthor)} icon="ti-user">
-        Nur Autor
-      </ScopePill>
-    </div>
-  )
-}
-
 // ── Navbar ────────────────────────────────────────────────────────────────────
-
-// Pages where the search bar (and optionally the create button) is hidden
-const SEARCH_HIDDEN_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
-const EDIT_NEW_RE = /^\/recipes\/(new|\d+\/edit)$/
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
-  const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
 
-  const isEditOrNew = EDIT_NEW_RE.test(location.pathname)
-  const hideSearch = SEARCH_HIDDEN_PATHS.includes(location.pathname) || isEditOrNew
-
-  // Local input value, debounced to URL
-  const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
-  const scopeDesc = searchParams.get('scopeDesc') === '1'
-  const scopeIng = searchParams.get('scopeIng') === '1'
-  const scopeAuthor = searchParams.get('scopeAuthor') === '1'
-  const hasSearch = Boolean(inputValue)
-
-  // Keep a ref to location.pathname so debounce closure is never stale
-  const pathnameRef = useRef(location.pathname)
-  useEffect(() => { pathnameRef.current = location.pathname }, [location.pathname])
-
-  // Debounce: write input to URL, navigate to / if needed
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (pathnameRef.current !== '/recipes') {
-        if (inputValue) navigate(`/recipes?q=${encodeURIComponent(inputValue)}`)
-        return
-      }
-      setSearchParams(prev => {
-        const next = new URLSearchParams(prev)
-        if (inputValue) next.set('q', inputValue)
-        else next.delete('q')
-        next.delete('page')
-        return next
-      }, { replace: true })
-    }, 400)
-    return () => clearTimeout(t)
-  }, [inputValue]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const toggleScope = (key, val) => {
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev)
-      if (val) {
-        next.set(key, '1')
-        // "Nur Autor" is mutually exclusive with the other scope checkboxes
-        if (key === 'scopeAuthor') {
-          next.delete('scopeDesc')
-          next.delete('scopeIng')
-        } else {
-          next.delete('scopeAuthor')
-        }
-      } else {
-        next.delete(key)
-      }
-      next.delete('page')
-      return next
-    }, { replace: true })
-  }
-
-  // Avatar dropdown
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef(null)
   useEffect(() => {
@@ -236,14 +104,11 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', h)
   }, [showMenu])
 
-
   const initials = user?.name?.[0]?.toUpperCase() ?? '?'
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1.5rem' }}>
-
-        {/* ── Main row ──────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', height: '64px' }}>
 
           {/* Logo */}
@@ -253,14 +118,8 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Center flex-1 area: search on /  pages; empty spacer on profile/admin */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {!hideSearch && (
-              <div className="hidden sm:block">
-                <NavSearchInput value={inputValue} onChange={setInputValue} />
-              </div>
-            )}
-          </div>
+          {/* Spacer */}
+          <div style={{ flex: 1, minWidth: 0 }} />
 
           {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexShrink: 0 }}>
@@ -286,31 +145,6 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-
-        {/* ── Desktop: scope checkboxes (only on search pages, collapses without query) */}
-        {!hideSearch && (
-          <div
-            className="hidden sm:block"
-            style={{
-              overflow: 'hidden',
-              maxHeight: hasSearch ? '40px' : '0',
-              opacity: hasSearch ? 1 : 0,
-              transition: 'max-height 0.25s ease, opacity 0.25s ease',
-              paddingBottom: hasSearch ? '0.5rem' : 0,
-            }}
-          >
-            <ScopeCheckboxes
-              scopeDesc={scopeDesc}
-              scopeIng={scopeIng}
-              scopeAuthor={scopeAuthor}
-              onToggleDesc={v => toggleScope('scopeDesc', v)}
-              onToggleIng={v => toggleScope('scopeIng', v)}
-              onToggleAuthor={v => toggleScope('scopeAuthor', v)}
-            />
-          </div>
-        )}
-
-
       </div>
     </header>
   )

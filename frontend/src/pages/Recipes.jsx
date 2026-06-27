@@ -310,6 +310,7 @@ export default function Recipes() {
   const authorFilter = searchParams.get('author') || ''
   const authorIdFilter = searchParams.get('author_id') || null
   const typeFilters = new Set((searchParams.get('type') || '').split(',').filter(Boolean))
+  const typeFilterKey = searchParams.get('type') || ''
   const maxTimeFilter = parseInt(searchParams.get('max_time') || '0', 10)
   const sort = searchParams.get('sort') || 'default'
 
@@ -458,7 +459,6 @@ export default function Recipes() {
     : filteredByTime
 
   const hasActiveChipFilters = typeFilters.size > 0 || maxTimeFilter
-  const typeFilterKey = searchParams.get('type') || ''
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>

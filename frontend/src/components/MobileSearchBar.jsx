@@ -85,46 +85,47 @@ export default function MobileSearchBar() {
 
   return (
     <div
-      className="md:hidden"
+      className="bottom-[60px] md:bottom-0"
       style={{
-        position: 'fixed', bottom: 60, left: 0, right: 0, zIndex: 95,
+        position: 'fixed', left: 0, right: 0, zIndex: 95,
         background: 'var(--card)',
         borderTop: '1px solid rgba(0,0,0,.07)',
-        padding: hasSearch ? '8px 12px 6px' : '8px 12px',
         boxShadow: '0 -2px 12px rgba(0,0,0,.06)',
       }}
     >
-      <input
-        type="search"
-        value={inputValue}
-        onChange={e => setInputValue(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="Rezepte suchen …"
-        data-track-id="mobile-search-input"
-        style={{
-          width: '100%', padding: '0.45rem 1rem',
-          border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
-          borderRadius: 'var(--radius-pill)',
-          background: 'var(--bg)', color: 'var(--text)',
-          fontSize: '0.9rem', fontFamily: 'Inter, sans-serif',
-          outline: 'none', transition: 'var(--transition)',
-          boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
-        }}
-      />
-      {hasSearch && (
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: 6 }}>
-          <ScopePill active={scopeDesc} onClick={() => toggleScope('scopeDesc', !scopeDesc)} icon="ti-search">
-            Rezept
-          </ScopePill>
-          <ScopePill active={scopeIng} onClick={() => toggleScope('scopeIng', !scopeIng)} icon="ti-leaf">
-            Zutaten
-          </ScopePill>
-          <ScopePill active={scopeAuthor} onClick={() => toggleScope('scopeAuthor', !scopeAuthor)} icon="ti-user">
-            Autor
-          </ScopePill>
-        </div>
-      )}
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: hasSearch ? '8px 12px 6px' : '8px 12px' }}>
+        <input
+          type="search"
+          value={inputValue}
+          onChange={e => setInputValue(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Rezepte suchen …"
+          data-track-id="search-input"
+          style={{
+            width: '100%', padding: '0.45rem 1rem',
+            border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
+            borderRadius: 'var(--radius-pill)',
+            background: 'var(--bg)', color: 'var(--text)',
+            fontSize: '0.9rem', fontFamily: 'Inter, sans-serif',
+            outline: 'none', transition: 'var(--transition)',
+            boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none',
+          }}
+        />
+        {hasSearch && (
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: 6 }}>
+            <ScopePill active={scopeDesc} onClick={() => toggleScope('scopeDesc', !scopeDesc)} icon="ti-search">
+              Rezept
+            </ScopePill>
+            <ScopePill active={scopeIng} onClick={() => toggleScope('scopeIng', !scopeIng)} icon="ti-leaf">
+              Zutaten
+            </ScopePill>
+            <ScopePill active={scopeAuthor} onClick={() => toggleScope('scopeAuthor', !scopeAuthor)} icon="ti-user">
+              Autor
+            </ScopePill>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
