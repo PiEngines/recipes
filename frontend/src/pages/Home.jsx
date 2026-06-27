@@ -39,7 +39,8 @@ function loadMediaBatch(ids, setImages) {
   ids.forEach(id => {
     client.get(`/api/media/entity/recipe/${id}`)
       .then(({ data }) => {
-        const p = data.find(m => m.is_primary && m.media_type === 'image') ?? null
+        const imgs = data.filter(m => m.media_type === 'image' && m.processing_status === 'ready' && !m.deleted_at)
+        const p = imgs.find(m => m.is_primary) ?? imgs[0] ?? null
         setImages(prev => ({ ...prev, [id]: p }))
       })
       .catch(() => {})
@@ -202,7 +203,7 @@ export default function Home() {
   const [seasonal, newest] = carouselRecipes
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 24 }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
 
       {/* Greeting */}
       <div style={{ padding: '24px 16px 28px' }}>
@@ -219,7 +220,7 @@ export default function Home() {
         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.65px', padding: '0 16px', margin: '0 0 12px' }}>
           Heute für dich
         </p>
-        <div className="md:hidden" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           <div style={{ width: 272, flexShrink: 0 }}>
             <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={178}
               onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
@@ -294,7 +295,7 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="md:hidden" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           {neue.map(r => (
             <MiniCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}

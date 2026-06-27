@@ -279,7 +279,7 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', height: '64px' }}>
 
           {/* Logo */}
-          <Link to="/recipes" style={{ textDecoration: 'none', flexShrink: 0 }}>
+          <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
             <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.35rem', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
               🍽️ PiEngines
             </span>

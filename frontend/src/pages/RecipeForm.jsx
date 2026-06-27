@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import MediaUpload from '../components/MediaUpload'
-import Breadcrumb from '../components/Breadcrumb'
 import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
@@ -570,6 +569,7 @@ export default function RecipeForm() {
   const [saveError, setSaveError] = useState(null)
   const [toast, setToast] = useState(null)
   const [toastFading, setToastFading] = useState(false)
+  const [wizardStep, setWizardStep] = useState(0)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -978,16 +978,11 @@ export default function RecipeForm() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '96px' }}>
+  const STEPS = ['Basis', 'Zutaten', 'Zubereitung', 'Feinschliff', 'Veröffentlichen']
+  const servingsNum = parseInt(servings) || 4
 
-      {/* Breadcrumb strip */}
-      <div style={{ padding: '0 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <Breadcrumb items={isEdit
-          ? [{ label: 'Alle Rezepte', path: '/' }, { label: title || 'Rezept', path: recipeId ? `/recipes/${recipeId}` : null }, { label: 'Bearbeiten', path: null }]
-          : [{ label: 'Alle Rezepte', path: '/' }, { label: 'Neues Rezept', path: null }]
-        } />
-      </div>
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
 
       {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
       {showLeaveConfirm && (
@@ -1053,93 +1048,112 @@ export default function RecipeForm() {
         </div>
       )}
 
-      {/* Sticky top bar */}
+      {/* Wizard header */}
       <header style={{ position: 'sticky', top: '64px', zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.9rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
-            ← {isEdit ? 'Zur Detailseite' : 'Übersicht'}
+        {/* Top row */}
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.625rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: '0.875rem', padding: 0, display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0, whiteSpace: 'nowrap' }}>
+            ← {isEdit ? 'Detailseite' : 'Übersicht'}
           </button>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-            {isEdit ? (title || 'Rezept bearbeiten') : 'Neues Rezept'}
+          <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+            {title || (isEdit ? 'Rezept bearbeiten' : 'Neues Rezept')}
           </h1>
           {saveStatusText && (
-            <span style={{ fontSize: '0.78rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
+            <span className="hidden sm:inline" style={{ fontSize: '0.75rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
           )}
+          <div className="hidden sm:flex" style={{ gap: '0.5rem', flexShrink: 0 }}>
+            {isEdit && (
+              <button onClick={handleDiscard}
+                style={{ padding: '0.5rem 0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem' }}>
+                Verwerfen
+              </button>
+            )}
+            <button onClick={handleSave} data-track-id="recipe-form-submit"
+              disabled={!!savingAs || !title.trim() || !isDirty}
+              style={{ padding: '0.5rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', fontWeight: 600 }}>
+              {savingAs ? 'Speichert …' : 'Speichern'}
+            </button>
+          </div>
+        </div>
+        {/* Mobile step tabs */}
+        <div className="sm:hidden" style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', borderTop: '1px solid var(--border)' }}>
+          {STEPS.map((label, i) => (
+            <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
+              style={{ flex: '0 0 auto', padding: '0.5rem 0.875rem', border: 'none', borderBottom: `2px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: 'none', color: wizardStep === i ? 'var(--accent)' : 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: wizardStep === i ? 600 : 400, whiteSpace: 'nowrap' }}>
+              {i + 1}. {label}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Main content */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      {/* Main area */}
+      <div style={{ display: 'flex', maxWidth: '1200px', margin: '0 auto' }}>
 
-        {/* 1. Grunddaten */}
-        <SectionCard title="Grunddaten" icon="📋">
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FieldLabel required>Titel</FieldLabel>
-            <StyledInput value={title} onChange={v => { setTitle(v); markDirty() }} placeholder="Rezepttitel …" autoFocus={!isEdit} />
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FieldLabel>Beschreibung</FieldLabel>
-            <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung des Rezepts …" rows={3} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" style={{ marginBottom: '1.25rem' }}>
-            <div><FieldLabel>Vorbereitung (min)</FieldLabel><StyledInput type="number" min="0" value={prepTime} onChange={v => { setPrepTime(v); markDirty() }} placeholder="z.B. 15" /></div>
-            <div><FieldLabel>Kochzeit (min)</FieldLabel><StyledInput type="number" min="0" value={cookTime} onChange={v => { setCookTime(v); markDirty() }} placeholder="z.B. 30" /></div>
-            <div><FieldLabel>Portionen</FieldLabel><StyledInput type="number" min="1" value={servings} onChange={v => { setServings(v); markDirty() }} placeholder="z.B. 4" /></div>
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FieldLabel>Schwierigkeit</FieldLabel>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.375rem' }}>
-              <input type="range" min="1" max="5" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
-              <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/5</span>
+        {/* Desktop sidebar stepper */}
+        <aside className="hidden sm:flex" style={{ width: '200px', flexShrink: 0, flexDirection: 'column', padding: '1.5rem 0', borderRight: '1px solid var(--border)', background: 'var(--card)', minHeight: 'calc(100vh - 128px)' }}>
+          {STEPS.map((label, i) => (
+            <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
+                {i < wizardStep ? '✓' : i + 1}
+              </div>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: wizardStep === i ? 600 : 400, color: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--text)') }}>{label}</span>
+            </button>
+          ))}
+        </aside>
+
+        {/* Step content */}
+        <main style={{ flex: 1, minWidth: 0, padding: '1.5rem' }}>
+
+          {/* Step 0: Basis */}
+          {wizardStep === 0 && (
+            <div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Wie heißt dein Rezept?</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Du kannst den Titel jederzeit ändern.</p>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel required>Titel</FieldLabel>
+                <StyledInput value={title} onChange={v => { setTitle(v); markDirty() }} placeholder="z. B. Pizzateig" autoFocus={!isEdit} />
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel>Beschreibung</FieldLabel>
+                <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung …" rows={3} />
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel required>Art</FieldLabel>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
+                    <button key={value} onClick={() => { setType(value); markDirty() }}
+                      style={{ padding: '0.5rem 1.25rem', border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? '#C8602A' : 'var(--card)', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, transition: 'var(--transition)' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <FieldLabel>Quelle / Inspiration</FieldLabel>
+                <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
+              </div>
             </div>
-            <span style={{ display: 'inline-flex', gap: '2px' }} title={`${difficulty}/5`}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} style={{ display: 'inline-block', fontSize: '1.1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.2, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
-              ))}
-            </span>
-          </div>
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FieldLabel required>Art</FieldLabel>
-            <div style={{ display: 'flex', gap: '0.625rem' }}>
-              {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
-                <button
-                  key={value}
-                  onClick={() => { setType(value); markDirty() }}
-                  style={{
-                    padding: '0.5rem 1.25rem',
-                    border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`,
-                    borderRadius: 'var(--radius-pill)',
-                    background: type === value ? '#C8602A' : 'var(--card)',
-                    color: type === value ? '#fff' : 'var(--text)',
-                    cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    transition: 'var(--transition)',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <FieldLabel>Quelle / Inspiration</FieldLabel>
-            <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
-          </div>
-        </SectionCard>
+          )}
 
-        {/* 2. Kategorien & Tags */}
-        <SectionCard title="Kategorien & Tags" icon="🏷️">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <TaxonomyField label="Kategorien" apiPath="/api/categories" selected={selectedCats} onAdd={cat => { setSelectedCats(prev => prev.some(c => c.id === cat.id) ? prev : [...prev, cat]); markDirty() }} onRemove={catId => { setSelectedCats(prev => prev.filter(c => c.id !== catId)); markDirty() }} placeholder="Kategorie suchen oder erstellen …" />
-            <TaxonomyField label="Tags" apiPath="/api/tags" selected={selectedTags} onAdd={tag => { setSelectedTags(prev => prev.some(t => t.id === tag.id) ? prev : [...prev, tag]); markDirty() }} onRemove={tagId => { setSelectedTags(prev => prev.filter(t => t.id !== tagId)); markDirty() }} placeholder="Tag suchen oder erstellen …" />
-          </div>
-        </SectionCard>
-
-        {/* 3. Zutaten */}
-        <SectionCard title="Zutaten" icon="🥕">
-          {groupIngsByLabel(ingredients).map(group => {
+          {/* Step 1: Zutaten */}
+          {wizardStep === 1 && (
+            <div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Was kommt rein?</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1rem' }}>Eine Zeile pro Zutat — Menge, Einheit und Name.</p>
+              {/* Servings stepper */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.625rem 0.875rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-input)' }}>
+                <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flex: 1 }}>Die Mengen gelten für</span>
+                <button onClick={() => { setServings(String(Math.max(1, servingsNum - 1))); markDirty() }}
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--card)', cursor: 'pointer', color: 'var(--text)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--text)', minWidth: '1.25rem', textAlign: 'center' }}>{servingsNum}</span>
+                <button onClick={() => { setServings(String(servingsNum + 1)); markDirty() }}
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--card)', cursor: 'pointer', color: 'var(--text)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
+                <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Portionen</span>
+              </div>
+              {/* Ingredient groups */}
+              {groupIngsByLabel(ingredients).map(group => {
             const firstIng = group.items[0]
             const firstIdx = ingredients.findIndex(i => i._key === firstIng._key)
             const isModule = !!firstIng._module_recipe_id
@@ -1309,75 +1323,144 @@ export default function RecipeForm() {
               </div>
             )
           })}
-          <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>+ Zutat hinzufügen</AddRowBtn>
-        </SectionCard>
-
-        {/* 4. Schritte */}
-        <SectionCard title="Zubereitung" icon="👨‍🍳">
-          {steps.map((step, idx) => (
-            <StepRow key={step._key} item={step} index={idx} total={steps.length}
-              onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
-              onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-              onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-              onMediaChange={media => updateStepMedia(step._key, media)}
-              onStepMediaReload={(dbId, key) => reloadStepMedia(dbId, key)}
-            />
-          ))}
-          <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
-        </SectionCard>
-
-        {/* 5. Fotos & Videos */}
-        <SectionCard title="Fotos & Videos" icon="📷">
-          {recipeId ? (
-            <MediaUpload
-              entityType="recipe"
-              entityId={recipeId}
-              existingMedia={recipeMedia}
-              onMediaChange={async () => {
-                try {
-                  const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`)
-                  setRecipeMedia(data)
-                } catch {}
-              }}
-              allowVideo={true}
-            />
-          ) : (
-            <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
-              Speichere das Rezept zuerst, um Fotos und Videos hochzuladen.
-            </p>
+              <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>+ Zutat hinzufügen</AddRowBtn>
+            </div>
           )}
-        </SectionCard>
-      </main>
 
-      {/* Sticky footer */}
+          {/* Step 2: Zubereitung */}
+          {wizardStep === 2 && (
+            <div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Wie wird's gemacht?</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.25rem' }}>Schreibe jeden Schritt — füge Timer und Fotos hinzu.</p>
+              {steps.map((step, idx) => (
+                <StepRow key={step._key} item={step} index={idx} total={steps.length}
+                  onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
+                  onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
+                  onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+                  onMediaChange={media => updateStepMedia(step._key, media)}
+                  onStepMediaReload={(dbId, key) => reloadStepMedia(dbId, key)}
+                />
+              ))}
+              <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
+            </div>
+          )}
+
+          {/* Step 3: Feinschliff */}
+          {wizardStep === 3 && (
+            <div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Feinschliff</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Alles optional — du kannst auch jetzt schon speichern.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <FieldLabel>Vorbereitung (Min.)</FieldLabel>
+                  <StyledInput type="number" min="0" value={prepTime} onChange={v => { setPrepTime(v); markDirty() }} placeholder="z. B. 15" />
+                </div>
+                <div>
+                  <FieldLabel>Kochen / Backen (Min.)</FieldLabel>
+                  <StyledInput type="number" min="0" value={cookTime} onChange={v => { setCookTime(v); markDirty() }} placeholder="z. B. 30" />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel>Schwierigkeit</FieldLabel>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.375rem' }}>
+                  <input type="range" min="1" max="5" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
+                  <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/5</span>
+                </div>
+                <span style={{ display: 'inline-flex', gap: '2px' }}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} style={{ fontSize: '1.1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.2, transform: 'scaleX(-1)', display: 'inline-block', lineHeight: 1 }}>🥄</span>
+                  ))}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1.5rem', marginBottom: '1.25rem' }}>
+                <TaxonomyField label="Kategorien" apiPath="/api/categories" selected={selectedCats}
+                  onAdd={cat => { setSelectedCats(prev => prev.some(c => c.id === cat.id) ? prev : [...prev, cat]); markDirty() }}
+                  onRemove={catId => { setSelectedCats(prev => prev.filter(c => c.id !== catId)); markDirty() }}
+                  placeholder="Kategorie suchen oder erstellen …" />
+                <TaxonomyField label="Tags" apiPath="/api/tags" selected={selectedTags}
+                  onAdd={tag => { setSelectedTags(prev => prev.some(t => t.id === tag.id) ? prev : [...prev, tag]); markDirty() }}
+                  onRemove={tagId => { setSelectedTags(prev => prev.filter(t => t.id !== tagId)); markDirty() }}
+                  placeholder="Tag suchen oder erstellen …" />
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel>Fotos & Videos</FieldLabel>
+                {recipeId ? (
+                  <MediaUpload entityType="recipe" entityId={recipeId} existingMedia={recipeMedia}
+                    onMediaChange={async () => {
+                      try { const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`); setRecipeMedia(data) } catch {}
+                    }} allowVideo={true} />
+                ) : (
+                  <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
+                    Speichere das Rezept zuerst, um Fotos hochzuladen.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Veröffentlichen */}
+          {wizardStep === 4 && (
+            <div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Bereit zum Veröffentlichen?</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Überprüfe dein Rezept und speichere es.</p>
+              <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.5rem', marginBottom: '1.25rem' }}>
+                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.75rem' }}>{title || '(Kein Titel)'}</h2>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                  <span>🥕 {ingredients.filter(i => i.name.trim()).length} Zutaten</span>
+                  <span>👨‍🍳 {steps.filter(s => s.instruction.trim()).length} Schritte</span>
+                  {(prepTime || cookTime) && <span>⏱ {[prepTime && `${prepTime} Min. Vorbereitung`, cookTime && `${cookTime} Min. Kochen`].filter(Boolean).join(' + ')}</span>}
+                  <span>{type === 'backen' ? '🍞 Backen' : '🍳 Kochen'}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {isKochOrAbove(user) && (
+                  <button onClick={handleReviewClick} disabled={!recipeId}
+                    style={{ padding: '0.75rem 1.25rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: !recipeId ? 'var(--subtext)' : 'var(--accent)', cursor: !recipeId ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600, opacity: !recipeId ? 0.5 : 1 }}>
+                    🥕 Zutaten überprüfen
+                  </button>
+                )}
+                <button onClick={handleSave} data-track-id="recipe-form-submit"
+                  disabled={!!savingAs || !title.trim() || !isDirty}
+                  style={{ padding: '0.875rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 600 }}>
+                  {savingAs ? 'Wird gespeichert …' : isDirty ? 'Jetzt veröffentlichen' : 'Gespeichert ✓'}
+                </button>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* Wizard footer: step navigation */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', zIndex: 200 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.875rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.825rem', color: saveStatusColor, flex: '1 1 auto', minWidth: '100px' }}>
-          {saveStatusText || (!title.trim() && <span style={{ color: 'var(--subtext)', fontStyle: 'italic' }}>Titel eingeben zum Speichern</span>)}
-        </span>
-
-        {isEdit && (
-          <button onClick={handleDiscard} style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            Verwerfen
-          </button>
-        )}
-
-        {isKochOrAbove(user) && (
-          <button
-            onClick={handleReviewClick}
-            disabled={!recipeId}
-            title={!recipeId ? 'Erst speichern, um Zutaten zu überprüfen' : undefined}
-            style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: !recipeId ? 'var(--subtext)' : 'var(--accent)', cursor: !recipeId ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, opacity: !recipeId ? 0.5 : 1 }}
-          >
-            🥕 Zutaten überprüfen
-          </button>
-        )}
-
-        <button onClick={handleSave} disabled={!!savingAs || !title.trim() || !isDirty} style={{ padding: '0.625rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', whiteSpace: 'nowrap', flexShrink: 0, opacity: (!title.trim() || !isDirty) ? 0.5 : 1 }}
-          onMouseEnter={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent-hover)' }}
-          onMouseLeave={e => { if (!savingAs && title.trim() && isDirty) e.currentTarget.style.background = 'var(--accent)' }}>
-          {savingAs ? 'Wird gespeichert …' : 'Speichern'}
-        </button>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          {wizardStep > 0 ? (
+            <button onClick={() => setWizardStep(s => s - 1)} data-track-id="recipe-form-step-prev"
+              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+              ← Zurück
+            </button>
+          ) : (
+            <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')}
+              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+              Abbrechen
+            </button>
+          )}
+          <span className="hidden sm:inline" style={{ fontSize: '0.8rem', color: saveStatusColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {saveStatusText || (!title.trim() && 'Titel eingeben zum Speichern')}
+          </span>
+          <span className="sm:hidden" style={{ flex: 1 }} />
+          {isDirty && title.trim() && wizardStep < 4 && (
+            <button onClick={handleSave} disabled={!!savingAs}
+              style={{ padding: '0.625rem 0.875rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--accent)', cursor: savingAs ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0 }}>
+              {savingAs ? '…' : 'Speichern'}
+            </button>
+          )}
+          {wizardStep < STEPS.length - 1 && (
+            <button onClick={() => setWizardStep(s => s + 1)} data-track-id="recipe-form-step-next"
+              style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
+              Weiter →
+            </button>
+          )}
         </div>
       </div>
 
