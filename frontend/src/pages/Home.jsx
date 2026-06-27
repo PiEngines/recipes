@@ -207,10 +207,10 @@ export default function Home() {
   const [seasonal, newest] = carouselRecipes
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 132 }}>
+    <div className="px-4 md:px-8" style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 132, maxWidth: 960, margin: '0 auto', width: '100%' }}>
 
       {/* Greeting */}
-      <div style={{ padding: '24px 16px 28px' }}>
+      <div style={{ padding: '24px 0 28px' }}>
         <p style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', margin: '0 0 4px' }}>
           {getGreeting()}
         </p>
@@ -221,17 +221,17 @@ export default function Home() {
 
       {/* Heute für dich */}
       <section style={{ paddingBottom: 32 }} aria-label="Heute für dich">
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.65px', padding: '0 16px', margin: '0 0 12px' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.65px', margin: '0 0 12px' }}>
           Heute für dich
         </p>
-        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={178}
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
           <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={178}
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
-        <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14, padding: '0 32px' }}>
+        <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
           <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard height={204} onClick={() => navigate('/seasonal')} />
@@ -241,7 +241,7 @@ export default function Home() {
       </section>
 
       {/* Fratcher Teaser */}
-      <div style={{ padding: '0 16px 32px' }} className="md:px-8">
+      <div style={{ paddingBottom: 32 }}>
         <div
           onClick={() => navigate('/seasonal')}
           data-track-id="home-fratcher-teaser-click"
@@ -284,7 +284,7 @@ export default function Home() {
 
       {/* Neue Rezepte */}
       <section style={{ paddingBottom: 28 }} aria-label="Neue Rezepte">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', marginBottom: 12 }} className="md:px-8">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             Neue Rezepte
           </h2>
@@ -293,12 +293,12 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 16px 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           {neue.map(r => (
             <MiniCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: '0 32px' }}>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {neue.map(r => (
             <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
               style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
@@ -321,7 +321,7 @@ export default function Home() {
       </section>
 
       {/* Entdecken Feed */}
-      <section id="home-feed" aria-label="Entdecken" style={{ padding: '0 16px 20px' }} className="md:px-8">
+      <section id="home-feed" aria-label="Entdecken" style={{ paddingBottom: 20 }}>
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
           Entdecken
         </h2>
