@@ -578,7 +578,7 @@ export default function Recipes() {
       </div>
 
       {/* Mobile content (below filter bar) */}
-      <main className="md:hidden" style={{ padding: '0 1.25rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <main className="md:hidden" style={{ padding: '0 1.25rem 6rem', maxWidth: '1200px', margin: '0 auto' }}>
         {!loading && total > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', margin: 0 }}>
@@ -593,13 +593,13 @@ export default function Recipes() {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
+          <div className="grid grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
         ) : displayRecipes.length === 0 ? (
           showFavorites ? <EmptyFavoritesState /> : <EmptyState search={search} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
+          <div className="grid grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
             {displayRecipes.map(r => r.deleted_at
               ? <DeletedFavoriteCard key={r.id} recipe={r} />
               : <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={showFavorites && !favoriteIds.has(r.id)} />

@@ -99,18 +99,9 @@ function buildHighlightedHtml(text, ingredientName) {
   return escaped.replace(pattern, m => `<mark class="ingredient-highlight">${m}</mark>`)
 }
 
-// ── Difficulty spoons ─────────────────────────────────────────────────────────
+// ── Difficulty labels ─────────────────────────────────────────────────────────
 
-function DifficultySpoons({ difficulty }) {
-  const filled = difficulty
-  return (
-    <span title={`${difficulty}/5`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} style={{ display: 'inline-block', fontSize: '1rem', color: '#C8602A', opacity: i < filled ? 1 : 0.25, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
-      ))}
-    </span>
-  )
-}
+const DIFF_LABELS = ['', 'Sehr leicht', 'Leicht', 'Mittel', 'Schwer', 'Sehr schwer']
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
@@ -149,7 +140,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
             </button>
           )}
         </div>
-        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false}
+        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false} trackId="detail-favorite-toggle"
           style={{ position: 'absolute', bottom: 18, right: 14, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px' }}>
           {recipe.description && (
@@ -192,52 +183,33 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 
 function MetaBar({ recipe }) {
   const cols = [
-    recipe.prep_time ? { label: 'Vorbereitung', value: `${recipe.prep_time} Min.`, accent: true } : null,
-    recipe.cook_time ? { label: 'Kochen', value: `${recipe.cook_time} Min.`, accent: true } : null,
-    { label: 'Art', value: recipe.type === 'backen' ? 'Backen' : 'Kochen', accent: false },
-    recipe.difficulty ? { label: 'Schwierigkeit', value: recipe.difficulty, isDiff: true } : null,
+    recipe.prep_time ? { label: 'Vorbereitung', icon: 'ti-clock', time: recipe.prep_time } : null,
+    recipe.cook_time ? { label: 'Kochen', icon: 'ti-flame', time: recipe.cook_time } : null,
+    { label: 'Art', text: recipe.type === 'backen' ? 'Backen' : 'Kochen' },
+    recipe.difficulty ? { label: 'Schwierigkeit', text: DIFF_LABELS[recipe.difficulty] || String(recipe.difficulty) } : null,
   ].filter(Boolean)
 
   return (
     <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', overflow: 'hidden', marginBottom: '1rem', display: 'flex' }}>
       {cols.map((col, i) => (
         <div key={i} style={{ flex: 1, padding: '12px 4px', textAlign: 'center', borderRight: i < cols.length - 1 ? '1px solid var(--border)' : 'none' }}>
-          <p style={{ fontSize: 10, fontWeight: 600, color: col.accent ? 'var(--accent)' : 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '.5px', margin: '0 0 4px', fontFamily: 'Inter, sans-serif' }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '.5px', margin: '0 0 5px', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+            {col.icon && <i className={`ti ${col.icon}`} style={{ fontSize: 10 }} />}
             {col.label}
           </p>
-          {col.isDiff ? (
-            <DifficultySpoons difficulty={col.value} />
+          {col.time != null ? (
+            <p style={{ margin: 0, fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+              <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--accent)' }}>{col.time}</span>
+              <span style={{ fontSize: 12, color: 'var(--subtext)', fontWeight: 400, marginLeft: 2 }}>min</span>
+            </p>
           ) : (
-            <p style={{ fontSize: 14, fontWeight: 600, color: col.accent ? 'var(--accent)' : 'var(--text)', margin: 0, fontFamily: 'Inter, sans-serif' }}>
-              {col.value}
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', margin: 0, fontFamily: 'Inter, sans-serif' }}>
+              {col.text}
             </p>
           )}
         </div>
       ))}
     </div>
-  )
-}
-
-function MetaStat({ icon, label, value }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <span style={{ fontSize: '0.7rem', color: 'var(--subtext)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{icon} {label}</span>
-      <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text)' }}>{value}</span>
-    </div>
-  )
-}
-
-function Pill({ children, color }) {
-  return (
-    <span style={{
-      padding: '0.2rem 0.65rem',
-      borderRadius: 'var(--radius-pill)',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-      background: `${color}22`,
-      color,
-      border: `1px solid ${color}44`,
-    }}>{children}</span>
   )
 }
 
@@ -462,32 +434,6 @@ function MobileIngredientPanel({ recipe, servings, baseServings, onServingsChang
   )
 }
 
-// ── Suggestion card (Dazu passt auch) ────────────────────────────────────────
-
-const SUGG_GRADIENTS = [
-  'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
-  'linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%)',
-  'linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%)',
-  'linear-gradient(148deg, #6B5A3E 0%, #3E3020 100%)',
-]
-
-function SuggestionCard({ recipe, image, onClick }) {
-  const src = image?.thumbnail_url || image?.url || null
-  const bg = SUGG_GRADIENTS[recipe.id % SUGG_GRADIENTS.length]
-  const t = (recipe.prep_time || 0) + (recipe.cook_time || 0)
-  const timeStr = t ? (t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`) : null
-  return (
-    <div onClick={onClick} data-track-id="detail-suggestion-click"
-      style={{ width: 148, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 100, backgroundImage: src ? `url(${src})` : undefined, background: src ? undefined : bg, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      <div style={{ padding: '8px 10px 10px' }}>
-        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 4px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
-        {timeStr && <span style={{ fontSize: 10, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{timeStr}</span>}
-      </div>
-    </div>
-  )
-}
-
 // ── Step image row with scroll dots ──────────────────────────────────────────
 
 function StepImageRow({ images, onImageClick }) {
@@ -612,6 +558,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
           {step.timer_seconds && (
             <button
               onClick={e => { e.stopPropagation(); onAddTimer() }}
+              data-track-id="detail-timer-start"
               style={{
                 marginTop: '0.875rem',
                 padding: '0.35rem 0.875rem',
@@ -733,8 +680,6 @@ export default function RecipeDetail() {
   const [ingredientView, setIngredientView] = useState('grouped')
   const [panelOpen, setPanelOpen] = useState(false)
   const [recipeMedia, setRecipeMedia] = useState([])
-  const [suggestions, setSuggestions] = useState([])
-  const [suggestionImgs, setSuggestionImgs] = useState({})
   const [stepMedia, setStepMedia] = useState(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -833,24 +778,6 @@ export default function RecipeDetail() {
       .catch(() => {})
   }, [recipe?.id, user?.id])
 
-  // Fetch suggestions (Dazu passt auch)
-  useEffect(() => {
-    if (!recipe) return
-    client.get('/api/recipes/random', { params: { count: 4 } })
-      .then(({ data }) => {
-        const items = (data || []).filter(r => r.id !== recipe.id).slice(0, 3)
-        setSuggestions(items)
-        items.forEach(r => {
-          client.get(`/api/media/entity/recipe/${r.id}`)
-            .then(({ data: mData }) => {
-              const p = mData.find(m => m.is_primary && m.media_type === 'image') ?? null
-              setSuggestionImgs(prev => ({ ...prev, [r.id]: p }))
-            })
-            .catch(() => {})
-        })
-      })
-      .catch(() => {})
-  }, [recipe?.id])
 
   if (loading) return <LoadingScreen />
   if (!recipe) return null
@@ -1033,24 +960,6 @@ export default function RecipeDetail() {
               ))
             )}
 
-            {/* Dazu passt auch */}
-            {suggestions.length > 0 && (
-              <div style={{ marginTop: '2.5rem' }}>
-                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.3rem', fontWeight: 600, margin: '0 0 1rem', color: 'var(--text)' }}>
-                  Dazu passt auch
-                </h2>
-                <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}>
-                  {suggestions.map(r => (
-                    <SuggestionCard
-                      key={r.id}
-                      recipe={r}
-                      image={suggestionImgs[r.id]}
-                      onClick={() => navigate(`/recipes/${r.id}`)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
