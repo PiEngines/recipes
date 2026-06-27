@@ -255,13 +255,17 @@ export default function AdminUsers() {
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
                         {tab === 'active' ? (
-                          <select
-                            value={u.role}
-                            onChange={e => handleRoleChange(u.id, e.target.value)}
-                            style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
-                          >
-                            {ROLES.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
-                          </select>
+                          isKuechenchef ? (
+                            <select
+                              value={u.role}
+                              onChange={e => handleRoleChange(u.id, e.target.value)}
+                              style={{ ...inputStyle, padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+                            >
+                              {ROLES.map(r => <option key={r} value={r}>{getRoleLabel(r)}</option>)}
+                            </select>
+                          ) : (
+                            <span style={{ color: 'var(--subtext)' }}>{getRoleLabel(u.role)}</span>
+                          )
                         ) : tab === 'pending' && !activatedIds.has(u.id) ? (
                           <select
                             value={activateRoles[u.id] || 'kuechenhilfe'}
@@ -288,7 +292,7 @@ export default function AdminUsers() {
                       </td>
                       <td style={{ padding: '0.875rem 1rem' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                          {tab === 'active' && (
+                          {tab === 'active' && isKuechenchef && (
                             <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'delete', name: u.name })}>
                               Löschen
                             </ActionBtn>
@@ -299,7 +303,7 @@ export default function AdminUsers() {
                               <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'delete', name: u.name })}>Ablehnen</ActionBtn>
                             </>
                           )}
-                          {tab === 'deleted' && (
+                          {tab === 'deleted' && isKuechenchef && (
                             <>
                               <ActionBtn onClick={() => handleRestore(u.id)}>Wiederherstellen</ActionBtn>
                               <ActionBtn danger onClick={() => setConfirmDialog({ userId: u.id, action: 'hard-delete', name: u.name })}>

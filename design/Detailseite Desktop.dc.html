@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    html, body { margin:0; height:100%; background:#FAF7F2; }
+    * { box-sizing:border-box; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(0,0,0,.12); border-radius:4px; }
+    button, input { font-family:'Inter',sans-serif; cursor:pointer; }
+  </style>
+</helmet>
+
+<div style="height:100vh; display:flex; flex-direction:column; background:#FAF7F2; font-family:'Inter',sans-serif; color:#2C2C2A; max-width:1280px; margin:0 auto; position:relative;">
+
+  <!-- Header -->
+  <div style="height:52px; flex-shrink:0; background:rgba(250,247,242,.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(0,0,0,.07); z-index:50; display:flex; align-items:center; padding:0 16px; gap:6px;">
+    <button style="width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,.06); border:none; display:flex; align-items:center; justify-content:center; color:#2C2C2A; font-size:18px; flex-shrink:0;">
+      <i class="ti ti-arrow-left"></i>
+    </button>
+    <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:0; padding:0 8px;">
+      <span style="font-size:13px; color:#9A958C; cursor:pointer; white-space:nowrap;">Alle Rezepte</span>
+      <i class="ti ti-chevron-right" style="font-size:11px; color:#C9C3B8;"></i>
+      <span style="font-size:14px; font-weight:600; color:#2C2C2A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ recipeName }}</span>
+    </div>
+    <button style="display:flex; align-items:center; gap:6px; padding:7px 14px; border:1.5px solid rgba(0,0,0,.12); border-radius:8px; background:#fff; color:#2C2C2A; font-size:13px; font-weight:500; flex-shrink:0;">
+      <i class="ti ti-pencil" style="font-size:14px;"></i> Bearbeiten
+    </button>
+    <button style="width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,.06); border:none; display:flex; align-items:center; justify-content:center; color:#2C2C2A; font-size:18px; flex-shrink:0;">
+      <i class="ti ti-bookmark"></i>
+    </button>
+    <button style="width:36px; height:36px; border-radius:50%; background:rgba(0,0,0,.06); border:none; display:flex; align-items:center; justify-content:center; color:#2C2C2A; font-size:18px; flex-shrink:0;">
+      <i class="ti ti-dots-vertical"></i>
+    </button>
+  </div>
+
+  <!-- Body: Sidebar + Main -->
+  <div style="flex:1; display:flex; overflow:hidden;">
+
+    <!-- Left Sidebar — Zutaten -->
+    <div style="width:300px; flex-shrink:0; border-right:1px solid rgba(0,0,0,.07); background:#fff; display:flex; flex-direction:column; overflow:hidden;">
+
+      <!-- Zutaten Header -->
+      <div style="padding:16px 18px 12px; border-bottom:1px solid rgba(0,0,0,.07); flex-shrink:0;">
+        <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#2C2C2A; margin-bottom:10px;">Zutaten</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:13px; color:#9A958C; flex:1;">Portionen</span>
+          <button onClick="{{ decreaseServings }}" style="background:rgba(0,0,0,.06); border:none; color:#6B6B68; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px;">
+            <i class="ti ti-minus"></i>
+          </button>
+          <span style="font-size:16px; font-weight:600; color:#2C2C2A; min-width:20px; text-align:center;">{{ servings }}</span>
+          <button onClick="{{ increaseServings }}" style="background:rgba(200,96,42,.1); border:none; color:#C8602A; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px;">
+            <i class="ti ti-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active step label -->
+      <sc-if value="{{ hasActiveStep }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:8px 18px; background:#FEF6F2; border-bottom:1px solid rgba(200,96,42,.12); flex-shrink:0;">
+          <span style="font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9A958C;">Schritt {{ activeStepNum }}</span>
+          <div style="font-family:'Playfair Display',serif; font-size:13px; font-weight:600; color:#C8602A;">{{ activeStepTitle }}</div>
+        </div>
+      </sc-if>
+
+      <!-- Ingredient list -->
+      <div style="overflow-y:auto; padding:6px 18px 24px; flex:1;">
+        <sc-for list="{{ ingredientItems }}" as="ing" hint-placeholder-count="7">
+          <div onClick="{{ ing.onClick }}" style="{{ ing.rowStyle }}">
+            <span style="{{ ing.nameStyle }}">{{ ing.name }}</span>
+            <span style="{{ ing.amtStyle }}">{{ ing.amountStr }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+
+    <!-- Main Content -->
+    <div style="flex:1; overflow-y:auto; min-width:0;">
+
+      <!-- Hero -->
+      <div style="{{ heroWrapStyle }}">
+        <div style="{{ heroOverlayStyle }}"></div>
+        <div style="position:absolute; bottom:22px; right:18px; width:38px; height:38px; border-radius:50%; background:rgba(0,0,0,.28); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+          <i class="ti ti-heart-filled" style="color:#E55C5C; font-size:19px;"></i>
+        </div>
+        <div style="position:absolute; bottom:22px; left:20px; right:66px;">
+          <div style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; font-style:italic; color:#fff; line-height:1.2; text-shadow:0 2px 12px rgba(0,0,0,.5);">{{ recipeName }}</div>
+          <div style="margin-top:8px; display:inline-block; background:rgba(0,0,0,.3); backdrop-filter:blur(8px); border-radius:6px; padding:5px 12px;">
+            <div style="font-size:13px; color:rgba(255,255,255,.9); line-height:1.45;">{{ recipeDesc }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Galerie-Strip -->
+      <div style="display:flex; gap:7px; overflow-x:auto; padding:10px 20px 4px;">
+        <sc-for list="{{ galleryImages }}" as="gimg" hint-placeholder-count="4">
+          <div style="{{ gimg.style }}">
+            <span style="font-family:monospace; font-size:8px; color:#B0A898;">{{ gimg.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Meta -->
+      <div style="padding:10px 20px; display:flex; gap:0; border-bottom:1px solid rgba(0,0,0,.07);">
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+          <span style="font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9A958C; display:flex; align-items:center; gap:3px;"><i class="ti ti-clock" style="font-size:10px;"></i> Vorbereitung</span>
+          <span style="font-size:17px; font-weight:600; color:#C8602A;">{{ prepTime }}<span style="font-size:12px; color:#9A958C; font-weight:400; margin-left:2px;">min</span></span>
+        </div>
+        <div style="width:1px; background:rgba(0,0,0,.08); margin:0 4px;"></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px; padding-left:14px;">
+          <span style="font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9A958C; display:flex; align-items:center; gap:3px;"><i class="ti ti-flame" style="font-size:10px;"></i> Kochen</span>
+          <span style="font-size:17px; font-weight:600; color:#C8602A;">{{ cookTime }}<span style="font-size:12px; color:#9A958C; font-weight:400; margin-left:2px;">min</span></span>
+        </div>
+        <div style="width:1px; background:rgba(0,0,0,.08); margin:0 4px;"></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px; padding-left:14px;">
+          <span style="font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9A958C;">Art</span>
+          <span style="font-size:14px; font-weight:600; color:#2C2C2A;">{{ typeLabel }}</span>
+        </div>
+        <div style="width:1px; background:rgba(0,0,0,.08); margin:0 4px;"></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px; padding-left:14px;">
+          <span style="font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9A958C;">Schwierigkeit</span>
+          <span style="font-size:14px; font-weight:600; color:#2C2C2A;">{{ difficultyLabel }}</span>
+        </div>
+      </div>
+
+      <!-- Autor + Tags -->
+      <div style="padding:6px 20px 0;">
+        <div style="display:flex; flex-direction:column; gap:2px; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,.07);">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span style="font-size:12px; color:#9A958C;">von <span style="color:#C8602A; font-weight:500; cursor:pointer;">{{ authorName }}</span> · {{ createdAt }}</span>
+            <span onClick="{{ togglePills }}" style="font-size:11px; color:#9A958C; background:rgba(0,0,0,.06); border-radius:999px; padding:2px 8px; cursor:pointer; white-space:nowrap; flex-shrink:0;">{{ pillsChipLabel }}</span>
+          </div>
+          <sc-if value="{{ containsFromName }}" hint-placeholder-val="{{ false }}">
+            <span style="font-size:12px; color:#9A958C;">inkl. Rezept von <span style="color:#C8602A; font-weight:500; cursor:pointer;">{{ containsFromName }}</span></span>
+          </sc-if>
+          <sc-if value="{{ pillsVisible }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px;">
+              <sc-for list="{{ dietPills }}" as="pill" hint-placeholder-count="1">
+                <span style="{{ pill.style }}">{{ pill.label }}</span>
+              </sc-for>
+              <sc-for list="{{ allergenPills }}" as="pill" hint-placeholder-count="0">
+                <span style="{{ pill.style }}">{{ pill.label }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- Zubereitung -->
+      <div style="padding:16px 20px 0;">
+        <div style="font-family:'Playfair Display',serif; font-size:24px; font-weight:700; margin-bottom:3px;">Zubereitung</div>
+        <div style="font-size:12px; color:#9A958C; margin-bottom:14px;">Schritt antippen · Zutaten werden links hervorgehoben</div>
+
+        <div style="display:flex; flex-direction:column;">
+          <sc-for list="{{ stepItems }}" as="step" hint-placeholder-count="3">
+            <div onClick="{{ step.onClick }}" style="{{ step.cardStyle }}">
+              <div style="display:flex; gap:14px; align-items:flex-start;">
+                <div style="{{ step.numStyle }}">{{ step.idx }}</div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:600; color:#C8602A; margin-bottom:5px;">{{ step.title }}</div>
+                  <div style="font-size:14px; line-height:1.7; color:#2C2C2A;">{{ step.instruction }}</div>
+                  <sc-if value="{{ step.hasTimer }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ step.onTimer }}" style="{{ step.timerBtnStyle }}">
+                      ⏱ {{ step.timerLabel }} {{ step.timerStatus }}
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{ step.hasImages }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:12px;">
+                      <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px;">
+                        <sc-for list="{{ step.stepImages }}" as="simg" hint-placeholder-count="2">
+                          <div style="{{ simg.style }}">
+                            <span style="font-family:monospace; font-size:8px; color:#B0A898;">{{ simg.label }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Dazu passt auch -->
+      <div style="padding:22px 20px 32px;">
+        <div style="height:1px; background:rgba(0,0,0,.07); margin-bottom:20px;"></div>
+        <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:14px;">Dazu passt auch…</div>
+        <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:4px;">
+          <sc-for list="{{ suggestions }}" as="sug" hint-placeholder-count="3">
+            <div style="flex-shrink:0; width:180px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,.07);">
+              <div style="height:110px; background:repeating-linear-gradient(135deg,#E0D9CF 0,#E0D9CF 10px,#E8E1D6 10px,#E8E1D6 20px); display:flex; align-items:center; justify-content:center;">
+                <span style="font-family:monospace; font-size:10px; color:#B0A898;">foto</span>
+              </div>
+              <div style="padding:10px 14px 13px;">
+                <div style="font-size:14px; font-weight:600; color:#2C2C2A; margin-bottom:2px;">{{ sug.title }}</div>
+                <div style="font-size:12px; color:#9A958C;">{{ sug.author }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div style="height:60px; flex-shrink:0; background:#fff; border-top:1px solid rgba(0,0,0,.07); display:flex; align-items:center; z-index:50;">
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-home-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500;">Start</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#C8602A;">
+      <i class="ti ti-book-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:600;">Rezepte</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-heart" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500;">Favoriten</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-plus" style="font-size:22px;"></i>
+      <span style="font-size:9px; font-weight:600;">Neu</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-dots" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500;">Mehr</span>
+    </button>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}
+}">
+
+class Component extends DCLogic {
+  state = {
+    activeStepIdx: 0,
+    servings: 4,
+    selectedIngredient: null,
+    activeTimers: {},
+    checkedIngredients: {},
+    pillsExpanded: false,
+  };
+
+  RECIPE = {
+    title: 'Pasta e Fagioli',
+    description: 'Ein klassisches italienisches Wintergericht – wärmend, sättigend und in einer halben Stunde auf dem Tisch.',
+    type: 'kochen',
+    prepTime: 10,
+    cookTime: 30,
+    servings: 4,
+    difficulty: 3,
+    authorName: 'Michael',
+    createdAt: '15. September 2024',
+    dietLabels: [{ id: 1, name: 'Vegetarisch' }],
+    allergens:  [{ id: 1, name: 'Gluten' }],
+    containsRecipeFrom: { name: 'Lena' },
+    steps: [
+      { id: 1, title: 'Anbraten', instruction: 'Knoblauch und Rosmarin in Olivenöl bei mittlerer Hitze anschwitzen, bis der Knoblauch goldgelb duftet. Bohnen dazugeben und kurz mitrösten.', timer_seconds: 300, images: ['Knoblauch anschwitzen', 'Bohnen mitrösten'] },
+      { id: 2, title: 'Köcheln', instruction: 'Gemüsebrühe angießen. Bohnen und Rosmarin bei leiser Hitze weich kochen (ca. 20 Minuten). Rosmarin herausnehmen, ein Drittel der Bohnen grob zerdrücken.', timer_seconds: 1200, images: ['Brühe angießen'] },
+      { id: 3, title: 'Pasta & Abschmecken', instruction: 'Pasta direkt in der Suppe al dente kochen. Mit Salz, Pfeffer und einem großzügigen Schuss Olivenöl abschmecken. Heiß servieren.', timer_seconds: null, images: [] },
+    ],
+  };
+
+  INGREDIENTS = [
+    { id: 1, name: 'Borlotti-Bohnen', amount: 400,  unit: 'g'      },
+    { id: 2, name: 'Ditalini',        amount: 200,  unit: 'g'      },
+    { id: 3, name: 'Rosmarin',        amount: 2,    unit: 'Zweige' },
+    { id: 4, name: 'Knoblauch',       amount: 3,    unit: 'Zehen'  },
+    { id: 5, name: 'Olivenöl',        amount: 3,    unit: 'EL'     },
+    { id: 6, name: 'Gemüsebrühe',     amount: 800,  unit: 'ml'     },
+    { id: 7, name: 'Salz & Pfeffer',  amount: null, unit: null     },
+  ];
+
+  STEP_ING = { 1: [4, 3, 5, 1], 2: [1, 3, 6], 3: [2, 5, 7] };
+
+  SUGGESTIONS = [
+    { title: 'Focaccia',     author: 'von Lena'    },
+    { title: 'Grüner Salat', author: 'von Michael' },
+    { title: 'Bruschetta',   author: 'von Sara'    },
+  ];
+
+  DIFF_LABELS = ['', 'Sehr leicht', 'Leicht', 'Mittel', 'Schwer', 'Sehr schwer'];
+
+  fmtTime(s) {
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  scaleAmount(amount, factor) {
+    if (amount == null) return null;
+    const rounded = Math.round(amount * factor * 4) / 4;
+    const whole = Math.floor(rounded + 0.001);
+    const frac = rounded - whole;
+    const fracStr = frac < 0.01 ? '' : frac < 0.4 ? '¼' : frac < 0.65 ? '½' : '¾';
+    if (whole === 0) return fracStr || '0';
+    return fracStr ? whole + '\u00a0' + fracStr : String(whole);
+  }
+
+  makePill(label, color) {
+    return {
+      label,
+      style: { padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: color + '22', color, border: '1px solid ' + color + '44', whiteSpace: 'nowrap' },
+    };
+  }
+
+  renderVals() {
+    const { activeStepIdx, servings, selectedIngredient, activeTimers, checkedIngredients, pillsExpanded } = this.state;
+    const factor     = servings / this.RECIPE.servings;
+    const activeStep = activeStepIdx !== null ? this.RECIPE.steps[activeStepIdx] : null;
+    const activeIngIds = new Set(activeStep ? (this.STEP_ING[activeStep.id] || []) : []);
+
+    const stepsWithSelIng = selectedIngredient
+      ? this.RECIPE.steps.filter(s => (this.STEP_ING[s.id] || []).includes(selectedIngredient.id)).map(s => s.id)
+      : [];
+
+    // Hero
+    const heroWrapStyle = {
+      position: 'relative', height: 280,
+      background: 'linear-gradient(135deg,#6B7C4E 0%,#9DB06F 100%)',
+      flexShrink: 0,
+    };
+    const heroOverlayStyle = {
+      position: 'absolute', inset: 0,
+      background: 'linear-gradient(to bottom, rgba(0,0,0,.18) 0%, rgba(0,0,0,.65) 100%)',
+    };
+
+    // Gallery
+    const galleryImages = ['Hauptbild', 'Detail 1', 'Detail 2', 'Anrichten'].map((label, i) => ({
+      label,
+      style: {
+        flexShrink: 0, width: 78, height: 58, borderRadius: 8,
+        background: 'repeating-linear-gradient(135deg,#E0D9CF 0,#E0D9CF 10px,#E8E1D6 10px,#E8E1D6 20px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: i === 0 ? '2px solid #C8602A' : '2px solid transparent',
+        cursor: 'pointer',
+      },
+    }));
+
+    // Pills chip
+    const pillsChipLabel = (() => {
+      if (pillsExpanded) return '✕ Tags';
+      const allTags = [...this.RECIPE.dietLabels, ...this.RECIPE.allergens].map(x => x.name);
+      if (!allTags.length) return null;
+      let built = '';
+      let shown = 0;
+      for (let i = 0; i < allTags.length; i++) {
+        const next = (built ? ' · ' : '') + allTags[i];
+        if ((built + next).length > 28 && i > 0) return '🏷 ' + built + ' +' + (allTags.length - shown);
+        built += next;
+        shown++;
+      }
+      return '🏷 ' + built;
+    })();
+
+    // Ingredient items (sidebar)
+    const ingredientItems = this.INGREDIENTS.map(ing => {
+      const isActive   = activeIngIds.has(ing.id);
+      const isSelected = selectedIngredient?.id === ing.id;
+      const highlighted = isActive || isSelected;
+      const scaled     = this.scaleAmount(ing.amount, factor);
+      const amountStr  = scaled != null ? (ing.unit ? scaled + '\u202f' + ing.unit : scaled) : 'nach Geschmack';
+      return {
+        id: ing.id, name: ing.name, amountStr,
+        rowStyle: {
+          display: 'flex', alignItems: 'center',
+          padding: '9px 6px', margin: '0 -6px',
+          borderRadius: isSelected ? 6 : 0,
+          borderBottom: isSelected ? 'none' : '1px solid rgba(0,0,0,.06)',
+          background: isSelected ? 'rgba(200,96,42,.08)' : highlighted ? 'rgba(200,96,42,.04)' : 'transparent',
+          cursor: 'pointer', transition: 'all .15s',
+        },
+        nameStyle: {
+          fontSize: 14, flex: 1,
+          color: highlighted ? '#C8602A' : '#2C2C2A',
+          fontWeight: highlighted ? 600 : 400,
+          transition: 'color .15s',
+        },
+        amtStyle: {
+          fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, paddingLeft: 8,
+          color: highlighted ? '#C8602A' : '#9A958C',
+          transition: 'color .15s',
+        },
+        onClick: () => this.setState(prev => ({
+          selectedIngredient: prev.selectedIngredient?.id === ing.id ? null : { id: ing.id, name: ing.name },
+          activeStepIdx: null,
+        })),
+      };
+    });
+
+    // Steps
+    const stepItems = this.RECIPE.steps.map((step, idx) => {
+      const isActive   = idx === activeStepIdx && !selectedIngredient;
+      const matchesIng = selectedIngredient ? stepsWithSelIng.includes(step.id) : false;
+      const dimmed     = !!selectedIngredient && !matchesIng;
+      const highlighted = isActive || matchesIng;
+      const timerRunning = !!activeTimers[step.id];
+
+      return {
+        id: step.id, idx: idx + 1, title: step.title, instruction: step.instruction,
+        hasTimer: !!step.timer_seconds,
+        timerLabel: step.timer_seconds ? this.fmtTime(step.timer_seconds) : '',
+        timerStatus: timerRunning ? '(läuft)' : 'starten',
+        hasImages: !!(step.images && step.images.length),
+        stepImages: (step.images || []).map((label, i) => ({
+          id: i, label,
+          style: { flexShrink: 0, width: 150, height: 100, borderRadius: 10, background: 'repeating-linear-gradient(135deg,#E0D9CF 0,#E0D9CF 10px,#E8E1D6 10px,#E8E1D6 20px)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+        })),
+        cardStyle: {
+          borderRadius: 12, marginBottom: 10, padding: '16px 16px 16px 14px',
+          background:  highlighted ? '#FEF6F2' : '#fff',
+          boxShadow:   highlighted ? '0 2px 10px rgba(200,96,42,.1)' : '0 1px 4px rgba(0,0,0,.06)',
+          cursor: 'pointer', transition: 'all .2s ease',
+          borderLeft: '4px solid ' + (highlighted ? '#C8602A' : 'transparent'),
+          opacity: dimmed ? 0.45 : 1,
+        },
+        numStyle: {
+          width: 34, height: 34, borderRadius: '50%',
+          background: highlighted ? '#C8602A' : '#E8E4DE',
+          color:      highlighted ? '#fff'     : '#6B6B68',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, fontWeight: 700, flexShrink: 0, marginTop: 1,
+          transition: 'all .2s ease',
+        },
+        timerBtnStyle: {
+          marginTop: 10, border: '1.5px solid ' + (timerRunning ? '#C8602A' : '#D8D4CD'),
+          background: timerRunning ? 'rgba(200,96,42,.1)' : 'transparent',
+          borderRadius: 999, padding: '5px 14px', fontSize: 13,
+          color: timerRunning ? '#C8602A' : '#6B6B68', cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all .2s',
+        },
+        onClick: () => this.setState(prev => ({
+          activeStepIdx: prev.activeStepIdx === idx ? null : idx,
+          selectedIngredient: null,
+        })),
+        onTimer: (e) => {
+          e.stopPropagation();
+          const sid = step.id;
+          this.setState(prev => ({ activeTimers: { ...prev.activeTimers, [sid]: !prev.activeTimers[sid] } }));
+        },
+      };
+    });
+
+    return {
+      recipeName:      this.RECIPE.title,
+      recipeDesc:      this.RECIPE.description,
+      typeLabel:       this.RECIPE.type === 'backen' ? 'Backen' : 'Kochen',
+      prepTime:        this.RECIPE.prepTime,
+      cookTime:        this.RECIPE.cookTime,
+      difficultyLabel: this.DIFF_LABELS[this.RECIPE.difficulty] || 'Mittel',
+      authorName:      this.RECIPE.authorName,
+      createdAt:       this.RECIPE.createdAt,
+      containsFromName: this.RECIPE.containsRecipeFrom?.name ?? null,
+      heroWrapStyle, heroOverlayStyle,
+      galleryImages,
+      dietPills:    this.RECIPE.dietLabels.map(d => this.makePill(d.name, '#6B7C4E')),
+      allergenPills: this.RECIPE.allergens.map(a => this.makePill(a.name, '#C8A020')),
+      pillsVisible: pillsExpanded,
+      pillsChipLabel,
+      togglePills: () => this.setState(s => ({ pillsExpanded: !s.pillsExpanded })),
+      servings,
+      ingredientItems,
+      stepItems,
+      suggestions:     this.SUGGESTIONS,
+      hasActiveStep:   activeStepIdx !== null,
+      activeStepNum:   activeStep ? activeStepIdx + 1 : '',
+      activeStepTitle: activeStep ? activeStep.title : '',
+      decreaseServings: () => this.setState(s => ({ servings: Math.max(1, s.servings - 1) })),
+      increaseServings: () => this.setState(s => ({ servings: s.servings + 1 })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

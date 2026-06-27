@@ -58,6 +58,8 @@ async def upload_image(
     if content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(status_code=415, detail=f"Nicht unterstützter Medientyp: {content_type}")
 
+    _check_owner(entity_type, entity_id, current_user, db)
+
     file_bytes = await file.read()
     if len(file_bytes) > MAX_IMAGE_BYTES:
         raise HTTPException(status_code=413, detail="Datei zu groß (max. 20 MB)")
@@ -116,6 +118,8 @@ async def upload_video(
     content_type = (file.content_type or "").lower()
     if content_type not in ALLOWED_VIDEO_TYPES:
         raise HTTPException(status_code=415, detail=f"Nicht unterstützter Medientyp: {content_type}")
+
+    _check_owner(entity_type, entity_id, current_user, db)
 
     # Stream to temp file to avoid loading full video into memory
     tmp_filename = f"/tmp/{uuid.uuid4()}_original"

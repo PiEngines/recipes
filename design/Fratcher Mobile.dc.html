@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #E0DDD8; }
+    input { border: none; outline: none; background: transparent; font-family: Inter, sans-serif; font-size: 15px; color: #2C2C2A; width: 100%; }
+    input::placeholder { color: #9A958C; }
+    ::-webkit-scrollbar { display: none; }
+    button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="max-width:390px; margin:0 auto; height:100vh; background:#FAF7F2; position:relative; display:flex; flex-direction:column; overflow:hidden;">
+
+  <!-- ══ HEADER ══ -->
+  <div style="flex-shrink:0; background:#FAF7F2; border-bottom:1px solid rgba(0,0,0,.05); padding:12px 16px 11px; display:flex; align-items:center; gap:12px;">
+    <button onClick="{{ goBack }}" style="width:34px; height:34px; border-radius:999px; background:#fff; border:1px solid rgba(0,0,0,.08); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+      <i class="ti ti-arrow-left" style="font-size:17px; color:#2C2C2A;"></i>
+    </button>
+    <div style="display:flex; align-items:center; gap:8px; flex:1;">
+      <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,#3E5228,#6B7C4E); display:flex; align-items:center; justify-content:center;">
+        <i class="ti ti-fridge" style="font-size:15px; color:#fff;"></i>
+      </div>
+      <span style="font-family:'Playfair Display',serif; font-size:19px; font-weight:600; color:#2C2C2A; letter-spacing:-.3px;">Fratcher</span>
+    </div>
+    <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ goToInput }}" style="font-size:13px; color:#6B7C4E; font-family:Inter,sans-serif; font-weight:500; background:transparent; border:none; padding:4px 0;">Zutaten ändern</button>
+    </sc-if>
+  </div>
+
+  <!-- ══════════ EINGABE-VIEW ══════════ -->
+  <sc-if value="{{ showInput }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:20px 16px 180px;">
+
+      <!-- Modus-Toggle -->
+      <div style="background:#EEEBE5; border-radius:13px; padding:4px; display:flex; gap:4px; margin-bottom:24px;">
+        <button onClick="{{ setModeKochen }}" style="{{ modeKochenStyle }}">
+          <i class="ti ti-clock" style="font-size:15px;"></i>
+          Jetzt kochen
+        </button>
+        <button onClick="{{ setModeInspiration }}" style="{{ modeInspirationStyle }}">
+          <i class="ti ti-sparkles" style="font-size:15px;"></i>
+          Inspiration
+        </button>
+      </div>
+
+      <!-- Tagline -->
+      <h2 style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; letter-spacing:-.4px; line-height:1.3; margin-bottom:6px;">Was hast du im Kühlschrank?</h2>
+      <p style="font-size:13px; color:#9A958C; font-family:Inter,sans-serif; margin-bottom:20px; line-height:1.5;">{{ modeHint }}</p>
+
+      <!-- Suchfeld + Autocomplete -->
+      <div style="position:relative; margin-bottom:22px;">
+        <div style="display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid {{ searchBorder }}; border-radius:13px; padding:11px 14px; box-shadow:0 2px 8px rgba(0,0,0,.06); transition:border-color .15s;">
+          <i class="ti ti-search" style="font-size:16px; color:#6B7C4E; flex-shrink:0;"></i>
+          <input value="{{ searchText }}" onInput="{{ onSearchInput }}" onFocus="{{ onSearchFocus }}" placeholder="Zutat eingeben …" style="font-size:15px;">
+          <sc-if value="{{ hasSearchText }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ clearSearch }}" style="width:18px; height:18px; border-radius:999px; background:#E0DDD8; border:none; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0;">
+              <i class="ti ti-x" style="font-size:10px; color:#6B6B68;"></i>
+            </button>
+          </sc-if>
+        </div>
+
+        <!-- Autocomplete-Dropdown -->
+        <sc-if value="{{ showAutocomplete }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border:1px solid rgba(0,0,0,.09); border-radius:13px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:50; overflow:hidden;">
+            <sc-for list="{{ autocompleteItems }}" as="item" hint-placeholder-count="4">
+              <button onClick="{{ item.onTap }}" style="width:100%; padding:12px 16px; display:flex; align-items:center; gap:10px; background:transparent; border:none; border-bottom:1px solid rgba(0,0,0,.05); text-align:left;">
+                <i class="ti ti-leaf" style="font-size:14px; color:#6B7C4E; flex-shrink:0;"></i>
+                <span style="font-size:14px; color:#2C2C2A; font-family:Inter,sans-serif;">{{ item.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- Schnellauswahl-Kategorien -->
+      <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="5">
+        <div style="margin-bottom:18px;">
+          <p style="font-size:10px; font-weight:600; color:#6B7C4E; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px;">{{ cat.label }}</p>
+          <div style="position:relative;">
+            <div style="display:flex; gap:7px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch;">
+              <sc-for list="{{ cat.chips }}" as="chip" hint-placeholder-count="6">
+                <button onClick="{{ chip.onTap }}" style="{{ chip.style }}">{{ chip.label }}</button>
+              </sc-for>
+              <div style="width:6px; flex-shrink:0;"></div>
+            </div>
+            <div style="position:absolute; top:0; right:0; bottom:0; width:32px; pointer-events:none; background:linear-gradient(to right,transparent,#FAF7F2);"></div>
+          </div>
+        </div>
+      </sc-for>
+
+      <!-- Aktuelle Zutaten -->
+      <sc-if value="{{ hasIngredients }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:8px; padding-top:20px; border-top:1px solid rgba(0,0,0,.07);">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <p style="font-size:12px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.4px;">Deine Zutaten</p>
+            <div style="background:#6B7C4E; border-radius:999px; padding:2px 9px; min-width:22px; text-align:center;">
+              <span style="font-size:11px; font-weight:600; color:#fff; font-family:Inter,sans-serif;">{{ ingredientCount }}</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:7px;">
+            <sc-for list="{{ ingredientTags }}" as="tag" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:6px; background:#EEF3E8; border:1px solid rgba(107,124,78,.25); border-radius:999px; padding:6px 12px;">
+                <span style="font-size:13px; color:#3A5228; font-family:Inter,sans-serif; font-weight:500;">{{ tag.label }}</span>
+                <button onClick="{{ tag.onRemove }}" style="width:16px; height:16px; border-radius:999px; background:rgba(107,124,78,.2); border:none; display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;">
+                  <i class="ti ti-x" style="font-size:9px; color:#4A6B30;"></i>
+                </button>
+              </div>
+            </sc-for>
+            <button onClick="{{ clearAll }}" style="padding:6px 12px; border-radius:999px; background:transparent; border:1px dashed rgba(0,0,0,.15); font-size:12px; color:#9A958C; font-family:Inter,sans-serif;">Alle löschen</button>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <!-- CTA -->
+    <div style="position:absolute; bottom:60px; left:0; right:0; padding:10px 16px 12px; background:#FAF7F2; border-top:1px solid rgba(0,0,0,.06); z-index:20;">
+      <button onClick="{{ search }}" style="{{ ctaStyle }}">
+        <i class="ti ti-{{ ctaIcon }}" style="font-size:17px;"></i>
+        {{ ctaLabel }}
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- ══════════ ERGEBNIS-VIEW ══════════ -->
+  <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+
+    <!-- Ingredient-Summary-Bar -->
+    <div style="flex-shrink:0; padding:10px 16px 10px; background:#EEF3E8; display:flex; align-items:center; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+      <i class="ti ti-fridge" style="font-size:15px; color:#4A6B30; flex-shrink:0;"></i>
+      <div style="display:flex; gap:6px; overflow-x:auto;">
+        <sc-for list="{{ ingredientTags }}" as="tag" hint-placeholder-count="4">
+          <div style="flex-shrink:0; background:rgba(107,124,78,.15); border-radius:999px; padding:3px 10px;">
+            <span style="font-size:12px; color:#3A5228; font-family:Inter,sans-serif; font-weight:500; white-space:nowrap;">{{ tag.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Scrollbare Ergebnisse -->
+    <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 12px 80px;">
+
+      <!-- Sofort kochbar -->
+      <sc-if value="{{ hasSofort }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:0 4px;">
+            <div style="width:8px; height:8px; border-radius:999px; background:#4A8A40; flex-shrink:0;"></div>
+            <h3 style="font-family:Inter,sans-serif; font-size:13px; font-weight:600; color:#2C2C2A; text-transform:uppercase; letter-spacing:.5px; flex:1;">Sofort kochbar</h3>
+            <span style="font-size:12px; color:#9A958C; font-family:Inter,sans-serif;">{{ sofortCount }}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <sc-for list="{{ sofortItems }}" as="item" hint-placeholder-count="4">
+              <div style="background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+                <div style="height:120px; background:{{ item.bg }}; position:relative;">
+                  <div style="position:absolute; top:8px; left:8px; background:rgba(74,138,64,.9); border-radius:999px; padding:3px 9px; display:flex; align-items:center; gap:4px;">
+                    <i class="ti ti-check" style="font-size:10px; color:#fff;"></i>
+                    <span style="font-size:10px; color:#fff; font-family:Inter,sans-serif; font-weight:600;">Sofort</span>
+                  </div>
+                  <button onClick="{{ item.onFav }}" style="position:absolute; top:7px; right:7px; width:26px; height:26px; border-radius:999px; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center;">
+                    <i class="{{ item.favIcon }}" style="font-size:12px; color:{{ item.favColor }};"></i>
+                  </button>
+                </div>
+                <div style="padding:8px 10px 10px;">
+                  <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:4px; line-height:1.3;">{{ item.title }}</p>
+                  <div style="display:flex; align-items:center; gap:3px;">
+                    <i class="ti ti-clock" style="font-size:10px; color:#9A958C;"></i>
+                    <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">{{ item.timeStr }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Fast komplett -->
+      <sc-if value="{{ hasFast }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:0 4px;">
+            <div style="width:8px; height:8px; border-radius:999px; background:#C8602A; flex-shrink:0;"></div>
+            <h3 style="font-family:Inter,sans-serif; font-size:13px; font-weight:600; color:#2C2C2A; text-transform:uppercase; letter-spacing:.5px; flex:1;">Fast komplett</h3>
+            <span style="font-size:12px; color:#9A958C; font-family:Inter,sans-serif;">{{ fastCount }}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <sc-for list="{{ fastItems }}" as="item" hint-placeholder-count="4">
+              <div style="background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+                <div style="height:120px; background:{{ item.bg }}; position:relative;">
+                  <div style="position:absolute; top:8px; left:8px; background:rgba(180,80,30,.88); border-radius:999px; padding:3px 9px;">
+                    <span style="font-size:10px; color:#fff; font-family:Inter,sans-serif; font-weight:600;">{{ item.missingLabel }}</span>
+                  </div>
+                  <button onClick="{{ item.onFav }}" style="position:absolute; top:7px; right:7px; width:26px; height:26px; border-radius:999px; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center;">
+                    <i class="{{ item.favIcon }}" style="font-size:12px; color:{{ item.favColor }};"></i>
+                  </button>
+                </div>
+                <div style="padding:8px 10px 10px;">
+                  <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.3;">{{ item.title }}</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                    <sc-for list="{{ item.missingChips }}" as="chip" hint-placeholder-count="2">
+                      <div style="display:flex; align-items:center; gap:3px; background:#FDF0EA; border-radius:999px; padding:2px 7px;">
+                        <i class="ti ti-plus" style="font-size:9px; color:#C8602A;"></i>
+                        <span style="font-size:10px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500;">{{ chip }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Inspiration (nur im Inspiration-Modus) -->
+      <sc-if value="{{ hasInspiration }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:0 4px;">
+            <div style="width:8px; height:8px; border-radius:999px; background:#9A7AB8; flex-shrink:0;"></div>
+            <h3 style="font-family:Inter,sans-serif; font-size:13px; font-weight:600; color:#2C2C2A; text-transform:uppercase; letter-spacing:.5px; flex:1;">Inspiration</h3>
+            <span style="font-size:12px; color:#9A958C; font-family:Inter,sans-serif;">{{ inspirationCount }}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <sc-for list="{{ inspirationItems }}" as="item" hint-placeholder-count="4">
+              <div style="background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04); opacity:.85;">
+                <div style="height:120px; background:{{ item.bg }}; position:relative;">
+                  <div style="position:absolute; top:8px; left:8px; background:rgba(80,60,120,.8); border-radius:999px; padding:3px 9px;">
+                    <span style="font-size:10px; color:#fff; font-family:Inter,sans-serif; font-weight:600;">{{ item.missingLabel }}</span>
+                  </div>
+                </div>
+                <div style="padding:8px 10px 10px;">
+                  <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.3;">{{ item.title }}</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                    <sc-for list="{{ item.missingChips }}" as="chip" hint-placeholder-count="3">
+                      <div style="display:flex; align-items:center; gap:3px; background:#F0EDE8; border-radius:999px; padding:2px 7px;">
+                        <i class="ti ti-plus" style="font-size:9px; color:#9A958C;"></i>
+                        <span style="font-size:10px; color:#6B6B68; font-family:Inter,sans-serif; font-weight:500;">{{ chip }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Leer-Zustand -->
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; align-items:center; padding:48px 24px; text-align:center;">
+          <div style="width:72px; height:72px; border-radius:999px; background:#F0EDE8; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">
+            <i class="ti ti-fridge-off" style="font-size:32px; color:#C8C4BC;"></i>
+          </div>
+          <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:600; color:#2C2C2A; margin-bottom:8px;">Keine Treffer</h3>
+          <p style="font-size:14px; color:#9A958C; font-family:Inter,sans-serif; line-height:1.6; max-width:240px;">{{ emptyHint }}</p>
+          <sc-if value="{{ showInspirationCta }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ switchToInspiration }}" style="margin-top:22px; background:#6B7C4E; color:#fff; border:none; border-radius:999px; padding:12px 24px; font-family:Inter,sans-serif; font-size:14px; font-weight:500; display:flex; align-items:center; gap:7px;">
+              <i class="ti ti-sparkles" style="font-size:15px;"></i>
+              Inspiration-Modus probieren
+            </button>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </sc-if>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <div style="flex-shrink:0; background:#fff; border-top:1px solid rgba(0,0,0,.07); height:60px; display:flex; align-items:center;">
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-home-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Start</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-book-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Rezepte</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-heart" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Favoriten</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+      <i class="ti ti-plus" style="font-size:22px;"></i>
+      <span style="font-size:9px; font-weight:600; font-family:Inter,sans-serif;">Neu</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#6B7C4E;">
+      <i class="ti ti-dots" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:600; font-family:Inter,sans-serif;">Mehr</span>
+    </button>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = {
+    view: 'input',
+    mode: 'kochen',
+    ingredients: [],
+    searchText: '',
+    showAutocomplete: false,
+    favs: {},
+  };
+
+  _STAPLES = new Set([
+    'salz','pfeffer','zucker','olivenöl','öl','wasser','essig','brühe',
+    'oregano','basilikum','thymian','rosmarin','petersilie','schnittlauch',
+    'kreuzkümmel','paprikapulver','kurkuma','zimt','muskat','koriander',
+    'lorbeer','chili','curry','cayennepfeffer','backpulver','hefe','natron','vanille',
+  ]);
+
+  _CATEGORIES = [
+    { label: 'Gemüse',          items: ['Tomate','Zwiebel','Knoblauch','Kartoffel','Möhre','Zucchini','Spinat','Paprika','Brokkoli','Champignon','Kürbis','Sellerie','Avocado','Bärlauch'] },
+    { label: 'Vorrat',          items: ['Mehl','Reis','Pasta','Brot','Haferflocken','Paniermehl','Linsen','Dosentomaten'] },
+    { label: 'Milch & Eier',    items: ['Ei','Milch','Butter','Käse','Sahne','Joghurt','Parmesan','Quark','Mozzarella'] },
+    { label: 'Fleisch & Fisch', items: ['Hähnchen','Hackfleisch','Lachs','Thunfisch','Speck','Wurst'] },
+    { label: 'Frisches',        items: ['Zitrone','Ingwer','Apfel','Birne','Banane','Beeren','Knoblauchzehe'] },
+  ];
+
+  _RECIPES = [
+    { id:1,  title:'Pasta Carbonara',     author:'Klaus',   time:20, bg:'linear-gradient(148deg,#6B5A3E,#3E3020)', ingredients:['Pasta','Ei','Speck','Parmesan','Pfeffer','Salz'],                                         score:9744 },
+    { id:2,  title:'Shakshuka',           author:'Lena',    time:25, bg:'linear-gradient(148deg,#A85228,#6B3010)', ingredients:['Tomate','Ei','Zwiebel','Paprika','Knoblauch','Kreuzkümmel','Paprikapulver','Olivenöl','Salz'],score:7237 },
+    { id:3,  title:'Rührei mit Spinat',   author:'Sarah',   time:10, bg:'linear-gradient(148deg,#3A5A4A,#1E3A2E)', ingredients:['Ei','Spinat','Butter','Salz','Pfeffer'],                                                   score:6300 },
+    { id:4,  title:'Kartoffelsuppe',      author:'Marie',   time:35, bg:'linear-gradient(148deg,#8A6A3A,#5A4020)', ingredients:['Kartoffel','Möhre','Zwiebel','Speck','Sahne','Salz','Pfeffer'],                            score:7100 },
+    { id:5,  title:'Tomatensuppe',        author:'Tom',     time:25, bg:'linear-gradient(148deg,#A03028,#6A1818)', ingredients:['Tomate','Zwiebel','Knoblauch','Olivenöl','Sahne','Salz','Pfeffer','Basilikum'],             score:6800 },
+    { id:6,  title:'Avocado Toast',       author:'Sarah',   time:10, bg:'linear-gradient(148deg,#3D5C2A,#5E8040)', ingredients:['Brot','Avocado','Zitrone','Salz','Pfeffer'],                                               score:5740 },
+    { id:7,  title:'Pfannkuchen',         author:'Lena',    time:20, bg:'linear-gradient(148deg,#B09A3E,#7A6A1A)', ingredients:['Mehl','Ei','Milch','Butter','Salz','Zucker'],                                              score:8200 },
+    { id:8,  title:'Omelett',             author:'Klaus',   time:10, bg:'linear-gradient(148deg,#B09A3E,#6B6020)', ingredients:['Ei','Butter','Salz','Pfeffer','Käse','Petersilie'],                                        score:7500 },
+    { id:9,  title:'Linsensuppe',         author:'Tom',     time:35, bg:'linear-gradient(148deg,#8A6A3A,#4A3010)', ingredients:['Linsen','Möhre','Sellerie','Zwiebel','Knoblauch','Kreuzkümmel','Olivenöl','Salz','Zitrone'],score:6500 },
+    { id:10, title:'Pilzrisotto',         author:'Klaus',   time:35, bg:'linear-gradient(148deg,#5C4A3E,#3A2E28)', ingredients:['Reis','Champignon','Zwiebel','Knoblauch','Butter','Parmesan','Olivenöl','Salz','Pfeffer'],  score:6700 },
+    { id:11, title:'Hähnchenpfanne',      author:'Sarah',   time:25, bg:'linear-gradient(148deg,#C8A060,#8A6030)', ingredients:['Hähnchen','Paprika','Zwiebel','Knoblauch','Tomate','Olivenöl','Paprikapulver','Salz'],      score:7200 },
+    { id:12, title:'Overnight Oats',      author:'Tom',     time:5,  bg:'linear-gradient(148deg,#8A7A6A,#5A4A3A)', ingredients:['Haferflocken','Milch','Joghurt','Honig'],                                                  score:6100 },
+    { id:13, title:'Kürbiscremesuppe',    author:'Michael', time:40, bg:'linear-gradient(148deg,#A85A28,#6B3510)', ingredients:['Kürbis','Zwiebel','Knoblauch','Ingwer','Sahne','Butter','Salz','Pfeffer','Olivenöl'],       score:8736 },
+    { id:14, title:'Focaccia',            author:'Michael', time:45, bg:'linear-gradient(148deg,#B09A3E,#7A6A1A)', ingredients:['Mehl','Olivenöl','Salz','Rosmarin'],                                                       score:5976 },
+    { id:15, title:'Grüner Smoothie',     author:'Sarah',   time:5,  bg:'linear-gradient(148deg,#3A6A2A,#1E4A10)', ingredients:['Spinat','Milch','Joghurt','Honig'],                                                        score:5745 },
+    { id:16, title:'Bärlauch-Pesto',      author:'Michael', time:15, bg:'linear-gradient(148deg,#3D4F25,#6B7C4E)', ingredients:['Bärlauch','Parmesan','Olivenöl','Salz','Zitrone'],                                         score:5596 },
+  ];
+
+  _allIngredients() {
+    const pool = new Set();
+    this._CATEGORIES.forEach(c => c.items.forEach(i => pool.add(i)));
+    this._RECIPES.forEach(r => r.ingredients.forEach(i => pool.add(i)));
+    return [...pool].sort();
+  }
+
+  _match(recipe, userIngredients) {
+    const ui = userIngredients.map(i => i.toLowerCase());
+    const relevant = recipe.ingredients.filter(ing => !this._STAPLES.has(ing.toLowerCase()));
+    const missing = relevant.filter(ing => !ui.includes(ing.toLowerCase()));
+    const pct = relevant.length === 0 ? 1 : (relevant.length - missing.length) / relevant.length;
+    return { missing, pct };
+  }
+
+  _computeResults(ingredients, mode) {
+    const sofort = [], fast = [], inspiration = [];
+    if (ingredients.length === 0) return { sofort, fast, inspiration };
+
+    this._RECIPES.forEach(r => {
+      const { missing, pct } = this._match(r, ingredients);
+      if (missing.length === 0) sofort.push({ ...r, missing });
+      else if (missing.length <= 2) fast.push({ ...r, missing });
+      else if (mode === 'inspiration' && pct >= 0.5) inspiration.push({ ...r, missing });
+    });
+
+    sofort.sort((a, b) => b.score - a.score);
+    fast.sort((a, b) => b.score - a.score);
+    inspiration.sort((a, b) => b.score - a.score);
+    return { sofort, fast, inspiration };
+  }
+
+  _makeCard(r) {
+    const s = this.state;
+    return {
+      ...r,
+      timeStr: r.time < 60 ? `${r.time} Min.` : `${Math.floor(r.time/60)} Std.`,
+      missingLabel: r.missing.length === 1 ? '1 fehlt' : `${r.missing.length} fehlen`,
+      missingChips: r.missing,
+      favIcon:  s.favs[r.id] ? 'ti ti-heart-filled' : 'ti ti-heart',
+      favColor: s.favs[r.id] ? '#C8602A' : '#9A958C',
+      onFav: (e) => { e.stopPropagation(); this.setState(p => ({ favs: { ...p.favs, [r.id]: !p.favs[r.id] } })); },
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    // Mode toggle styles
+    const pillBase = { flex:1, height:'40px', borderRadius:'9px', border:'none', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', fontSize:'14px', fontFamily:'Inter,sans-serif', fontWeight:'500', transition:'all .15s', cursor:'pointer' };
+    const modeKochenStyle    = { ...pillBase, background: s.mode==='kochen'    ? '#fff' : 'transparent', color: s.mode==='kochen'    ? '#2C2C2A' : '#9A958C', boxShadow: s.mode==='kochen'    ? '0 1px 5px rgba(0,0,0,.12)' : 'none' };
+    const modeInspirationStyle = { ...pillBase, background: s.mode==='inspiration' ? '#fff' : 'transparent', color: s.mode==='inspiration' ? '#2C2C2A' : '#9A958C', boxShadow: s.mode==='inspiration' ? '0 1px 5px rgba(0,0,0,.12)' : 'none' };
+
+    // Autocomplete
+    const allIngr = this._allIngredients();
+    const acItems = s.searchText.length > 0
+      ? allIngr.filter(i => i.toLowerCase().startsWith(s.searchText.toLowerCase()) && !s.ingredients.includes(i)).slice(0, 5)
+      : [];
+
+    const autocompleteItems = acItems.map(lbl => ({
+      label: lbl,
+      onTap: () => this.setState({ ingredients: [...s.ingredients, lbl], searchText: '', showAutocomplete: false, view: 'results' }),
+    }));
+
+    // Category chips
+    const results = this._computeResults(s.ingredients, s.mode);
+    const suggested = new Set(results.fast.flatMap(r => r.missing.map(m => m.toLowerCase())));
+
+    const categories = this._CATEGORIES.map(cat => ({
+      label: cat.label,
+      chips: cat.items.map(item => {
+        const isActive = s.ingredients.includes(item);
+        const isSuggested = !isActive && suggested.has(item.toLowerCase());
+        return {
+          label: item,
+          onTap: isActive
+            ? () => { const n = s.ingredients.filter(x => x !== item); this.setState({ ingredients: n, view: n.length === 0 ? 'input' : s.view }); }
+            : () => this.setState({ ingredients: [...s.ingredients, item], view: 'results' }),
+          style: {
+            flexShrink: 0, padding: '5px 13px', borderRadius: '999px', cursor: 'pointer',
+            fontSize: '13px', fontFamily: 'Inter,sans-serif',
+            border: isActive ? 'none' : isSuggested ? '1.5px solid #C8602A' : '1px solid rgba(107,124,78,.25)',
+            background: isActive ? '#6B7C4E' : isSuggested ? '#FDF0EA' : '#EEF3E8',
+            color: isActive ? '#fff' : isSuggested ? '#A04E22' : '#4A6B30',
+            fontWeight: isActive || isSuggested ? '600' : '400',
+            boxShadow: isSuggested ? '0 0 0 3px rgba(200,96,42,.1)' : 'none',
+          },
+        };
+      }),
+    }));
+
+    // Ingredient tags
+    const ingredientTags = s.ingredients.map(lbl => ({
+      label: lbl,
+      onRemove: () => this.setState({ ingredients: s.ingredients.filter(x => x !== lbl) }),
+    }));
+
+    // CTA
+    const totalCount = results.sofort.length + results.fast.length + results.inspiration.length;
+    const hasIng = s.ingredients.length > 0;
+    const ctaStyle = {
+      width: '100%', padding: '15px', borderRadius: '14px', border: 'none',
+      background: hasIng ? '#6B7C4E' : '#D0CCC6',
+      color: hasIng ? '#fff' : '#9A958C',
+      fontSize: '15px', fontFamily: 'Inter,sans-serif', fontWeight: '600',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+      cursor: hasIng ? 'pointer' : 'default',
+    };
+    const ctaLabel = !hasIng ? 'Zutaten auswählen' : `${totalCount} Rezept${totalCount !== 1 ? 'e' : ''} gefunden`;
+    const ctaIcon = hasIng ? 'arrow-right' : 'leaf';
+
+    // Results
+    const sofortItems      = results.sofort.map(r => this._makeCard(r));
+    const fastItems        = results.fast.map(r => this._makeCard(r));
+    const inspirationItems = results.inspiration.map(r => this._makeCard(r));
+    const noResults = hasIng && totalCount === 0;
+
+    return {
+      showInput:   s.view === 'input',
+      showResults: s.view === 'results',
+      mode: s.mode,
+      modeKochenStyle, modeInspirationStyle,
+      modeHint: s.mode === 'kochen'
+        ? 'Nur Rezepte, die du jetzt (fast) kochen kannst.'
+        : 'Lass dich inspirieren — auch wenn noch etwas fehlt.',
+      setModeKochen:      () => this.setState({ mode: 'kochen' }),
+      setModeInspiration: () => this.setState({ mode: 'inspiration' }),
+      searchText: s.searchText,
+      searchBorder: s.showAutocomplete ? '#6B7C4E' : '#D8D4CD',
+      hasSearchText: s.searchText.length > 0,
+      onSearchInput: (e) => this.setState({ searchText: e.target.value, showAutocomplete: e.target.value.length > 0 }),
+      onSearchFocus: () => this.setState({ showAutocomplete: s.searchText.length > 0 }),
+      clearSearch: () => this.setState({ searchText: '', showAutocomplete: false }),
+      showAutocomplete: s.showAutocomplete && acItems.length > 0,
+      autocompleteItems,
+      categories,
+      hasIngredients: s.ingredients.length > 0,
+      ingredientCount: s.ingredients.length,
+      ingredientTags,
+      clearAll: () => this.setState({ ingredients: [], view: 'input' }),
+      ctaStyle, ctaLabel, ctaIcon,
+      search: () => { if (hasIng) this.setState({ view: 'results', showAutocomplete: false }); },
+      goBack: () => { if (s.view === 'results') this.setState({ view: 'input' }); else window.history.back(); },
+      goToInput: () => this.setState({ view: 'input' }),
+      sofortItems, fastItems, inspirationItems,
+      sofortCount: sofortItems.length,
+      fastCount: fastItems.length,
+      inspirationCount: inspirationItems.length,
+      hasSofort: sofortItems.length > 0,
+      hasFast: fastItems.length > 0,
+      hasInspiration: inspirationItems.length > 0,
+      isEmpty: noResults,
+      emptyHint: s.mode === 'kochen'
+        ? s.ingredients.length < 4
+          ? 'Füge noch mehr Zutaten hinzu — Treffer erscheinen, sobald ein Rezept fast vollständig ist.'
+          : 'Mit diesen Zutaten konnten wir keine passenden Rezepte finden. Versuch den Inspiration-Modus!'
+        : 'Auch im Inspiration-Modus keine Treffer. Füge mehr Zutaten hinzu.',
+      showInspirationCta: noResults && s.mode === 'kochen' && s.ingredients.length >= 4,
+      switchToInspiration: () => this.setState({ mode: 'inspiration' }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

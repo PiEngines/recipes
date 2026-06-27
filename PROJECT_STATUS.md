@@ -1,5 +1,5 @@
 # PROJECT_STATUS.md
-> Letzte Aktualisierung: 2026-06-24
+> Letzte Aktualisierung: 2026-06-27
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
 
 ---
@@ -42,6 +42,9 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 | Media Upload | Migration 0004, MediaUpload.jsx | letzten Monat |
 | Soft Delete Rezepte | Migration 0014 | letzten Monat |
 | Admin Dashboard | AdminDashboard, AdminRecipes, AdminUsers | vor 2 Wochen |
+| Herzchen Light-Mode Fix | FavoriteHeart.jsx — var(--text) für outline-Zustand + Drop-Shadow | 2026-06-25 |
+| Entwurf-Status entfernt | Migration 0022, Backend (RecipeStatus.draft, toggle_status) + Frontend (Badge, Button, Status-Anzeigen in Recipes.jsx, RecipeForm.jsx, Profile.jsx, AdminRecipes.jsx) vollständig entfernt | 2026-06-25 |
+| Chefkoch Modul-Override | modules/router.py — _check_recipe_access bei einbinden/auslagern/entfernen: Chefkoch/Küchenchef zusätzlich zum Owner erlaubt | 2026-06-25 |
 
 #### Modul-System – Architektur-Entscheidungen (zur Referenz)
 - **Modell:** Snapshot-Referenz, kein Fork. 1000 Einbindungen = 1000 Referenzen auf denselben Snapshot
@@ -70,19 +73,36 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 
 ---
 
+### 🔲 Offen — Redesign & neue Features (Design-Paket Juni 2026)
+
+Design-Prototypen liegen unter `/design/*.dc.html`. Reihenfolge ist priorisiert.
+
+| Task | Datei | Priorität | Notiz |
+|---|---|---|---|
+| GTM einbinden + DataLayer SPA-Fix | `frontend/index.html`, `frontend/src/main.jsx` | 🔴 Hoch | GTM-K2H9JG5J. DataLayer-Events laut CLAUDE.md. Vor allen anderen Redesign-Tasks. |
+| Security: Medien-Upload Owner-Check | `backend/media/router.py` POST | 🔴 Hoch | Sicherheitslücke in Production. Fix laut CLAUDE.md Security-Abschnitt. |
+| Security: Caddy Security-Header | `caddy/Caddyfile` | 🔴 Hoch | Header + sensible Pfade blockieren laut CLAUDE.md. |
+| Design Tokens in index.css | `frontend/src/index.css` | 🔴 Hoch | @theme-Block mit neuen Tokens. Voraussetzung für alle weiteren Redesign-Tasks. |
+| Design-Prototypen ins Repo | `/design/` (neuer Ordner) | 🔴 Hoch | *.dc.html + support.js aus Übergabe-Paket. |
+| Startseite Redesign | `pages/Home.jsx` | 🟡 Mittel | Mobile + Desktop. Karussell, Fratcher-Teaser, Entdecken-Feed 2→3 Spalten Desktop, Infinite Scroll. |
+| Suchergebnisseite Redesign | `pages/Recipes.jsx` | 🟡 Mittel | Desktop Left Sidebar Filter, aktive Filter als Chips. |
+| Detailseite Redesign | `pages/RecipeDetail.jsx` | 🟡 Mittel | Hero-Galerie, Schritt↔Zutat-Highlight, Portionen-Skalierung Pull-Tab (Mobile), Sidebar (Desktop). |
+| RecipeForm Redesign + Wizard | `pages/RecipeForm.jsx` | 🟡 Mittel | 5-Schritt-Wizard Mobile, Stepper-Layout Desktop, Auto-Save, Freigabe-Sheet. |
+| Fratcher (neu) | `pages/Fratcher.jsx` (neu anlegen) | 🟡 Mittel | Kühlschrank-Matcher. Mobile Bottom-Sheet, Desktop 2-Panel. |
+| AdminUsers.jsx Frontend-Guards | `pages/AdminUsers.jsx` | 🟡 Mittel | Rollen-Dropdown, Delete, Restore für Chefkoch verstecken. |
+| Drag & Drop Schritte | `pages/RecipeForm.jsx` | 🟠 Niedrig | Standard DnD-Library. Voraussetzung: RecipeForm Wizard fertig. |
+| Kräuterschule-Seite | `pages/Herbs.jsx` (neu) | 🟠 Niedrig | Kein Design vorhanden — erst nach Rücksprache. |
+
+---
+
 ### ⏸ Geparkt (bewusst zurückgestellt)
 
 | Task | Notiz |
 |---|---|
-| Entwurf-Status abschaffen | Auswirkung auf Modulberechtigung erst klären |
 | Drag & Drop für Schritte | Voraussetzung für freie Modul-Schritt-Sortierung |
 | Foto-Upload vor erstem Speichern | Technische Lösung ausstehend |
-| Herzchen-Bug auf RDP | Favs-Context-Update, keine Bilder bei Favs |
 | Modul-System: Einzelne Gruppe direkt einbinden | Aktuell muss Gruppe erst ausgelagert werden. Später: direkt referenzieren ohne Auslagern |
 | Modul-System: Varianten-Gruppierung im Dropdown | Varianten desselben Rezepts gruppiert anzeigen – erst relevant wenn Fremdrezepte als Module häufig genutzt werden |
-| Medien-Upload Owner-Check | Sicherheitslücke: POST media/router.py hat keinen Owner-Check — jeder authentifizierte User kann Medien zu fremden Rezepten hochladen. PATCH/DELETE sind korrekt abgesichert. |
-| AdminUsers.jsx Frontend-Guards | Rollen-Dropdown, Delete, Restore für Chefkoch sichtbar, aber Backend blockiert (require_kuechenchef). Frontend-Guards fehlen. |
-| Module: kein Chefkoch-Override | modules/router.py prüft nur Owner, kein Rollen-Fallback für Chefkoch/Küchenchef bei einbinden/auslagern/entfernen. Wird mit Entwurf-Status-Task bereinigt. |
 
 ---
 

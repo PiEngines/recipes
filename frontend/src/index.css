@@ -1,6 +1,29 @@
 @import "tailwindcss";
 @import "./styles/tokens.css";
 
+@theme {
+  /* Farben */
+  --color-app-bg: #FAF7F2;
+  --color-body-bg: #E0DDD8;
+  --color-card: #ffffff;
+  --color-terracotta: #C8602A;
+  --color-olive: #6B7C4E;
+  --color-text-primary: #2C2C2A;
+  --color-text-secondary: #6B6B68;
+  --color-text-hint: #9A958C;
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-border-input: #D8D4CD;
+
+  /* Border Radius */
+  --radius-card: 14px;
+  --radius-input: 14px;
+  --radius-pill: 9999px;
+
+  /* Typografie */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
 /* ── Base ────────────────────────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; }

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    html, body { margin:0; height:100%; background:#FAF7F2; }
+    * { box-sizing:border-box; }
+    textarea, input, button { font-family:'Inter',sans-serif; }
+    textarea { resize:none; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-thumb { background:rgba(0,0,0,.12); border-radius:4px; }
+    input::placeholder, textarea::placeholder { color:#A8A39A; }
+  </style>
+</helmet>
+
+<div style="position:relative; height:100vh; display:flex; flex-direction:column; background:#FAF7F2; font-family:'Inter',sans-serif; color:#2C2C2A; max-width:1280px; margin:0 auto;">
+
+  <!-- Header -->
+  <div style="height:52px; flex-shrink:0; background:rgba(250,247,242,.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(0,0,0,.07); display:flex; align-items:center; padding:0 20px; gap:8px;">
+    <button style="width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,.06); border:none; display:flex; align-items:center; justify-content:center; color:#2C2C2A; font-size:17px;">
+      <i class="ti ti-arrow-left"></i>
+    </button>
+    <div style="display:flex; align-items:center; gap:6px; flex:1; padding:0 8px; font-size:13px; color:#9A958C;">
+      Alle Rezepte
+      <i class="ti ti-chevron-right" style="font-size:11px; color:#C9C3B8;"></i>
+      <span style="color:#2C2C2A; font-weight:600;">Neues Rezept</span>
+    </div>
+    <sc-if value="{{ bSavedVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; gap:5px; font-size:12.5px; color:#6B7C4E; margin-right:8px;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#6B7C4E; display:inline-block;"></span>
+        Automatisch gespeichert
+      </div>
+    </sc-if>
+    <button style="padding:8px 20px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#6B6B68; font-size:13.5px; font-weight:500;">Abbrechen</button>
+    <button onClick="{{ openFreigabe }}" style="padding:8px 20px; border:none; border-radius:8px; background:#C8602A; color:#fff; font-size:13.5px; font-weight:600;">Speichern</button>
+  </div>
+
+  <!-- Body -->
+  <div style="flex:1; display:flex; overflow:hidden;">
+
+    <!-- Left: Vertical Stepper -->
+    <div style="width:220px; flex-shrink:0; background:#fff; border-right:1px solid rgba(0,0,0,.07); display:flex; flex-direction:column; justify-content:center; gap:2px; overflow:hidden;">
+      <sc-for list="{{ bTabs }}" as="tab" hint-placeholder-count="5">
+        <button onClick="{{ tab.onClick }}" style="{{ tab.wrapStyle }}">
+          <div style="{{ tab.dotStyle }}">{{ tab.dot }}</div>
+          <span style="{{ tab.labelStyle }}">{{ tab.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <!-- Right: Form Content -->
+    <div style="{{ contentAreaStyle }}">
+
+      <!-- ── S0: Titel ── -->
+      <sc-if value="{{ bIs0 }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:680px;">
+          <div style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#2C2C2A; margin-bottom:6px;">Wie heißt dein Rezept?</div>
+          <div style="font-size:14px; color:#9A958C; margin-bottom:28px;">Du kannst den Titel jederzeit ändern.</div>
+
+          <input value="{{ bTitle }}" onInput="{{ setBTitle }}" placeholder="Rezepttitel …" style="width:100%; border:none; border-bottom:2px solid #D8D4CD; outline:none; background:transparent; font-family:'Playfair Display',serif; font-size:26px; font-weight:600; color:#2C2C2A; padding:4px 0 10px; margin-bottom:8px;" />
+
+          <sc-if value="{{ bDupWarn }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:20px; padding:10px 14px; border-radius:8px; background:#F1ECE4; border:1px solid rgba(0,0,0,.07);">
+              <div style="font-size:12px; color:#9A958C; margin-bottom:6px;">Ähnliche Titel bereits vorhanden:</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <sc-for list="{{ bDupTitles }}" as="dup" hint-placeholder-count="2">
+                  <span style="font-size:12.5px; font-weight:500; padding:3px 10px; border-radius:999px; background:#fff; border:1px solid #D8D4CD; color:#6B6B68;">{{ dup.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ── S1: Zutaten (Desktop: 2-spaltig) ── -->
+      <sc-if value="{{ bIs1 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:6px;">Zutaten</div>
+          <div style="font-size:14px; color:#9A958C; margin-bottom:24px;">Eine Zeile = eine Zutat. Mengen werden automatisch erkannt.</div>
+
+          <!-- 2-spaltig: Eingabe + Vorschau -->
+          <div style="display:flex; gap:24px; align-items:flex-start;">
+
+            <!-- Links: Textarea + Teilrezept -->
+            <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:14px;">
+              <textarea value="{{ bText }}" onInput="{{ setBText }}" rows="12" placeholder="200 g Mehl&#10;2 Eier&#10;1 Prise Salz" style="width:100%; padding:14px 16px; border:1.5px solid #D8D4CD; border-radius:10px; background:#fff; color:#2C2C2A; font-size:14.5px; line-height:1.75; outline:none;"></textarea>
+
+              <!-- Teilrezept -->
+              <sc-if value="{{ bEmbedPickerClosed }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ bCanAddEmbed }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ openBEmbedPicker }}" style="display:inline-flex; align-items:center; gap:6px; background:none; border:1.5px dashed #D8D4CD; border-radius:8px; padding:9px 16px; cursor:pointer; color:#C8602A; font-size:13.5px; font-weight:600; width:100%; justify-content:center;">
+                    <i class="ti ti-bowl-spoon" style="font-size:16px;"></i> Teilrezept hinzufügen
+                  </button>
+                </sc-if>
+                <sc-if value="{{ bEmbedMaxReached }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px; color:#9A958C; text-align:center; padding:8px;">Maximale Anzahl Teilrezepte erreicht (3).</div>
+                </sc-if>
+              </sc-if>
+
+              <!-- Picker -->
+              <sc-if value="{{ bEmbedPickerOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1.5px solid #C8602A; border-radius:10px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.1);">
+                  <div style="padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.07); display:flex; gap:8px; align-items:center;">
+                    <input value="{{ bEmbedSearch }}" onInput="{{ setBEmbedSearch }}" placeholder="Rezept suchen …" style="flex:1; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;" />
+                    <button onClick="{{ closeBEmbedPicker }}" style="background:none; border:none; color:#9A958C; cursor:pointer; font-size:16px;"><i class="ti ti-x"></i></button>
+                  </div>
+                  <sc-for list="{{ bEmbedResults }}" as="r" hint-placeholder-count="3">
+                    <button onClick="{{ r.onPick }}" style="display:flex; width:100%; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; background:none; border:none; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; text-align:left;">
+                      <span style="font-size:14px; color:#2C2C2A; font-weight:500;">{{ r.name }}</span>
+                      <span style="font-size:12px; color:#9A958C;">{{ r.author }}</span>
+                    </button>
+                  </sc-for>
+                  <sc-if value="{{ bEmbedNoResults }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:14px; font-size:13px; color:#9A958C; text-align:center;">Keine Treffer.</div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <!-- Teilrezept-Karten -->
+              <sc-for list="{{ bEmbedRecipes }}" as="r" hint-placeholder-count="0">
+                <div style="border:1.5px solid rgba(200,96,42,.3); border-radius:10px; overflow:hidden; background:#fff;">
+                  <div style="display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.06);">
+                    <i class="ti ti-bowl-spoon" style="font-size:15px; color:#C8602A; flex-shrink:0;"></i>
+                    <span style="flex:1; font-size:14px; font-weight:600; color:#2C2C2A;">{{ r.name }}</span>
+                    <span style="font-size:12px; color:#C8602A; font-weight:500; cursor:pointer; text-decoration:underline; text-underline-offset:2px;">{{ r.author }}</span>
+                    <button onClick="{{ r.onRemove }}" style="background:none; border:none; color:#9A958C; cursor:pointer; font-size:16px; display:flex; align-items:center;"><i class="ti ti-x"></i></button>
+                  </div>
+                  <div style="padding:10px 14px; display:flex; align-items:center; gap:14px;">
+                    <span style="font-size:13px; color:#9A958C; flex:1;">Portionen</span>
+                    <button onClick="{{ r.onPortionsDec }}" style="width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,.06); border:none; display:flex; align-items:center; justify-content:center; color:#6B6B68; font-size:14px;"><i class="ti ti-minus"></i></button>
+                    <span style="font-size:15px; font-weight:600; color:#2C2C2A; min-width:18px; text-align:center;">{{ r.portions }}</span>
+                    <button onClick="{{ r.onPortionsInc }}" style="width:26px; height:26px; border-radius:50%; background:rgba(200,96,42,.1); border:none; display:flex; align-items:center; justify-content:center; color:#C8602A; font-size:14px;"><i class="ti ti-plus"></i></button>
+                    <button onClick="{{ r.onToggleHint }}" style="margin-left:8px; background:none; border:1.5px solid #D8D4CD; border-radius:999px; padding:4px 12px; font-size:12.5px; color:#9A958C; cursor:pointer; font-weight:500;">Hinweis für den Koch</button>
+                  </div>
+                  <sc-if value="{{ r.hintOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:0 14px 12px;">
+                      <textarea value="{{ r.hint }}" onInput="{{ r.onHintChange }}" rows="2" placeholder="z.B. Teig am Vortag vorbereiten …" style="width:100%; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; font-size:13.5px; color:#2C2C2A; outline:none; line-height:1.55;"></textarea>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <!-- Rechts: Live-Vorschau -->
+            <div style="width:300px; flex-shrink:0;">
+              <div style="border:1px solid rgba(0,0,0,.07); border-radius:10px; overflow:hidden; position:sticky; top:0;">
+                <div style="display:flex; align-items:center; gap:6px; padding:9px 14px; background:#FAF7F2; border-bottom:1px solid rgba(0,0,0,.06); font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#6B7C4E;">
+                  <i class="ti ti-sparkles" style="font-size:14px;"></i> So wird's gespeichert · {{ bCount }}
+                </div>
+                <div style="background:#fff;">
+                  <sc-for list="{{ parsedB }}" as="ing" hint-placeholder-count="5">
+                    <div style="display:flex; align-items:center; gap:12px; padding:8px 14px; border-bottom:1px solid rgba(0,0,0,.05);">
+                      <span style="{{ ing.qtyStyle }}">{{ ing.qty }}</span>
+                      <span style="flex:1; font-size:14px; color:#2C2C2A;">{{ ing.name }}</span>
+                      <sc-if value="{{ ing.showNote }}" hint-placeholder-val="{{ false }}"><span style="{{ ing.noteStyle }}">{{ ing.note }}</span></sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ── S2: Anordnung ── -->
+      <sc-if value="{{ bIs2 }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:680px;">
+          <div style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:6px;">Anordnung</div>
+          <div style="font-size:14px; color:#9A958C; margin-bottom:24px;">Ziehe die Blöcke in die gewünschte Reihenfolge.</div>
+          <div style="display:flex; flex-direction:column;">
+            <sc-for list="{{ bArrangeItems }}" as="item" hint-placeholder-count="3">
+              <!-- Block -->
+              <sc-if value="{{ item.isBlock }}" hint-placeholder-val="{{ true }}">
+                <div style="{{ item.blockStyle }}">
+                  <i class="ti ti-grip-vertical" style="font-size:20px; color:#C9C3B8; cursor:grab; flex-shrink:0;"></i>
+                  <div style="flex:1; min-width:0;">
+                    <div style="{{ item.labelStyle }}">{{ item.labelText }}</div>
+                    <div style="font-size:15px; font-weight:600; color:#2C2C2A;">{{ item.name }}</div>
+                    <sc-if value="{{ item.hasHint }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-size:12px; color:#9A958C; margin-top:2px; font-style:italic;">{{ item.hint }}</div>
+                    </sc-if>
+                  </div>
+                  <div style="font-size:12px; color:#9A958C; white-space:nowrap;">{{ item.portions }} Port.</div>
+                </div>
+              </sc-if>
+              <!-- Zwischenhinweis -->
+              <sc-if value="{{ item.isGap }}" hint-placeholder-val="{{ false }}">
+                <div style="margin:-4px 0 8px;">
+                  <sc-if value="{{ item.showAddBtn }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; justify-content:center; padding:3px 0;">
+                      <button onClick="{{ item.onOpen }}" style="display:inline-flex; align-items:center; gap:4px; background:none; border:1px dashed #D8D4CD; border-radius:999px; padding:4px 14px; cursor:pointer; font-size:12px; color:#C9C3B8; font-weight:500; font-family:'Inter',sans-serif;">
+                        <i class="ti ti-plus" style="font-size:12px;"></i> Hinweis hinzufügen
+                      </button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ item.isOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="border:1.5px solid #D8D4CD; border-radius:8px; background:#FDFAF6; overflow:hidden; margin:2px 0;">
+                      <div style="display:flex; align-items:flex-start; gap:8px; padding:12px 14px;">
+                        <i class="ti ti-clock-hour-4" style="font-size:15px; color:#C9C3B8; margin-top:3px; flex-shrink:0;"></i>
+                        <textarea value="{{ item.noteText }}" onInput="{{ item.onChange }}" rows="2" placeholder="z.B. Teig gehen lassen, währenddessen mit dem nächsten Rezept anfangen …" style="flex:1; border:none; outline:none; background:transparent; font-family:'Inter',sans-serif; font-size:14px; color:#2C2C2A; line-height:1.55;"></textarea>
+                        <button onClick="{{ item.onClose }}" style="background:none; border:none; cursor:pointer; color:#C9C3B8; padding:0; display:flex; align-items:center; flex-shrink:0; margin-top:2px;">
+                          <i class="ti ti-x" style="font-size:15px;"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ item.showNote }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; background:#F8F4EE; border-radius:8px; margin:2px 0;">
+                      <i class="ti ti-clock-hour-4" style="font-size:14px; color:#9A958C; flex-shrink:0;"></i>
+                      <span style="flex:1; font-size:13.5px; color:#6B6B68; font-style:italic; line-height:1.4; font-family:'Inter',sans-serif;">{{ item.noteText }}</span>
+                      <button onClick="{{ item.onOpen }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:2px; flex-shrink:0; display:flex; align-items:center;">
+                        <i class="ti ti-pencil" style="font-size:14px;"></i>
+                      </button>
+                      <button onClick="{{ item.onDelete }}" style="background:none; border:none; cursor:pointer; color:#C9C3B8; padding:2px; flex-shrink:0; display:flex; align-items:center;">
+                        <i class="ti ti-x" style="font-size:13px;"></i>
+                      </button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ── S3: Zubereitung ── -->
+      <sc-if value="{{ bIs3 }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:680px;">
+          <div style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:6px;">Zubereitung</div>
+          <div style="font-size:14px; color:#9A958C; margin-bottom:24px;">Beschreibe die Schritte. Timer und Fotos auf Wunsch.</div>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <sc-for list="{{ bSteps }}" as="step" hint-placeholder-count="2">
+              <div style="background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden;">
+                <div style="display:flex; gap:12px; align-items:flex-start; padding:16px;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; padding-top:6px;">
+                    <i class="ti ti-grip-vertical" style="font-size:16px; color:#C9C3B8; cursor:grab;"></i>
+                    <span style="width:28px; height:28px; border-radius:50%; background:#C8602A; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">{{ step.num }}</span>
+                  </div>
+                  <div style="flex:1; min-width:0;">
+                    <textarea value="{{ step.text }}" onInput="{{ step.onChange }}" rows="3" placeholder="Schritt beschreiben …" style="width:100%; padding:0; border:none; background:transparent; color:#2C2C2A; font-size:14.5px; line-height:1.65; outline:none;"></textarea>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; align-items:center;">
+                      <button onClick="{{ step.onToggleTimer }}" style="{{ step.timerBtnStyle }}"><i class="ti ti-clock" style="font-size:13px;"></i>{{ step.timerBtnLabel }}</button>
+                      <button onClick="{{ step.onToggleFoto }}" style="{{ step.fotoBtnStyle }}"><i class="ti ti-photo" style="font-size:13px;"></i>{{ step.fotoBtnLabel }}</button>
+                      <button onClick="{{ step.onToggleZutat }}" style="{{ step.zutatBtnStyle }}"><i class="ti ti-list-check" style="font-size:13px;"></i>{{ step.zutatBtnLabel }}</button>
+                    </div>
+                    <sc-if value="{{ step.timerVisible }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+                        <i class="ti ti-clock" style="font-size:14px; color:#9A958C;"></i>
+                        <input value="{{ step.timer }}" onInput="{{ step.onTimer }}" placeholder="Minuten" style="width:80px; padding:6px 10px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; font-size:13.5px; color:#2C2C2A; outline:none;" />
+                        <span style="font-size:13px; color:#9A958C;">Minuten</span>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ step.fotoVisible }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <sc-for list="{{ step.photoThumbs }}" as="thumb" hint-placeholder-count="0">
+                          <div style="width:72px; height:56px; border-radius:8px; background:repeating-linear-gradient(135deg,#E0D9CF 0,#E0D9CF 10px,#E8E1D6 10px,#E8E1D6 20px); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
+                            <span style="font-size:9px; color:#B0A898; font-family:monospace;">foto</span>
+                          </div>
+                        </sc-for>
+                        <button onClick="{{ step.onAddPhoto }}" style="width:72px; height:56px; border-radius:8px; border:1.5px dashed #D8D4CD; background:#FAF7F2; color:#C8602A; font-size:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
+                          <i class="ti ti-plus"></i>
+                        </button>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ step.zutatVisible }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px;">
+                        <sc-for list="{{ step.allPills }}" as="pill" hint-placeholder-count="3">
+                          <button onClick="{{ pill.onToggle }}" style="{{ pill.style }}">{{ pill.name }}</button>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                  <button onClick="{{ step.onRemove }}" style="flex-shrink:0; width:28px; height:28px; margin-top:4px; border-radius:50%; background:none; border:1.5px solid #D8D4CD; cursor:pointer; color:#9A958C; display:flex; align-items:center; justify-content:center;">
+                    <i class="ti ti-x" style="font-size:14px;"></i>
+                  </button>
+                </div>
+              </div>
+            </sc-for>
+            <button onClick="{{ addBStep }}" style="display:inline-flex; align-items:center; gap:7px; padding:10px 18px; border:1.5px dashed #D8D4CD; border-radius:10px; background:none; cursor:pointer; color:#C8602A; font-size:14px; font-weight:600;">
+              <i class="ti ti-plus" style="font-size:16px;"></i> Schritt hinzufügen
+            </button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ── S4: Feinschliff ── -->
+      <sc-if value="{{ bIs4 }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:680px;">
+          <div style="font-family:'Playfair Display',serif; font-size:28px; font-weight:700; margin-bottom:6px;">Feinschliff</div>
+          <div style="font-size:14px; color:#9A958C; margin-bottom:28px;">Zeiten, Details und optionale Begleitrezepte.</div>
+
+          <!-- Zeit + Portionen -->
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
+            <div>
+              <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Vorbereitung</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff;">
+                <input placeholder="10" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;" />
+                <span style="font-size:13px; color:#9A958C; white-space:nowrap;">Min.</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Kochen / Backen</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff;">
+                <input placeholder="30" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;" />
+                <span style="font-size:13px; color:#9A958C; white-space:nowrap;">Min.</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Portionen</div>
+              <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff;">
+                <button onClick="{{ bServingsDec }}" style="background:rgba(0,0,0,.06); border:none; color:#6B6B68; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ti ti-minus" style="font-size:13px;"></i></button>
+                <span style="flex:1; text-align:center; font-size:14px; font-weight:600; color:#2C2C2A;">{{ bServings }}</span>
+                <button onClick="{{ bServingsInc }}" style="background:rgba(200,96,42,.1); border:none; color:#C8602A; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ti ti-plus" style="font-size:13px;"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Art + Schwierigkeit -->
+          <div style="display:grid; grid-template-columns:auto 1fr; gap:24px; align-items:start; margin-bottom:24px;">
+            <div>
+              <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:8px;">Art</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                <sc-for list="{{ bArtChips }}" as="chip" hint-placeholder-count="2">
+                  <button onClick="{{ chip.onToggle }}" style="{{ chip.style }}">{{ chip.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:8px;">Schwierigkeit · {{ bDiffLabel }}</div>
+              <div style="display:flex; gap:6px;">
+                <sc-for list="{{ bDiffCells }}" as="d" hint-placeholder-count="5">
+                  <button onClick="{{ d.onClick }}" style="{{ d.style }}"></button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fotos -->
+          <div style="margin-bottom:24px;">
+            <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:8px;">Fotos</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:28px; border:1.5px dashed #D8D4CD; border-radius:10px; background:#fff; cursor:pointer;">
+              <i class="ti ti-photo-plus" style="font-size:28px; color:#C8602A;"></i>
+              <div style="font-size:14px; color:#6B6B68;">Fotos hierher ziehen oder <span style="color:#C8602A; font-weight:600;">auswählen</span></div>
+            </div>
+          </div>
+
+          <!-- Dazu servieren -->
+          <div>
+            <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:10px;">Dazu servieren</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;">
+              <sc-for list="{{ bLinkedRecipes }}" as="r" hint-placeholder-count="0">
+                <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:rgba(107,124,78,.1); border:1px solid rgba(107,124,78,.25); font-size:13px; font-weight:500; color:#4A5A33;">
+                  {{ r.name }}
+                  <i class="ti ti-x" onClick="{{ r.onRemove }}" style="font-size:13px; cursor:pointer; opacity:.6;"></i>
+                </div>
+              </sc-for>
+              <sc-if value="{{ bCanAddLinked }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ bLinkPickerClosed }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ openLinkPicker }}" style="display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border:1.5px dashed #D8D4CD; border-radius:999px; background:none; cursor:pointer; color:#C8602A; font-size:13px; font-weight:600;">
+                    <i class="ti ti-plus" style="font-size:14px;"></i> Rezept verknüpfen
+                  </button>
+                </sc-if>
+              </sc-if>
+            </div>
+            <sc-if value="{{ bLinkPickerOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1.5px solid #C8602A; border-radius:10px; overflow:hidden; max-width:460px; box-shadow:0 4px 20px rgba(0,0,0,.1);">
+                <div style="padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.07); display:flex; gap:8px; align-items:center;">
+                  <input value="{{ bLinkSearch }}" onInput="{{ setBLinkSearch }}" placeholder="Rezept suchen …" style="flex:1; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;" />
+                  <button onClick="{{ closeLinkPicker }}" style="background:none; border:none; color:#9A958C; cursor:pointer;"><i class="ti ti-x" style="font-size:16px;"></i></button>
+                </div>
+                <sc-for list="{{ bLinkResults }}" as="r" hint-placeholder-count="3">
+                  <button onClick="{{ r.onPick }}" style="display:flex; width:100%; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; background:none; border:none; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; text-align:left;">
+                    <span style="font-size:14px; color:#2C2C2A; font-weight:500;">{{ r.name }}</span>
+                    <span style="font-size:12px; color:#9A958C;">{{ r.author }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <!-- Footer: Navigation -->
+  <div style="height:60px; flex-shrink:0; background:#fff; border-top:1px solid rgba(0,0,0,.07); display:flex; align-items:center; justify-content:space-between; padding:0 24px;">
+    <button onClick="{{ prevB }}" style="{{ bBackStyle }}">
+      <i class="ti ti-arrow-left" style="font-size:15px;"></i> Zurück
+    </button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button onClick="{{ openVorschau }}" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#6B6B68; font-size:13.5px; font-weight:500; cursor:pointer;">
+        <i class="ti ti-eye" style="font-size:15px;"></i> Vorschau
+      </button>
+      <sc-if value="{{ bShowNext }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ nextB }}" style="display:inline-flex; align-items:center; gap:7px; padding:11px 24px; border:none; border-radius:8px; background:#C8602A; color:#fff; font-size:14px; font-weight:600; cursor:pointer;">
+          Weiter <i class="ti ti-arrow-right" style="font-size:15px;"></i>
+        </button>
+      </sc-if>
+      <sc-if value="{{ bShowDone }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ openFreigabe }}" style="display:inline-flex; align-items:center; gap:7px; padding:11px 24px; border:none; border-radius:8px; background:#6B7C4E; color:#fff; font-size:14px; font-weight:600; cursor:pointer;">
+          <i class="ti ti-check" style="font-size:15px;"></i> Speichern
+        </button>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- Freigabe Modal -->
+  <sc-if value="{{ bFreigabeOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; z-index:50; background:rgba(44,44,42,.5); display:flex; align-items:center; justify-content:center;">
+      <div style="width:460px; background:#fff; border-radius:14px; box-shadow:0 8px 40px rgba(0,0,0,.18); overflow:hidden;">
+        <div style="padding:24px 28px 28px;">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#2C2C2A; margin-bottom:3px;">Rezept freigeben</div>
+              <div style="font-size:13.5px; color:#9A958C;">Für wen soll &#8222;{{ bTitle }}&#8220; sichtbar sein?</div>
+            </div>
+            <button onClick="{{ closeFreigabe }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:2px; display:flex; align-items:center; flex-shrink:0; margin-left:12px;"><i class="ti ti-x" style="font-size:18px;"></i></button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+            <button onClick="{{ setFreigabePrivat }}" style="{{ freigabeOptPrivatStyle }}">
+              <div style="width:36px; height:36px; border-radius:8px; background:#F1ECE4; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-lock" style="font-size:17px; color:#9A958C;"></i></div>
+              <div style="flex:1; text-align:left;"><div style="font-size:14px; font-weight:600; color:#2C2C2A;">Nur ich</div><div style="font-size:12px; color:#9A958C; margin-top:2px;">Nur du siehst dieses Rezept</div></div>
+              <sc-if value="{{ bFreigabeIsPrivat }}" hint-placeholder-val="{{ true }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+            </button>
+            <button onClick="{{ setFreigabeLink }}" style="{{ freigabeOptLinkStyle }}">
+              <div style="width:36px; height:36px; border-radius:8px; background:rgba(200,96,42,.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-link" style="font-size:17px; color:#C8602A;"></i></div>
+              <div style="flex:1; text-align:left;"><div style="font-size:14px; font-weight:600; color:#2C2C2A;">Per Link</div><div style="font-size:12px; color:#9A958C; margin-top:2px;">Jeder mit dem Link kann es sehen</div></div>
+              <sc-if value="{{ bFreigabeIsLink }}" hint-placeholder-val="{{ false }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+            </button>
+            <button onClick="{{ setFreigabeOff }}" style="{{ freigabeOptOffStyle }}">
+              <div style="width:36px; height:36px; border-radius:8px; background:rgba(107,124,78,.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-world" style="font-size:17px; color:#6B7C4E;"></i></div>
+              <div style="flex:1; text-align:left;"><div style="font-size:14px; font-weight:600; color:#2C2C2A;">Öffentlich</div><div style="font-size:12px; color:#9A958C; margin-top:2px;">Für alle Nutzer sichtbar</div></div>
+              <sc-if value="{{ bFreigabeIsOff }}" hint-placeholder-val="{{ false }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+            </button>
+          </div>
+          <sc-if value="{{ bFreigabeIsLink }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:20px; padding:12px 14px; background:#F8F4EE; border-radius:8px;">
+              <div style="font-size:12px; color:#9A958C; margin-bottom:8px; display:flex; align-items:center; gap:5px;"><i class="ti ti-info-circle" style="font-size:13px;"></i>Bekannte Usernamen erhalten sofort Zugriff · neue E-Mails bekommen eine Einladung.</div>
+              <sc-if value="{{ bHasShareList }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                  <sc-for list="{{ bShareList }}" as="e" hint-placeholder-count="0">
+                    <span style="{{ e.chipStyle }}"><i class="{{ e.iconClass }}" style="font-size:13px;"></i> {{ e.display }}<i class="ti ti-x" onClick="{{ e.onRemove }}" style="font-size:12px; cursor:pointer; opacity:.6; margin-left:4px;"></i></span>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input value="{{ bShareInput }}" onInput="{{ setBShareInput }}" placeholder="Username oder E-Mail" style="flex:1; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#2C2C2A; font-size:13.5px; outline:none;" />
+                <button onClick="{{ addShareEntry }}" style="padding:9px 16px; border:none; border-radius:8px; background:#C8602A; color:#fff; font-size:13.5px; font-weight:600; flex-shrink:0;">Hinzufügen</button>
+              </div>
+              <sc-if value="{{ bShareError }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:5px; font-size:12px; color:#C8602A;">{{ bShareError }}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onClick="{{ closeFreigabe }}" style="padding:10px 20px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#6B6B68; font-size:13.5px; font-weight:500; cursor:pointer;">Noch nicht</button>
+            <button style="padding:10px 24px; border:none; border-radius:8px; background:#6B7C4E; color:#fff; font-size:13.5px; font-weight:600; cursor:pointer;">Jetzt speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Vorschau Modal -->
+  <sc-if value="{{ bVorschauOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute; inset:0; z-index:50; background:rgba(44,44,42,.5); display:flex; align-items:center; justify-content:center;">
+      <div style="width:560px; max-height:80vh; background:#fff; border-radius:14px; box-shadow:0 8px 40px rgba(0,0,0,.18); display:flex; flex-direction:column; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid rgba(0,0,0,.07); flex-shrink:0;">
+          <div style="font-size:12px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C;">Vorschau</div>
+          <button onClick="{{ closeVorschau }}" style="background:none; border:none; cursor:pointer; color:#9A958C; display:flex; align-items:center;"><i class="ti ti-x" style="font-size:18px;"></i></button>
+        </div>
+        <div style="overflow-y:auto; padding:24px 28px 32px;">
+          <div style="font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:#2C2C2A; margin-bottom:8px;">{{ bTitle }}</div>
+          <div style="display:flex; gap:10px; font-size:13.5px; color:#9A958C; margin-bottom:24px;"><span>{{ bServings }} Portionen</span><span>·</span><span>{{ bArtLabel }}</span></div>
+          <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:10px;">Zutaten</div>
+          <sc-for list="{{ parsedB }}" as="ing" hint-placeholder-count="4">
+            <div style="display:flex; gap:12px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.05);">
+              <span style="font-size:13.5px; font-weight:600; color:#C8602A; min-width:80px; text-align:right; flex-shrink:0;">{{ ing.qty }}</span>
+              <span style="font-size:14px; color:#2C2C2A;">{{ ing.name }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ bHasSteps }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin:24px 0 14px;">Zubereitung</div>
+            <sc-for list="{{ bSteps }}" as="step" hint-placeholder-count="2">
+              <div style="display:flex; gap:14px; margin-bottom:18px; align-items:flex-start;">
+                <span style="width:28px; height:28px; border-radius:50%; background:#C8602A; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;">{{ step.num }}</span>
+                <span style="font-size:14.5px; color:#2C2C2A; line-height:1.65;">{{ step.text }}</span>
+              </div>
+            </sc-for>
+          </sc-if>
+          <div style="margin-top:20px; padding:10px 14px; background:#F1ECE4; border-radius:8px; font-size:12.5px; color:#9A958C; text-align:center;">So sieht dein Rezept aus, wenn du es speicherst.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 800}}">
+
+class Component extends DCLogic {
+  state = {
+    bStep: 0,
+    bTitle: 'Pasta e Fagioli',
+    bText: '400 g Borlotti-Bohnen\n200 g Ditalini\n2 Zweige Rosmarin\n3 Zehen Knoblauch\n3 EL Olivenöl\n800 ml Gemüsebrühe\nSalz & Pfeffer',
+    bSteps: [
+      { id: 1, text: 'Knoblauch und Rosmarin in Olivenöl anschwitzen, bis der Knoblauch goldgelb duftet.', timer: '5', photos: 1, marked: {}, timerOpen: true, fotoOpen: true, zutatOpen: null },
+      { id: 2, text: 'Gemüsebrühe angießen, Bohnen weich kochen (ca. 20 Min.). Ein Drittel grob zerdrücken.', timer: '20', photos: 0, marked: {}, timerOpen: true, fotoOpen: false, zutatOpen: null },
+    ],
+    bVis: 'privat', bDiff: 2, bArt: ['kochen'], bServings: 4,
+    bTitleDupCount: 0,
+    bLinkedRecipes: [],
+    bLinkPickerOpen: false,
+    bLinkSearch: '',
+    bShareInput: '',
+    bShareList: [],
+    bShareError: '',
+    bEmbedOpen: false,
+    bEmbedSearch: '',
+    bEmbedRecipes: [],
+    bInterNotes: {},
+    bFreigabeOpen: false,
+    bVorschauOpen: false,
+    _sid: 10,
+  };
+
+  _saved = false;
+  _saveTimer = null;
+
+  RECIPE_SUGGESTIONS = [
+    { id: 101, name: 'Focaccia',        author: 'eigenes Rezept' },
+    { id: 102, name: 'Grüner Salat',    author: 'von Lena'       },
+    { id: 103, name: 'Bruschetta',      author: 'von Sara'       },
+    { id: 104, name: 'Knoblauchbrot',   author: 'eigenes Rezept' },
+    { id: 105, name: 'Tomatensalat',    author: 'eigenes Rezept' },
+    { id: 106, name: 'Basilikumpesto',  author: 'von Marco'      },
+  ];
+
+  markSaved() {
+    clearTimeout(this._saveTimer);
+    this._saved = true;
+    this.forceUpdate();
+    this._saveTimer = setTimeout(() => { this._saved = false; this.forceUpdate(); }, 2000);
+  }
+
+  UNIT_MAP = {
+    g:'g',gr:'g',gramm:'g',kg:'kg',mg:'mg',ml:'ml',milliliter:'ml',l:'l',liter:'l',
+    el:'EL',essloeffel:'EL','esslöffel':'EL',tbsp:'EL',tl:'TL',teeloeffel:'TL','teelöffel':'TL',tsp:'TL',
+    msp:'Msp',messerspitze:'Msp',prise:'Prise',prisen:'Prise',bund:'Bund',
+    scheibe:'Scheibe',scheiben:'Scheibe',dose:'Dose',dosen:'Dose',
+    packung:'Packung',pck:'Packung','stück':'Stück',stueck:'Stück',stk:'Stück',
+    zehe:'Zehe',zehen:'Zehe',tasse:'Tasse',tassen:'Tasse',
+  };
+
+  levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({length:m+1}, (_,i) => Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0));
+    for (let i=1;i<=m;i++) for (let j=1;j<=n;j++)
+      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]);
+    return dp[m][n];
+  }
+
+  parse(text) {
+    return (text||'').split('\n').map(l=>l.replace(/\s+/g,' ').trim()).filter(Boolean).map((raw,i)=>{
+      let rest=raw, amount='';
+      const am = raw.match(/^([0-9]+\/[0-9]+|[0-9]+(?:[.,][0-9]+)?(?:\s*[-–]\s*[0-9]+(?:[.,][0-9]+)?)?|[½¼¾⅓⅔])\s*(.*)$/);
+      if (am) { amount=am[1]; rest=am[2]; }
+      let unit='', unitFixed=false, name=rest;
+      const parts=rest.split(' ');
+      if (parts[0]) {
+        const tok=parts[0].toLowerCase().replace(/\.$/,'');
+        let canon=this.UNIT_MAP[tok];
+        if (!canon && tok.length>=6) {
+          let bestKey=null, bestDist=999;
+          for (const key of Object.keys(this.UNIT_MAP)) {
+            if (Math.abs(key.length-tok.length)>2) continue;
+            const d=this.levenshtein(tok,key);
+            if (d<=2 && d<bestDist) { bestKey=key; bestDist=d; }
+          }
+          if (bestKey) canon=this.UNIT_MAP[bestKey];
+        }
+        if (canon && (parts.length>1||amount)) { unit=canon; name=parts.slice(1).join(' '); unitFixed=tok!==canon.toLowerCase(); }
+      }
+      const hasQty=!!(amount||unit), qty=(amount+(unit?' '+unit:'')).trim(), noQty=!amount;
+      return {
+        id:i, raw, name, hasQty, noQty, qty:qty||'—',
+        qtyStyle:{fontFamily:"'Inter',sans-serif",fontSize:'13.5px',fontWeight:600,minWidth:'82px',textAlign:'right',whiteSpace:'nowrap',color:hasQty?'#C8602A':'#C9C3B8'},
+        showNote:noQty||unitFixed,
+        note:noQty?'ohne Menge':'vereinheitlicht',
+        noteStyle:{fontFamily:"'Inter',sans-serif",fontSize:'11.5px',fontWeight:500,padding:'1px 8px',borderRadius:'999px',whiteSpace:'nowrap',flexShrink:0,background:noQty?'#F1ECE4':'rgba(107,124,78,.14)',color:noQty?'#9A958C':'#6B7C4E'},
+      };
+    });
+  }
+
+  segStyle(active) {
+    return {flex:'1',padding:'8px 14px',border:'none',borderRadius:'7px',cursor:'pointer',fontFamily:"'Inter',sans-serif",fontSize:'13px',fontWeight:600,display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',whiteSpace:'nowrap',background:active?'#C8602A':'transparent',color:active?'#fff':'#6B6B68',boxShadow:active?'0 1px 2px rgba(0,0,0,.12)':'none'};
+  }
+  chipStyle(active) {
+    return {display:'inline-flex',alignItems:'center',gap:'5px',padding:'6px 14px',borderRadius:'999px',cursor:'pointer',fontFamily:"'Inter',sans-serif",fontSize:'13px',fontWeight:500,border:active?'1.5px solid #6B7C4E':'1.5px solid #D8D4CD',background:active?'#6B7C4E':'transparent',color:active?'#fff':'#9A958C',transition:'all .18s ease'};
+  }
+  pillStyle(active) {
+    return {display:'inline-flex',alignItems:'center',padding:'5px 13px',borderRadius:'999px',border:active?'1.5px solid #6B7C4E':'1.5px solid #D8D4CD',background:active?'#6B7C4E':'transparent',color:active?'#fff':'#9A958C',cursor:'pointer',fontFamily:"'Inter',sans-serif",fontSize:'13px',fontWeight:active?600:400,transition:'all .18s ease'};
+  }
+  actionBtnStyle(active) {
+    return {display:'inline-flex',alignItems:'center',gap:'5px',padding:'5px 12px',borderRadius:'999px',border:active?'1.5px solid #6B7C4E':'1.5px solid #D8D4CD',background:active?'rgba(107,124,78,.12)':'transparent',cursor:'pointer',fontFamily:"'Inter',sans-serif",fontSize:'12.5px',fontWeight:500,color:active?'#4A5A33':'#9A958C'};
+  }
+  diffCells(val) {
+    return [1,2,3,4,5].map(i=>({
+      i, onClick:()=>this.setState({bDiff:i}),
+      style:{flex:1,height:'34px',border:'none',borderRadius:'6px',cursor:'pointer',background:i<=val?'#6B7C4E':'#EDE7DD',transition:'background .12s ease'},
+    }));
+  }
+  diffLabel(v) { return v<=2?'Einfach':v===3?'Mittel':'Anspruchsvoll'; }
+
+  firstToken(name) {
+    return ((name||'').toLowerCase().split(/[^a-zäöüß]+/).filter(x=>x.length>=3))[0]||'';
+  }
+  ingActive(step, name) {
+    if (step.marked && name in step.marked) return step.marked[name];
+    const tok=this.firstToken(name);
+    return tok ? step.text.toLowerCase().includes(tok) : false;
+  }
+  toggleIng=(stepId,name)=>this.setState(p=>({bSteps:p.bSteps.map(s=>s.id!==stepId?s:{...s,marked:{...s.marked,[name]:!this.ingActive(s,name)}})}));
+  setStepTimer=(stepId,v)=>this.setState(p=>({bSteps:p.bSteps.map(s=>s.id===stepId?{...s,timer:v}:s)}));
+  addStepPhoto=(stepId)=>this.setState(p=>({bSteps:p.bSteps.map(s=>s.id===stepId?{...s,photos:s.photos+1}:s)}));
+  toggleStepTimer=(stepId)=>this.setState(p=>({bSteps:p.bSteps.map(s=>s.id===stepId?{...s,timerOpen:!s.timerOpen}:s)}));
+  toggleStepFoto=(stepId)=>this.setState(p=>({bSteps:p.bSteps.map(s=>s.id===stepId?{...s,fotoOpen:!s.fotoOpen}:s)}));
+  toggleStepZutat=(stepId)=>this.setState(p=>{
+    const st=p.bSteps.find(s=>s.id===stepId);
+    const visible=st.zutatOpen===true;
+    return {bSteps:p.bSteps.map(s=>s.id===stepId?{...s,zutatOpen:!visible}:s)};
+  });
+
+  setBTitle=e=>{
+    const v=e.target.value;
+    const DUPS=['pizzateig','pfannkuchen','bolognese','nudeln','brot'];
+    const dup=v.length>3&&DUPS.some(d=>v.toLowerCase().includes(d));
+    this.setState({bTitle:v,bTitleDupCount:dup?2:0});
+    this.markSaved();
+  };
+  setBText=e=>{this.setState({bText:e.target.value});this.markSaved();};
+  bumpServings=(d)=>this.setState(p=>({bServings:Math.max(1,p.bServings+d)}));
+  toggleArt=(id)=>this.setState(s=>{
+    const has=s.bArt.includes(id);
+    const next=has?s.bArt.filter(x=>x!==id):[...s.bArt,id];
+    return {bArt:next.length>0?next:s.bArt};
+  });
+  addBStep=()=>this.setState(s=>({
+    bSteps:[...s.bSteps,{id:s._sid+1,text:'',timer:'',photos:0,marked:{},timerOpen:false,fotoOpen:false,zutatOpen:null}],
+    _sid:s._sid+1,
+  }));
+  nextB=()=>this.setState(s=>{
+    const hasEmbed=s.bEmbedRecipes.length>0;
+    if (s.bStep===1&&!hasEmbed) return {bStep:3};
+    return {bStep:Math.min(4,s.bStep+1)};
+  });
+  prevB=()=>this.setState(s=>{
+    const hasEmbed=s.bEmbedRecipes.length>0;
+    if (s.bStep===3&&!hasEmbed) return {bStep:1};
+    return {bStep:Math.max(0,s.bStep-1)};
+  });
+  goToStep=(i)=>this.setState(s=>{
+    const hasEmbed=s.bEmbedRecipes.length>0;
+    if (i===2&&!hasEmbed) return {};
+    return {bStep:i};
+  });
+  openLinkPicker=()=>this.setState({bLinkPickerOpen:true,bLinkSearch:''});
+  closeLinkPicker=()=>this.setState({bLinkPickerOpen:false});
+  setBLinkSearch=e=>this.setState({bLinkSearch:e.target.value});
+  pickLinkedRecipe=(r)=>{this.setState(p=>({bLinkedRecipes:[...p.bLinkedRecipes,r],bLinkPickerOpen:false,bLinkSearch:''}));this.markSaved();};
+  removeLinkedRecipe=(id)=>{this.setState(p=>({bLinkedRecipes:p.bLinkedRecipes.filter(r=>r.id!==id)}));this.markSaved();};
+  setBShareInput=e=>this.setState({bShareInput:e.target.value,bShareError:''});
+  addShareEntry=()=>{
+    const val=this.state.bShareInput.trim();
+    if (!val) return;
+    if (this.state.bShareList.some(e=>e.id===val)){this.setState({bShareError:'Bereits hinzugefügt.'});return;}
+    const KNOWN=['lena','marco','sara','maria'];
+    const isEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    const hasAt=val.includes('@');
+    if (hasAt&&!isEmail){this.setState({bShareError:'Ungültige E-Mail-Adresse.'});return;}
+    const type=isEmail?'invite':KNOWN.includes(val.toLowerCase())?'user':'unknown';
+    this.setState(p=>({bShareList:[...p.bShareList,{id:val,display:val,type}],bShareInput:'',bShareError:''}));
+    this.markSaved();
+  };
+  removeShareEntry=(id)=>{this.setState(p=>({bShareList:p.bShareList.filter(e=>e.id!==id)}));this.markSaved();};
+  openBEmbedPicker=()=>this.setState({bEmbedOpen:true,bEmbedSearch:''});
+  closeBEmbedPicker=()=>this.setState({bEmbedOpen:false});
+  setBEmbedSearch=e=>this.setState({bEmbedSearch:e.target.value});
+  pickEmbedRecipe=(r)=>{this.setState(p=>({bEmbedRecipes:[...p.bEmbedRecipes,{...r,portions:4,hint:'',hintOpen:false}],bEmbedOpen:false,bEmbedSearch:''}));this.markSaved();};
+  removeEmbedRecipe=(id)=>{this.setState(p=>({bEmbedRecipes:p.bEmbedRecipes.filter(r=>r.id!==id)}));this.markSaved();};
+  setEmbedPortions=(id,delta)=>this.setState(p=>({bEmbedRecipes:p.bEmbedRecipes.map(r=>r.id===id?{...r,portions:Math.max(1,r.portions+delta)}:r)}));
+  setEmbedHint=(id,hint)=>{this.setState(p=>({bEmbedRecipes:p.bEmbedRecipes.map(r=>r.id===id?{...r,hint}:r)}));this.markSaved();};
+  toggleEmbedHint=(id)=>this.setState(p=>({bEmbedRecipes:p.bEmbedRecipes.map(r=>r.id===id?{...r,hintOpen:!r.hintOpen}:r)}));
+
+  openInterNote=(i)=>this.setState(p=>({bInterNotes:{...p.bInterNotes,[i]:{text:(p.bInterNotes[i]||{}).text||'',open:true}}}))
+  closeInterNote=(i)=>this.setState(p=>({bInterNotes:{...p.bInterNotes,[i]:{text:(p.bInterNotes[i]||{}).text||'',open:false}}}))
+  setInterNoteText=(i,text)=>{this.setState(p=>({bInterNotes:{...p.bInterNotes,[i]:{text,open:true}}}));this.markSaved();}
+  deleteInterNote=(i)=>this.setState(p=>{const n={...p.bInterNotes};delete n[i];return{bInterNotes:n};})
+
+  openFreigabe=()=>this.setState({bFreigabeOpen:true})
+  closeFreigabe=()=>this.setState({bFreigabeOpen:false})
+  openVorschau=()=>this.setState({bVorschauOpen:true})
+  closeVorschau=()=>this.setState({bVorschauOpen:false})
+  setFreigabePrivat=()=>this.setState({bVis:'privat'})
+  setFreigabeLink=()=>this.setState({bVis:'link'})
+  setFreigabeOff=()=>this.setState({bVis:'off'})
+  freigabeOptStyle(active){return{display:'flex',alignItems:'center',gap:'12px',padding:'12px',border:active?'1.5px solid #6B7C4E':'1.5px solid #EDE7DD',borderRadius:'10px',background:active?'rgba(107,124,78,.06)':'#fff',cursor:'pointer',width:'100%'}}
+
+  renderVals() {
+    const s=this.state;
+    const parsedB=this.parse(s.bText);
+    const hasEmbed=s.bEmbedRecipes.length>0;
+
+    const bTabs=['Titel','Zutaten','Anordnung','Zubereitung','Feinschliff'].map((label,i)=>{
+      const active=i===s.bStep, done=i<s.bStep;
+      const disabled=i===2&&!hasEmbed;
+      return {
+        label,
+        onClick:disabled?()=>{}:()=>this.goToStep(i),
+        dot:done?'✓':String(i+1),
+        wrapStyle:{width:'100%',display:'flex',alignItems:'center',gap:'12px',padding:'10px 20px',background:'none',border:'none',cursor:disabled?'default':'pointer',opacity:disabled?0.35:1,borderLeft:active?'3px solid #C8602A':'3px solid transparent',transition:'border-color .15s'},
+        dotStyle:{width:'26px',height:'26px',flexShrink:0,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',sans-serif",fontSize:'12px',fontWeight:700,background:active?'#C8602A':done?'rgba(107,124,78,.18)':'#EDE7DD',color:active?'#fff':done?'#6B7C4E':'#9A958C'},
+        labelStyle:{fontFamily:"'Inter',sans-serif",fontSize:'14px',whiteSpace:'nowrap',fontWeight:active?600:500,color:active?'#2C2C2A':done?'#6B7C4E':'#9A958C',textAlign:'left'},
+      };
+    });
+
+    const bSteps=s.bSteps.map((st,i)=>{
+      const activeIngs=parsedB.filter(p=>this.ingActive(st,p.name));
+      const allPills=parsedB.filter(p=>p.name&&p.name.trim()).map(p=>{
+        const active=this.ingActive(st,p.name);
+        return {name:p.name,onToggle:()=>this.toggleIng(st.id,p.name),style:this.pillStyle(active)};
+      });
+      const photoThumbs=Array.from({length:st.photos}).map((_,k)=>({key:k}));
+      return {
+        id:st.id,num:i+1,text:st.text,
+        onChange:e=>{const v=e.target.value;this.setState(p=>({bSteps:p.bSteps.map(x=>x.id===st.id?{...x,text:v}:x)}));},
+        onRemove:()=>this.setState(p=>({bSteps:p.bSteps.filter(x=>x.id!==st.id)})),
+        timer:st.timer,onTimer:e=>this.setStepTimer(st.id,e.target.value),
+        allPills,photoThumbs,
+        timerVisible:st.timerOpen,
+        zutatVisible:st.zutatOpen===true||(st.zutatOpen!==false&&activeIngs.length>0),
+        fotoVisible:st.fotoOpen,
+        timerBtnLabel:st.timer?'Timer · '+st.timer+' Min.':'Timer',
+        zutatBtnLabel:activeIngs.length>0?'Zutaten · '+activeIngs.length:'Zutaten',
+        fotoBtnLabel:st.photos>0?(st.photos===1?'1 Foto':st.photos+' Fotos'):'Foto',
+        timerBtnStyle:this.actionBtnStyle(st.timerOpen),
+        zutatBtnStyle:this.actionBtnStyle(st.zutatOpen===true||(st.zutatOpen!==false&&activeIngs.length>0)),
+        fotoBtnStyle:this.actionBtnStyle(st.fotoOpen),
+        onToggleTimer:()=>this.toggleStepTimer(st.id),
+        onToggleZutat:()=>this.toggleStepZutat(st.id),
+        onToggleFoto:()=>this.toggleStepFoto(st.id),
+        onAddPhoto:()=>this.addStepPhoto(st.id),
+        hintOpen:st.hintOpen,
+      };
+    });
+
+    const bLinkResults=this.RECIPE_SUGGESTIONS.filter(r=>{
+      const notLinked=!s.bLinkedRecipes.some(lr=>lr.id===r.id);
+      const match=!s.bLinkSearch||r.name.toLowerCase().includes(s.bLinkSearch.toLowerCase());
+      return notLinked&&match;
+    }).map(r=>({...r,onPick:()=>this.pickLinkedRecipe(r)}));
+
+    const bEmbedResults=this.RECIPE_SUGGESTIONS.filter(r=>{
+      const notAdded=!s.bEmbedRecipes.some(er=>er.id===r.id);
+      const match=!s.bEmbedSearch||r.name.toLowerCase().includes(s.bEmbedSearch.toLowerCase());
+      return notAdded&&match;
+    }).map(r=>({...r,onPick:()=>this.pickEmbedRecipe(r)}));
+
+    const _arrangeBlocksD=[
+      {isMain:true,name:s.bTitle,portions:s.bServings,labelText:'Hauptrezept',labelColor:'#6B7C4E',hasHint:false,hint:''},
+      ...s.bEmbedRecipes.map(r=>({isMain:false,name:r.name,portions:r.portions,labelText:r.author,labelColor:'#C8602A',hasHint:!!(r.hint&&r.hint.trim()),hint:r.hint||''}))
+    ]
+    const bArrangeItems=[]
+    _arrangeBlocksD.forEach((bl,i)=>{
+      bArrangeItems.push({
+        isBlock:true,isGap:false,
+        name:bl.name,portions:bl.portions,hasHint:bl.hasHint,hint:bl.hint,
+        labelText:bl.labelText,
+        labelStyle:bl.isMain
+          ?{fontSize:'13px',fontWeight:600,color:'#6B7C4E',marginBottom:'2px'}
+          :{fontSize:'13px',color:'#C8602A',fontWeight:500,cursor:'pointer',textDecoration:'underline',textUnderlineOffset:'2px',marginBottom:'2px'},
+        blockStyle:{border:bl.isMain?'2px solid #6B7C4E':'1.5px solid #D8D4CD',borderRadius:'10px',background:'#fff',padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px',marginBottom:'8px'},
+      })
+      if(i<_arrangeBlocksD.length-1){
+        const _note=s.bInterNotes[i]||{text:'',open:false}
+        const _hasNote=!!(_note.text&&_note.text.trim())
+        const _isOpen=_note.open
+        bArrangeItems.push({
+          isBlock:false,isGap:true,
+          noteText:_note.text||'',
+          hasNote:_hasNote,isOpen:_isOpen,
+          showAddBtn:!_hasNote&&!_isOpen,
+          showNote:_hasNote&&!_isOpen,
+          onOpen:()=>this.openInterNote(i),
+          onClose:()=>this.closeInterNote(i),
+          onChange:e=>this.setInterNoteText(i,e.target.value),
+          onDelete:()=>this.deleteInterNote(i),
+        })
+      }
+    })
+
+    return {
+      bTabs, bSteps, parsedB,
+      bTitle:s.bTitle, bText:s.bText,
+      bCount:parsedB.length+(parsedB.length===1?' Zutat':' Zutaten')+(parsedB.filter(r=>r.noQty).length?' · '+parsedB.filter(r=>r.noQty).length+' ohne Menge':''),
+      bServings:s.bServings,
+      bServingsInc:()=>this.bumpServings(1),
+      bServingsDec:()=>this.bumpServings(-1),
+      bIs0:s.bStep===0, bIs1:s.bStep===1, bIs2:s.bStep===2, bIs3:s.bStep===3, bIs4:s.bStep===4,
+      bShowNext:s.bStep<4, bShowDone:s.bStep===4,
+      bBackStyle:{display:'inline-flex',alignItems:'center',gap:'7px',padding:'11px 20px',borderRadius:'8px',border:'1.5px solid #D8D4CD',background:'#fff',cursor:'pointer',fontSize:'14px',fontWeight:500,fontFamily:"'Inter',sans-serif",color:s.bStep===0?'#C9C3B8':'#6B6B68',visibility:s.bStep===0?'hidden':'visible'},
+      bSavedVisible:this._saved,
+      bDupWarn:s.bTitleDupCount>0,
+      bDupTitles:s.bTitleDupCount>0?[{label:'Pizzateig (von dir)'},{label:'Pizzateig einfach (Lena)'}]:[],
+      setBTitle:this.setBTitle, setBText:this.setBText, addBStep:this.addBStep,
+      nextB:this.nextB, prevB:this.prevB,
+      bVisPrivat:()=>this.setState({bVis:'privat'}),
+      bVisLink:()=>this.setState({bVis:'link'}),
+      bVisOeffentlich:()=>this.setState({bVis:'off'}),
+      bVisPrivatStyle:this.segStyle(s.bVis==='privat'),
+      bVisLinkStyle:this.segStyle(s.bVis==='link'),
+      bVisOffStyle:this.segStyle(s.bVis==='off'),
+      bVisLinkNote:s.bVis==='link',
+      bShareVisible:s.bVis==='link',
+      bShareInput:s.bShareInput, bShareError:s.bShareError,
+      bHasShareList:s.bShareList.length>0,
+      setBShareInput:this.setBShareInput, addShareEntry:this.addShareEntry,
+      bShareList:s.bShareList.map(e=>({
+        ...e, onRemove:()=>this.removeShareEntry(e.id),
+        iconClass:e.type==='invite'?'ti ti-mail-check':e.type==='user'?'ti ti-user':'ti ti-user-question',
+        chipStyle:{display:'inline-flex',alignItems:'center',gap:'5px',padding:'4px 10px',borderRadius:'999px',fontFamily:"'Inter',sans-serif",fontSize:'13px',fontWeight:500,background:e.type==='unknown'?'#F1ECE4':'rgba(107,124,78,.14)',color:e.type==='unknown'?'#9A958C':'#6B7C4E'},
+      })),
+      bArtChips:[{id:'kochen',label:'Kochen'},{id:'backen',label:'Backen'},{id:'grillen',label:'Grillen'},{id:'einmachen',label:'Einmachen'}].map(a=>({label:a.label,onToggle:()=>this.toggleArt(a.id),style:this.chipStyle(s.bArt.includes(a.id))})),
+      bDiffCells:this.diffCells(s.bDiff),
+      bDiffLabel:this.diffLabel(s.bDiff),
+      bLinkedRecipes:s.bLinkedRecipes.map(r=>({...r,onRemove:()=>this.removeLinkedRecipe(r.id)})),
+      bCanAddLinked:s.bLinkedRecipes.length<4,
+      bLinkPickerOpen:s.bLinkPickerOpen,
+      bLinkPickerClosed:!s.bLinkPickerOpen,
+      bLinkSearch:s.bLinkSearch, setBLinkSearch:this.setBLinkSearch,
+      openLinkPicker:this.openLinkPicker, closeLinkPicker:this.closeLinkPicker,
+      bLinkResults, bLinkNoResults:bLinkResults.length===0,
+      bEmbedPickerOpen:s.bEmbedOpen, bEmbedPickerClosed:!s.bEmbedOpen,
+      bEmbedSearch:s.bEmbedSearch, setBEmbedSearch:this.setBEmbedSearch,
+      openBEmbedPicker:this.openBEmbedPicker, closeBEmbedPicker:this.closeBEmbedPicker,
+      bCanAddEmbed:s.bEmbedRecipes.length<3,
+      bEmbedMaxReached:s.bEmbedRecipes.length>=3,
+      bEmbedRecipes:s.bEmbedRecipes.map(r=>({
+        ...r, onRemove:()=>this.removeEmbedRecipe(r.id),
+        onPortionsInc:()=>this.setEmbedPortions(r.id,1),
+        onPortionsDec:()=>this.setEmbedPortions(r.id,-1),
+        onHintChange:e=>this.setEmbedHint(r.id,e.target.value),
+        onToggleHint:()=>this.toggleEmbedHint(r.id),
+        hintClosed:!r.hintOpen,
+        hasHint:!!(r.hint&&r.hint.trim()),
+      })),
+      bArrangeItems,
+      bFreigabeOpen:s.bFreigabeOpen, bVorschauOpen:s.bVorschauOpen,
+      bFreigabeIsPrivat:s.bVis==='privat', bFreigabeIsLink:s.bVis==='link', bFreigabeIsOff:s.bVis==='off',
+      freigabeOptPrivatStyle:this.freigabeOptStyle(s.bVis==='privat'),
+      freigabeOptLinkStyle:this.freigabeOptStyle(s.bVis==='link'),
+      freigabeOptOffStyle:this.freigabeOptStyle(s.bVis==='off'),
+      openFreigabe:this.openFreigabe, closeFreigabe:this.closeFreigabe,
+      openVorschau:this.openVorschau, closeVorschau:this.closeVorschau,
+      setFreigabePrivat:this.setFreigabePrivat, setFreigabeLink:this.setFreigabeLink, setFreigabeOff:this.setFreigabeOff,
+      bArtLabel:s.bArt.map(a=>({kochen:'Kochen',backen:'Backen',grillen:'Grillen',einmachen:'Einmachen'})[a]||a).join(' & ')||'Kochen',
+      bHasSteps:s.bSteps.some(st=>st.text&&st.text.trim()),
+      bEmbedResults, bEmbedNoResults:bEmbedResults.length===0,
+      contentAreaStyle: (() => {
+        const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+        let pt;
+        if (s.bStep === 0) pt = clamp(80 - s.bShareList.length * 10, 24, 80);
+        else if (s.bStep === 1) pt = 36;
+        else if (s.bStep === 2) pt = clamp(60 - s.bEmbedRecipes.length * 12, 24, 60);
+        else if (s.bStep === 3) pt = clamp(48 - Math.max(0, s.bSteps.length - 2) * 8, 24, 48);
+        else pt = 36;
+        return {flex:1, overflowY:'auto', minWidth:0, padding:`${pt}px 48px 48px`};
+      })(),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

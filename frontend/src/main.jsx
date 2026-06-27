@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
 import './index.css'
@@ -34,6 +34,16 @@ const NO_NAVBAR_PATHS = ['/login', '/register', '/forgot-password', '/reset-pass
 
 function Layout() {
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: 'page_view',
+      page_path: pathname,
+      page_title: document.title,
+    })
+  }, [pathname])
+
   const showNavbar = !NO_NAVBAR_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
     && !pathname.startsWith('/users/')
   return (

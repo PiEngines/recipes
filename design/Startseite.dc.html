@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #e0dbd4; }
+    input { border: none; outline: none; background: transparent; font-family: Inter, sans-serif; font-size: 15px; color: #2C2C2A; width: 100%; }
+    input::placeholder { color: #9A958C; }
+    ::-webkit-scrollbar { display: none; }
+    button { -webkit-tap-highlight-color: transparent; }
+  </style>
+</helmet>
+
+<div style="max-width:390px; margin:0 auto; min-height:100vh; background:#FAF7F2; position:relative; overflow-x:hidden; padding-bottom:132px;">
+
+  <!-- ══ STICKY HEADER: Logo ══ -->
+  <div style="position:sticky; top:0; z-index:20; background:#FAF7F2; padding:14px 16px 12px;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:7px;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="10" fill="#C8602A" opacity=".13"/>
+          <circle cx="10" cy="10" r="5.5" fill="#C8602A" opacity=".28"/>
+          <circle cx="10" cy="10" r="2.8" fill="#C8602A"/>
+        </svg>
+        <span style="font-family:'Playfair Display',serif; font-size:17px; font-weight:600; color:#2C2C2A; letter-spacing:-.3px;">PiEngines</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button style="width:34px; height:34px; border-radius:999px; border:1px solid rgba(0,0,0,.08); background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <i class="ti ti-moon" style="font-size:16px; color:#6B6B68;"></i>
+        </button>
+        <div style="width:34px; height:34px; border-radius:999px; background:#C8602A; display:flex; align-items:center; justify-content:center; font-family:Inter,sans-serif; font-size:13px; font-weight:600; color:#fff; cursor:pointer; flex-shrink:0;">M</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FIXED SUCHLEISTE über Bottom Nav ══ -->
+  <div style="position:fixed; bottom:{{ searchBarBottom }}px; left:0; right:0; max-width:390px; margin:0 auto; z-index:49; padding:8px 16px 10px; background:#FAF7F2; border-top:1px solid rgba(0,0,0,.06); transition:bottom .22s ease;">
+    <div style="display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid #D8D4CD; border-radius:14px; padding:12px 14px 12px 16px; box-shadow:0 2px 8px rgba(0,0,0,.07);">
+      <i class="ti ti-search" style="font-size:18px; color:#9A958C; flex-shrink:0;"></i>
+      <input placeholder="Rezepte, Zutaten oder Tags …">
+      <div style="width:1px; height:18px; background:#E0DDD8; flex-shrink:0;"></div>
+      <button style="display:flex; align-items:center; border:none; background:transparent; cursor:pointer; padding:0; flex-shrink:0;">
+        <i class="ti ti-adjustments-horizontal" style="font-size:18px; color:#C8602A;"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ START TAB ══════════ -->
+  <sc-if value="{{ showStart }}" hint-placeholder-val="{{ true }}">
+
+    <!-- Begrüßung -->
+    <div style="padding:24px 16px 28px;">
+      <p style="font-size:12px; color:#9A958C; font-family:Inter,sans-serif; margin-bottom:4px; letter-spacing:.1px;">Guten Tag</p>
+      <h1 style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; color:#2C2C2A; letter-spacing:-.6px; line-height:1.15;">Michael!</h1>
+    </div>
+
+    <!-- Heute für dich (Karussell) -->
+    <div style="padding-bottom:32px;">
+      <p style="font-size:11px; font-weight:600; color:#9A958C; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.6px; padding:0 16px; margin-bottom:12px;">Heute für dich</p>
+      <div style="display:flex; gap:12px; overflow-x:auto; padding:0 16px 6px; -webkit-overflow-scrolling:touch;">
+
+        <div style="width:272px; flex-shrink:0; border-radius:18px; overflow:hidden; cursor:pointer; position:relative; height:178px; background:linear-gradient(148deg, #A85A28 0%, #6B3510 100%);">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px);"></div>
+          <div style="position:absolute; top:12px; left:12px; background:rgba(0,0,0,.28); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border-radius:999px; padding:4px 12px;">
+            <span style="font-size:11px; color:#fff; font-family:Inter,sans-serif; font-weight:500;">🌿 Saisonal</span>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:14px 16px; background:linear-gradient(transparent, rgba(0,0,0,.55));">
+            <p style="font-size:16px; font-weight:600; color:#fff; font-family:Inter,sans-serif; line-height:1.3;">Kürbiscremesuppe</p>
+          </div>
+        </div>
+
+        <!-- Kräuterschule -->
+        <div style="width:272px; flex-shrink:0; border-radius:18px; overflow:hidden; cursor:pointer; position:relative; height:178px; background:linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%);">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 9px);"></div>
+          <!-- Decorative herb illustration -->
+          <div style="position:absolute; right:-8px; top:-8px; font-size:80px; opacity:.18; line-height:1; user-select:none;">🌿</div>
+          <div style="position:absolute; top:12px; left:12px; background:rgba(0,0,0,.28); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border-radius:999px; padding:4px 12px;">
+            <span style="font-size:11px; color:#fff; font-family:Inter,sans-serif; font-weight:500;">🌱 Kräuterschule</span>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:14px 16px; background:linear-gradient(transparent, rgba(0,0,0,.6));">
+            <p style="font-size:13px; color:rgba(255,255,255,.7); font-family:Inter,sans-serif; margin-bottom:3px;">Kraut der Woche</p>
+            <p style="font-size:16px; font-weight:600; color:#fff; font-family:Inter,sans-serif; line-height:1.3;">Liebstöckel</p>
+          </div>
+        </div>
+
+        <!-- Neu diese Woche -->
+        <div style="width:272px; flex-shrink:0; border-radius:18px; overflow:hidden; cursor:pointer; position:relative; height:178px; background:linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%);">
+          <div style="position:absolute; inset:0; background:repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px);"></div>
+          <div style="position:absolute; top:12px; left:12px; background:rgba(0,0,0,.28); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border-radius:999px; padding:4px 12px;">
+            <span style="font-size:11px; color:#fff; font-family:Inter,sans-serif; font-weight:500;">✦ Neu diese Woche</span>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:14px 16px; background:linear-gradient(transparent, rgba(0,0,0,.55));">
+            <p style="font-size:16px; font-weight:600; color:#fff; font-family:Inter,sans-serif; line-height:1.3;">Thai Green Curry</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Kühlschrank-Matcher Teaser -->
+    <div style="padding:0 16px 32px;">
+      <div style="background:linear-gradient(135deg, #3E5228 0%, #5E7840 100%); border-radius:18px; padding:20px 20px 18px; cursor:pointer; position:relative; overflow:hidden;">
+        <div style="position:absolute; right:-18px; top:-24px; width:120px; height:120px; border-radius:999px; background:rgba(255,255,255,.06);"></div>
+        <div style="position:absolute; right:18px; bottom:-38px; width:150px; height:150px; border-radius:999px; background:rgba(255,255,255,.04);"></div>
+        <i class="ti ti-fridge" style="font-size:26px; color:rgba(255,255,255,.65); display:block; margin-bottom:9px; position:relative;"></i>
+        <h3 style="font-family:'Playfair Display',serif; font-size:17px; font-weight:600; color:#fff; margin-bottom:6px; line-height:1.35; position:relative;">Was kannst du heute kochen?</h3>
+        <p style="font-size:13px; color:rgba(255,255,255,.72); font-family:Inter,sans-serif; margin-bottom:16px; line-height:1.5; position:relative;">3 Rezepte sind mit deinen Zutaten sofort kochbar.</p>
+        <div style="display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:9px 16px; position:relative; cursor:pointer;">
+          <span style="font-size:13px; color:#fff; font-family:Inter,sans-serif; font-weight:500;">Kühlschrank prüfen</span>
+          <i class="ti ti-arrow-right" style="font-size:14px; color:#fff;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Neue Rezepte (Swipe-Reihe) -->
+    <div style="padding-bottom:28px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:0 16px; margin-bottom:12px;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#2C2C2A;">Neue Rezepte</h2>
+        <span style="font-size:13px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500; cursor:pointer;">Mehr →</span>
+      </div>
+      <div style="display:flex; gap:12px; overflow-x:auto; padding:0 16px 6px; -webkit-overflow-scrolling:touch;">
+
+        <!-- Card 1 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #5C3A1E 0%, #8B6540 100%); position:relative;">
+            <button onClick="{{ toggleCurry }}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:999px; background:rgba(255,255,255,.9); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+              <i class="{{ curryIcon }}" style="{{ curryIconStyleSm }}"></i>
+            </button>
+          </div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Thai Green Curry</p>
+            <div style="display:flex; align-items:center; gap:5px;">
+              <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+                <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">30 Min.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%); position:relative;">
+            <button onClick="{{ toggleHefezopf }}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:999px; background:rgba(255,255,255,.9); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+              <i class="{{ hefezopfIcon }}" style="{{ hefezopfIconStyleSm }}"></i>
+            </button>
+          </div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Hefezopf mit Zimt</p>
+            <div style="display:flex; align-items:center; gap:5px;">
+              <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+                <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">90 Min.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #6B5A3E 0%, #3E3020 100%);"></div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Pasta Carbonara</p>
+            <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">20 Min.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%);"></div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Bärlauch-Pesto</p>
+            <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">15 Min.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #A85A28 0%, #7A3A18 100%);"></div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Kürbiscremesuppe</p>
+            <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">40 Min.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%);"></div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Spinat-Ricotta-Quiche</p>
+            <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">55 Min.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div style="width:158px; flex-shrink:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+          <div style="height:118px; background:linear-gradient(148deg, #7A4A2A 0%, #B07050 100%);"></div>
+          <div style="padding:9px 11px 11px;">
+            <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">Linsenbolognese</p>
+            <div style="display:inline-flex; background:#F5F2EE; border-radius:999px; padding:2px 8px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">35 Min.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ ENTDECKEN FEED ══ -->
+    <div style="padding:0 16px 20px;">
+      <div style="margin-bottom:14px; padding-top:4px;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#2C2C2A;">Entdecken</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <sc-for list="{{ feedItems }}" as="row" hint-placeholder-count="4">
+          <div style="display:flex; gap:12px;">
+            <div style="flex:1; min-width:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+              <div style="height:118px; background:{{ row.left.bg }}; position:relative;">
+                <sc-if value="{{ row.left.isKraeuter }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute; top:8px; left:8px; background:rgba(255,255,255,.18); backdrop-filter:blur(6px); border-radius:6px; padding:3px 7px; font-size:10px; font-weight:600; color:#fff; font-family:Inter,sans-serif; letter-spacing:.3px; text-transform:uppercase;">Kräuterschule</div>
+                </sc-if>
+              </div>
+              <div style="padding:9px 11px 11px;">
+                <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">{{ row.left.title }}</p>
+                <sc-if value="{{ row.left.isKraeuter }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px; color:#4A7A30; font-family:Inter,sans-serif; line-height:1.4;">{{ row.left.desc }}</span>
+                </sc-if>
+                <sc-if value="{{ row.left.isRezept }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex; align-items:center; gap:4px;">
+                    <span style="font-size:11px; color:#9A958C; font-family:Inter,sans-serif;">{{ row.left.author }}</span>
+                    <span style="font-size:11px; color:#C8C4BC; font-family:Inter,sans-serif;">·</span>
+                    <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">{{ row.left.time }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="flex:1; min-width:0; background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+              <div style="height:118px; background:{{ row.right.bg }}; position:relative;">
+                <sc-if value="{{ row.right.isKraeuter }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute; top:8px; left:8px; background:rgba(255,255,255,.18); backdrop-filter:blur(6px); border-radius:6px; padding:3px 7px; font-size:10px; font-weight:600; color:#fff; font-family:Inter,sans-serif; letter-spacing:.3px; text-transform:uppercase;">Kräuterschule</div>
+                </sc-if>
+              </div>
+              <div style="padding:9px 11px 11px;">
+                <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:5px; line-height:1.35;">{{ row.right.title }}</p>
+                <sc-if value="{{ row.right.isKraeuter }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11px; color:#4A7A30; font-family:Inter,sans-serif; line-height:1.4;">{{ row.right.desc }}</span>
+                </sc-if>
+                <sc-if value="{{ row.right.isRezept }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex; align-items:center; gap:4px;">
+                    <span style="font-size:11px; color:#9A958C; font-family:Inter,sans-serif;">{{ row.right.author }}</span>
+                    <span style="font-size:11px; color:#C8C4BC; font-family:Inter,sans-serif;">·</span>
+                    <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">{{ row.right.time }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ feedLoading }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center; padding:20px 0 8px; color:#9A958C; font-family:Inter,sans-serif; font-size:13px; letter-spacing:.2px;">Lädt weitere Rezepte …</div>
+      </sc-if>
+      <div id="feed-sentinel" style="height:1px; margin-top:8px;"></div>
+    </div>
+
+  </sc-if>
+
+  <!-- ══════════ REZEPTE TAB ══════════ -->
+  <sc-if value="{{ showRezepte }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:20px 16px 24px;">
+      <h2 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#2C2C2A; margin-bottom:16px;">Alle Rezepte</h2>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="background:#fff; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; display:flex; height:84px;">
+          <div style="width:84px; background:linear-gradient(148deg, #A85A28, #7A3A18); flex-shrink:0;"></div>
+          <div style="padding:13px 14px; display:flex; flex-direction:column; justify-content:center; gap:5px;">
+            <p style="font-size:14px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif;">Kürbiscremesuppe</p>
+            <span style="font-size:13px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500;">von Michael</span>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; display:flex; height:84px;">
+          <div style="width:84px; background:linear-gradient(148deg, #5C3A1E, #8B6540); flex-shrink:0;"></div>
+          <div style="padding:13px 14px; display:flex; flex-direction:column; justify-content:center; gap:5px;">
+            <p style="font-size:14px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif;">Thai Green Curry</p>
+            <span style="font-size:13px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500;">von Sarah</span>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; display:flex; height:84px;">
+          <div style="width:84px; background:linear-gradient(148deg, #B09A3E, #7A6A1A); flex-shrink:0;"></div>
+          <div style="padding:13px 14px; display:flex; flex-direction:column; justify-content:center; gap:5px;">
+            <p style="font-size:14px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif;">Hefezopf mit Zimt</p>
+            <span style="font-size:13px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500;">von Lena</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ══════════ FAVORITEN TAB ══════════ -->
+  <sc-if value="{{ showFavoriten }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:20px 16px 24px;">
+      <h2 style="font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#2C2C2A; margin-bottom:16px;">Favoriten</h2>
+      <div style="background:#fff; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+        <div style="height:178px; background:linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%); position:relative;">
+          <button style="position:absolute; top:10px; right:10px; width:34px; height:34px; border-radius:999px; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <i class="ti ti-heart-filled" style="font-size:16px; color:#C8602A;"></i>
+          </button>
+        </div>
+        <div style="padding:13px 15px 15px;">
+          <h3 style="font-size:16px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:8px;">Hefezopf mit Zimt</h3>
+          <div style="display:flex; align-items:center; gap:7px;">
+            <span style="font-size:13px; color:#C8602A; font-family:Inter,sans-serif; font-weight:500;">von Lena</span>
+            <div style="display:inline-flex; align-items:center; background:#F5F2EE; border-radius:999px; padding:3px 9px;">
+              <span style="font-size:11px; color:#6B6B68; font-family:Inter,sans-serif;">Backen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ══ Mehr-Menü (gleitet auf) ══ -->
+  <div style="{{ moreNavStyle }}">
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C; cursor:pointer;">
+      <i class="ti ti-user" style="font-size:20px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Eigene</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C; cursor:pointer;">
+      <i class="ti ti-calendar-event" style="font-size:20px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Saison</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C; cursor:pointer;">
+      <i class="ti ti-fridge" style="font-size:20px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Kühlschrank</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#6B7C4E; cursor:pointer;">
+      <i class="ti ti-leaf" style="font-size:20px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Kräuter</span>
+    </button>
+    <div style="flex:1;"></div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <div style="position:fixed; bottom:0; left:0; right:0; max-width:390px; margin:0 auto; height:60px; background:#fff; border-top:1px solid rgba(0,0,0,.07); display:flex; align-items:center; z-index:50;">
+    <button onClick="{{ goToStart }}" style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; color:{{ startColor }};">
+      <i class="ti ti-home-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Start</span>
+    </button>
+    <button onClick="{{ goToRezepte }}" style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; color:{{ rezepteColor }};">
+      <i class="ti ti-book-2" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Rezepte</span>
+    </button>
+    <button onClick="{{ goToFavoriten }}" style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; color:{{ favoritenColor }};">
+      <i class="ti ti-heart" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Favoriten</span>
+    </button>
+    <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; color:#9A958C;">
+      <i class="ti ti-plus" style="font-size:22px;"></i>
+      <span style="font-size:9px; font-weight:600; font-family:Inter,sans-serif;">Neu</span>
+    </button>
+    <button onClick="{{ toggleMoreNav }}" style="{{ moreNavBtnStyle }}">
+      <i class="ti ti-dots" style="font-size:21px;"></i>
+      <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Mehr</span>
+    </button>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    activeTab: 'start',
+    showMoreNav: false,
+    favs: { curry: false, hefezopf: true },
+    feedItems: [],
+    feedLoading: false,
+  };
+
+  _idx = 0;
+  _pool = [
+    { type: 'rezept',       title: 'Shakshuka',             author: 'Lena',    time: '25 Min.', bg: 'linear-gradient(148deg,#A85228 0%,#6B3010 100%)' },
+    { type: 'kraeuter',     title: 'Basilikum',             sub: 'Kräuterschule', desc: 'Anbau, Ernte & Aufbewahrung', bg: 'linear-gradient(148deg,#3A6820 0%,#1E4A0E 100%)' },
+    { type: 'rezept',       title: 'Avocado Toast',         author: 'Sarah',   time: '10 Min.', bg: 'linear-gradient(148deg,#3D5C2A 0%,#5E8040 100%)' },
+    { type: 'rezept',       title: 'Ramen',                 author: 'Tom',     time: '60 Min.', bg: 'linear-gradient(148deg,#2A3A4A 0%,#4A6070 100%)' },
+    { type: 'rezept',       title: 'Focaccia',              author: 'Michael', time: '45 Min.', bg: 'linear-gradient(148deg,#B09A3E 0%,#7A6A1A 100%)' },
+    { type: 'kraeuter',     title: 'Rosmarin',              sub: 'Kräuterschule', desc: 'Mediterrane Küche & Heilwirkung', bg: 'linear-gradient(148deg,#4A5A7A 0%,#2A3A5A 100%)' },
+    { type: 'rezept',       title: 'Gazpacho',              author: 'Marie',   time: '20 Min.', bg: 'linear-gradient(148deg,#A03028 0%,#6A1818 100%)' },
+    { type: 'rezept',       title: 'Pilzrisotto',           author: 'Klaus',   time: '35 Min.', bg: 'linear-gradient(148deg,#5C4A3E 0%,#3A2E28 100%)' },
+    { type: 'rezept',       title: 'Pad Thai',              author: 'Sarah',   time: '30 Min.', bg: 'linear-gradient(148deg,#B07A2A 0%,#7A5010 100%)' },
+    { type: 'kraeuter',     title: 'Thymian',               sub: 'Kräuterschule', desc: 'Erntezeit & Trocknen', bg: 'linear-gradient(148deg,#6A5A2A 0%,#4A3A10 100%)' },
+    { type: 'rezept',       title: 'Falafel',               author: 'Lena',    time: '40 Min.', bg: 'linear-gradient(148deg,#4A6830 0%,#2E4A1E 100%)' },
+    { type: 'rezept',       title: 'Lauch-Kartoffelsuppe',  author: 'Marie',   time: '30 Min.', bg: 'linear-gradient(148deg,#6A7A3A 0%,#4A5828 100%)' },
+    { type: 'rezept',       title: 'Overnight Oats',        author: 'Tom',     time: '5 Min.',  bg: 'linear-gradient(148deg,#8A7A6A 0%,#5A4A3A 100%)' },
+    { type: 'kraeuter',     title: 'Koriander',             sub: 'Kräuterschule', desc: 'Asiatisch kochen mit Koriander', bg: 'linear-gradient(148deg,#2A6A4A 0%,#0E4A2A 100%)' },
+    { type: 'rezept',       title: 'Hummus',                author: 'Michael', time: '15 Min.', bg: 'linear-gradient(148deg,#C8A060 0%,#8A6830 100%)' },
+    { type: 'rezept',       title: 'Bauernfrühstück',       author: 'Klaus',   time: '20 Min.', bg: 'linear-gradient(148deg,#7A5A3A 0%,#4A3020 100%)' },
+    { type: 'rezept',       title: 'Bircher Müsli',         author: 'Lena',    time: '10 Min.', bg: 'linear-gradient(148deg,#9A8A6A 0%,#6A5A40 100%)' },
+    { type: 'kraeuter',     title: 'Minze',                 sub: 'Kräuterschule', desc: 'Tee, Cocktails & mehr', bg: 'linear-gradient(148deg,#2A7A5A 0%,#0E5A3A 100%)' },
+    { type: 'rezept',       title: 'Grüner Smoothie',       author: 'Sarah',   time: '5 Min.',  bg: 'linear-gradient(148deg,#3A6A2A 0%,#1E4A10 100%)' },
+    { type: 'rezept',       title: 'Zitronentarte',         author: 'Marie',   time: '70 Min.', bg: 'linear-gradient(148deg,#C8B040 0%,#8A7810 100%)' },
+    { type: 'rezept',       title: 'Zwetschgenkuchen',      author: 'Michael', time: '65 Min.', bg: 'linear-gradient(148deg,#6A3A6A 0%,#4A1E4A 100%)' },
+    { type: 'rezept',       title: 'Linsensuppe',           author: 'Tom',     time: '35 Min.', bg: 'linear-gradient(148deg,#8A6A3A 0%,#5A4020 100%)' },
+    { type: 'rezept',       title: 'Sommerrollen',          author: 'Klaus',   time: '25 Min.', bg: 'linear-gradient(148deg,#3A6A5A 0%,#1E4A3A 100%)' },
+  ];
+
+  _makeRows(n) {
+    const rows = [];
+    const enrich = item => ({
+      ...item,
+      isKraeuter: item.type === 'kraeuter',
+      isRezept:   item.type === 'rezept',
+    });
+    for (let i = 0; i < n; i++) {
+      rows.push({
+        left:  enrich(this._pool[this._idx++ % this._pool.length]),
+        right: enrich(this._pool[this._idx++ % this._pool.length]),
+      });
+    }
+    return rows;
+  }
+
+  _load(rows = 3) {
+    if (this.state.feedLoading) return;
+    this.setState({ feedLoading: true });
+    setTimeout(() => {
+      this.setState(s => ({
+        feedItems: [...s.feedItems, ...this._makeRows(rows)],
+        feedLoading: false,
+      }));
+    }, 500);
+  }
+
+  componentDidMount() {
+    this._load(4);
+    setTimeout(() => {
+      const el = document.getElementById('feed-sentinel');
+      if (!el) return;
+      this._obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) this._load(3);
+      }, { rootMargin: '300px' });
+      this._obs.observe(el);
+    }, 400);
+  }
+
+  componentWillUnmount() {
+    if (this._obs) this._obs.disconnect();
+  }
+
+  renderVals() {
+    const { activeTab, showMoreNav, favs, feedItems, feedLoading } = this.state;
+
+    // Mehr-Menü
+    const moreNavStyle = {
+      position: 'fixed', bottom: 60,
+      left: 0, right: 0, maxWidth: '390px', margin: '0 auto',
+      height: showMoreNav ? 52 : 0,
+      overflow: 'hidden',
+      transition: 'height .22s ease',
+      background: '#fff',
+      borderTop: showMoreNav ? '1px solid rgba(0,0,0,.07)' : 'none',
+      display: 'flex', alignItems: 'center',
+      zIndex: 48,
+    };
+    const moreNavBtnStyle = {
+      flex: 1, height: '100%', background: 'transparent', border: 'none',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      gap: 2, color: showMoreNav ? '#C8602A' : '#9A958C', cursor: 'pointer',
+    };
+
+    // Herz-Icons
+    const curryIconStyle      = { fontSize: '16px', color: favs.curry    ? '#C8602A' : '#9A958C' };
+    const hefezopfIconStyle   = { fontSize: '16px', color: favs.hefezopf ? '#C8602A' : '#9A958C' };
+    const curryIconStyleSm    = { fontSize: '13px', color: favs.curry    ? '#C8602A' : '#9A958C' };
+    const hefezopfIconStyleSm = { fontSize: '13px', color: favs.hefezopf ? '#C8602A' : '#9A958C' };
+
+    // Nav-Farben
+    const activeColor   = '#C8602A';
+    const inactiveColor = '#9A958C';
+
+    return {
+      showStart:     activeTab === 'start',
+      showRezepte:   activeTab === 'rezepte',
+      showFavoriten: activeTab === 'favoriten',
+      moreNavStyle,
+      moreNavBtnStyle,
+      toggleMoreNav:  () => this.setState(s => ({ showMoreNav: !s.showMoreNav })),
+      goToStart:      () => this.setState({ activeTab: 'start',     showMoreNav: false }),
+      goToRezepte:    () => this.setState({ activeTab: 'rezepte',   showMoreNav: false }),
+      goToFavoriten:  () => this.setState({ activeTab: 'favoriten', showMoreNav: false }),
+      searchBarBottom: showMoreNav ? 112 : 60,
+      startColor:     activeTab === 'start'     ? activeColor : inactiveColor,
+      rezepteColor:   activeTab === 'rezepte'   ? activeColor : inactiveColor,
+      favoritenColor: activeTab === 'favoriten' ? activeColor : inactiveColor,
+      toggleCurry:    () => this.setState(s => ({ favs: { ...s.favs, curry:    !s.favs.curry    } })),
+      toggleHefezopf: () => this.setState(s => ({ favs: { ...s.favs, hefezopf: !s.favs.hefezopf } })),
+      curryIcon:     favs.curry    ? 'ti ti-heart-filled' : 'ti ti-heart',
+      hefezopfIcon:  favs.hefezopf ? 'ti ti-heart-filled' : 'ti ti-heart',
+      curryIconStyle,
+      hefezopfIconStyle,
+      curryIconStyleSm,
+      hefezopfIconStyleSm,
+      searchBarBottom: showMoreNav ? 112 : 60,
+      feedItems,
+      feedLoading,
+    };
+  }
+}
+</script>
+</body>
+</html>

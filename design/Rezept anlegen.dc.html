@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  textarea,input,button{font-family:'Inter',sans-serif;}
+  textarea{resize:none;}
+  .qcard textarea::placeholder,.qcard input::placeholder{color:#A8A39A;}
+</style>
+</helmet>
+
+<div style="position:absolute; left:0; top:0; width:760px;">
+  <div style="font-family:'Playfair Display',serif; font-size:30px; font-weight:600; color:#2C2C2A;">Rezept anlegen</div>
+  <div style="font-family:'Inter',sans-serif; font-size:15px; color:#6B6B68; margin-top:6px; max-width:760px; line-height:1.55;">Geführte Schritte — Zutaten frei eintippen (eine Zeile = eine Zutat, wird live in Menge · Einheit · Name zerlegt). Tippe in die Felder — der Parser, die Schritte und der Stepper sind echt.</div>
+</div>
+
+<!-- VARIANTE A entfernt — archiviert in "Rezept anlegen — Archiv.dc.html" -->
+<div style="display:none;">
+  <div data-drags-parent="1" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; cursor:grab;">
+    <span style="font-family:'Inter',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:#C8602A; padding:4px 10px; border-radius:999px;">Variante A</span>
+    <span style="font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:#6B6B68;">Durchgehend, mit Klapp-Bereichen</span>
+  </div>
+
+  <div class="qcard" data-screen-label="Variante A — Rezept anlegen" style="background:#fff; border-radius:14px; box-shadow:0 1px 3px rgba(0,0,0,.10); overflow:hidden;">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 24px; border-bottom:1px solid rgba(0,0,0,.07);">
+      <div style="font-family:'Inter',sans-serif; font-size:13px; color:#9A958C;">Alle Rezepte&nbsp;<span style="color:#C9C3B8;">/</span>&nbsp;<span style="color:#6B6B68;">Neues Rezept</span></div>
+      <div style="display:flex; align-items:center; gap:7px; font-family:'Inter',sans-serif; font-size:12.5px; color:#6B7C4E;">
+        <span style="width:7px; height:7px; border-radius:50%; background:#6B7C4E; display:inline-block;"></span>
+        Automatisch gespeichert
+      </div>
+    </div>
+
+    <div style="padding:24px;">
+      <input value="{{ aTitle }}" onInput="{{ setATitle }}" placeholder="Wie heißt dein Rezept?" style="width:100%; border:none; outline:none; background:transparent; font-family:'Playfair Display',serif; font-size:30px; font-weight:600; color:#2C2C2A; padding:2px 0 10px;">
+      <div style="height:1px; background:rgba(0,0,0,.07); margin-bottom:22px;"></div>
+
+      <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:26px;">
+        <span style="font-family:'Inter',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; white-space:nowrap; padding-top:10px;">Teilen mit</span>
+        <div style="flex:1;">
+          <div style="display:flex; gap:4px; background:#F1ECE4; padding:4px; border-radius:9px;">
+            <button onClick="{{ aVisPrivat }}" style="{{ aVisPrivatStyle }}"><i class="ti ti-lock" style="font-size:15px;"></i>Nur ich</button>
+            <button onClick="{{ aVisLink }}" style="{{ aVisLinkStyle }}"><i class="ti ti-link" style="font-size:15px;"></i>Per Link</button>
+            <button onClick="{{ aVisOeffentlich }}" style="{{ aVisOffStyle }}"><i class="ti ti-world" style="font-size:15px;"></i>Öffentlich</button>
+          </div>
+          <sc-if value="{{ aVisLinkNote }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:5px; margin-top:7px; font-family:'Inter',sans-serif; font-size:12px; color:#9A958C;">
+              <i class="ti ti-info-circle" style="font-size:13px;"></i>
+              Nur Personen, denen du diesen Link sendest — nicht öffentlich.
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px;">
+        <h2 style="font-family:'Playfair Display',serif; font-size:19px; font-weight:600; color:#2C2C2A; margin:0;">Zutaten</h2>
+        <span style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C;">eine Zeile = eine Zutat</span>
+      </div>
+      <textarea value="{{ aText }}" onInput="{{ setAText }}" rows="6" placeholder="200 g Mehl&#10;2 Eier&#10;1 Prise Salz" style="width:100%; padding:12px 14px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; color:#2C2C2A; font-size:14.5px; line-height:1.7; outline:none;"></textarea>
+      <div style="margin-top:14px; border:1px solid rgba(0,0,0,.07); border-radius:10px; overflow:hidden;">
+        <div style="display:flex; align-items:center; gap:7px; padding:9px 14px; background:#FAF7F2; border-bottom:1px solid rgba(0,0,0,.06); font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#6B7C4E;">
+          <i class="ti ti-sparkles" style="font-size:14px;"></i> So wird's gespeichert · {{ aCount }}
+        </div>
+        <sc-for list="{{ parsedA }}" as="ing" hint-placeholder-count="5">
+          <div style="display:flex; align-items:center; gap:14px; padding:8px 14px; border-bottom:1px solid rgba(0,0,0,.05);">
+            <span style="{{ ing.qtyStyle }}">{{ ing.qty }}</span>
+            <span style="flex:1; font-family:'Inter',sans-serif; font-size:14px; color:#2C2C2A;">{{ ing.name }}</span>
+            <sc-if value="{{ ing.showNote }}" hint-placeholder-val="{{ false }}"><span style="{{ ing.noteStyle }}">{{ ing.note }}</span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:18px; margin-top:14px;">
+        <button onClick="{{ toggleEmbed }}" style="display:inline-flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; color:#C8602A; font-size:13.5px; font-weight:600; padding:0;"><i class="ti ti-bowl-spoon" style="font-size:16px;"></i> Rezept einbinden</button>
+        <button style="display:inline-flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; color:#9A958C; font-size:13.5px; font-weight:500; padding:0;"><i class="ti ti-arrows-split-2" style="font-size:16px;"></i> In Teile aufteilen</button>
+      </div>
+
+      <sc-if value="{{ aEmbedOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px; border:1.5px solid #C8602A; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.12);">
+          <div style="padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.06);">
+            <input placeholder="Welches Rezept gehört hier rein?" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;">
+          </div>
+          <sc-for list="{{ embedResults }}" as="r" hint-placeholder-count="3">
+            <button onClick="{{ r.pick }}" style="display:flex; width:100%; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; background:none; border:none; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; text-align:left;">
+              <span style="font-family:'Inter',sans-serif; font-size:14px; color:#2C2C2A;">{{ r.name }}</span>
+              <span style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C;">{{ r.meta }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <h2 style="font-family:'Playfair Display',serif; font-size:19px; font-weight:600; color:#2C2C2A; margin:30px 0 12px;">Zubereitung</h2>
+      <sc-for list="{{ aSteps }}" as="step" hint-placeholder-count="2">
+        <div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:4px; flex-shrink:0; padding-top:7px;">
+            <i class="ti ti-grip-vertical" style="font-size:16px; color:#C9C3B8; cursor:grab;"></i>
+            <span style="width:26px; height:26px; border-radius:50%; background:#C8602A; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-size:13px; font-weight:700;">{{ step.num }}</span>
+          </div>
+          <textarea value="{{ step.text }}" onInput="{{ step.onChange }}" rows="2" placeholder="Schritt beschreiben …" style="flex:1; min-width:0; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; color:#2C2C2A; font-size:14px; line-height:1.6; outline:none;"></textarea>
+          <button onClick="{{ step.onRemove }}" style="flex-shrink:0; width:30px; height:30px; margin-top:5px; border-radius:50%; background:none; border:1.5px solid #D8D4CD; cursor:pointer; color:#9A958C; display:flex; align-items:center; justify-content:center;"><i class="ti ti-x" style="font-size:15px;"></i></button>
+        </div>
+      </sc-for>
+      <button onClick="{{ addAStep }}" style="display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border:1.5px dashed #D8D4CD; border-radius:8px; background:none; cursor:pointer; color:#C8602A; font-size:14px; font-weight:600; margin-top:4px;"><i class="ti ti-plus" style="font-size:16px;"></i> Schritt</button>
+
+      <div style="margin-top:26px; border-top:1px solid rgba(0,0,0,.07); padding-top:18px;">
+        <button onClick="{{ toggleDetails }}" style="display:flex; width:100%; align-items:center; justify-content:space-between; background:none; border:none; cursor:pointer; padding:0;">
+          <span style="font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#2C2C2A;">Mehr Details</span>
+          <span style="display:inline-flex; align-items:center; gap:8px; font-family:'Inter',sans-serif; font-size:13px; color:#9A958C;">Zeit · Portionen · Fotos · Kategorien <i class="ti ti-chevron-down" style="{{ aChevronStyle }}"></i></span>
+        </button>
+        <sc-if value="{{ aDetailsOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:18px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+            <div>
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Vorbereitung</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;"><input placeholder="20" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;"><span style="font-size:13px; color:#9A958C;">Min.</span></div>
+            </div>
+            <div>
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Kochen / Backen</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;"><input placeholder="25" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;"><span style="font-size:13px; color:#9A958C;">Min.</span></div>
+            </div>
+            <div>
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Portionen</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;"><input placeholder="4" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;"><span style="font-size:13px; color:#9A958C;">Port.</span></div>
+            </div>
+            <div style="grid-column:1 / 2;">
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Art</div>
+              <div style="display:flex; gap:4px; background:#F1ECE4; padding:4px; border-radius:9px;">
+                <button onClick="{{ aTypeKochen }}" style="{{ aTypeKochenStyle }}">Kochen</button>
+                <button onClick="{{ aTypeBacken }}" style="{{ aTypeBackenStyle }}">Backen</button>
+              </div>
+            </div>
+            <div style="grid-column:2 / 4;">
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Schwierigkeit · {{ aDiffLabel }}</div>
+              <div style="display:flex; gap:6px; align-items:center; height:38px;">
+                <sc-for list="{{ aDiffCells }}" as="d" hint-placeholder-count="5">
+                  <button onClick="{{ d.onClick }}" style="{{ d.style }}"></button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="grid-column:1 / 4;">
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Kategorien & Tags</div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(200,96,42,.1); color:#C8602A; border-radius:999px; font-size:13px; font-weight:500;">Frühstück <i class="ti ti-x" style="font-size:13px;"></i></span>
+                <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(107,124,78,.14); color:#6B7C4E; border-radius:999px; font-size:13px; font-weight:500;">vegetarisch <i class="ti ti-x" style="font-size:13px;"></i></span>
+                <input placeholder="+ hinzufügen" style="flex:1; min-width:120px; padding:7px 10px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; font-size:13.5px; color:#2C2C2A; outline:none;">
+              </div>
+            </div>
+            <div style="grid-column:1 / 4;">
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Fotos</div>
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:24px; border:1.5px dashed #D8D4CD; border-radius:10px; background:#FAF7F2;">
+                <i class="ti ti-photo-plus" style="font-size:26px; color:#C8602A;"></i>
+                <div style="font-family:'Inter',sans-serif; font-size:14px; color:#6B6B68;">Fotos hierher ziehen oder <span style="color:#C8602A; font-weight:600;">auswählen</span></div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:16px 24px; background:#FAF7F2; border-top:1px solid rgba(0,0,0,.07);">
+      <button style="padding:11px 20px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#6B6B68; cursor:pointer; font-size:14.5px; font-weight:500;">Abbrechen</button>
+      <button style="padding:11px 26px; border:none; border-radius:8px; background:#C8602A; color:#fff; cursor:pointer; font-size:14.5px; font-weight:600;">Rezept speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ REZEPT ANLEGEN ════════════════ -->
+<div style="position:absolute; left:0; top:132px; width:760px;">
+  <div data-drags-parent="1" style="display:flex; align-items:center; gap:10px; margin-bottom:12px; cursor:grab;">
+    <span style="font-family:'Inter',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:#6B7C4E; padding:4px 10px; border-radius:999px;">Variante B</span>
+    <span style="font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:#6B6B68;">Geführte Schritte (Wizard-Light)</span>
+  </div>
+
+  <div class="qcard" data-screen-label="Variante B — Rezept anlegen" style="position:relative; background:#fff; border-radius:14px; box-shadow:0 1px 3px rgba(0,0,0,.10); overflow:hidden; min-height:680px; display:flex; flex-direction:column;">
+
+    <!-- stepper -->
+    <div style="position:relative; display:flex; gap:6px; padding:18px 24px; border-bottom:1px solid rgba(0,0,0,.07);">
+      <sc-for list="{{ bTabs }}" as="tab" hint-placeholder-count="4">
+        <button onClick="{{ tab.onClick }}" style="{{ tab.wrapStyle }}">
+          <span style="{{ tab.dotStyle }}">{{ tab.dot }}</span>
+          <span style="{{ tab.labelStyle }}">{{ tab.label }}</span>
+        </button>
+      </sc-for>
+      <sc-if value="{{ bSavedVisible }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; right:24px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:500; color:#6B7C4E; background:#fff; padding:2px 6px; border-radius:4px;">
+          <i class="ti ti-check" style="font-size:13px;"></i> Gespeichert
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="padding:28px 24px; flex:1; overflow-y:auto;">
+
+      <!-- S0: Basis -->
+      <sc-if value="{{ bIs0 }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:4px;">Wie heißt dein Rezept?</div>
+          <div style="font-family:'Inter',sans-serif; font-size:14px; color:#9A958C; margin-bottom:24px;">Du kannst den Titel jederzeit ändern.</div>
+          <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Titel</div>
+          <input value="{{ bTitle }}" onInput="{{ setBTitle }}" placeholder="z. B. Pizzateig" style="width:100%; padding:12px 14px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; font-size:16px; color:#2C2C2A; outline:none; margin-bottom:8px;">
+          <sc-if value="{{ bDupWarn }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:7px; margin-bottom:16px; flex-wrap:wrap;">
+              <span style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C;">Ähnliche Titel:</span>
+              <sc-for list="{{ bDupTitles }}" as="dt" hint-placeholder-count="2">
+                <span style="display:inline-flex; align-items:center; padding:3px 9px; border-radius:999px; background:#F1ECE4; font-family:'Inter',sans-serif; font-size:12px; color:#6B6B68;">{{ dt.label }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="margin-top:20px;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:8px;">Art</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              <sc-for list="{{ bArtChips }}" as="chip" hint-placeholder-count="2">
+                <button onClick="{{ chip.onToggle }}" style="{{ chip.style }}">{{ chip.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- S1: Zutaten -->
+      <sc-if value="{{ bIs1 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:4px;">Was kommt rein?</div>
+          <div style="font-family:'Inter',sans-serif; font-size:14px; color:#9A958C; margin-bottom:14px;">Tippe einfach drauflos — eine Zeile pro Zutat.</div>
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; padding:9px 14px; background:#FAF7F2; border:1px solid rgba(0,0,0,.06); border-radius:8px;">
+            <span style="font-family:'Inter',sans-serif; font-size:13.5px; color:#6B6B68;">Die Mengen gelten für</span>
+            <div style="display:flex; align-items:center; gap:10px; margin-left:auto;">
+              <button onClick="{{ bServingsDec }}" style="width:28px; height:28px; border-radius:50%; border:1.5px solid #D8D4CD; background:#fff; cursor:pointer; color:#2C2C2A; font-size:16px; display:flex; align-items:center; justify-content:center; padding:0;">−</button>
+              <span style="font-family:'Inter',sans-serif; font-size:16px; font-weight:700; color:#2C2C2A; min-width:18px; text-align:center;">{{ bServings }}</span>
+              <button onClick="{{ bServingsInc }}" style="width:28px; height:28px; border-radius:50%; border:1.5px solid #D8D4CD; background:#fff; cursor:pointer; color:#2C2C2A; font-size:16px; display:flex; align-items:center; justify-content:center; padding:0;">+</button>
+              <span style="font-family:'Inter',sans-serif; font-size:13.5px; color:#6B6B68;">Portionen</span>
+            </div>
+          </div>
+          <textarea value="{{ bText }}" onInput="{{ setBText }}" rows="6" placeholder="250 g Mehl&#10;5 g Trockenhefe&#10;160 ml Wasser, lauwarm&#10;1 TL Salz" style="width:100%; padding:12px 14px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; color:#2C2C2A; font-size:14.5px; line-height:1.7; outline:none;"></textarea>
+          <div style="margin-top:14px; border:1px solid rgba(0,0,0,.07); border-radius:10px; overflow:hidden;">
+            <div style="display:flex; align-items:center; gap:7px; padding:9px 14px; background:#FAF7F2; border-bottom:1px solid rgba(0,0,0,.06); font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#6B7C4E;">
+              <i class="ti ti-sparkles" style="font-size:14px;"></i> Erkannt · {{ bCount }}
+            </div>
+            <sc-for list="{{ parsedB }}" as="ing" hint-placeholder-count="5">
+              <div style="display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid rgba(0,0,0,.05);">
+                <i class="ti ti-grip-vertical" style="font-size:16px; color:#C9C3B8; cursor:grab; flex-shrink:0;"></i>
+                <span style="{{ ing.qtyStyle }}">{{ ing.qty }}</span>
+                <span style="flex:1; font-family:'Inter',sans-serif; font-size:14px; color:#2C2C2A;">{{ ing.name }}</span>
+                <sc-if value="{{ ing.showNote }}" hint-placeholder-val="{{ false }}"><span style="{{ ing.noteStyle }}">{{ ing.note }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <!-- Hinzugefügte Teilrezepte -->
+          <sc-for list="{{ bEmbedRecipes }}" as="er" hint-placeholder-count="0">
+            <div style="border:1.5px solid #EDE7DD; border-radius:10px; margin-top:12px; overflow:hidden;">
+              <!-- Kopfzeile -->
+              <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#FAF7F2;">
+                <div style="width:40px; height:40px; flex-shrink:0; border-radius:7px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 5px,#F5F1EA 5px,#F5F1EA 10px); border:1px solid #E0DACF;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ er.name }}</div>
+                  <div style="font-family:'Inter',sans-serif; font-size:12px; color:#C8602A; margin-top:1px; text-decoration:underline; text-underline-offset:2px; cursor:pointer;">{{ er.author }}</div>
+                </div>
+                <button onClick="{{ er.onRemove }}" style="width:28px; height:28px; flex-shrink:0; border-radius:50%; border:1.5px solid #D8D4CD; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#9A958C;"><i class="ti ti-x" style="font-size:14px;"></i></button>
+              </div>
+              <!-- Portionskontrolle -->
+              <div style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-top:1px solid rgba(0,0,0,.06); background:#fff;">
+                <span style="font-family:'Inter',sans-serif; font-size:13px; color:#6B6B68;">Gilt für</span>
+                <button onClick="{{ er.onPortionsDec }}" style="width:26px; height:26px; border-radius:50%; border:1.5px solid #D8D4CD; background:#fff; cursor:pointer; color:#2C2C2A; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0;">−</button>
+                <span style="font-family:'Inter',sans-serif; font-size:15px; font-weight:700; color:#2C2C2A; min-width:16px; text-align:center;">{{ er.portions }}</span>
+                <button onClick="{{ er.onPortionsInc }}" style="width:26px; height:26px; border-radius:50%; border:1.5px solid #D8D4CD; background:#fff; cursor:pointer; color:#2C2C2A; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0;">+</button>
+                <span style="font-family:'Inter',sans-serif; font-size:13px; color:#6B6B68;">Portionen</span>
+              </div>
+              <!-- Hinweis für den Koch -->
+              <div style="padding:8px 12px 10px; border-top:1px solid rgba(0,0,0,.06); background:#fff;">
+                <sc-if value="{{ er.hintOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:relative;">
+                    <textarea value="{{ er.hint }}" onInput="{{ er.onHintChange }}" rows="2" placeholder="z. B. Starte diesen Teil 2 Stunden vor dem Hauptrezept." style="width:100%; padding:8px 32px 8px 10px; border:1.5px solid #D8D4CD; border-radius:7px; background:#FAF7F2; color:#2C2C2A; font-family:'Inter',sans-serif; font-size:13px; line-height:1.55; outline:none;"></textarea>
+                    <button onClick="{{ er.onToggleHint }}" style="position:absolute; top:6px; right:6px; width:20px; height:20px; border-radius:50%; background:#EDE7DD; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#9A958C; padding:0;"><i class="ti ti-x" style="font-size:12px;"></i></button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ er.hintClosed }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ er.onToggleHint }}" style="display:inline-flex; align-items:center; gap:5px; background:none; border:none; cursor:pointer; font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C; padding:0;"><i class="ti ti-plus" style="font-size:13px;"></i> Hinweis für den Koch</button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+          <!-- Suchpicker -->
+          <sc-if value="{{ bEmbedPickerOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px; border:1.5px solid #C8602A; border-radius:10px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,.10);">
+              <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.06);">
+                <i class="ti ti-search" style="font-size:15px; color:#9A958C; flex-shrink:0;"></i>
+                <input value="{{ bEmbedSearch }}" onInput="{{ setBEmbedSearch }}" placeholder="Welches Rezept soll eingebunden werden?" style="flex:1; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;">
+                <button onClick="{{ closeBEmbedPicker }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:0; display:flex; align-items:center; justify-content:center;"><i class="ti ti-x" style="font-size:15px;"></i></button>
+              </div>
+              <sc-for list="{{ bEmbedResults }}" as="r" hint-placeholder-count="3">
+                <button onClick="{{ r.onPick }}" style="display:flex; width:100%; align-items:center; gap:12px; padding:10px 14px; background:none; border:none; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; text-align:left;">
+                  <div style="width:36px; height:36px; flex-shrink:0; border-radius:6px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 5px,#F5F1EA 5px,#F5F1EA 10px); border:1px solid #E0DACF;"></div>
+                  <div style="flex:1; min-width:0;">
+                    <div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:#2C2C2A;">{{ r.name }}</div>
+                    <div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C;">{{ r.author }}</div>
+                  </div>
+                </button>
+              </sc-for>
+              <sc-if value="{{ bEmbedNoResults }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:16px 14px; font-family:'Inter',sans-serif; font-size:13.5px; color:#9A958C; text-align:center;">Kein Rezept gefunden.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <!-- Hinzufügen-Button -->
+          <sc-if value="{{ bCanAddEmbed }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ bEmbedPickerClosed }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ openBEmbedPicker }}" style="display:inline-flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; color:#C8602A; font-size:13.5px; font-weight:600; padding:0; margin-top:14px;"><i class="ti ti-bowl-spoon" style="font-size:16px;"></i> Teilrezept hinzufügen</button>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ bEmbedMaxReached }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C; margin-top:8px;">Maximal 3 Teilrezepte einbindbar.</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- S2: Aufbau -->
+      <sc-if value="{{ bIs2 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:4px;">Anordnung</div>
+          <div style="font-family:'Inter',sans-serif; font-size:14px; color:#9A958C; margin-bottom:22px;">So erscheinen die Teile auf der Detailseite — Reihenfolge per Drag änderbar.</div>
+          <sc-for list="{{ bArrangeItems }}" as="item" hint-placeholder-count="3">
+            <!-- Block -->
+            <sc-if value="{{ item.isBlock }}" hint-placeholder-val="{{ true }}">
+              <div style="{{ item.blockStyle }}">
+                <i class="ti ti-grip-vertical" style="font-size:18px; color:#C9C3B8; cursor:grab; flex-shrink:0; margin-top:2px;"></i>
+                <div style="flex:1; min-width:0;">
+                  <div style="{{ item.labelStyle }}">{{ item.labelText }}</div>
+                  <div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A;">{{ item.name }}</div>
+                  <sc-if value="{{ item.showSubtitle }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-top:2px;">{{ item.subtitle }}</div>
+                  </sc-if>
+                  <sc-if value="{{ item.hasHint }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:flex-start; gap:6px; margin-top:8px; padding:7px 10px; background:#FAF7F2; border-radius:7px; font-family:'Inter',sans-serif; font-size:12.5px; color:#6B6B68; font-style:italic; line-height:1.5;">
+                      <i class="ti ti-clock-hour-4" style="font-size:14px; color:#9A958C; flex-shrink:0; margin-top:1px;"></i>
+                      {{ item.hint }}
+                    </div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ item.showPortions }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C; white-space:nowrap; flex-shrink:0;">{{ item.portions }} Port.</span>
+                </sc-if>
+              </div>
+            </sc-if>
+            <!-- Zwischenhinweis -->
+            <sc-if value="{{ item.isGap }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:-2px 0 8px;">
+                <sc-if value="{{ item.showAddBtn }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; justify-content:center; padding:2px 0;">
+                    <button onClick="{{ item.onOpen }}" style="display:inline-flex; align-items:center; gap:4px; background:none; border:1px dashed #D8D4CD; border-radius:999px; padding:4px 13px; cursor:pointer; font-family:'Inter',sans-serif; font-size:12px; color:#C9C3B8; font-weight:500;">
+                      <i class="ti ti-plus" style="font-size:12px;"></i> Hinweis
+                    </button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ item.isOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1.5px solid #D8D4CD; border-radius:8px; background:#FDFAF6; overflow:hidden; margin:2px 0;">
+                    <div style="display:flex; align-items:flex-start; gap:8px; padding:10px 12px;">
+                      <i class="ti ti-clock-hour-4" style="font-size:15px; color:#C9C3B8; margin-top:3px; flex-shrink:0;"></i>
+                      <textarea value="{{ item.noteText }}" onInput="{{ item.onChange }}" rows="2" placeholder="z.B. Teig gehen lassen, währenddessen mit dem nächsten Rezept anfangen …" style="flex:1; border:none; outline:none; background:transparent; font-family:'Inter',sans-serif; font-size:13.5px; color:#2C2C2A; line-height:1.55;"></textarea>
+                      <button onClick="{{ item.onClose }}" style="background:none; border:none; cursor:pointer; color:#C9C3B8; padding:0; display:flex; align-items:center; flex-shrink:0; margin-top:2px;">
+                        <i class="ti ti-x" style="font-size:15px;"></i>
+                      </button>
+                    </div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ item.showNote }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#F8F4EE; border-radius:8px; margin:2px 0;">
+                    <i class="ti ti-clock-hour-4" style="font-size:14px; color:#9A958C; flex-shrink:0;"></i>
+                    <span style="flex:1; font-family:'Inter',sans-serif; font-size:13px; color:#6B6B68; font-style:italic; line-height:1.4;">{{ item.noteText }}</span>
+                    <button onClick="{{ item.onOpen }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:2px; flex-shrink:0; display:flex; align-items:center;">
+                      <i class="ti ti-pencil" style="font-size:13px;"></i>
+                    </button>
+                    <button onClick="{{ item.onDelete }}" style="background:none; border:none; cursor:pointer; color:#C9C3B8; padding:2px; flex-shrink:0; display:flex; align-items:center;">
+                      <i class="ti ti-x" style="font-size:13px;"></i>
+                    </button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </sc-for>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px; font-family:'Inter',sans-serif; font-size:12px; color:#C9C3B8;">
+            <i class="ti ti-arrows-up-down" style="font-size:14px;"></i>
+            Drag-to-reorder → Claude Code
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- S3: Zubereitung -->
+      <sc-if value="{{ bIs3 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:4px;">Wie wird's gemacht?</div>
+          <div style="font-family:'Inter',sans-serif; font-size:14px; color:#9A958C; margin-bottom:18px;">Schreib den Schritt — markier direkt die Zutaten, setz Timer und Foto.</div>
+          <sc-for list="{{ bSteps }}" as="step" hint-placeholder-count="2">
+            <div style="border:1.5px solid #EDE7DD; border-radius:10px; padding:14px; margin-bottom:12px; background:#fff;">
+              <div style="display:flex; gap:12px; align-items:flex-start;">
+                <div style="display:flex; align-items:center; gap:4px; flex-shrink:0; padding-top:7px;">
+                  <i class="ti ti-grip-vertical" style="font-size:16px; color:#C9C3B8; cursor:grab;"></i>
+                  <span style="width:26px; height:26px; border-radius:50%; background:#6B7C4E; color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-size:13px; font-weight:700;">{{ step.num }}</span>
+                </div>
+                <textarea value="{{ step.text }}" onInput="{{ step.onChange }}" rows="2" placeholder="Schritt beschreiben …" style="flex:1; min-width:0; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; color:#2C2C2A; font-size:14px; line-height:1.6; outline:none;"></textarea>
+                <button onClick="{{ step.onRemove }}" style="flex-shrink:0; width:30px; height:30px; margin-top:5px; border-radius:50%; background:none; border:1.5px solid #D8D4CD; cursor:pointer; color:#9A958C; display:flex; align-items:center; justify-content:center;"><i class="ti ti-x" style="font-size:15px;"></i></button>
+              </div>
+              <div style="padding-left:46px; margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                <button onClick="{{ step.onToggleTimer }}" style="{{ step.timerBtnStyle }}"><i class="ti ti-clock" style="font-size:13px;"></i> {{ step.timerBtnLabel }}</button>
+                <button onClick="{{ step.onToggleZutat }}" style="{{ step.zutatBtnStyle }}"><i class="ti ti-leaf" style="font-size:13px;"></i> {{ step.zutatBtnLabel }}</button>
+                <button onClick="{{ step.onToggleFoto }}" style="{{ step.fotoBtnStyle }}"><i class="ti ti-camera" style="font-size:13px;"></i> {{ step.fotoBtnLabel }}</button>
+              </div>
+              <sc-if value="{{ step.timerVisible }}" hint-placeholder-val="{{ false }}">
+                <div style="padding-left:46px; margin-top:10px;">
+                  <div style="display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;">
+                    <i class="ti ti-clock" style="font-size:15px; color:#6B7C4E;"></i>
+                    <input value="{{ step.timer }}" onInput="{{ step.onTimer }}" placeholder="—" style="width:32px; border:none; outline:none; background:transparent; font-size:14px; font-weight:600; color:#2C2C2A; text-align:center;">
+                    <span style="font-family:'Inter',sans-serif; font-size:13px; color:#9A958C;">Min.</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ step.zutatVisible }}" hint-placeholder-val="{{ false }}">
+                <div style="padding-left:46px; margin-top:10px;">
+                  <div style="font-family:'Inter',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:7px;">Zutaten in diesem Schritt</div>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    <sc-for list="{{ step.allPills }}" as="pill" hint-placeholder-count="3">
+                      <button onClick="{{ pill.onToggle }}" style="{{ pill.style }}">{{ pill.name }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ step.fotoVisible }}" hint-placeholder-val="{{ false }}">
+                <div style="padding-left:46px; margin-top:10px;">
+                  <div style="font-family:'Inter',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:7px;">Fotos</div>
+                  <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                    <sc-for list="{{ step.photoThumbs }}" as="ph" hint-placeholder-count="0">
+                      <div style="position:relative;">
+                        <div style="width:54px; height:54px; border-radius:8px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 6px,#F5F1EA 6px,#F5F1EA 12px); border:1px solid #E0DACF;"></div>
+                        <button onClick="{{ ph.onRemove }}" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#2C2C2A; border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;"><i class="ti ti-x" style="font-size:12px;"></i></button>
+                      </div>
+                    </sc-for>
+                    <button onClick="{{ step.onAddPhoto }}" style="display:flex; align-items:center; justify-content:center; width:54px; height:54px; flex-shrink:0; border-radius:8px; border:1.5px dashed #D8D4CD; background:none; cursor:pointer; color:#C9C3B8;"><i class="ti ti-camera-plus" style="font-size:20px;"></i></button>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <button onClick="{{ addBStep }}" style="display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border:1.5px dashed #D8D4CD; border-radius:8px; background:none; cursor:pointer; color:#6B7C4E; font-size:14px; font-weight:600; margin-top:4px;"><i class="ti ti-plus" style="font-size:16px;"></i> Schritt</button>
+        </div>
+      </sc-if>
+
+      <!-- S3: Feinschliff -->
+      <sc-if value="{{ bIs4 }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:4px;">Feinschliff</div>
+          <div style="font-family:'Inter',sans-serif; font-size:14px; color:#9A958C; margin-bottom:22px;">Alles optional — du kannst auch jetzt schon speichern.</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+            <div>
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Vorbereitung</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;"><input placeholder="15" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;"><span style="font-size:13px; color:#9A958C;">Min.</span></div>
+            </div>
+            <div>
+              <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Kochen / Backen</div>
+              <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2;"><input placeholder="12" style="width:100%; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;"><span style="font-size:13px; color:#9A958C;">Min.</span></div>
+            </div>
+          </div>
+          <div style="margin-bottom:20px;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:6px;">Schwierigkeit · {{ bDiffLabel }}</div>
+            <div style="display:flex; gap:6px; align-items:center; height:38px;">
+              <sc-for list="{{ bDiffCells }}" as="d" hint-placeholder-count="5">
+                <button onClick="{{ d.onClick }}" style="{{ d.style }}"></button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-bottom:20px;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:7px;">Kategorien & Tags</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(200,96,42,.1); color:#C8602A; border-radius:999px; font-family:'Inter',sans-serif; font-size:13px; font-weight:500;">Hauptgericht <i class="ti ti-x" style="font-size:13px;"></i></span>
+              <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(107,124,78,.14); color:#6B7C4E; border-radius:999px; font-family:'Inter',sans-serif; font-size:13px; font-weight:500;">italienisch <i class="ti ti-x" style="font-size:13px;"></i></span>
+              <input placeholder="+ hinzufügen" style="flex:1; min-width:130px; padding:7px 10px; border:1.5px solid #D8D4CD; border-radius:8px; background:#FAF7F2; font-family:'Inter',sans-serif; font-size:13.5px; color:#2C2C2A; outline:none;">
+            </div>
+          </div>
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:7px;">Titelbild & Fotos</div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+              <div style="position:relative;">
+                <div style="width:84px; height:84px; border-radius:8px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 6px,#F5F1EA 6px,#F5F1EA 12px); border:1px solid #E0DACF;"></div>
+                <span style="position:absolute; bottom:0; left:0; right:0; background:rgba(107,124,78,.92); color:#fff; font-family:'Inter',sans-serif; font-size:9.5px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; text-align:center; padding:2px 0; border-radius:0 0 8px 8px;">Titelbild</span>
+              </div>
+              <div style="width:84px; height:84px; border-radius:8px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 6px,#F5F1EA 6px,#F5F1EA 12px); border:1px solid #E0DACF;"></div>
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; width:84px; height:84px; border:1.5px dashed #D8D4CD; border-radius:8px; background:#FAF7F2; cursor:pointer;">
+                <i class="ti ti-photo-plus" style="font-size:22px; color:#6B7C4E;"></i>
+                <span style="font-family:'Inter',sans-serif; font-size:11px; color:#9A958C;">Foto</span>
+              </div>
+            </div>
+            <div style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C; margin-top:8px;">Das erste Foto wird automatisch dein Titelbild — tippe ein anderes an, um es zu ändern.</div>
+          </div>
+
+          <!-- Dazu servieren -->
+          <div style="border-top:1px solid rgba(0,0,0,.07); padding-top:20px;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#9A958C; margin-bottom:12px;">Dazu servieren</div>
+
+            <sc-for list="{{ bLinkedRecipes }}" as="lr" hint-placeholder-count="0">
+              <div style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid rgba(0,0,0,.07); border-radius:10px; margin-bottom:8px; background:#FAF7F2;">
+                <div style="width:44px; height:44px; flex-shrink:0; border-radius:7px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 5px,#F5F1EA 5px,#F5F1EA 10px); border:1px solid #E0DACF;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ lr.name }}</div>
+                  <div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-top:1px;">{{ lr.author }}</div>
+                </div>
+                <button onClick="{{ lr.onRemove }}" style="width:28px; height:28px; flex-shrink:0; border-radius:50%; border:1.5px solid #D8D4CD; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#9A958C;"><i class="ti ti-x" style="font-size:14px;"></i></button>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ bLinkPickerOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1.5px solid #C8602A; border-radius:10px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,.10); margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(0,0,0,.06);">
+                  <i class="ti ti-search" style="font-size:15px; color:#9A958C; flex-shrink:0;"></i>
+                  <input value="{{ bLinkSearch }}" onInput="{{ setBLinkSearch }}" placeholder="Rezept suchen …" style="flex:1; border:none; outline:none; background:transparent; font-size:14px; color:#2C2C2A;">
+                  <button onClick="{{ closeLinkPicker }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-x" style="font-size:15px;"></i></button>
+                </div>
+                <sc-for list="{{ bLinkResults }}" as="r" hint-placeholder-count="3">
+                  <button onClick="{{ r.onPick }}" style="display:flex; width:100%; align-items:center; gap:12px; padding:10px 14px; background:none; border:none; border-bottom:1px solid rgba(0,0,0,.05); cursor:pointer; text-align:left;">
+                    <div style="width:36px; height:36px; flex-shrink:0; border-radius:6px; background-image:repeating-linear-gradient(45deg,#EDE7DD 0,#EDE7DD 5px,#F5F1EA 5px,#F5F1EA 10px); border:1px solid #E0DACF;"></div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:#2C2C2A;">{{ r.name }}</div>
+                      <div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C;">{{ r.author }}</div>
+                    </div>
+                  </button>
+                </sc-for>
+                <sc-if value="{{ bLinkNoResults }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:16px 14px; font-family:'Inter',sans-serif; font-size:13.5px; color:#9A958C; text-align:center;">Kein Rezept gefunden.</div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ bCanAddLinked }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ bLinkPickerClosed }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ openLinkPicker }}" style="display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border:1.5px dashed #D8D4CD; border-radius:8px; background:none; cursor:pointer; color:#C8602A; font-family:'Inter',sans-serif; font-size:14px; font-weight:600;">
+                  <i class="ti ti-plus" style="font-size:16px;"></i> Rezept verknüpfen
+                </button>
+              </sc-if>
+            </sc-if>
+
+            <sc-if value="{{ bLinkedMaxReached }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'Inter',sans-serif; font-size:12.5px; color:#9A958C; margin-top:4px;">Maximal 4 Rezepte verknüpfbar.</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- undo toast -->
+    <sc-if value="{{ bToastVisible }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 24px; background:#2C2C2A;">
+        <span style="font-family:'Inter',sans-serif; font-size:13.5px; color:#fff;">{{ bToastMsg }}</span>
+        <button onClick="{{ bUndoToast }}" style="font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:#F4A462; background:none; border:none; cursor:pointer; padding:0;">Rückgängig</button>
+      </div>
+    </sc-if>
+
+    <!-- footer -->
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 24px; background:#FAF7F2; border-top:1px solid rgba(0,0,0,.07);">
+      <button onClick="{{ prevB }}" style="{{ bBackStyle }}"><i class="ti ti-arrow-left" style="font-size:16px;"></i> Zurück</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button onClick="{{ openVorschau }}" style="display:inline-flex; align-items:center; gap:5px; padding:10px 14px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; color:#6B6B68; cursor:pointer; font-family:'Inter',sans-serif; font-size:13.5px; font-weight:500;"><i class="ti ti-eye" style="font-size:15px;"></i> Vorschau</button>
+        <sc-if value="{{ bShowNext }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ nextB }}" style="display:inline-flex; align-items:center; gap:7px; padding:11px 22px; border:none; border-radius:8px; background:#6B7C4E; color:#fff; cursor:pointer; font-size:14.5px; font-weight:600;">Weiter <i class="ti ti-arrow-right" style="font-size:16px;"></i></button>
+        </sc-if>
+        <sc-if value="{{ bShowDone }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openFreigabe }}" style="display:inline-flex; align-items:center; gap:7px; padding:11px 22px; border:none; border-radius:8px; background:#C8602A; color:#fff; cursor:pointer; font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600;"><i class="ti ti-check" style="font-size:17px;"></i> Speichern</button>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- Freigabe Sheet -->
+    <sc-if value="{{ bFreigabeOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; inset:0; z-index:20; background:rgba(44,44,42,.55); display:flex; align-items:flex-end; border-radius:14px;">
+        <div style="width:100%; background:#fff; border-radius:14px 14px 0 0;">
+          <div style="display:flex; justify-content:center; padding:10px 0 4px;"><div style="width:36px; height:4px; border-radius:2px; background:#D8D4CD;"></div></div>
+          <div style="padding:16px 24px 32px;">
+            <div style="font-family:'Playfair Display',serif; font-size:21px; font-weight:700; color:#2C2C2A; margin-bottom:3px;">Rezept freigeben</div>
+            <div style="font-family:'Inter',sans-serif; font-size:13px; color:#9A958C; margin-bottom:20px;">Für wen soll &#8222;{{ bTitle }}&#8220; sichtbar sein?</div>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+              <button onClick="{{ setFreigabePrivat }}" style="{{ freigabeOptPrivatStyle }}">
+                <div style="width:36px; height:36px; border-radius:8px; background:#F1ECE4; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-lock" style="font-size:17px; color:#9A958C;"></i></div>
+                <div style="flex:1; text-align:left;"><div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A;">Nur ich</div><div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-top:2px;">Nur du siehst dieses Rezept</div></div>
+                <sc-if value="{{ bFreigabeIsPrivat }}" hint-placeholder-val="{{ true }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+              </button>
+              <button onClick="{{ setFreigabeLink }}" style="{{ freigabeOptLinkStyle }}">
+                <div style="width:36px; height:36px; border-radius:8px; background:rgba(200,96,42,.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-link" style="font-size:17px; color:#C8602A;"></i></div>
+                <div style="flex:1; text-align:left;"><div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A;">Per Link</div><div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-top:2px;">Jeder mit dem Link kann es sehen</div></div>
+                <sc-if value="{{ bFreigabeIsLink }}" hint-placeholder-val="{{ false }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+              </button>
+              <button onClick="{{ setFreigabeOff }}" style="{{ freigabeOptOffStyle }}">
+                <div style="width:36px; height:36px; border-radius:8px; background:rgba(107,124,78,.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="ti ti-world" style="font-size:17px; color:#6B7C4E;"></i></div>
+                <div style="flex:1; text-align:left;"><div style="font-family:'Inter',sans-serif; font-size:14px; font-weight:600; color:#2C2C2A;">Öffentlich</div><div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-top:2px;">Für alle Nutzer sichtbar</div></div>
+                <sc-if value="{{ bFreigabeIsOff }}" hint-placeholder-val="{{ false }}"><i class="ti ti-check" style="font-size:17px; color:#6B7C4E; flex-shrink:0;"></i></sc-if>
+              </button>
+            </div>
+            <sc-if value="{{ bFreigabeIsLink }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-bottom:18px; padding:12px 14px; background:#F8F4EE; border-radius:8px;">
+                <div style="font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; margin-bottom:8px;">Bekannte Usernamen erhalten sofort Zugriff · neue E-Mails bekommen eine Einladung.</div>
+                <sc-if value="{{ bHasShareList }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                    <sc-for list="{{ bShareList }}" as="sh" hint-placeholder-count="0">
+                      <span style="{{ sh.chipStyle }}"><i class="{{ sh.iconClass }}" style="font-size:13px;"></i> {{ sh.display }}<button onClick="{{ sh.onRemove }}" style="background:none; border:none; cursor:pointer; padding:0; display:inline-flex; align-items:center; margin-left:3px; color:inherit; opacity:.6;"><i class="ti ti-x" style="font-size:12px;"></i></button></span>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input value="{{ bShareInput }}" onInput="{{ setBShareInput }}" placeholder="Username oder E-Mail" style="flex:1; padding:9px 12px; border:1.5px solid #D8D4CD; border-radius:8px; background:#fff; font-family:'Inter',sans-serif; font-size:13.5px; color:#2C2C2A; outline:none;">
+                  <button onClick="{{ addShareEntry }}" style="padding:9px 14px; border:none; border-radius:8px; background:#6B7C4E; color:#fff; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; white-space:nowrap;">Hinzufügen</button>
+                </div>
+                <sc-if value="{{ bShareError }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:'Inter',sans-serif; font-size:12px; color:#C0392B; margin-top:5px;">{{ bShareError }}</div>
+                </sc-if>
+              </div>
+            </sc-if>
+            <button style="width:100%; padding:13px; border:none; border-radius:10px; background:#C8602A; color:#fff; font-family:'Inter',sans-serif; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:8px;">Jetzt speichern</button>
+            <button onClick="{{ closeFreigabe }}" style="width:100%; padding:9px; border:none; background:none; color:#9A958C; font-family:'Inter',sans-serif; font-size:13px; cursor:pointer;">Noch nicht</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Vorschau Overlay -->
+    <sc-if value="{{ bVorschauOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; inset:0; z-index:20; background:rgba(44,44,42,.55); display:flex; align-items:flex-end; border-radius:14px;">
+        <div style="width:100%; max-height:88%; background:#fff; border-radius:14px 14px 0 0; display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid rgba(0,0,0,.07); flex-shrink:0;">
+            <div style="font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C;">Vorschau</div>
+            <button onClick="{{ closeVorschau }}" style="background:none; border:none; cursor:pointer; color:#9A958C; padding:2px; display:flex; align-items:center;"><i class="ti ti-x" style="font-size:19px;"></i></button>
+          </div>
+          <div style="overflow-y:auto; padding:20px 24px 32px;">
+            <div style="font-family:'Playfair Display',serif; font-size:24px; font-weight:700; color:#2C2C2A; margin-bottom:8px;">{{ bTitle }}</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; font-family:'Inter',sans-serif; font-size:13px; color:#9A958C; margin-bottom:22px;"><span>{{ bServings }} Portionen</span><span>·</span><span>{{ bArtLabel }}</span></div>
+            <div style="font-family:'Inter',sans-serif; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin-bottom:10px;">Zutaten</div>
+            <sc-for list="{{ parsedB }}" as="ing" hint-placeholder-count="4">
+              <div style="display:flex; gap:10px; padding:7px 0; border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; color:#C8602A; min-width:74px; text-align:right; flex-shrink:0;">{{ ing.qty }}</span><span style="font-family:'Inter',sans-serif; font-size:13.5px; color:#2C2C2A;">{{ ing.name }}</span></div>
+            </sc-for>
+            <sc-if value="{{ bHasSteps }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'Inter',sans-serif; font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#9A958C; margin:22px 0 12px;">Zubereitung</div>
+              <sc-for list="{{ bSteps }}" as="step" hint-placeholder-count="2">
+                <div style="display:flex; gap:12px; margin-bottom:16px; align-items:flex-start;"><span style="width:26px; height:26px; border-radius:50%; background:#C8602A; color:#fff; font-family:'Inter',sans-serif; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px;">{{ step.num }}</span><span style="font-family:'Inter',sans-serif; font-size:14px; color:#2C2C2A; line-height:1.65;">{{ step.text }}</span></div>
+              </sc-for>
+            </sc-if>
+            <div style="margin-top:18px; padding:10px 14px; background:#F1ECE4; border-radius:8px; font-family:'Inter',sans-serif; font-size:12px; color:#9A958C; text-align:center;">So sieht dein Rezept aus, wenn du es speicherst.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = {
+    aTitle: 'Klassische Pfannkuchen',
+    aText: '200 g Mehl\n2 Eier\n300 ml Milch\n1 Prise Salz\n50 g Butter, geschmolzen',
+    aSteps: [
+      { id: 1, text: 'Mehl, Eier und Milch zu einem glatten Teig verrühren.' },
+      { id: 2, text: 'Salz und geschmolzene Butter unterrühren, 20 Min. ruhen lassen.' },
+    ],
+    aDetailsOpen: false, aVis: 'privat', aDiff: 2, aType: 'kochen', aEmbedOpen: false,
+    bStep: 0,
+    bTitle: 'Pizzateig',
+    bText: '250 g Mehl\n5 g Trockenhefe\n160 ml Wasser, lauwarm\n1 EL Olivenöl\n1 TL Salz',
+    bSteps: [
+      { id: 1, text: 'Hefe in lauwarmem Wasser auflösen.', timer: '', photos: 0, marked: {}, timerOpen: false, fotoOpen: false, zutatOpen: null },
+      { id: 2, text: 'Mit Mehl, Öl und Salz kräftig kneten, dann zugedeckt gehen lassen.', timer: '60', photos: 2, marked: {}, timerOpen: true, fotoOpen: true, zutatOpen: null },
+    ],
+    bVis: 'privat', bDiff: 1, bArt: ['backen'], bServings: 4,
+    bTitleDupCount: 2,
+    bLinkedRecipes: [],
+    bLinkPickerOpen: false,
+    bLinkSearch: '',
+    bShareInput: '',
+    bShareList: [],
+    bShareError: '',
+    bEmbedOpen: false,
+    bEmbedSearch: '',
+    bEmbedRecipes: [],
+    bInterNotes: {},
+    bFreigabeOpen: false,
+    bVorschauOpen: false,
+    _sid: 10,
+  }
+
+  _saved = false
+  _saveTimer = null
+  _toastVisible = false
+  _toastMsg = ''
+  _toastUndo = null
+  _toastTimer = null
+
+  RECIPE_SUGGESTIONS = [
+    { id: 101, name: 'Baguette', author: 'eigenes Rezept' },
+    { id: 102, name: 'Croutons', author: 'von Lena' },
+    { id: 103, name: 'Knoblauchbrot', author: 'eigenes Rezept' },
+    { id: 104, name: 'Focaccia', author: 'von Marco' },
+    { id: 105, name: 'Tomatensalat', author: 'eigenes Rezept' },
+    { id: 106, name: 'Basilikumpesto', author: 'von Sara' },
+  ]
+
+  markSaved() {
+    clearTimeout(this._saveTimer)
+    this._saved = true
+    this.forceUpdate()
+    this._saveTimer = setTimeout(() => { this._saved = false; this.forceUpdate() }, 2000)
+  }
+
+  showToast(msg, onUndo) {
+    clearTimeout(this._toastTimer)
+    this._toastMsg = msg
+    this._toastUndo = onUndo
+    this._toastVisible = true
+    this.forceUpdate()
+    this._toastTimer = setTimeout(() => { this._toastVisible = false; this._toastUndo = null; this.forceUpdate() }, 5000)
+  }
+
+  clearToast() {
+    clearTimeout(this._toastTimer)
+    this._toastVisible = false
+    this._toastUndo = null
+    this.forceUpdate()
+  }
+
+  UNIT_MAP = {
+    g: 'g', gr: 'g', gramm: 'g', gram: 'g', grams: 'g',
+    kg: 'kg', kilo: 'kg', kilogramm: 'kg', kilogram: 'kg', mg: 'mg',
+    ml: 'ml', milliliter: 'ml', millilitre: 'ml', mililiter: 'ml', mll: 'ml',
+    l: 'l', liter: 'l', litre: 'l', ltr: 'l',
+    el: 'EL', essloeffel: 'EL', 'esslöffel': 'EL', 'eßlöffel': 'EL', tbsp: 'EL',
+    tl: 'TL', teeloeffel: 'TL', 'teelöffel': 'TL', tsp: 'TL',
+    msp: 'Msp', messerspitze: 'Msp',
+    prise: 'Prise', prisen: 'Prise', bund: 'Bund',
+    scheibe: 'Scheibe', scheiben: 'Scheibe',
+    dose: 'Dose', dosen: 'Dose',
+    packung: 'Packung', pck: 'Packung', pkg: 'Packung', pack: 'Packung',
+    'stück': 'Stück', stueck: 'Stück', stk: 'Stück', stck: 'Stück', st: 'Stück',
+    zehe: 'Zehe', zehen: 'Zehe', tasse: 'Tasse', tassen: 'Tasse',
+  }
+
+  levenshtein(a, b) {
+    const m = a.length, n = b.length
+    const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0))
+    for (let i = 1; i <= m; i++)
+      for (let j = 1; j <= n; j++)
+        dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1])
+    return dp[m][n]
+  }
+
+  parse(text) {
+    return (text || '').split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean).map((raw, i) => {
+      let rest = raw, amount = '', stuck = false
+      const am = raw.match(/^([0-9]+\/[0-9]+|[0-9]+(?:[.,][0-9]+)?(?:\s*[-–]\s*[0-9]+(?:[.,][0-9]+)?)?|[½¼¾⅓⅔])\s*(.*)$/)
+      if (am) {
+        amount = am[1].replace(/\s*[-–]\s*/, '–')
+        const after = raw[am[1].length]
+        stuck = !!after && /[a-zA-ZäöüÄÖÜß]/.test(after)
+        rest = am[2]
+      }
+      let unit = '', unitFixed = false, name = rest
+      const parts = rest.split(' ')
+      if (parts[0]) {
+        const tok = parts[0].toLowerCase().replace(/\.$/, '')
+        let canon = this.UNIT_MAP[tok]
+        if (!canon && tok.length >= 6) {
+          let bestKey = null, bestDist = 999
+          for (const key of Object.keys(this.UNIT_MAP)) {
+            if (Math.abs(key.length - tok.length) > 2) continue
+            const d = this.levenshtein(tok, key)
+            if (d <= 2 && d < bestDist) { bestKey = key; bestDist = d }
+          }
+          if (bestKey) canon = this.UNIT_MAP[bestKey]
+        }
+        if (canon && (parts.length > 1 || amount)) {
+          unit = canon; name = parts.slice(1).join(' ')
+          unitFixed = stuck || tok !== canon.toLowerCase()
+        }
+      }
+      const hasQty = !!(amount || unit)
+      const qty = (amount + (unit ? ' ' + unit : '')).trim()
+      const noQty = !amount
+      return {
+        id: i, raw, name, hasQty, noQty,
+        qty: qty || '—',
+        qtyStyle: { fontFamily: "'Inter',sans-serif", fontSize: '13.5px', fontWeight: 600, minWidth: '82px', textAlign: 'right', whiteSpace: 'nowrap', color: hasQty ? '#C8602A' : '#C9C3B8' },
+        showNote: noQty || unitFixed,
+        note: noQty ? 'ohne Menge' : 'vereinheitlicht',
+        noteStyle: { fontFamily: "'Inter',sans-serif", fontSize: '11.5px', fontWeight: 500, padding: '1px 8px', borderRadius: '999px', whiteSpace: 'nowrap', flexShrink: 0, background: noQty ? '#F1ECE4' : 'rgba(107,124,78,.14)', color: noQty ? '#9A958C' : '#6B7C4E' },
+      }
+    })
+  }
+
+  segStyle(active) {
+    return { flex: '1', padding: '8px 12px', border: 'none', borderRadius: '7px', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap', background: active ? '#C8602A' : 'transparent', color: active ? '#fff' : '#6B6B68', boxShadow: active ? '0 1px 2px rgba(0,0,0,.12)' : 'none' }
+  }
+  typeStyle(active) {
+    return { padding: '8px 18px', border: 'none', borderRadius: '7px', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontSize: '13px', fontWeight: 600, background: active ? '#fff' : 'transparent', color: active ? '#2C2C2A' : '#6B6B68', boxShadow: active ? '0 1px 2px rgba(0,0,0,.12)' : 'none' }
+  }
+  chipStyle(active) {
+    return { display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 11px', borderRadius: '999px', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontSize: '12.5px', fontWeight: 500, border: active ? '1.5px solid #6B7C4E' : '1.5px solid #D8D4CD', background: active ? '#6B7C4E' : 'transparent', color: active ? '#fff' : '#9A958C', transition: 'background .18s ease, color .18s ease, border-color .18s ease' }
+  }
+  actionBtnStyle(active) {
+    return { display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 11px', borderRadius: '999px', border: active ? '1.5px solid #6B7C4E' : '1.5px solid #D8D4CD', background: active ? 'rgba(107,124,78,.12)' : 'transparent', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontSize: '12.5px', fontWeight: 500, color: active ? '#4A5A33' : '#9A958C' }
+  }
+  pillStyle(active) {
+    return { display: 'inline-flex', alignItems: 'center', padding: '4px 12px', borderRadius: '999px', border: active ? '1.5px solid #6B7C4E' : '1.5px solid #D8D4CD', background: active ? '#6B7C4E' : 'transparent', color: active ? '#fff' : '#9A958C', cursor: 'pointer', fontFamily: "'Inter',sans-serif", fontSize: '12.5px', fontWeight: active ? 600 : 400, transition: 'background .18s ease, color .18s ease, border-color .18s ease' }
+  }
+  diffCells(val, accent) {
+    return [1,2,3,4,5].map(i => ({
+      i, onClick: () => this.setState(accent === '#6B7C4E' ? { bDiff: i } : { aDiff: i }),
+      style: { flex: 1, height: '34px', border: 'none', borderRadius: '6px', cursor: 'pointer', background: i <= val ? accent : '#EDE7DD', transition: 'background .12s ease' },
+    }))
+  }
+  diffLabel(v) { return v <= 2 ? 'einfach' : v === 3 ? 'mittel' : 'anspruchsvoll' }
+
+  firstToken(name) {
+    const t = (name || '').toLowerCase().split(/[^a-zäöüß]+/).filter(x => x.length >= 3)
+    return t[0] || ''
+  }
+  ingActive(step, name) {
+    if (step.marked && name in step.marked) return step.marked[name]
+    const tok = this.firstToken(name)
+    return tok ? step.text.toLowerCase().includes(tok) : false
+  }
+  toggleIng = (stepId, name) => this.setState(p => ({
+    bSteps: p.bSteps.map(s => {
+      if (s.id !== stepId) return s
+      return { ...s, marked: { ...s.marked, [name]: !this.ingActive(s, name) } }
+    }),
+  }))
+  setStepTimer = (stepId, v) => this.setState(p => ({ bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, timer: v } : s) }))
+  addStepPhoto = (stepId) => this.setState(p => ({ bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, photos: s.photos + 1 } : s) }))
+  removeStepPhoto = (stepId) => this.setState(p => ({ bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, photos: Math.max(0, s.photos - 1) } : s) }))
+  toggleStepTimer = (stepId) => this.setState(p => ({ bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, timerOpen: !s.timerOpen } : s) }))
+  toggleStepFoto = (stepId) => this.setState(p => ({ bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, fotoOpen: !s.fotoOpen } : s) }))
+  toggleStepZutat = (stepId) => this.setState(p => {
+    const st = p.bSteps.find(s => s.id === stepId)
+    const activeCount = this.parse(p.bText).filter(ing => this.ingActive(st, ing.name)).length
+    const visible = st.zutatOpen === true || (st.zutatOpen !== false && activeCount > 0)
+    return { bSteps: p.bSteps.map(s => s.id === stepId ? { ...s, zutatOpen: !visible } : s) }
+  })
+
+  setATitle = e => { this.setState({ aTitle: e.target.value }); this.markSaved() }
+  setAText = e => { this.setState({ aText: e.target.value }); this.markSaved() }
+  toggleDetails = () => this.setState(s => ({ aDetailsOpen: !s.aDetailsOpen }))
+  toggleEmbed = () => this.setState(s => ({ aEmbedOpen: !s.aEmbedOpen }))
+  setBShareInput = e => this.setState({ bShareInput: e.target.value, bShareError: '' })
+  addShareEntry = () => {
+    const val = this.state.bShareInput.trim()
+    if (!val) return
+    if (this.state.bShareList.some(e => e.id === val)) {
+      this.setState({ bShareError: 'Bereits hinzugefügt.' }); return
+    }
+    const KNOWN = ['lena', 'marco', 'sara', 'maria']
+    const hasAt = val.includes('@')
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
+    if (hasAt && !isEmail) {
+      this.setState({ bShareError: 'Ungültige E-Mail-Adresse.' }); return
+    }
+    const isUser = KNOWN.includes(val.toLowerCase())
+    const type = isEmail ? 'invite' : isUser ? 'user' : 'unknown'
+    this.setState(p => ({ bShareList: [...p.bShareList, { id: val, display: val, type }], bShareInput: '', bShareError: '' }))
+    this.markSaved()
+  }
+  removeShareEntry = (id) => {
+    this.setState(p => ({ bShareList: p.bShareList.filter(e => e.id !== id) }))
+    this.markSaved()
+  }
+  openBEmbedPicker = () => this.setState({ bEmbedOpen: true, bEmbedSearch: '' })
+  closeBEmbedPicker = () => this.setState({ bEmbedOpen: false })
+  setBEmbedSearch = e => this.setState({ bEmbedSearch: e.target.value })
+  pickEmbedRecipe = (recipe) => {
+    this.setState(p => ({ bEmbedRecipes: [...p.bEmbedRecipes, { ...recipe, portions: 4, hint: '', hintOpen: false }], bEmbedOpen: false, bEmbedSearch: '' }))
+    this.markSaved()
+  }
+  removeEmbedRecipe = (id) => {
+    this.setState(p => ({ bEmbedRecipes: p.bEmbedRecipes.filter(r => r.id !== id) }))
+    this.markSaved()
+  }
+  setEmbedPortions = (id, delta) => this.setState(p => ({
+    bEmbedRecipes: p.bEmbedRecipes.map(r => r.id === id ? { ...r, portions: Math.max(1, r.portions + delta) } : r)
+  }))
+  setEmbedHint = (id, hint) => {
+    this.setState(p => ({ bEmbedRecipes: p.bEmbedRecipes.map(r => r.id === id ? { ...r, hint } : r) }))
+    this.markSaved()
+  }
+  toggleEmbedHint = (id) => this.setState(p => ({
+    bEmbedRecipes: p.bEmbedRecipes.map(r => r.id === id ? { ...r, hintOpen: !r.hintOpen } : r)
+  }))
+  addAStep = () => this.setState(s => ({ aSteps: [...s.aSteps, { id: s._sid + 1, text: '' }], _sid: s._sid + 1 }))
+
+  setBTitle = e => {
+    const v = e.target.value
+    const DUPS = ['pizzateig', 'pfannkuchen', 'bolognese', 'nudeln', 'brot']
+    const lower = v.toLowerCase().trim()
+    const dup = v.length > 3 && DUPS.some(d => lower.includes(d))
+    this.setState({ bTitle: v, bTitleDupCount: dup ? 2 : 0 })
+    this.markSaved()
+  }
+  setBText = e => { this.setState({ bText: e.target.value }); this.markSaved() }
+  bumpServings = (which, d) => this.setState(p => { const k = which + 'Servings'; return { [k]: Math.max(1, p[k] + d) } })
+  toggleArt = (id) => this.setState(s => {
+    const has = s.bArt.includes(id)
+    const next = has ? s.bArt.filter(x => x !== id) : [...s.bArt, id]
+    return { bArt: next.length > 0 ? next : s.bArt }
+  })
+  addBStep = () => this.setState(s => ({
+    bSteps: [...s.bSteps, { id: s._sid + 1, text: '', timer: '', photos: 0, marked: {}, timerOpen: false, fotoOpen: false, zutatOpen: null }],
+    _sid: s._sid + 1,
+  }))
+  nextB = () => this.setState(s => {
+    const hasEmbed = s.bEmbedRecipes.length > 0
+    if (s.bStep === 1 && !hasEmbed) return { bStep: 3 }
+    return { bStep: Math.min(4, s.bStep + 1) }
+  })
+  prevB = () => this.setState(s => {
+    const hasEmbed = s.bEmbedRecipes.length > 0
+    if (s.bStep === 3 && !hasEmbed) return { bStep: 1 }
+    return { bStep: Math.max(0, s.bStep - 1) }
+  })
+
+  openLinkPicker = () => this.setState({ bLinkPickerOpen: true, bLinkSearch: '' })
+  closeLinkPicker = () => this.setState({ bLinkPickerOpen: false })
+  setBLinkSearch = e => this.setState({ bLinkSearch: e.target.value })
+  pickLinkedRecipe = (recipe) => {
+    this.setState(p => ({ bLinkedRecipes: [...p.bLinkedRecipes, recipe], bLinkPickerOpen: false, bLinkSearch: '' }))
+    this.markSaved()
+  }
+  removeLinkedRecipe = (id) => {
+    this.setState(p => ({ bLinkedRecipes: p.bLinkedRecipes.filter(r => r.id !== id) }))
+    this.markSaved()
+  }
+
+  openInterNote = (i) => this.setState(p => ({
+    bInterNotes: { ...p.bInterNotes, [i]: { text: (p.bInterNotes[i] || {}).text || '', open: true } }
+  }))
+  closeInterNote = (i) => this.setState(p => ({
+    bInterNotes: { ...p.bInterNotes, [i]: { text: (p.bInterNotes[i] || {}).text || '', open: false } }
+  }))
+  setInterNoteText = (i, text) => {
+    this.setState(p => ({ bInterNotes: { ...p.bInterNotes, [i]: { text, open: true } } }))
+    this.markSaved()
+  }
+  deleteInterNote = (i) => this.setState(p => {
+    const n = { ...p.bInterNotes }
+    delete n[i]
+    return { bInterNotes: n }
+  })
+
+  openFreigabe = () => this.setState({ bFreigabeOpen: true })
+  closeFreigabe = () => this.setState({ bFreigabeOpen: false })
+  openVorschau = () => this.setState({ bVorschauOpen: true })
+  closeVorschau = () => this.setState({ bVorschauOpen: false })
+  setFreigabePrivat = () => this.setState({ bVis: 'privat' })
+  setFreigabeLink = () => this.setState({ bVis: 'link' })
+  setFreigabeOff = () => this.setState({ bVis: 'off' })
+  freigabeOptStyle(active) {
+    return { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', border: active ? '1.5px solid #6B7C4E' : '1.5px solid #EDE7DD', borderRadius: '10px', background: active ? 'rgba(107,124,78,.06)' : '#fff', cursor: 'pointer', width: '100%' }
+  }
+
+  renderVals() {
+    const s = this.state
+    const parsedA = this.parse(s.aText)
+    const parsedB = this.parse(s.bText)
+
+    const aSteps = s.aSteps.map((st, i) => ({
+      id: st.id, num: i + 1, text: st.text,
+      onChange: e => { const v = e.target.value; this.setState(p => ({ aSteps: p.aSteps.map(x => x.id === st.id ? { ...x, text: v } : x) })) },
+      onRemove: () => this.setState(p => ({ aSteps: p.aSteps.filter(x => x.id !== st.id) })),
+    }))
+
+    const bSteps = s.bSteps.map((st, i) => {
+      const activeIngs = parsedB.filter(p => this.ingActive(st, p.name))
+      const allPills = parsedB.filter(p => p.name && p.name.trim()).map(p => {
+        const active = this.ingActive(st, p.name)
+        return { name: p.name, onToggle: () => this.toggleIng(st.id, p.name), style: this.pillStyle(active) }
+      })
+      const photoThumbs = Array.from({ length: st.photos }).map((_, k) => ({ key: k, onRemove: () => this.removeStepPhoto(st.id) }))
+      const timerVisible = st.timerOpen
+      const zutatVisible = st.zutatOpen === true || (st.zutatOpen !== false && activeIngs.length > 0)
+      const fotoVisible = st.fotoOpen
+      return {
+        id: st.id, num: i + 1, text: st.text,
+        onChange: e => { const v = e.target.value; this.setState(p => ({ bSteps: p.bSteps.map(x => x.id === st.id ? { ...x, text: v } : x) })) },
+        onRemove: () => {
+          const deleted = { ...st }; const idx = i
+          this.setState(p => ({ bSteps: p.bSteps.filter(x => x.id !== st.id) }))
+          this.showToast('Schritt gelöscht', () => {
+            this.setState(p => { const steps = [...p.bSteps]; steps.splice(Math.min(idx, steps.length), 0, deleted); return { bSteps: steps } })
+            this.clearToast()
+          })
+        },
+        timer: st.timer, onTimer: e => this.setStepTimer(st.id, e.target.value),
+        allPills, photoThumbs,
+        timerVisible, zutatVisible, fotoVisible,
+        timerBtnLabel: st.timer ? 'Timer · ' + st.timer + ' Min.' : 'Timer',
+        zutatBtnLabel: activeIngs.length > 0 ? 'Zutaten · ' + activeIngs.length : 'Zutaten',
+        fotoBtnLabel: st.photos > 0 ? (st.photos === 1 ? '1 Foto' : st.photos + ' Fotos') : 'Foto',
+        timerBtnStyle: this.actionBtnStyle(timerVisible),
+        zutatBtnStyle: this.actionBtnStyle(zutatVisible),
+        fotoBtnStyle: this.actionBtnStyle(fotoVisible),
+        onToggleTimer: () => this.toggleStepTimer(st.id),
+        onToggleZutat: () => this.toggleStepZutat(st.id),
+        onToggleFoto: () => this.toggleStepFoto(st.id),
+        onAddPhoto: () => this.addStepPhoto(st.id),
+      }
+    })
+
+    const hasEmbed = s.bEmbedRecipes.length > 0
+    const bTabs = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff'].map((label, i) => {
+      const active = i === s.bStep; const done = i < s.bStep
+      const disabled = i === 2 && !hasEmbed
+      return {
+        label, onClick: disabled ? () => {} : () => this.setState({ bStep: i }),
+        dot: done ? '✓' : String(i + 1),
+        wrapStyle: { flex: 1, display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 4px', background: 'none', border: 'none', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.35 : 1 },
+        dotStyle: { width: '22px', height: '22px', flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',sans-serif", fontSize: '11px', fontWeight: 700, background: active ? '#6B7C4E' : done ? 'rgba(107,124,78,.18)' : '#EDE7DD', color: active ? '#fff' : done ? '#6B7C4E' : '#9A958C' },
+        labelStyle: { fontFamily: "'Inter',sans-serif", fontSize: '12.5px', whiteSpace: 'nowrap', fontWeight: active ? 600 : 500, color: active ? '#2C2C2A' : done ? '#6B7C4E' : '#9A958C' },
+      }
+    })
+
+    const bLinkResults = this.RECIPE_SUGGESTIONS.filter(r => {
+      const notLinked = !s.bLinkedRecipes.some(lr => lr.id === r.id)
+      const matchSearch = !s.bLinkSearch || r.name.toLowerCase().includes(s.bLinkSearch.toLowerCase()) || r.author.toLowerCase().includes(s.bLinkSearch.toLowerCase())
+      return notLinked && matchSearch
+    }).map(r => ({ ...r, onPick: () => this.pickLinkedRecipe(r) }))
+
+    const bEmbedResults = this.RECIPE_SUGGESTIONS.filter(r => {
+      const notAdded = !s.bEmbedRecipes.some(er => er.id === r.id)
+      const matchSearch = !s.bEmbedSearch || r.name.toLowerCase().includes(s.bEmbedSearch.toLowerCase())
+      return notAdded && matchSearch
+    }).map(r => ({ ...r, onPick: () => this.pickEmbedRecipe(r) }))
+
+    const _arrangeBlocks = [
+      { isMain: true, name: s.bTitle, portions: s.bServings, subtitle: '', showSubtitle: false, hasHint: false, hint: '' },
+      ...s.bEmbedRecipes.map(r => ({ isMain: false, name: r.name, portions: r.portions, subtitle: r.author + ' · ' + r.portions + ' Portionen', showSubtitle: true, hasHint: !!(r.hint && r.hint.trim()), hint: r.hint || '' }))
+    ]
+    const bArrangeItems = []
+    _arrangeBlocks.forEach((bl, i) => {
+      bArrangeItems.push({
+        isBlock: true, isGap: false,
+        name: bl.name, portions: bl.portions, subtitle: bl.subtitle,
+        showSubtitle: bl.showSubtitle, showPortions: bl.isMain, hasHint: bl.hasHint, hint: bl.hint,
+        labelText: bl.isMain ? 'Dein Rezept' : 'Teilrezept',
+        labelStyle: { fontFamily: "'Inter',sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: bl.isMain ? '#6B7C4E' : '#9A958C', marginBottom: '3px' },
+        blockStyle: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '13px 14px', border: '1.5px solid ' + (bl.isMain ? '#6B7C4E' : '#EDE7DD'), borderRadius: '10px', marginBottom: '10px', background: '#fff' },
+      })
+      if (i < _arrangeBlocks.length - 1) {
+        const _note = s.bInterNotes[i] || { text: '', open: false }
+        const _hasNote = !!(_note.text && _note.text.trim())
+        const _isOpen = _note.open
+        bArrangeItems.push({
+          isBlock: false, isGap: true,
+          noteText: _note.text || '',
+          hasNote: _hasNote, isOpen: _isOpen,
+          showAddBtn: !_hasNote && !_isOpen,
+          showNote: _hasNote && !_isOpen,
+          onOpen: () => this.openInterNote(i),
+          onClose: () => this.closeInterNote(i),
+          onChange: e => this.setInterNoteText(i, e.target.value),
+          onDelete: () => this.deleteInterNote(i),
+        })
+      }
+    })
+
+    return {
+      // Variante A
+      aTitle: s.aTitle, aText: s.aText, parsedA, aSteps,
+      aCount: parsedA.length + (parsedA.length === 1 ? ' Zutat' : ' Zutaten') + (parsedA.filter(r => r.noQty).length ? ' · ' + parsedA.filter(r => r.noQty).length + ' ohne Menge' : ''),
+      setATitle: this.setATitle, setAText: this.setAText, addAStep: this.addAStep,
+      aDetailsOpen: s.aDetailsOpen, toggleDetails: this.toggleDetails,
+      aEmbedOpen: s.aEmbedOpen, toggleEmbed: this.toggleEmbed,
+      aChevronStyle: { fontSize: '17px', display: 'inline-block', transition: 'transform .2s ease', transform: s.aDetailsOpen ? 'rotate(180deg)' : 'none' },
+      aVisPrivat: () => this.setState({ aVis: 'privat' }),
+      aVisLink: () => this.setState({ aVis: 'link' }),
+      aVisOeffentlich: () => this.setState({ aVis: 'off' }),
+      aVisPrivatStyle: this.segStyle(s.aVis === 'privat'),
+      aVisLinkStyle: this.segStyle(s.aVis === 'link'),
+      aVisOffStyle: this.segStyle(s.aVis === 'off'),
+      aVisLinkNote: s.aVis === 'link',
+      aTypeKochen: () => this.setState({ aType: 'kochen' }),
+      aTypeBacken: () => this.setState({ aType: 'backen' }),
+      aTypeKochenStyle: this.typeStyle(s.aType === 'kochen'),
+      aTypeBackenStyle: this.typeStyle(s.aType === 'backen'),
+      aDiffCells: this.diffCells(s.aDiff, '#C8602A'),
+      aDiffLabel: this.diffLabel(s.aDiff),
+      embedResults: [
+        { name: 'Pizzateig', meta: 'eigenes Rezept', pick: this.toggleEmbed },
+        { name: 'Tomatensauce', meta: 'von Lena', pick: this.toggleEmbed },
+        { name: 'Hefeteig, süß', meta: 'eigenes Rezept', pick: this.toggleEmbed },
+      ],
+
+      // Variante B
+      bStep: s.bStep, bTabs, bTitle: s.bTitle, bText: s.bText, parsedB, bSteps,
+      bArrangeItems,
+      bFreigabeOpen: s.bFreigabeOpen, bVorschauOpen: s.bVorschauOpen,
+      bFreigabeIsPrivat: s.bVis === 'privat', bFreigabeIsLink: s.bVis === 'link', bFreigabeIsOff: s.bVis === 'off',
+      freigabeOptPrivatStyle: this.freigabeOptStyle(s.bVis === 'privat'),
+      freigabeOptLinkStyle: this.freigabeOptStyle(s.bVis === 'link'),
+      freigabeOptOffStyle: this.freigabeOptStyle(s.bVis === 'off'),
+      openFreigabe: this.openFreigabe, closeFreigabe: this.closeFreigabe,
+      openVorschau: this.openVorschau, closeVorschau: this.closeVorschau,
+      setFreigabePrivat: this.setFreigabePrivat, setFreigabeLink: this.setFreigabeLink, setFreigabeOff: this.setFreigabeOff,
+      bArtLabel: s.bArt.map(a => ({kochen:'Kochen',backen:'Backen',grillen:'Grillen',einmachen:'Einmachen'})[a]||a).join(' & ') || 'Kochen',
+      bHasSteps: s.bSteps.some(st => st.text && st.text.trim()),
+      bCount: parsedB.length + (parsedB.length === 1 ? ' Zutat' : ' Zutaten') + (parsedB.filter(r => r.noQty).length ? ' · ' + parsedB.filter(r => r.noQty).length + ' ohne Menge' : ''),
+      setBTitle: this.setBTitle, setBText: this.setBText, addBStep: this.addBStep,
+      nextB: this.nextB, prevB: this.prevB,
+      bIs0: s.bStep === 0, bIs1: s.bStep === 1, bIs2: s.bStep === 2, bIs3: s.bStep === 3, bIs4: s.bStep === 4,
+      bShowNext: s.bStep < 4, bShowDone: s.bStep === 4,
+      bBackStyle: { display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '11px 18px', borderRadius: '8px', border: '1.5px solid #D8D4CD', background: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 500, fontFamily: "'Inter',sans-serif", color: s.bStep === 0 ? '#C9C3B8' : '#6B6B68', visibility: s.bStep === 0 ? 'hidden' : 'visible' },
+      bVisPrivat: () => this.setState({ bVis: 'privat' }),
+      bVisLink: () => this.setState({ bVis: 'link' }),
+      bVisOeffentlich: () => this.setState({ bVis: 'off' }),
+      bVisPrivatStyle: this.segStyle(s.bVis === 'privat'),
+      bVisLinkStyle: this.segStyle(s.bVis === 'link'),
+      bVisOffStyle: this.segStyle(s.bVis === 'off'),
+      bVisLinkNote: s.bVis === 'link',
+      bArtChips: [{id:'kochen',label:'Kochen'},{id:'backen',label:'Backen'},{id:'grillen',label:'Grillen'},{id:'einmachen',label:'Einmachen'}].map(a => ({ label: a.label, onToggle: () => this.toggleArt(a.id), style: this.chipStyle(s.bArt.includes(a.id)) })),
+      bDiffCells: this.diffCells(s.bDiff, '#6B7C4E'),
+      bDiffLabel: this.diffLabel(s.bDiff),
+      bServings: s.bServings, bServingsInc: () => this.bumpServings('b', 1), bServingsDec: () => this.bumpServings('b', -1),
+
+      // Dup warning
+      bDupWarn: s.bTitleDupCount > 0,
+      bDupTitles: s.bTitleDupCount > 0 ? [{ label: 'Pizzateig (von dir)' }, { label: 'Pizzateig einfach (Lena)' }] : [],
+      bDupCount: s.bTitleDupCount,
+
+      // Auto-save
+      bSavedVisible: this._saved,
+
+      // Toast
+      bToastVisible: this._toastVisible,
+      bToastMsg: this._toastMsg,
+      bUndoToast: this._toastUndo,
+
+      // Dazu servieren
+      bLinkedRecipes: s.bLinkedRecipes.map(r => ({ ...r, onRemove: () => this.removeLinkedRecipe(r.id) })),
+      bCanAddLinked: s.bLinkedRecipes.length < 4,
+      bLinkedMaxReached: s.bLinkedRecipes.length >= 4,
+      bLinkPickerOpen: s.bLinkPickerOpen,
+      bLinkPickerClosed: !s.bLinkPickerOpen,
+      bLinkSearch: s.bLinkSearch,
+      setBLinkSearch: this.setBLinkSearch,
+      openLinkPicker: this.openLinkPicker,
+      closeLinkPicker: this.closeLinkPicker,
+      bLinkResults,
+      bLinkNoResults: bLinkResults.length === 0,
+
+      // Teilen mit — Empfänger
+      bShareVisible: s.bVis === 'link',
+      bShareInput: s.bShareInput,
+      bShareError: s.bShareError,
+      bShareNoError: !s.bShareError,
+      setBShareInput: this.setBShareInput,
+      addShareEntry: this.addShareEntry,
+      bHasShareList: s.bShareList.length > 0,
+      bShareList: s.bShareList.map(e => ({
+        ...e,
+        onRemove: () => this.removeShareEntry(e.id),
+        isInvite: e.type === 'invite',
+        iconClass: e.type === 'invite' ? 'ti ti-mail-check' : e.type === 'user' ? 'ti ti-user' : 'ti ti-user-question',
+        chipStyle: {
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+          padding: '4px 10px', borderRadius: '999px',
+          fontFamily: "'Inter',sans-serif", fontSize: '13px', fontWeight: 500,
+          background: e.type === 'unknown' ? '#F1ECE4' : 'rgba(107,124,78,.14)',
+          color: e.type === 'unknown' ? '#9A958C' : '#6B7C4E',
+        },
+      })),
+
+      // Teilrezept einbinden (S2)
+      bEmbedPickerOpen: s.bEmbedOpen,
+      bEmbedPickerClosed: !s.bEmbedOpen,
+      bEmbedSearch: s.bEmbedSearch,
+      setBEmbedSearch: this.setBEmbedSearch,
+      openBEmbedPicker: this.openBEmbedPicker,
+      closeBEmbedPicker: this.closeBEmbedPicker,
+      bCanAddEmbed: s.bEmbedRecipes.length < 3,
+      bEmbedMaxReached: s.bEmbedRecipes.length >= 3,
+      bEmbedRecipes: s.bEmbedRecipes.map(r => ({
+        ...r,
+        onRemove: () => this.removeEmbedRecipe(r.id),
+        onPortionsInc: () => this.setEmbedPortions(r.id, 1),
+        onPortionsDec: () => this.setEmbedPortions(r.id, -1),
+        onHintChange: e => this.setEmbedHint(r.id, e.target.value),
+        onToggleHint: () => this.toggleEmbedHint(r.id),
+        hintClosed: !r.hintOpen,
+        hasHint: !!(r.hint && r.hint.trim()),
+      })),
+      bEmbedResults,
+      bEmbedNoResults: bEmbedResults.length === 0,
+    }
+  }
+}
+
+</script>
+</body>
+</html>

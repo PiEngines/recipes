@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #E0DDD8; }
+    input { border: none; outline: none; background: transparent; font-family: Inter, sans-serif; font-size: 15px; color: #2C2C2A; width: 100%; }
+    input::placeholder { color: #9A958C; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="max-width:960px; margin:0 auto; min-height:100vh; background:#FAF7F2; position:relative; padding-bottom:80px;">
+
+  <!-- ══ STICKY HEADER ══ -->
+  <div style="position:sticky; top:0; z-index:20; background:#FAF7F2; border-bottom:1px solid rgba(0,0,0,.06);">
+    <div style="padding:14px 32px 13px; display:flex; align-items:center; gap:14px;">
+
+      <!-- Back -->
+      <button onClick="{{ goBack }}" style="width:36px; height:36px; border-radius:999px; background:#fff; border:1px solid rgba(0,0,0,.08); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <i class="ti ti-arrow-left" style="font-size:17px; color:#2C2C2A;"></i>
+      </button>
+
+      <!-- Suchfeld -->
+      <div style="flex:1; display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid #C8602A; border-radius:13px; padding:11px 14px;">
+        <i class="ti ti-search" style="font-size:17px; color:#C8602A; flex-shrink:0;"></i>
+        <input value="{{ searchQuery }}" onInput="{{ onSearchInput }}" placeholder="Rezepte, Zutaten oder Tags …" style="font-size:15px;">
+        <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearSearch }}" style="width:20px; height:20px; border-radius:999px; background:#E0DDD8; border:none; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0;">
+            <i class="ti ti-x" style="font-size:11px; color:#6B6B68;"></i>
+          </button>
+        </sc-if>
+      </div>
+
+      <!-- Avatar -->
+      <div style="width:36px; height:36px; border-radius:999px; background:#C8602A; display:flex; align-items:center; justify-content:center; font-family:Inter,sans-serif; font-size:13px; font-weight:600; color:#fff; flex-shrink:0;">M</div>
+    </div>
+  </div>
+
+  <!-- ══ BODY: Sidebar + Content ══ -->
+  <div style="display:flex; align-items:flex-start; gap:0;">
+
+    <!-- ════ LINKE SIDEBAR ════ -->
+    <div style="width:224px; flex-shrink:0; position:sticky; top:65px; max-height:calc(100vh - 65px); overflow-y:auto; padding:24px 20px 32px 32px; border-right:1px solid rgba(0,0,0,.06);">
+
+      <!-- Aktive Filter Badge -->
+      <sc-if value="{{ hasActiveFilters }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-bottom:18px;">
+          <button onClick="{{ clearAll }}" style="display:flex; align-items:center; gap:6px; background:#FDF0EA; border:1px solid rgba(200,96,42,.2); border-radius:999px; padding:6px 12px; font-family:Inter,sans-serif; font-size:12px; font-weight:500; color:#C8602A;">
+            <i class="ti ti-x" style="font-size:12px;"></i>
+            Filter zurücksetzen
+          </button>
+        </div>
+      </sc-if>
+
+      <!-- Art -->
+      <div style="margin-bottom:24px;">
+        <p style="font-size:10px; font-weight:600; color:#C8602A; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px;">Art</p>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <sc-for list="{{ artChips }}" as="chip" hint-placeholder-count="5">
+            <button onClick="{{ chip.onTap }}" style="{{ chip.style }}">
+              <span style="{{ chip.dotStyle }}"></span>
+              {{ chip.label }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="height:1px; background:rgba(0,0,0,.06); margin-bottom:24px;"></div>
+
+      <!-- Ernährung -->
+      <div style="margin-bottom:24px;">
+        <p style="font-size:10px; font-weight:600; color:#6B7C4E; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px;">Ernährung</p>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <sc-for list="{{ ernaehrungChips }}" as="chip" hint-placeholder-count="5">
+            <button onClick="{{ chip.onTap }}" style="{{ chip.style }}">
+              <span style="{{ chip.dotStyle }}"></span>
+              {{ chip.label }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="height:1px; background:rgba(0,0,0,.06); margin-bottom:24px;"></div>
+
+      <!-- Zeit -->
+      <div>
+        <p style="font-size:10px; font-weight:600; color:#5A6B78; font-family:Inter,sans-serif; text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px;">Zeit</p>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <sc-for list="{{ zeitChips }}" as="chip" hint-placeholder-count="3">
+            <button onClick="{{ chip.onTap }}" style="{{ chip.style }}">
+              <span style="{{ chip.dotStyle }}"></span>
+              {{ chip.label }}
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ════ HAUPTINHALT ════ -->
+    <div style="flex:1; min-width:0; padding:24px 32px 0 28px;">
+
+      <!-- Treffer-Zeile -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+        <p style="font-size:14px; color:#9A958C; font-family:Inter,sans-serif;">
+          <span style="font-weight:600; color:#2C2C2A; font-size:15px;">{{ resultCount }}</span> Rezepte
+        </p>
+        <button onClick="{{ cycleSortBy }}" style="display:flex; align-items:center; gap:6px; background:#fff; border:1px solid rgba(0,0,0,.1); border-radius:999px; padding:7px 14px; font-family:Inter,sans-serif; font-size:13px; font-weight:500; color:#2C2C2A;">
+          <i class="ti ti-arrows-sort" style="font-size:14px; color:#C8602A;"></i>
+          {{ sortLabel }}
+          <i class="ti ti-chevron-down" style="font-size:12px; color:#9A958C;"></i>
+        </button>
+      </div>
+
+      <!-- Ergebnis-Grid -->
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+          <sc-for list="{{ visibleItems }}" as="item" hint-placeholder-count="9">
+            <div style="background:#fff; border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,.07); cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,.04);">
+              <div style="height:148px; background:{{ item.bg }}; position:relative;">
+                <button onClick="{{ item.onFav }}" style="position:absolute; top:9px; right:9px; width:30px; height:30px; border-radius:999px; background:rgba(255,255,255,.92); border:none; display:flex; align-items:center; justify-content:center;">
+                  <i class="{{ item.favIcon }}" style="font-size:14px; color:{{ item.favColor }};"></i>
+                </button>
+                <sc-if value="{{ item.isOwn }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute; bottom:8px; left:9px; background:rgba(0,0,0,.52); backdrop-filter:blur(4px); border-radius:6px; padding:2px 8px;">
+                    <span style="font-size:9px; color:rgba(255,255,255,.85); font-family:Inter,sans-serif; font-weight:500; letter-spacing:.2px;">Nur du</span>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="padding:10px 12px 12px;">
+                <p style="font-size:13px; font-weight:600; color:#2C2C2A; font-family:Inter,sans-serif; margin-bottom:6px; line-height:1.35; text-wrap:pretty;">{{ item.title }}</p>
+                <div style="display:flex; align-items:center; gap:5px;">
+                  <span style="font-size:12px; color:#9A958C; font-family:Inter,sans-serif;">{{ item.author }}</span>
+                  <span style="font-size:12px; color:#C8C4BC;">·</span>
+                  <div style="display:flex; align-items:center; gap:3px;">
+                    <i class="ti ti-clock" style="font-size:11px; color:#9A958C;"></i>
+                    <span style="font-size:12px; color:#6B6B68; font-family:Inter,sans-serif;">{{ item.timeStr }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ feedLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center; padding:24px 0 8px; color:#9A958C; font-family:Inter,sans-serif; font-size:13px;">Lädt …</div>
+        </sc-if>
+        <div id="srp-sentinel" style="height:1px; margin-top:8px;"></div>
+      </sc-if>
+
+      <!-- Leer-Zustand -->
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; align-items:center; padding:80px 32px; text-align:center;">
+          <div style="width:80px; height:80px; border-radius:999px; background:#F0EDE8; display:flex; align-items:center; justify-content:center; margin-bottom:22px;">
+            <i class="ti ti-search-off" style="font-size:36px; color:#C8C4BC;"></i>
+          </div>
+          <h3 style="font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#2C2C2A; margin-bottom:10px; letter-spacing:-.2px;">Keine Treffer</h3>
+          <p style="font-size:14px; color:#9A958C; font-family:Inter,sans-serif; line-height:1.6; max-width:280px;">Versuch es mit anderen Filtern oder einem anderen Suchbegriff.</p>
+          <button onClick="{{ clearAll }}" style="margin-top:24px; background:#C8602A; color:#fff; border:none; border-radius:999px; padding:12px 28px; font-family:Inter,sans-serif; font-size:14px; font-weight:500;">Filter zurücksetzen</button>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <div style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#fff; border-top:1px solid rgba(0,0,0,.07);">
+    <div style="max-width:960px; margin:0 auto; height:60px; display:flex; align-items:center;">
+      <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+        <i class="ti ti-home-2" style="font-size:21px;"></i>
+        <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Start</span>
+      </button>
+      <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#C8602A;">
+        <i class="ti ti-book-2" style="font-size:21px;"></i>
+        <span style="font-size:9px; font-weight:600; font-family:Inter,sans-serif;">Rezepte</span>
+      </button>
+      <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+        <i class="ti ti-heart" style="font-size:21px;"></i>
+        <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Favoriten</span>
+      </button>
+      <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+        <i class="ti ti-plus" style="font-size:22px;"></i>
+        <span style="font-size:9px; font-weight:600; font-family:Inter,sans-serif;">Neu</span>
+      </button>
+      <button style="flex:1; height:100%; background:transparent; border:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; color:#9A958C;">
+        <i class="ti ti-dots" style="font-size:21px;"></i>
+        <span style="font-size:9px; font-weight:500; font-family:Inter,sans-serif;">Mehr</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+class Component extends DCLogic {
+  state = {
+    searchQuery: '',
+    activeArt: [],
+    activeErnaehrung: [],
+    activeZeit: null,
+    sortBy: 'beliebtheit',
+    visibleCount: 18,
+    feedLoading: false,
+    favs: {},
+  };
+
+  _all = [
+    { id:1,  title:'Kürbiscremesuppe',      author:'Michael', time:40, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#A85A28,#6B3510)', isOwn:true,  favCount:312, views:4800 },
+    { id:2,  title:'Thai Green Curry',       author:'Sarah',   time:30, art:'Kochen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#5C3A1E,#8B6540)', isOwn:false, favCount:287, views:5100 },
+    { id:3,  title:'Hefezopf mit Zimt',      author:'Lena',    time:90, art:'Backen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#B09A3E,#7A6A1A)', isOwn:false, favCount:254, views:3900 },
+    { id:4,  title:'Bärlauch-Pesto',         author:'Michael', time:15, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#3D4F25,#6B7C4E)', isOwn:true,  favCount:198, views:2800 },
+    { id:5,  title:'Shakshuka',              author:'Lena',    time:25, art:'Kochen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#A85228,#6B3010)', isOwn:false, favCount:231, views:3700 },
+    { id:6,  title:'Focaccia',               author:'Michael', time:45, art:'Backen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#B09A3E,#7A6A1A)', isOwn:true,  favCount:176, views:2400 },
+    { id:7,  title:'Avocado Toast',          author:'Sarah',   time:10, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#3D5C2A,#5E8040)', isOwn:false, favCount:145, views:4200 },
+    { id:8,  title:'Ramen',                  author:'Tom',     time:60, art:'Kochen',    ernaehrung:'Pescetarisch',  bg:'linear-gradient(148deg,#2A3A4A,#4A6070)', isOwn:false, favCount:203, views:3300 },
+    { id:9,  title:'Pasta Carbonara',        author:'Klaus',   time:20, art:'Kochen',    ernaehrung:null,            bg:'linear-gradient(148deg,#6B5A3E,#3E3020)', isOwn:false, favCount:322, views:6100 },
+    { id:10, title:'Spinat-Ricotta-Quiche',  author:'Marie',   time:55, art:'Backen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#2E4A1E,#4A7032)', isOwn:false, favCount:189, views:2900 },
+    { id:11, title:'Lachsfilet auf Spinat',  author:'Tom',     time:25, art:'Kochen',    ernaehrung:'Pescetarisch',  bg:'linear-gradient(148deg,#3A5A7A,#1E3A5A)', isOwn:false, favCount:164, views:2600 },
+    { id:12, title:'Hummus',                 author:'Michael', time:15, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#C8A060,#8A6830)', isOwn:true,  favCount:211, views:3800 },
+    { id:13, title:'Grillgemüse-Spieße',     author:'Klaus',   time:30, art:'Grillen',   ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#5A7A2A,#3A5A10)', isOwn:false, favCount:143, views:2200 },
+    { id:14, title:'Schweinebauch vom Grill',author:'Tom',     time:90, art:'Grillen',   ernaehrung:null,            bg:'linear-gradient(148deg,#6A3A2A,#4A2010)', isOwn:false, favCount:178, views:3400 },
+    { id:15, title:'Falafel',                author:'Lena',    time:40, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#4A6830,#2E4A1E)', isOwn:false, favCount:156, views:2700 },
+    { id:16, title:'Erdbeermarmelade',       author:'Marie',   time:50, art:'Einkochen', ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#A83048,#6A1828)', isOwn:false, favCount:134, views:1900 },
+    { id:17, title:'Zwetschgenmus',          author:'Michael', time:120,art:'Einkochen', ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#6A3A6A,#4A1E4A)', isOwn:true,  favCount:98,  views:1400 },
+    { id:18, title:'Rohkost-Bowl',           author:'Sarah',   time:10, art:'Rohkost',   ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#3A7A4A,#1E5A2E)', isOwn:false, favCount:122, views:2100 },
+    { id:19, title:'Pad Thai',               author:'Sarah',   time:30, art:'Kochen',    ernaehrung:'Pescetarisch',  bg:'linear-gradient(148deg,#B07A2A,#7A5010)', isOwn:false, favCount:197, views:3100 },
+    { id:20, title:'Gazpacho',               author:'Marie',   time:20, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#A03028,#6A1818)', isOwn:false, favCount:132, views:2300 },
+    { id:21, title:'Pilzrisotto',            author:'Klaus',   time:35, art:'Kochen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#5C4A3E,#3A2E28)', isOwn:false, favCount:167, views:2800 },
+    { id:22, title:'Blaubeer-Pancakes',      author:'Lena',    time:20, art:'Backen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#4A3E6A,#2A1E4A)', isOwn:false, favCount:189, views:3500 },
+    { id:23, title:'Linsenbolognese',        author:'Tom',     time:35, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#7A4A2A,#B07050)', isOwn:false, favCount:215, views:3600 },
+    { id:24, title:'Zitronentarte',          author:'Marie',   time:70, art:'Backen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#C8B040,#8A7810)', isOwn:false, favCount:201, views:3200 },
+    { id:25, title:'Overnight Oats',         author:'Tom',     time:5,  art:'Rohkost',   ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#8A7A6A,#5A4A3A)', isOwn:false, favCount:178, views:4100 },
+    { id:26, title:'Grüner Smoothie',        author:'Sarah',   time:5,  art:'Rohkost',   ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#3A6A2A,#1E4A10)', isOwn:false, favCount:145, views:3800 },
+    { id:27, title:'Sommerrollen',           author:'Klaus',   time:25, art:'Rohkost',   ernaehrung:'Pescetarisch',  bg:'linear-gradient(148deg,#3A6A5A,#1E4A3A)', isOwn:false, favCount:119, views:2000 },
+    { id:28, title:'Bauernfrühstück',        author:'Klaus',   time:20, art:'Kochen',    ernaehrung:null,            bg:'linear-gradient(148deg,#7A5A3A,#4A3020)', isOwn:false, favCount:143, views:2500 },
+    { id:29, title:'Lauch-Kartoffelsuppe',   author:'Marie',   time:30, art:'Kochen',    ernaehrung:'Vegetarisch',   bg:'linear-gradient(148deg,#6A7A3A,#4A5828)', isOwn:false, favCount:154, views:2600 },
+    { id:30, title:'Linsensuppe',            author:'Tom',     time:35, art:'Kochen',    ernaehrung:'Vegan',         bg:'linear-gradient(148deg,#8A6A3A,#5A4020)', isOwn:false, favCount:167, views:2900 },
+    { id:31, title:'Glutenfreier Schokoladenkuchen', author:'Lena', time:60, art:'Backen', ernaehrung:'Glutenfrei',  bg:'linear-gradient(148deg,#4A2E1E,#2A1208)', isOwn:false, favCount:191, views:3000 },
+    { id:32, title:'Laktosefreie Panna Cotta',author:'Marie',  time:20, art:'Kochen',    ernaehrung:'Laktosefrei',  bg:'linear-gradient(148deg,#C8B4A0,#8A7060)', isOwn:false, favCount:112, views:1800 },
+  ];
+
+  _score(r) { return r.favCount * 2 + r.views; }
+
+  _filtered() {
+    const { searchQuery, activeArt, activeErnaehrung, activeZeit } = this.state;
+    let items = this._all.filter(r => {
+      if (searchQuery && !r.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (activeArt.length > 0) {
+        const arts = Array.isArray(r.art) ? r.art : [r.art];
+        if (!activeArt.every(a => arts.includes(a))) return false;
+      }
+      if (activeErnaehrung.length > 0) {
+        const erns = Array.isArray(r.ernaehrung) ? r.ernaehrung : [r.ernaehrung];
+        if (!activeErnaehrung.every(e => erns.includes(e))) return false;
+      }
+      if (activeZeit) {
+        if (activeZeit === 'Unter 15 Min' && r.time >= 15) return false;
+        if (activeZeit === 'Unter 30 Min' && r.time >= 30) return false;
+        if (activeZeit === 'Unter 60 Min' && r.time >= 60) return false;
+      }
+      return true;
+    });
+    const { sortBy } = this.state;
+    if (sortBy === 'beliebtheit') items.sort((a, b) => this._score(b) - this._score(a));
+    else if (sortBy === 'neueste') items.sort((a, b) => b.id - a.id);
+    else if (sortBy === 'schnellste') items.sort((a, b) => a.time - b.time);
+    return items;
+  }
+
+  _makeSidebarChip(label, active, onTap, accentColor) {
+    const isActive = Array.isArray(active) ? active.includes(label) : active === label;
+    return {
+      label,
+      onTap,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '9px',
+        width: '100%',
+        padding: '7px 10px',
+        borderRadius: '8px',
+        border: 'none',
+        background: isActive ? `${accentColor}18` : 'transparent',
+        color: isActive ? accentColor : '#5A5A56',
+        fontSize: '13px',
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: isActive ? '600' : '400',
+        textAlign: 'left',
+        cursor: 'pointer',
+        transition: 'background .15s',
+      },
+      dotStyle: {
+        width: '7px',
+        height: '7px',
+        borderRadius: '999px',
+        flexShrink: 0,
+        background: isActive ? accentColor : '#D0CCC6',
+        display: 'inline-block',
+      },
+    };
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      const el = document.getElementById('srp-sentinel');
+      if (!el) return;
+      this._obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          const filtered = this._filtered();
+          if (this.state.visibleCount < filtered.length) {
+            this.setState({ feedLoading: true });
+            setTimeout(() => {
+              this.setState(s => ({ visibleCount: s.visibleCount + 12, feedLoading: false }));
+            }, 400);
+          }
+        }
+      }, { rootMargin: '300px' });
+      this._obs.observe(el);
+    }, 400);
+  }
+
+  componentWillUnmount() {
+    if (this._obs) this._obs.disconnect();
+  }
+
+  renderVals() {
+    const s = this.state;
+    const filtered = this._filtered();
+    const visible = filtered.slice(0, s.visibleCount);
+    const sortOptions = ['beliebtheit', 'neueste', 'schnellste'];
+    const sortLabelMap = { beliebtheit: 'Beliebtheit', neueste: 'Neueste', schnellste: 'Schnellste' };
+
+    const artChips     = ['Kochen','Backen','Grillen','Einkochen','Rohkost']
+      .map(l => this._makeSidebarChip(l, s.activeArt,       () => { const c = s.activeArt;       this.setState({ activeArt:       c.includes(l) ? c.filter(x => x !== l) : [...c, l], visibleCount: 18 }); }, '#C8602A'));
+    const ernaehrungChips = ['Vegetarisch','Vegan','Pescetarisch','Glutenfrei','Laktosefrei']
+      .map(l => this._makeSidebarChip(l, s.activeErnaehrung, () => { const c = s.activeErnaehrung; this.setState({ activeErnaehrung: c.includes(l) ? c.filter(x => x !== l) : [...c, l], visibleCount: 18 }); }, '#6B7C4E'));
+    const zeitChips    = ['Unter 15 Min','Unter 30 Min','Unter 60 Min']
+      .map(l => this._makeSidebarChip(l, s.activeZeit,       () => this.setState({ activeZeit:       s.activeZeit       === l ? null : l, visibleCount: 18 }), '#5A6B78'));
+
+    const visibleItems = visible.map(r => ({
+      ...r,
+      timeStr: r.time < 60 ? `${r.time} Min.` : `${Math.floor(r.time/60)} Std.`,
+      favIcon:  s.favs[r.id] ? 'ti ti-heart-filled' : 'ti ti-heart',
+      favColor: s.favs[r.id] ? '#C8602A' : '#9A958C',
+      onFav: (e) => {
+        e.stopPropagation();
+        this.setState(prev => ({ favs: { ...prev.favs, [r.id]: !prev.favs[r.id] } }));
+      },
+    }));
+
+    const clearAll = () => this.setState({ searchQuery: '', activeArt: [], activeErnaehrung: [], activeZeit: null, visibleCount: 18 });
+
+    return {
+      searchQuery: s.searchQuery,
+      hasQuery: s.searchQuery.length > 0,
+      onSearchInput: (e) => this.setState({ searchQuery: e.target.value, visibleCount: 18 }),
+      clearSearch: () => this.setState({ searchQuery: '', visibleCount: 18 }),
+      artChips, ernaehrungChips, zeitChips,
+      hasActiveFilters: !!(s.activeArt.length || s.activeErnaehrung.length || s.activeZeit || s.searchQuery),
+      resultCount: filtered.length,
+      sortLabel: sortLabelMap[s.sortBy],
+      cycleSortBy: () => {
+        const idx = sortOptions.indexOf(s.sortBy);
+        this.setState({ sortBy: sortOptions[(idx + 1) % sortOptions.length], visibleCount: 18 });
+      },
+      visibleItems,
+      hasResults: filtered.length > 0,
+      isEmpty: filtered.length === 0,
+      feedLoading: s.feedLoading,
+      clearAll,
+      goBack: () => window.history.back(),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
