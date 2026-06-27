@@ -41,7 +41,7 @@ export default function BottomNav() {
   const MEHR_ITEMS = [
     { icon: 'ti-user', label: 'Eigene', to: user ? `/recipes?author_id=${user.id}` : '/recipes', trackId: 'bottom-mehr-eigene-click' },
     { icon: 'ti-calendar-event', label: 'Saison', to: '/seasonal', trackId: 'bottom-mehr-saison-click' },
-    { icon: 'ti-fridge', label: 'Kühlschrank', to: '/seasonal', trackId: 'bottom-mehr-fratcher-click' },
+    { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
     { icon: 'ti-leaf', label: 'Kräuter', to: '/seasonal', trackId: 'bottom-mehr-kraeuter-click' },
   ]
 

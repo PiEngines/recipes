@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
-import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
+import { isChefkochOrAbove } from '../utils/roles'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -176,7 +176,6 @@ export default function Navbar() {
 
   const isEditOrNew = EDIT_NEW_RE.test(location.pathname)
   const hideSearch = SEARCH_HIDDEN_PATHS.includes(location.pathname) || isEditOrNew
-  const hideCreate = isEditOrNew
 
   // Local input value, debounced to URL
   const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
@@ -237,39 +236,8 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', h)
   }, [showMenu])
 
-  // ── Mobile row 2: scroll-driven show/hide ────────────────────────────────────
 
-  const [showRow2, setShowRow2] = useState(true)
-  const lastScrollY = useRef(0)
-  const touchStartY = useRef(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const current = window.scrollY
-      const delta = lastScrollY.current - current
-      if (delta > 10) setShowRow2(true)        // scroll up → show
-      else if (delta < -10) setShowRow2(false) // scroll down → hide
-      lastScrollY.current = current
-    }
-    const onTouchStart = e => { touchStartY.current = e.touches[0].clientY }
-    const onTouchEnd = e => {
-      if (e.changedTouches[0].clientY - touchStartY.current > 10) setShowRow2(true)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchend', onTouchEnd, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchend', onTouchEnd)
-    }
-  }, [])
-
-  const canCreate = isKochOrAbove(user)
   const initials = user?.name?.[0]?.toUpperCase() ?? '?'
-
-  // Whether to show mobile row 2 at all (needs search or new-recipe button)
-  const hasRow2Content = !hideSearch || (!hideCreate && canCreate)
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'var(--card)', boxShadow: 'var(--shadow)', transition: 'background-color 0.3s ease' }}>
@@ -342,37 +310,6 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* ── Mobile: row 2 (search + new + checkboxes) ─────────────────────── */}
-        {hasRow2Content && (
-          <div
-            className="sm:hidden"
-            style={{
-              overflow: 'hidden',
-              maxHeight: showRow2 ? '120px' : '0',
-              opacity: showRow2 ? 1 : 0,
-              transition: 'max-height 0.3s ease, opacity 0.3s ease',
-              paddingBottom: showRow2 ? '0.625rem' : 0,
-            }}
-          >
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: !hideSearch && hasSearch ? '0.4rem' : 0 }}>
-              {!hideSearch && (
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <NavSearchInput value={inputValue} onChange={setInputValue} />
-                </div>
-              )}
-            </div>
-            {!hideSearch && hasSearch && (
-              <ScopeCheckboxes
-                scopeDesc={scopeDesc}
-                scopeIng={scopeIng}
-                scopeAuthor={scopeAuthor}
-                onToggleDesc={v => toggleScope('scopeDesc', v)}
-                onToggleIng={v => toggleScope('scopeIng', v)}
-                onToggleAuthor={v => toggleScope('scopeAuthor', v)}
-              />
-            )}
-          </div>
-        )}
 
       </div>
     </header>

@@ -249,8 +249,8 @@ function SidebarBtn({ active, color, onClick, trackId, disabled, children }) {
   )
 }
 
-function FilterSidebar({ typeFilter, onTypeToggle, maxTimeFilter, onTimeToggle, onClearAll }) {
-  const hasFilters = typeFilter || maxTimeFilter
+function FilterSidebar({ typeFilters, onTypeToggle, maxTimeFilter, onTimeToggle, onClearAll }) {
+  const hasFilters = typeFilters.size > 0 || maxTimeFilter
   return (
     <div style={{ paddingRight: 20, paddingTop: 32, borderRight: '1px solid rgba(0,0,0,.06)', position: 'sticky', top: 65, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -264,7 +264,7 @@ function FilterSidebar({ typeFilter, onTypeToggle, maxTimeFilter, onTimeToggle, 
 
       <SidebarSection title="Art">
         {ART_OPTS.map(o => (
-          <SidebarBtn key={o.value} active={typeFilter === o.value} color={o.color}
+          <SidebarBtn key={o.value} active={typeFilters.has(o.value)} color={o.color}
             onClick={() => onTypeToggle(o.value)} trackId={`recipes-sidebar-art-${o.value}`}>
             {o.label}
           </SidebarBtn>
@@ -309,7 +309,7 @@ export default function Recipes() {
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
   const authorFilter = searchParams.get('author') || ''
   const authorIdFilter = searchParams.get('author_id') || null
-  const typeFilter = searchParams.get('type') || ''
+  const typeFilters = new Set((searchParams.get('type') || '').split(',').filter(Boolean))
   const maxTimeFilter = parseInt(searchParams.get('max_time') || '0', 10)
   const sort = searchParams.get('sort') || 'default'
 
@@ -344,7 +344,7 @@ export default function Recipes() {
         const term = search.toLowerCase()
         list = list.filter(r => r.title.toLowerCase().includes(term))
       }
-      if (typeFilter) list = list.filter(r => (r.type || 'kochen') === typeFilter)
+      if (typeFilters.size === 1) list = list.filter(r => typeFilters.has(r.type || 'kochen'))
       const start = (page - 1) * PAGE_SIZE
       const items = list.slice(start, start + PAGE_SIZE)
       setRecipes(items)
@@ -360,7 +360,7 @@ export default function Recipes() {
     if (authorIdFilter) params.author_id = authorIdFilter
     else if (effectiveAuthor) params.author = effectiveAuthor
     else if (search) params.search = search
-    if (typeFilter) params.type = typeFilter
+    if (typeFilters.size === 1) params.type = [...typeFilters][0]
 
     client.get('/api/recipes', { params })
       .then(res => {
@@ -382,7 +382,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeFilter])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeFilterKey])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -410,8 +410,11 @@ export default function Recipes() {
 
   const toggleTypeFilter = (t) => setSearchParams(prev => {
     const next = new URLSearchParams(prev)
-    if (typeFilter === t) next.delete('type')
-    else next.set('type', t)
+    const current = new Set((prev.get('type') || '').split(',').filter(Boolean))
+    if (current.has(t)) current.delete(t)
+    else current.add(t)
+    if (current.size === 0) next.delete('type')
+    else next.set('type', [...current].sort().join(','))
     next.delete('page')
     return next
   }, { replace: true })
@@ -454,7 +457,8 @@ export default function Recipes() {
     ? [...filteredByTime].sort((a, b) => b.id - a.id)
     : filteredByTime
 
-  const hasActiveChipFilters = typeFilter || maxTimeFilter
+  const hasActiveChipFilters = typeFilters.size > 0 || maxTimeFilter
+  const typeFilterKey = searchParams.get('type') || ''
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -468,8 +472,8 @@ export default function Recipes() {
               Favoriten
             </FilterButton>
           )}
-          <FilterButton active={typeFilter === 'kochen'} onClick={() => toggleTypeFilter('kochen')}>Kochen</FilterButton>
-          <FilterButton active={typeFilter === 'backen'} onClick={() => toggleTypeFilter('backen')}>Backen</FilterButton>
+          <FilterButton active={typeFilters.has('kochen')} onClick={() => toggleTypeFilter('kochen')}>Kochen</FilterButton>
+          <FilterButton active={typeFilters.has('backen')} onClick={() => toggleTypeFilter('backen')}>Backen</FilterButton>
           {maxTimeFilter > 0 && (
             <FilterButton active onClick={() => toggleTimeFilter(maxTimeFilter)}>
               Unter {maxTimeFilter} Min. ✕
@@ -485,7 +489,7 @@ export default function Recipes() {
         {/* Sidebar */}
         <div style={{ width: 224, flexShrink: 0, paddingLeft: 32 }}>
           <FilterSidebar
-            typeFilter={typeFilter}
+            typeFilters={typeFilters}
             onTypeToggle={toggleTypeFilter}
             maxTimeFilter={maxTimeFilter}
             onTimeToggle={toggleTimeFilter}
@@ -509,12 +513,12 @@ export default function Recipes() {
           {/* Active filter chips */}
           {hasActiveChipFilters && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-              {typeFilter && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(200,96,42,.1)', color: 'var(--accent)', borderRadius: 8, padding: '5px 10px', fontSize: 13, fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-                  {typeFilter === 'kochen' ? 'Kochen' : 'Backen'}
-                  <button onClick={() => toggleTypeFilter(typeFilter)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+              {[...typeFilters].map(t => (
+                <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(200,96,42,.1)', color: 'var(--accent)', borderRadius: 8, padding: '5px 10px', fontSize: 13, fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+                  {t === 'kochen' ? 'Kochen' : 'Backen'}
+                  <button onClick={() => toggleTypeFilter(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
                 </span>
-              )}
+              ))}
               {maxTimeFilter > 0 && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(90,107,120,.1)', color: '#5A6B78', borderRadius: 8, padding: '5px 10px', fontSize: 13, fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                   Unter {maxTimeFilter} Min.

@@ -101,8 +101,8 @@ function MiniCard({ recipe, image, onClick }) {
   const t = fmtTime(recipe)
   return (
     <div onClick={onClick} data-track-id="home-neue-card-click"
-      style={{ width: 158, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 118, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
+      style={{ width: 140, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
+      <div style={{ height: 100, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
         {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
         <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
           style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
@@ -206,7 +206,7 @@ export default function Home() {
   const [seasonal, newest] = carouselRecipes
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 80 }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 132 }}>
 
       {/* Greeting */}
       <div style={{ padding: '24px 16px 28px' }}>
@@ -307,7 +307,7 @@ export default function Home() {
           {neue.map(r => (
             <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
               style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-              <div style={{ height: 142, position: 'relative', overflow: 'hidden', background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r) }}>
+              <div style={{ height: 120, position: 'relative', overflow: 'hidden', background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r) }}>
                 {imgSrc(neueImgs[r.id]) && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgSrc(neueImgs[r.id])})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
                 <FavoriteHeart recipeId={r.id} recipe={r} size={14} outline={false}
                   style={{ position: 'absolute', top: 9, right: 9, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
@@ -330,20 +330,10 @@ export default function Home() {
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
           Entdecken
         </h2>
-        <div className="md:hidden">
-          {Array.from({ length: Math.ceil(feed.length / 2) }).map((_, i) => {
-            const a = feed[i * 2], b = feed[i * 2 + 1]
-            return (
-              <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {a && <FeedCard recipe={a} image={feedImgs[a.id]} onClick={() => navigate(`/recipes/${a.id}`)} />}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {b && <FeedCard recipe={b} image={feedImgs[b.id]} onClick={() => navigate(`/recipes/${b.id}`)} />}
-                </div>
-              </div>
-            )
-          })}
+        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'calc(50% - 6px) calc(50% - 6px)', gap: 12 }}>
+          {feed.map(r => (
+            <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+          ))}
         </div>
         <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {feed.map(r => (

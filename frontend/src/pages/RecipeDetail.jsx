@@ -63,7 +63,7 @@ function scaleAmount(amount, factor, unit, isInteger) {
 function wouldDropBelowMin(ingredients, servings, baseServings) {
   if (!baseServings) return false
   const factor = (servings - 1) / baseServings
-  return ingredients.some(ing => {
+  return (ingredients || []).some(ing => {
     if (!ing.amount || (ing.unit && EXACT_UNITS.has(ing.unit))) return false
     const n = parseScaledValue(ing.amount, factor)
     return n !== null && n > 0 && n < 0.25
@@ -114,7 +114,7 @@ function DifficultySpoons({ difficulty }) {
 
 // ── Hero section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ recipe, media, onImageClick }) {
+function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
   const gradient = GRADIENTS[recipe.id % GRADIENTS.length]
   const images = media
     .filter(m => m.media_type === 'image')
@@ -135,9 +135,22 @@ function HeroSection({ recipe, media, onImageClick }) {
         }}
       >
         {active && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${active.thumbnail_url || active.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,.62) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,.22) 0%, transparent 35%, rgba(0,0,0,.62) 100%)' }} />
+        {/* Mobile breadcrumb + edit overlay */}
+        <div className="md:hidden" style={{ position: 'absolute', top: 12, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', flex: 1, minWidth: 0 }}>
+            <Link to="/recipes" style={{ fontSize: 12, color: 'rgba(255,255,255,.65)', whiteSpace: 'nowrap', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>Rezepte</Link>
+            <i className="ti ti-chevron-right" style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Inter, sans-serif' }}>{recipe.title}</span>
+          </div>
+          {canEdit && (
+            <button onClick={onEdit} style={{ border: '1.5px solid rgba(255,255,255,.45)', background: 'rgba(0,0,0,.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', borderRadius: 999, padding: '5px 13px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}>
+              <i className="ti ti-pencil" style={{ fontSize: 12 }} /> Bearbeiten
+            </button>
+          )}
+        </div>
         <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false}
-          style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.88)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
+          style={{ position: 'absolute', bottom: 18, right: 14, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px' }}>
           {recipe.description && (
             <div style={{ background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
@@ -231,13 +244,18 @@ function Pill({ children, color }) {
 // ── Ingredient list (shared by sidebar + drawer) ──────────────────────────────
 
 function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIngredient, onSelectIngredient }) {
+  const safeIngredients = ingredients || []
   const grouped = {}
-  for (const ing of ingredients) {
+  for (const ing of safeIngredients) {
     const key = ing.component_label || ''
     if (!grouped[key]) grouped[key] = []
     grouped[key].push(ing)
   }
   const groups = Object.entries(grouped)
+
+  if (safeIngredients.length === 0) {
+    return <p style={{ fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', padding: '0.5rem 0' }}>Keine Zutaten angegeben.</p>
+  }
 
   const renderIng = ing => {
     const active = activeIds.has(ing.id)
@@ -274,7 +292,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
   }
 
   if (view === 'all' || groups.length <= 1) {
-    return <div>{ingredients.map(renderIng)}</div>
+    return <div>{safeIngredients.map(renderIng)}</div>
   }
 
   return (
@@ -619,6 +637,70 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
   )
 })
 
+// ── Ingredient strip (mobile, bottom of screen) ───────────────────────────────
+
+function IngredientStrip({ activeStep, stepIngredients, onIngredientClick, selectedIngredient }) {
+  const [expanded, setExpanded] = useState(true)
+  const items = stepIngredients || []
+
+  if (!activeStep || items.length === 0) return null
+
+  return (
+    <div
+      className="md:hidden"
+      style={{
+        position: 'fixed', bottom: 60, left: 0, right: 0, zIndex: 90,
+        background: 'var(--card)', borderTop: '1px solid rgba(0,0,0,.07)',
+        boxShadow: '0 -4px 20px rgba(0,0,0,.08)',
+      }}
+    >
+      {!expanded ? (
+        <div onClick={() => setExpanded(true)} style={{ padding: '10px 18px 12px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 1 }}>
+            {items.slice(0, 6).map((_, i) => (
+              <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', opacity: 0.5 + i * 0.08 }} />
+            ))}
+          </div>
+          <i className="ti ti-chevron-up" style={{ fontSize: 14, color: 'var(--accent)' }} />
+        </div>
+      ) : (
+        <div>
+          <div style={{ padding: '10px 16px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(0,0,0,.06)' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                Schritt {activeStep.sort_order ?? 1}
+              </span>
+              {activeStep.title && (
+                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 13, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>{activeStep.title}</div>
+              )}
+            </div>
+            <button onClick={() => setExpanded(false)} style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer' }}>
+              <i className="ti ti-chevron-down" />
+            </button>
+          </div>
+          <div style={{ padding: '10px 16px 14px', display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {items.map(ing => (
+              <div
+                key={ing.id}
+                onClick={() => onIngredientClick(ing)}
+                style={{
+                  padding: '5px 11px', borderRadius: 999,
+                  background: selectedIngredient?.id === ing.id ? 'var(--accent)' : 'rgba(200,96,42,.1)',
+                  color: selectedIngredient?.id === ing.id ? '#fff' : 'var(--accent)',
+                  fontSize: 12, fontFamily: 'Inter, sans-serif', fontWeight: 500,
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                {ing.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Loading screen ────────────────────────────────────────────────────────────
 
 function LoadingScreen() {
@@ -798,8 +880,8 @@ export default function RecipeDetail() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
 
-      {/* Nav bar */}
-      <div style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Nav bar — desktop only (mobile breadcrumb is in hero overlay) */}
+      <div className="hidden md:flex" style={{ padding: '0.875rem 1.5rem', maxWidth: '1200px', margin: '0 auto', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <Breadcrumb items={[
           { label: 'Alle Rezepte', path: '/recipes' },
           { label: recipe?.title || '…', path: null },
@@ -851,7 +933,7 @@ export default function RecipeDetail() {
 
           {/* Main */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} />
+            <HeroSection recipe={recipe} media={recipeMedia} onImageClick={openRecipeLightbox} canEdit={canEdit} onEdit={() => navigate(`/recipes/${recipe.id}/edit`)} />
 
             {user && usedIn > 0 && (
               <div
@@ -985,6 +1067,14 @@ export default function RecipeDetail() {
         onClose={() => setPanelOpen(false)}
         selectedIngredient={selectedIngredient}
         onSelectIngredient={handleSelectIngredient}
+      />
+
+      {/* Ingredient strip (mobile, shows active step ingredients as pills) */}
+      <IngredientStrip
+        activeStep={recipe.steps[activeStepIdx]}
+        stepIngredients={stepIngredients[recipe.steps[activeStepIdx]?.id]}
+        onIngredientClick={ing => handleSelectIngredient(selectedIngredient?.id === ing.id ? null : { id: ing.id, name: ing.name })}
+        selectedIngredient={selectedIngredient}
       />
 
       {/* Lightbox */}
