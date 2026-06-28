@@ -620,6 +620,8 @@ export default function RecipeForm() {
   const [subRecipeLoading, setSubRecipeLoading] = useState(false)
   const [tippOpen, setTippOpen] = useState(false)
   const tippRef = useRef(null)
+  const [moduleOrder, setModuleOrder] = useState([])
+  const dragFromRef = useRef(null)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -671,6 +673,12 @@ export default function RecipeForm() {
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [tippOpen])
+
+  useEffect(() => {
+    if (wizardStep !== 2) return
+    const mods = stateRef.current.ingredients.filter(i => i._module_recipe_id)
+    setModuleOrder(['main', ...mods.map(m => m._key)])
+  }, [wizardStep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStepMedia = useCallback((stepKey, media) => {
     setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
@@ -1062,6 +1070,7 @@ export default function RecipeForm() {
   const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
   const servingsNum = parseInt(servings) || 4
   const parsedA = wizardStep === 1 ? parseIngText(aText) : []
+  const noModules = !ingredients.some(i => i._module_recipe_id)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
@@ -1159,15 +1168,18 @@ export default function RecipeForm() {
 
         {/* Desktop sidebar stepper */}
         <aside className="hidden sm:flex" style={{ width: '200px', flexShrink: 0, flexDirection: 'column', padding: '1.5rem 0', borderRight: '1px solid var(--border)', background: 'var(--card)', minHeight: 'calc(100vh - 128px)' }}>
-          {STEPS.map((label, i) => (
-            <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: 'pointer', textAlign: 'left' }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
-                {i < wizardStep ? '✓' : i + 1}
-              </div>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: wizardStep === i ? 600 : 400, color: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--text)') }}>{label}</span>
-            </button>
-          ))}
+          {STEPS.map((label, i) => {
+            const stepGrayed = i === 2 && noModules
+            return (
+              <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: stepGrayed ? 'default' : 'pointer', textAlign: 'left', opacity: stepGrayed ? 0.4 : 1 }}>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
+                  {i < wizardStep ? '✓' : i + 1}
+                </div>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: wizardStep === i ? 600 : 400, color: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--text)') }}>{label}</span>
+              </button>
+            )
+          })}
         </aside>
 
         {/* Step content */}
@@ -1391,21 +1403,53 @@ export default function RecipeForm() {
             </div>
           )}
 
-          {/* Step 2: Zubereitung */}
+          {/* Step 2: Anordnung */}
           {wizardStep === 2 && (
             <div>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Wie wird's gemacht?</div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.25rem' }}>Schreibe jeden Schritt — füge Timer und Fotos hinzu.</p>
-              {steps.map((step, idx) => (
-                <StepRow key={step._key} item={step} index={idx} total={steps.length}
-                  onChange={(field, val) => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s)); markDirty() }}
-                  onMove={dir => { setSteps(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-                  onRemove={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-                  onMediaChange={media => updateStepMedia(step._key, media)}
-                  onStepMediaReload={(dbId, key) => reloadStepMedia(dbId, key)}
-                />
-              ))}
-              <AddRowBtn onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}>+ Schritt hinzufügen</AddRowBtn>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Anordnung</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Ziehe die Blöcke in die gewünschte Reihenfolge.</p>
+              {moduleOrder.length === 0 ? (
+                <p style={{ color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>Keine Teilrezepte eingebunden.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '520px' }}>
+                  {moduleOrder.map((id, idx) => {
+                    const isMain = id === 'main'
+                    const mod = isMain ? null : ingredients.find(i => i._key === id)
+                    const name = isMain ? (title || 'Hauptrezept') : (mod?.name || '—')
+                    const authorLabel = isMain ? (user?.display_name || user?.username || 'Eigenes Rezept') : (mod?._author_label || '')
+                    const portionen = isMain ? servingsNum : (parseInt(mod?._servings_override) || servingsNum)
+                    return (
+                      <div
+                        key={id}
+                        draggable
+                        onDragStart={() => { dragFromRef.current = idx }}
+                        onDragOver={e => {
+                          e.preventDefault()
+                          if (dragFromRef.current === null || dragFromRef.current === idx) return
+                          const from = dragFromRef.current
+                          setModuleOrder(prev => {
+                            const arr = [...prev]
+                            const [item] = arr.splice(from, 1)
+                            arr.splice(idx, 0, item)
+                            return arr
+                          })
+                          dragFromRef.current = idx
+                        }}
+                        onDragEnd={() => { dragFromRef.current = null }}
+                        data-track-id="recipe-form-anordnung-drag"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.875rem 1rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', cursor: 'grab', userSelect: 'none' }}
+                      >
+                        <span style={{ fontSize: '1.1rem', color: 'var(--subtext)', flexShrink: 0, lineHeight: 1 }}>⠿</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          {authorLabel && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: 'var(--subtext)', marginBottom: '0.1rem' }}>{authorLabel}</div>}
+                          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
+                        </div>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', flexShrink: 0, whiteSpace: 'nowrap' }}>{portionen} Portionen</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -1517,7 +1561,7 @@ export default function RecipeForm() {
             Vorschau
           </button>
           {wizardStep < STEPS.length - 1 ? (
-            <button onClick={() => setWizardStep(s => s + 1)} data-track-id="recipe-form-step-next"
+            <button onClick={() => setWizardStep(s => { const next = s + 1; return next === 2 && noModules ? 3 : next })} data-track-id="recipe-form-step-next"
               style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
               Weiter →
             </button>
