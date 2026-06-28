@@ -1595,11 +1595,12 @@ export default function RecipeForm() {
                           <button
                             data-track-id="recipe-form-step-timer-toggle"
                             onClick={() => updStep({ _open_timer: !step._open_timer, _open_foto: false })}
-                            style={{ padding: '0.15rem 0.5rem', border: `1px solid ${timerActive || step._open_timer ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: timerActive || step._open_timer ? 'rgba(44,44,42,0.07)' : 'none', color: timerActive || step._open_timer ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
-                            {timerActive ? `⏱ ${step.timer_minutes} Min.` : '⏱ Timer'}
+                            style={{ padding: '0.45rem 0.9rem', border: `1.5px solid ${timerActive || step._open_timer ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: '8px', background: timerActive || step._open_timer ? 'var(--bg)' : 'none', color: timerActive || step._open_timer ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer' }}>
+                            <><i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 16, verticalAlign: '-2px', marginRight: 5 }} />{timerActive ? `${step.timer_minutes} Min.` : 'Timer'}</>
                           </button>
                           <button
                             data-track-id="recipe-form-step-foto-toggle"
+                            disabled={!step.instruction.trim()}
                             onClick={async () => {
                               if (!step._open_foto && !step.dbId) {
                                 setFotoSavingKey(step._key)
@@ -1613,8 +1614,8 @@ export default function RecipeForm() {
                                 updStep({ _open_foto: !step._open_foto, _open_timer: false })
                               }
                             }}
-                            style={{ padding: '0.15rem 0.5rem', border: `1px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: fotoActive || step._open_foto ? 'rgba(44,44,42,0.07)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
-                            {fotoActive ? `📷 ${step.media.length}` : '📷 Foto'}
+                            style={{ padding: '0.45rem 0.9rem', border: `1.5px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: '8px', background: fotoActive || step._open_foto ? 'var(--bg)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', fontWeight: 500, cursor: step.instruction.trim() ? 'pointer' : 'not-allowed', opacity: step.instruction.trim() ? 1 : 0.45 }}>
+                            <><i className="ti ti-camera" aria-hidden="true" style={{ fontSize: 16, verticalAlign: '-2px', marginRight: 5 }} />{fotoActive ? `${step.media.length} Fotos` : 'Foto'}</>
                           </button>
                         </div>
                         {/* Timer panel */}
