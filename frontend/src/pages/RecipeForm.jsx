@@ -591,6 +591,7 @@ export default function RecipeForm() {
   const [difficulty, setDifficulty] = useState(3)
   const [source, setSource] = useState('')
   const [type, setType] = useState('kochen')
+  const [course, setCourse] = useState('')
   const [selectedCats, setSelectedCats] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
@@ -634,7 +635,7 @@ export default function RecipeForm() {
   useEffect(() => {
     stateRef.current = {
       title, description, prepTime, cookTime, servings,
-      difficulty, source, type,
+      difficulty, source, type, course,
       selectedCats, selectedTags,
       ingredients, steps,
       recipeId,
@@ -851,6 +852,7 @@ export default function RecipeForm() {
       difficulty: s.difficulty || null,
       status: 'published',
       type: s.type,
+      course: s.course || null,
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
       tag_ids: s.selectedTags.map(t => t.id),
@@ -1703,10 +1705,24 @@ export default function RecipeForm() {
               <div style={{ marginBottom: '1.75rem' }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Art</div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {[['kochen', 'Kochen'], ['backen', 'Backen'], ['grillen', 'Grillen'], ['einmachen', 'Einmachen']].map(([value, label]) => (
+                  {[['kochen', 'Kochen'], ['backen', 'Backen'], ['grillen', 'Grillen'], ['braten', 'Braten'], ['daempfen', 'Dämpfen'], ['einkochen', 'Einkochen'], ['rohkost', 'Rohkost']].map(([value, label]) => (
                     <button key={value} data-track-id={`recipe-form-type-${value}`}
                       onClick={() => { setType(value); markDirty() }}
                       style={{ padding: '0.4rem 1rem', border: `1.5px solid ${type === value ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? 'var(--accent)' : 'none', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: type === value ? 600 : 400 }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2b. Gang */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Gang</div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {[['vorspeise', 'Vorspeise'], ['hauptspeise', 'Hauptspeise'], ['beilage', 'Beilage'], ['dessert', 'Dessert'], ['snack', 'Snack'], ['gebaeck', 'Gebäck'], ['suppe', 'Suppe'], ['fruehstueck', 'Frühstück']].map(([value, label]) => (
+                    <button key={value} data-track-id={`recipe-form-course-${value}`}
+                      onClick={() => { setCourse(c => c === value ? '' : value); markDirty() }}
+                      style={{ padding: '0.4rem 1rem', border: `1.5px solid ${course === value ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: course === value ? 'var(--accent)' : 'none', color: course === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: course === value ? 600 : 400 }}>
                       {label}
                     </button>
                   ))}

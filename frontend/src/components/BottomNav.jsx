@@ -112,44 +112,47 @@ export default function BottomNav() {
           borderTop: '1px solid rgba(0,0,0,.07)',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           zIndex: 100,
         }}
       >
-        <Link to="/" data-track-id="bottom-nav-home-click" style={slotStyle(isHome)}>
-          <i className="ti ti-home" style={{ fontSize: 22 }} />
-          {slotLabel('Start')}
-        </Link>
-
-        <Link to="/recipes" data-track-id="bottom-nav-rezepte-click" style={slotStyle(isRezepte)}>
-          <i className="ti ti-book-2" style={{ fontSize: 22 }} />
-          {slotLabel('Rezepte')}
-        </Link>
-
-        <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
-          <i className="ti ti-heart" style={{ fontSize: 22 }} />
-          {slotLabel('Favoriten')}
-        </Link>
-
-        {canCreate ? (
-          <Link to="/recipes/new" data-track-id="bottom-nav-neu-click" style={slotStyle(isNeu)}>
-            <i className="ti ti-plus" style={{ fontSize: 22 }} />
-            {slotLabel('Neu')}
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: 480 }}>
+          <Link to="/" data-track-id="bottom-nav-home-click" style={slotStyle(isHome)}>
+            <i className="ti ti-home" style={{ fontSize: 22 }} />
+            {slotLabel('Start')}
           </Link>
-        ) : (
-          <span data-track-id="bottom-nav-neu-click" style={{ ...slotStyle(false), opacity: 0.3, cursor: 'default' }}>
-            <i className="ti ti-plus" style={{ fontSize: 22 }} />
-            {slotLabel('Neu')}
-          </span>
-        )}
 
-        <button
-          onClick={() => setMoreOpen(m => !m)}
-          data-track-id="bottom-nav-mehr-click"
-          style={slotStyle(moreOpen)}
-        >
-          <i className="ti ti-dots" style={{ fontSize: 22 }} />
-          {slotLabel('Mehr')}
-        </button>
+          <Link to="/recipes" data-track-id="bottom-nav-rezepte-click" style={slotStyle(isRezepte)}>
+            <i className="ti ti-book-2" style={{ fontSize: 22 }} />
+            {slotLabel('Rezepte')}
+          </Link>
+
+          <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
+            <i className="ti ti-heart" style={{ fontSize: 22 }} />
+            {slotLabel('Favoriten')}
+          </Link>
+
+          {canCreate ? (
+            <Link to="/recipes/new" data-track-id="bottom-nav-neu-click" style={slotStyle(isNeu)}>
+              <i className="ti ti-plus" style={{ fontSize: 22 }} />
+              {slotLabel('Neu')}
+            </Link>
+          ) : (
+            <span data-track-id="bottom-nav-neu-click" style={{ ...slotStyle(false), opacity: 0.3, cursor: 'default' }}>
+              <i className="ti ti-plus" style={{ fontSize: 22 }} />
+              {slotLabel('Neu')}
+            </span>
+          )}
+
+          <button
+            onClick={() => setMoreOpen(m => !m)}
+            data-track-id="bottom-nav-mehr-click"
+            style={slotStyle(moreOpen)}
+          >
+            <i className="ti ti-dots" style={{ fontSize: 22 }} />
+            {slotLabel('Mehr')}
+          </button>
+        </div>
       </nav>
     </>
   )
