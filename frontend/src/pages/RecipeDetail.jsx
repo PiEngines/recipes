@@ -858,7 +858,7 @@ export default function RecipeDetail() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 8, borderBottom: '1px solid rgba(0,0,0,.07)', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   {recipe.author && (
-                    <span style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                    <span style={{ fontSize: '1rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
                       von <AuthorLink author={recipe.author} />
                       {' · '}
                       {new Date(recipe.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}

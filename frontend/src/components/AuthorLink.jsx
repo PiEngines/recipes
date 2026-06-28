@@ -6,7 +6,7 @@ export default function AuthorLink({ author, style = {} }) {
 
   return (
     <span
-      onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(`/?author=${encodeURIComponent(author.username)}`) }}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(`/recipes?author_id=${author.id}&author=${encodeURIComponent(author.username)}`) }}
       role="link"
       tabIndex={0}
       title={`Rezepte von ${author.username} anzeigen`}

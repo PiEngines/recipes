@@ -371,6 +371,7 @@ export default function Recipes() {
     else if (search) params.search = search
     if (typeFilters.size === 1) params.type = [...typeFilters][0]
     else if (typeFilters.size > 1) params.type = [...typeFilters].sort().join(',')
+    if (sort === 'newest') params.order_by = 'created_at'
 
     client.get('/api/recipes', { params })
       .then(res => {
@@ -392,7 +393,7 @@ export default function Recipes() {
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeFilterKey])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeFilterKey, sort])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 

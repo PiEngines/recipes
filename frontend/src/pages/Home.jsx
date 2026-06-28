@@ -131,7 +131,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [carouselRecipes, setCarouselRecipes] = useState([null, null])
+  const [carouselRecipes, setCarouselRecipes] = useState([null, null, null, null, null])
   const [carouselImgs, setCarouselImgs] = useState({})
   const [neue, setNeue] = useState([])
   const [neueImgs, setNeueImgs] = useState({})
@@ -144,14 +144,14 @@ export default function Home() {
   useEffect(() => {
     document.title = 'PiEngines Recipes'
     Promise.all([
-      client.get('/api/recipes/random', { params: { count: 2 } }).catch(() => ({ data: [] })),
+      client.get('/api/recipes', { params: { page_size: 5 } }).catch(() => ({ data: { items: [] } })),
       client.get('/api/recipes/random', { params: { count: 3 } }).catch(() => ({ data: [] })),
     ]).then(([carRes, neueRes]) => {
-      const [seasonal, newest] = carRes.data
-      setCarouselRecipes([seasonal ?? null, newest ?? null])
+      const carItems = carRes.data.items || []
+      setCarouselRecipes(carItems)
       const neueItems = neueRes.data || []
       setNeue(neueItems)
-      loadPrimaryImages([seasonal, newest].filter(Boolean), setCarouselImgs)
+      loadPrimaryImages(carItems, setCarouselImgs)
       loadPrimaryImages(neueItems, setNeueImgs)
     })
   }, [])
@@ -186,8 +186,6 @@ export default function Home() {
     return () => obs.disconnect()
   }, [loadFeed])
 
-  const [seasonal, newest] = carouselRecipes
-
   return (
     <div className="px-4 md:px-8" style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 132, maxWidth: 960, margin: '0 auto', width: '100%' }}>
 
@@ -207,18 +205,16 @@ export default function Home() {
           Heute für dich
         </p>
         <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-          <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={178}
-            onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
-          <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={178}
-            onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
+          {carouselRecipes.map((r, i) => (
+            <HeuteCard key={r?.id ?? i} recipe={r} image={carouselImgs[r?.id]} label="Neu" labelIcon="✦" height={178}
+              onClick={() => r && navigate(`/recipes/${r.id}`)} trackId="home-carousel-card-click" />
+          ))}
         </div>
         <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
-          <HeuteCard fullWidth recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
-            onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <KrauterCard fullWidth height={204} onClick={() => navigate('/seasonal')} />
-          <HeuteCard fullWidth recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={204}
-            onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
+          {carouselRecipes.slice(0, 3).map((r, i) => (
+            <HeuteCard key={r?.id ?? i} fullWidth recipe={r} image={carouselImgs[r?.id]} label="Neu" labelIcon="✦" height={204}
+              onClick={() => r && navigate(`/recipes/${r.id}`)} trackId="home-carousel-card-click" />
+          ))}
         </div>
       </section>
 
