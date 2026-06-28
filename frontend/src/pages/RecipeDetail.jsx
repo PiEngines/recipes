@@ -6,6 +6,7 @@ import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import Breadcrumb from '../components/Breadcrumb'
+import BackButton from '../components/BackButton'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
@@ -818,6 +819,11 @@ export default function RecipeDetail() {
           { label: 'Alle Rezepte', path: '/recipes' },
           { label: recipe?.title || '…', path: null },
         ]} />
+      </div>
+
+      {/* Mobile back button */}
+      <div className="md:hidden" style={{ padding: '0.75rem 1.25rem 0' }}>
+        <BackButton fallback="/recipes" />
       </div>
 
       {/* Content */}

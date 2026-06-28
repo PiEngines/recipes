@@ -8,6 +8,8 @@ import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
 import FeedCard from '../components/FeedCard'
+import BackButton from '../components/BackButton'
+import Breadcrumb from '../components/Breadcrumb'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -472,6 +474,9 @@ export default function Recipes() {
 
       {/* Mobile filter bar */}
       <div className="md:hidden" style={{ padding: '1rem 1.25rem 0' }}>
+        <div style={{ marginBottom: '0.75rem' }}>
+          <BackButton />
+        </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.625rem', marginBottom: '1rem' }}>
           {isKochOrAbove(user) && (
             <FilterButton active={showFavorites} onClick={toggleFavoritesFilter}>
@@ -506,6 +511,7 @@ export default function Recipes() {
 
         {/* Main (desktop only) */}
         <main style={{ flex: 1, minWidth: 0, padding: '2rem 1.5rem 4rem' }}>
+          <Breadcrumb items={[{ label: 'Startseite', path: '/' }, { label: 'Rezepte' }]} />
           {/* Favoriten + author chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.625rem', marginBottom: '1rem' }}>
             {isKochOrAbove(user) && (
