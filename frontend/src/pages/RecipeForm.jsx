@@ -1075,6 +1075,7 @@ export default function RecipeForm() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
+      <style>{`@keyframes ing-highlight { 0%{background:rgba(200,96,42,0.3)} 100%{background:rgba(200,96,42,0.1)} }`}</style>
 
       {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
       {showLeaveConfirm && (
@@ -1466,7 +1467,7 @@ export default function RecipeForm() {
                   const timerLabel = stepTitle || `Schritt ${idx + 1}`
                   const timerActive = !!step.timer_minutes
                   const fotoActive = (step.media?.length > 0)
-                  const ingActive = (step._ing_keys?.length > 0)
+                  const instrLower = (step.instruction || '').toLowerCase()
                   const updStep = changes => setSteps(prev => prev.map((s, i) => i === idx ? { ...s, ...changes } : s))
                   return (
                     <div
@@ -1511,30 +1512,24 @@ export default function RecipeForm() {
                           onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
                           onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
                         />
-                        {/* Pills */}
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                        {/* Compact action pills: Timer + Foto */}
+                        <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                           <button
                             data-track-id="recipe-form-step-timer-toggle"
-                            onClick={() => updStep({ _open_timer: !step._open_timer, _open_foto: false, _open_ings: false })}
-                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${timerActive || step._open_timer ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: timerActive || step._open_timer ? 'rgba(44,44,42,0.07)' : 'none', color: timerActive || step._open_timer ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
-                            {timerActive ? `⏱ Timer · ${step.timer_minutes} Min.` : '⏱ Timer'}
+                            onClick={() => updStep({ _open_timer: !step._open_timer, _open_foto: false })}
+                            style={{ padding: '0.15rem 0.5rem', border: `1px solid ${timerActive || step._open_timer ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: timerActive || step._open_timer ? 'rgba(44,44,42,0.07)' : 'none', color: timerActive || step._open_timer ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
+                            {timerActive ? `⏱ ${step.timer_minutes} Min.` : '⏱ Timer'}
                           </button>
                           <button
                             data-track-id="recipe-form-step-foto-toggle"
-                            onClick={() => updStep({ _open_foto: !step._open_foto, _open_timer: false, _open_ings: false })}
-                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: fotoActive || step._open_foto ? 'rgba(44,44,42,0.07)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
-                            {fotoActive ? `📷 ${step.media.length} Foto` : '📷 Foto'}
-                          </button>
-                          <button
-                            data-track-id="recipe-form-step-ings-toggle"
-                            onClick={() => updStep({ _open_ings: !step._open_ings, _open_timer: false, _open_foto: false })}
-                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${ingActive || step._open_ings ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: ingActive || step._open_ings ? 'rgba(44,44,42,0.07)' : 'none', color: ingActive || step._open_ings ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
-                            {ingActive ? `☰ Zutaten · ${step._ing_keys.length}` : '☰ Zutaten'}
+                            onClick={() => updStep({ _open_foto: !step._open_foto, _open_timer: false })}
+                            style={{ padding: '0.15rem 0.5rem', border: `1px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: fotoActive || step._open_foto ? 'rgba(44,44,42,0.07)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
+                            {fotoActive ? `📷 ${step.media.length}` : '📷 Foto'}
                           </button>
                         </div>
                         {/* Timer panel */}
                         {step._open_timer && (
-                          <div style={{ marginTop: '0.625rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-input)', flexWrap: 'wrap' }}>
+                          <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-input)', flexWrap: 'wrap' }}>
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--subtext)', flexShrink: 0 }}>⏱ {timerLabel}</span>
                             <input
                               type="number" min="1"
@@ -1554,7 +1549,7 @@ export default function RecipeForm() {
                         )}
                         {/* Foto panel */}
                         {step._open_foto && (
-                          <div style={{ marginTop: '0.625rem' }}>
+                          <div style={{ marginTop: '0.5rem' }}>
                             {step.dbId ? (
                               <MediaUpload
                                 entityType="step"
@@ -1570,34 +1565,33 @@ export default function RecipeForm() {
                             )}
                           </div>
                         )}
-                        {/* Zutaten panel */}
-                        {step._open_ings && (
-                          <div style={{ marginTop: '0.625rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-input)' }}>
-                            {realIngs.length === 0 ? (
-                              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0 }}>Keine Zutaten in Schritt 2 eingetragen.</p>
-                            ) : (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
-                                {realIngs.map(ing => {
-                                  const sel = (step._ing_keys || []).includes(ing._key)
-                                  const ingLabel = [ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')
-                                  return (
-                                    <button
-                                      key={ing._key}
-                                      data-track-id="recipe-form-step-ing-toggle"
-                                      onClick={() => {
-                                        const cur = step._ing_keys || []
-                                        updStep({ _ing_keys: sel ? cur.filter(k => k !== ing._key) : [...cur, ing._key] })
-                                        markDirty()
-                                      }}
-                                      style={{ padding: '0.2rem 0.625rem', border: `1px solid ${sel ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: sel ? 'rgba(200,96,42,0.1)' : 'none', color: sel ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
-                                      {ingLabel}
-                                    </button>
-                                  )
-                                })}
-                              </div>
-                            )}
+                        {/* Zutaten immer sichtbar */}
+                        {realIngs.length > 0 && (
+                          <div style={{ marginTop: '0.625rem', display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                            {realIngs.map(ing => {
+                              const manualSel = (step._ing_keys || []).includes(ing._key)
+                              const autoSel = instrLower.includes(ing.name.toLowerCase())
+                              const active = manualSel || autoSel
+                              const ingLabel = [ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')
+                              return (
+                                <button
+                                  key={`${ing._key}-${autoSel}`}
+                                  data-track-id="recipe-form-step-ing-toggle"
+                                  onClick={() => {
+                                    const cur = step._ing_keys || []
+                                    updStep({ _ing_keys: manualSel ? cur.filter(k => k !== ing._key) : [...cur, ing._key] })
+                                    markDirty()
+                                  }}
+                                  style={{ padding: '0.15rem 0.5rem', border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: active ? 'rgba(200,96,42,0.1)' : 'none', color: active ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer', animation: autoSel && !manualSel ? 'ing-highlight 0.5s ease' : 'none' }}>
+                                  {ingLabel}
+                                </button>
+                              )
+                            })}
                           </div>
                         )}
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', color: 'var(--subtext)', margin: '0.375rem 0 0', opacity: 0.7 }}>
+                          # Schrittname für einen benannten Abschnitt · Timer für Zeitangaben
+                        </p>
                       </div>
                     </div>
                   )
@@ -1606,9 +1600,7 @@ export default function RecipeForm() {
               <button
                 data-track-id="recipe-form-step-add"
                 onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}
-                style={{ width: '100%', marginTop: '0.75rem', padding: '0.625rem 1rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500 }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginTop: '0.75rem', padding: '0.5rem 0.75rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500 }}
               >
                 + Schritt hinzufügen
               </button>
