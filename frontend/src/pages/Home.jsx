@@ -304,7 +304,7 @@ export default function Home() {
             <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 320px))', gap: 12, justifyContent: 'start' }}>
           {neue.map(r => (
             <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
               style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
@@ -336,7 +336,7 @@ export default function Home() {
             <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 320px))', gap: 12, justifyContent: 'start' }}>
           {feed.map(r => (
             <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
