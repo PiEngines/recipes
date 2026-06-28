@@ -89,6 +89,14 @@ class Recipe(Base):
         foreign_keys="RecipeComponent.child_recipe_id",
         back_populates="child_recipe",
     )
+    # "Passt dazu"-Verknüpfungen (ausgehend von diesem Rezept)
+    serve_with_entries = relationship(
+        "RecipeServeWith",
+        foreign_keys="RecipeServeWith.recipe_id",
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+        order_by="RecipeServeWith.position",
+    )
 
 
 class RecipeStep(Base):
@@ -185,3 +193,16 @@ class RecipeVersion(Base):
         foreign_keys="[RecipeVersion.recipe_id]",
         back_populates="versions",
     )
+
+
+class RecipeServeWith(Base):
+    """Ordered list of recipes that pair well with a given recipe."""
+
+    __tablename__ = "recipe_serve_with"
+
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    serve_with_recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    position = Column(Integer, nullable=False, default=0)
+
+    recipe = relationship("Recipe", foreign_keys=[recipe_id], back_populates="serve_with_entries")
+    serve_with_recipe = relationship("Recipe", foreign_keys=[serve_with_recipe_id])

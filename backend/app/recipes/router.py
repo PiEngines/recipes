@@ -2,10 +2,10 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session, joinedload, subqueryload
+from sqlalchemy.orm import Session, aliased, joinedload, subqueryload
 
 from app.auth.dependencies import (
     get_current_user,
@@ -16,7 +16,7 @@ from app.auth.dependencies import (
 )
 from app.database import get_db
 from app.matching import step_scanner
-from app.models import Category, Ingredient, Recipe, RecipeComponent, RecipeStep, RecipeVersion, Tag, User, UserRole
+from app.models import Category, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
 from app.models.recipe import RecipeType
 from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
@@ -32,6 +32,8 @@ from app.recipes.schemas import (
     RecipeStepResponse,
     RecipeUpdate,
     RematchResponse,
+    ServeWithItem,
+    ServeWithUpdate,
     StepIngredientIdsUpdate,
     StepIngredientResponse,
     StepIngredientsResponse,
@@ -1037,3 +1039,56 @@ def ingredient_suggestions(
         .all()
     )
     return [r.name for r in rows]
+
+
+# ── Serve With ────────────────────────────────────────────────────────────────
+
+@router.get("/{recipe_id}/serve-with", response_model=list[ServeWithItem])
+def get_serve_with(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+):
+    _get_or_404(recipe_id, db)
+    SwRecipe = aliased(Recipe)
+    rows = (
+        db.query(SwRecipe.id, SwRecipe.title)
+        .join(RecipeServeWith, RecipeServeWith.serve_with_recipe_id == SwRecipe.id)
+        .filter(
+            RecipeServeWith.recipe_id == recipe_id,
+            SwRecipe.deleted_at.is_(None),
+        )
+        .order_by(RecipeServeWith.position)
+        .all()
+    )
+    return [ServeWithItem(id=row.id, title=row.title) for row in rows]
+
+
+@router.put("/{recipe_id}/serve-with", status_code=status.HTTP_204_NO_CONTENT)
+def update_serve_with(
+    recipe_id: int,
+    body: ServeWithUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    recipe = _get_or_404(recipe_id, db)
+    _require_author_or_chef(recipe, current_user)
+
+    if recipe_id in body.recipe_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ein Rezept kann nicht mit sich selbst verknüpft werden",
+        )
+
+    for rid in body.recipe_ids:
+        if not db.query(Recipe.id).filter(Recipe.id == rid, Recipe.deleted_at.is_(None)).first():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Rezept {rid} nicht gefunden",
+            )
+
+    db.query(RecipeServeWith).filter(RecipeServeWith.recipe_id == recipe_id).delete()
+    for pos, rid in enumerate(body.recipe_ids):
+        db.add(RecipeServeWith(recipe_id=recipe_id, serve_with_recipe_id=rid, position=pos))
+
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

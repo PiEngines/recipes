@@ -296,3 +296,14 @@ class PaginatedRecipes(BaseModel):
     page: int
     page_size: int
     pages: int
+
+
+# ── Serve With ────────────────────────────────────────────────────────────────
+
+class ServeWithItem(BaseModel):
+    id: int
+    title: str
+
+
+class ServeWithUpdate(BaseModel):
+    recipe_ids: list[int]
