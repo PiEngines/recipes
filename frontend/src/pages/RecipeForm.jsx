@@ -1523,6 +1523,51 @@ export default function RecipeForm() {
                             onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
                           />
                         </div>
+                        {/* Zutaten immer sichtbar, ausklappbar */}
+                        {realIngs.length > 0 && (
+                          <div style={{ marginTop: '0.625rem' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                              {visibleIngs.map(ing => {
+                                const manualSel = (step._ing_keys || []).includes(ing._key)
+                                const blocked = (step._ing_blocked || []).includes(ing._key)
+                                const autoSel = !blocked && instrLower.includes(ing.name.toLowerCase())
+                                const active = manualSel || autoSel
+                                const ingLabel = [ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')
+                                return (
+                                  <button
+                                    key={`${ing._key}-${autoSel}-${blocked}`}
+                                    data-track-id="recipe-form-step-ing-toggle"
+                                    onClick={() => {
+                                      if (active) {
+                                        if (manualSel) {
+                                          updStep({ _ing_keys: (step._ing_keys || []).filter(k => k !== ing._key) })
+                                        } else {
+                                          updStep({ _ing_blocked: [...(step._ing_blocked || []), ing._key] })
+                                        }
+                                      } else {
+                                        if (blocked) {
+                                          updStep({ _ing_blocked: (step._ing_blocked || []).filter(k => k !== ing._key) })
+                                        } else {
+                                          updStep({ _ing_keys: [...(step._ing_keys || []), ing._key] })
+                                        }
+                                      }
+                                      markDirty()
+                                    }}
+                                    style={{ padding: '0.15rem 0.5rem', border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: active ? 'rgba(200,96,42,0.1)' : 'none', color: active ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer', animation: autoSel && !manualSel ? 'ing-highlight 0.5s ease' : 'none' }}>
+                                    {ingLabel}
+                                  </button>
+                                )
+                              })}
+                              {hasMoreIngs && (
+                                <button
+                                  onClick={() => updStep({ _ings_expanded: !step._ings_expanded })}
+                                  style={{ padding: '0.15rem 0.5rem', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
+                                  {step._ings_expanded ? '↑ weniger' : `+ ${realIngs.length - ING_PREVIEW} mehr`}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {/* Compact action pills: Timer + Foto */}
                         <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                           <button
@@ -1574,51 +1619,6 @@ export default function RecipeForm() {
                                 Erst speichern, um ein Foto hochzuladen.
                               </p>
                             )}
-                          </div>
-                        )}
-                        {/* Zutaten immer sichtbar, ausklappbar */}
-                        {realIngs.length > 0 && (
-                          <div style={{ marginTop: '0.625rem' }}>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                              {visibleIngs.map(ing => {
-                                const manualSel = (step._ing_keys || []).includes(ing._key)
-                                const blocked = (step._ing_blocked || []).includes(ing._key)
-                                const autoSel = !blocked && instrLower.includes(ing.name.toLowerCase())
-                                const active = manualSel || autoSel
-                                const ingLabel = [ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')
-                                return (
-                                  <button
-                                    key={`${ing._key}-${autoSel}-${blocked}`}
-                                    data-track-id="recipe-form-step-ing-toggle"
-                                    onClick={() => {
-                                      if (active) {
-                                        if (manualSel) {
-                                          updStep({ _ing_keys: (step._ing_keys || []).filter(k => k !== ing._key) })
-                                        } else {
-                                          updStep({ _ing_blocked: [...(step._ing_blocked || []), ing._key] })
-                                        }
-                                      } else {
-                                        if (blocked) {
-                                          updStep({ _ing_blocked: (step._ing_blocked || []).filter(k => k !== ing._key) })
-                                        } else {
-                                          updStep({ _ing_keys: [...(step._ing_keys || []), ing._key] })
-                                        }
-                                      }
-                                      markDirty()
-                                    }}
-                                    style={{ padding: '0.15rem 0.5rem', border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: active ? 'rgba(200,96,42,0.1)' : 'none', color: active ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer', animation: autoSel && !manualSel ? 'ing-highlight 0.5s ease' : 'none' }}>
-                                    {ingLabel}
-                                  </button>
-                                )
-                              })}
-                              {hasMoreIngs && (
-                                <button
-                                  onClick={() => updStep({ _ings_expanded: !step._ings_expanded })}
-                                  style={{ padding: '0.15rem 0.5rem', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
-                                  {step._ings_expanded ? '↑ weniger' : `+ ${realIngs.length - ING_PREVIEW} mehr`}
-                                </button>
-                              )}
-                            </div>
                           </div>
                         )}
                       </div>
