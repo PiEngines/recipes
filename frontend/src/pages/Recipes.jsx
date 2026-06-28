@@ -25,15 +25,7 @@ const SORT_LABELS = { default: 'Standard', newest: 'Neueste', quickest: 'Schnell
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function DifficultySpoons({ difficulty }) {
-  return (
-    <span title={`${difficulty}/5`} style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} style={{ display: 'inline-block', fontSize: '1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.25, lineHeight: 1, transform: 'scaleX(-1)' }}>🥄</span>
-      ))}
-    </span>
-  )
-}
+const DIFF_LABELS = { 1: 'Sehr einfach', 2: 'Einfach', 3: 'Mittel', 4: 'Schwer', 5: 'Sehr schwer' }
 
 export function RecipeCard({ recipe, primaryImage, dimmed }) {
   const { user } = useAuth()
@@ -106,7 +98,11 @@ export function RecipeCard({ recipe, primaryImage, dimmed }) {
                 {recipe.type === 'backen' ? 'Backen' : 'Kochen'}
               </span>
             </div>
-            {recipe.difficulty && <DifficultySpoons difficulty={recipe.difficulty} />}
+            {recipe.difficulty && (
+              <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                {DIFF_LABELS[recipe.difficulty] ?? `Stufe ${recipe.difficulty}`}
+              </span>
+            )}
           </div>
         </div>
       </div>
