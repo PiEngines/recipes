@@ -169,7 +169,7 @@ export default function Home() {
     document.title = 'PiEngines Recipes'
     Promise.all([
       client.get('/api/recipes/random', { params: { count: 2 } }).catch(() => ({ data: [] })),
-      client.get('/api/recipes/random', { params: { count: 8 } }).catch(() => ({ data: [] })),
+      client.get('/api/recipes/random', { params: { count: 3 } }).catch(() => ({ data: [] })),
     ]).then(([carRes, neueRes]) => {
       const [seasonal, newest] = carRes.data
       setCarouselRecipes([seasonal ?? null, newest ?? null])
@@ -292,7 +292,9 @@ export default function Home() {
       <section style={{ paddingBottom: 28 }} aria-label="Neue Rezepte">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
-            Neue Rezepte
+            <span onClick={() => navigate('/recipes?sort=newest')} style={{ cursor: 'pointer', color: 'var(--text)', textDecoration: 'none' }}>
+              Neue Rezepte
+            </span>
           </h2>
           <button onClick={() => navigate('/recipes')} data-track-id="home-neue-mehr-click"
             style={{ fontSize: 13, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
