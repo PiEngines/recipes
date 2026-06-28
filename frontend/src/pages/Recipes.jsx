@@ -341,7 +341,7 @@ export default function Recipes() {
         const term = search.toLowerCase()
         list = list.filter(r => r.title.toLowerCase().includes(term))
       }
-      if (typeFilters.size === 1) list = list.filter(r => typeFilters.has(r.type || 'kochen'))
+      if (typeFilters.size > 0 && typeFilters.size < 3) list = list.filter(r => typeFilters.has(r.type || 'kochen'))
       const start = (page - 1) * PAGE_SIZE
       const items = list.slice(start, start + PAGE_SIZE)
       setRecipes(items)
@@ -358,6 +358,7 @@ export default function Recipes() {
     else if (effectiveAuthor) params.author = effectiveAuthor
     else if (search) params.search = search
     if (typeFilters.size === 1) params.type = [...typeFilters][0]
+    else if (typeFilters.size > 1) params.type = [...typeFilters].sort().join(',')
 
     client.get('/api/recipes', { params })
       .then(res => {

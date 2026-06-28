@@ -232,10 +232,15 @@ def list_recipes(
         )
 
     if type is not None:
+        type_values = [t.strip() for t in type.split(',') if t.strip()]
         try:
-            q = q.filter(Recipe.type == RecipeType(type).value)
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Invalid type '{type}'")
+            enum_values = [RecipeType(t).value for t in type_values]
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Invalid type: {e}")
+        if len(enum_values) == 1:
+            q = q.filter(Recipe.type == enum_values[0])
+        elif len(enum_values) > 1:
+            q = q.filter(Recipe.type.in_(enum_values))
 
     if category is not None:
         q = q.filter(Recipe.categories.any(Category.id == category))
