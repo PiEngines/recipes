@@ -22,8 +22,9 @@ function matchRecipe(recipe, userIngredients) {
   const ui = userIngredients.map(i => i.toLowerCase())
   const recipeIngredients = recipe.ingredients?.map(i => i.name) || []
   const relevant = recipeIngredients.filter(ing => !STAPLES.has(ing.toLowerCase()))
+  if (relevant.length === 0) return { missing: [], pct: 0, skip: true }
   const missing = relevant.filter(ing => !ui.includes(ing.toLowerCase()))
-  const pct = relevant.length === 0 ? 1 : (relevant.length - missing.length) / relevant.length
+  const pct = (relevant.length - missing.length) / relevant.length
   return { missing, pct }
 }
 
@@ -68,7 +69,8 @@ export default function Fratcher() {
     }
     const sofort = [], fast = [], insp = []
     allRecipes.forEach(recipe => {
-      const { missing, pct } = matchRecipe(recipe, ingredients)
+      const { missing, pct, skip } = matchRecipe(recipe, ingredients)
+      if (skip) return
       if (missing.length === 0) sofort.push({ ...recipe, missing })
       else if (missing.length <= 2) fast.push({ ...recipe, missing })
       else if (mode === 'inspiration' && pct >= 0.5) insp.push({ ...recipe, missing })
