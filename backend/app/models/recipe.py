@@ -21,6 +21,11 @@ class RecipeStatus(str, enum.Enum):
 class RecipeType(str, enum.Enum):
     kochen = "kochen"
     backen = "backen"
+    grillen = "grillen"
+    braten = "braten"
+    daempfen = "daempfen"
+    einkochen = "einkochen"
+    rohkost = "rohkost"
 
 
 class Recipe(Base):
@@ -34,7 +39,7 @@ class Recipe(Base):
     servings = Column(Integer)
     difficulty = Column(Integer)  # 1–5
     status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.published)
-    type = Column(String(10), nullable=False, default=RecipeType.kochen.value)
+    type = Column(String(20), nullable=False, default=RecipeType.kochen.value)
     source = Column(String(500))
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
