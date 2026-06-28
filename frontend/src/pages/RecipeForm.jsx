@@ -641,6 +641,7 @@ export default function RecipeForm() {
       selectedCats, selectedTags,
       ingredients, steps,
       recipeId,
+      serveWith,
     }
   })
 
@@ -816,6 +817,10 @@ export default function RecipeForm() {
         client.get(`/api/media/entity/recipe/${id}`)
           .then(({ data }) => setRecipeMedia(data))
           .catch(() => {})
+        // Load serve-with entries
+        client.get(`/api/recipes/${id}/serve-with`)
+          .then(({ data }) => setServeWith(data))
+          .catch(() => {})
         // Load step media in parallel
         if (sps.length) {
           Promise.all(
@@ -899,6 +904,8 @@ export default function RecipeForm() {
       setSavedAt(new Date())
       setIsDirty(false)
       if (!skipVersion) setToast('Gespeichert')
+      // Sync serve-with to backend (fire-and-forget, non-blocking)
+      client.put(`/api/recipes/${result.data.id}/serve-with`, { recipe_ids: stateRef.current.serveWith.map(r => r.id) }).catch(() => {})
       // Map DB step IDs back into form state
       const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
       setSteps(prev => {
@@ -1792,7 +1799,7 @@ export default function RecipeForm() {
                     {serveWith.map(r => (
                       <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.3rem 0.5rem 0.3rem 0.75rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--text)' }}>
                         {r.title}
-                        <button onClick={() => setServeWith(prev => prev.filter(x => x.id !== r.id))}
+                        <button onClick={() => { setServeWith(prev => prev.filter(x => x.id !== r.id)); markDirty() }}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}>✕</button>
                       </div>
                     ))}
@@ -1822,7 +1829,7 @@ export default function RecipeForm() {
                     )}
                     {serveWithResults.filter(r => !serveWith.find(x => x.id === r.id)).map(r => (
                       <button key={r.id} data-track-id="recipe-form-servewith-select"
-                        onClick={() => { setServeWith(prev => [...prev, { id: r.id, title: r.title }]); setServeWithOpen(false); setServeWithQuery(''); setServeWithResults([]) }}
+                        onClick={() => { setServeWith(prev => [...prev, { id: r.id, title: r.title }]); setServeWithOpen(false); setServeWithQuery(''); setServeWithResults([]); markDirty() }}
                         style={{ display: 'block', width: '100%', padding: '0.5rem 1rem', border: 'none', borderTop: '1px solid var(--border)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', textAlign: 'left' }}
                         onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)' }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>
