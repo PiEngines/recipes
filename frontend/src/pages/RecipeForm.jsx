@@ -618,6 +618,11 @@ export default function RecipeForm() {
   const [subRecipeQuery, setSubRecipeQuery] = useState('')
   const [subRecipeResults, setSubRecipeResults] = useState([])
   const [subRecipeLoading, setSubRecipeLoading] = useState(false)
+  const [serveWith, setServeWith] = useState([])
+  const [serveWithOpen, setServeWithOpen] = useState(false)
+  const [serveWithQuery, setServeWithQuery] = useState('')
+  const [serveWithResults, setServeWithResults] = useState([])
+  const [serveWithLoading, setServeWithLoading] = useState(false)
   const [tippOpen, setTippOpen] = useState(false)
   const tippRef = useRef(null)
   const [moduleOrder, setModuleOrder] = useState([])
@@ -666,6 +671,19 @@ export default function RecipeForm() {
     }, 250)
     return () => clearTimeout(t)
   }, [subRecipeQuery, subRecipeOpen])
+
+  useEffect(() => {
+    if (!serveWithOpen || !serveWithQuery.trim()) { setServeWithResults([]); setServeWithLoading(false); return }
+    setServeWithLoading(true)
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await client.get('/api/recipes', { params: { search: serveWithQuery.trim(), page_size: 8 } })
+        setServeWithResults(data.items || [])
+      } catch {}
+      setServeWithLoading(false)
+    }, 250)
+    return () => clearTimeout(t)
+  }, [serveWithQuery, serveWithOpen])
 
   useEffect(() => {
     if (!tippOpen) return
@@ -1639,40 +1657,147 @@ export default function RecipeForm() {
           {/* Step 4: Feinschliff */}
           {wizardStep === 4 && (
             <div>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Bereit zum Veröffentlichen?</div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Überprüfe dein Rezept und speichere es.</p>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <FieldLabel required>Art</FieldLabel>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
-                    <button key={value} onClick={() => { setType(value); markDirty() }}
-                      style={{ padding: '0.5rem 1.25rem', border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? '#C8602A' : 'var(--card)', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, transition: 'var(--transition)' }}>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Feinschliff</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.75rem' }}>Letzte Details — dann ist dein Rezept fertig.</p>
+
+              {/* 1. Zeiten + Portionen */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Zeiten &amp; Portionen</div>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 7rem' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase' }}>Vorbereitung</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <input type="number" min="0" value={prepTime} onChange={e => { setPrepTime(e.target.value); markDirty() }} placeholder="—"
+                        style={{ width: '4.5rem', padding: '0.4rem 0.5rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', textAlign: 'right' }}
+                        onFocus={e => { e.target.style.borderColor = 'var(--accent)' }}
+                        onBlur={e => { e.target.style.borderColor = 'var(--border-input)' }} />
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: 'var(--subtext)' }}>Min.</span>
+                    </div>
+                  </div>
+                  <div style={{ flex: '1 1 9rem' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase' }}>Zubereitungszeit</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <input type="number" min="0" value={cookTime} onChange={e => { setCookTime(e.target.value); markDirty() }} placeholder="—"
+                        style={{ width: '4.5rem', padding: '0.4rem 0.5rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', textAlign: 'right' }}
+                        onFocus={e => { e.target.style.borderColor = 'var(--accent)' }}
+                        onBlur={e => { e.target.style.borderColor = 'var(--border-input)' }} />
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: 'var(--subtext)' }}>Min.</span>
+                    </div>
+                  </div>
+                  <div style={{ flex: '1 1 7rem' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--subtext)', marginBottom: '0.35rem', textTransform: 'uppercase' }}>Portionen</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <button data-track-id="recipe-form-servings-dec"
+                        onClick={() => { setServings(String(Math.max(1, (parseInt(servings) || 4) - 1))); markDirty() }}
+                        style={{ width: '2rem', height: '2rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>−</button>
+                      <span style={{ minWidth: '1.75rem', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text)' }}>{servings || '4'}</span>
+                      <button data-track-id="recipe-form-servings-inc"
+                        onClick={() => { setServings(String((parseInt(servings) || 4) + 1)); markDirty() }}
+                        style={{ width: '2rem', height: '2rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Art */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Art</div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {[['kochen', 'Kochen'], ['backen', 'Backen'], ['grillen', 'Grillen'], ['einmachen', 'Einmachen']].map(([value, label]) => (
+                    <button key={value} data-track-id={`recipe-form-type-${value}`}
+                      onClick={() => { setType(value); markDirty() }}
+                      style={{ padding: '0.4rem 1rem', border: `1.5px solid ${type === value ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? 'var(--accent)' : 'none', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: type === value ? 600 : 400 }}>
                       {label}
                     </button>
                   ))}
                 </div>
               </div>
-              <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.5rem', marginBottom: '1.25rem' }}>
-                <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.75rem' }}>{title || '(Kein Titel)'}</h2>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                  <span>🥕 {ingredients.filter(i => i.name.trim()).length} Zutaten</span>
-                  <span>👨‍🍳 {steps.filter(s => s.instruction.trim()).length} Schritte</span>
-                  {(prepTime || cookTime) && <span>⏱ {[prepTime && `${prepTime} Min. Vorbereitung`, cookTime && `${cookTime} Min. Kochen`].filter(Boolean).join(' + ')}</span>}
-                  <span>{type === 'backen' ? '🍞 Backen' : '🍳 Kochen'}</span>
+
+              {/* 3. Schwierigkeit */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: '0.625rem' }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', textTransform: 'uppercase' }}>Schwierigkeit</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: 'var(--subtext)' }}>· {['Sehr einfach', 'Einfach', 'Mittel', 'Schwer', 'Sehr schwer'][difficulty - 1]}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.375rem' }}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} data-track-id={`recipe-form-difficulty-${n}`}
+                      title={['Sehr einfach', 'Einfach', 'Mittel', 'Schwer', 'Sehr schwer'][n - 1]}
+                      onClick={() => { setDifficulty(n); markDirty() }}
+                      style={{ width: '2.25rem', height: '2.25rem', border: `1.5px solid ${n <= difficulty ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: '5px', background: n <= difficulty ? 'var(--accent)' : 'none', cursor: 'pointer', flexShrink: 0 }} />
+                  ))}
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {isKochOrAbove(user) && (
-                  <button onClick={handleReviewClick} disabled={!recipeId}
-                    style={{ padding: '0.75rem 1.25rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: !recipeId ? 'var(--subtext)' : 'var(--accent)', cursor: !recipeId ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600, opacity: !recipeId ? 0.5 : 1 }}>
-                    🥕 Zutaten überprüfen
-                  </button>
+
+              {/* 4. Fotos */}
+              <div style={{ marginBottom: '1.75rem' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Fotos</div>
+                {recipeId ? (
+                  <MediaUpload
+                    entityType="recipe"
+                    entityId={recipeId}
+                    existingMedia={recipeMedia}
+                    onMediaChange={setRecipeMedia}
+                  />
+                ) : (
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0 }}>
+                    Erst speichern, um Fotos hochzuladen.
+                  </p>
                 )}
-                <button onClick={handleSave} data-track-id="recipe-form-submit"
-                  disabled={!!savingAs || !title.trim() || !isDirty}
-                  style={{ padding: '0.875rem 1.5rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 600 }}>
-                  {savingAs ? 'Wird gespeichert …' : isDirty ? 'Jetzt veröffentlichen' : 'Gespeichert ✓'}
-                </button>
+              </div>
+
+              {/* 5. Dazu servieren */}
+              <div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Dazu servieren</div>
+                {serveWith.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                    {serveWith.map(r => (
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.3rem 0.5rem 0.3rem 0.75rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--text)' }}>
+                        {r.title}
+                        <button onClick={() => setServeWith(prev => prev.filter(x => x.id !== r.id))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!serveWithOpen ? (
+                  <button data-track-id="recipe-form-servewith-open"
+                    onClick={() => setServeWithOpen(true)}
+                    style={{ padding: '0.4rem 0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
+                    + Gericht suchen …
+                  </button>
+                ) : (
+                  <div style={{ border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', overflow: 'hidden' }}>
+                    <input
+                      autoFocus
+                      data-track-id="recipe-form-servewith-input"
+                      value={serveWithQuery}
+                      onChange={e => setServeWithQuery(e.target.value)}
+                      placeholder="Rezept suchen …"
+                      style={{ width: '100%', padding: '0.625rem 1rem', border: 'none', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+                    />
+                    {serveWithLoading && (
+                      <div style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Suche …</div>
+                    )}
+                    {!serveWithLoading && serveWithQuery.trim() && serveWithResults.length === 0 && (
+                      <div style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Keine Treffer.</div>
+                    )}
+                    {serveWithResults.filter(r => !serveWith.find(x => x.id === r.id)).map(r => (
+                      <button key={r.id} data-track-id="recipe-form-servewith-select"
+                        onClick={() => { setServeWith(prev => [...prev, { id: r.id, title: r.title }]); setServeWithOpen(false); setServeWithQuery(''); setServeWithResults([]) }}
+                        style={{ display: 'block', width: '100%', padding: '0.5rem 1rem', border: 'none', borderTop: '1px solid var(--border)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', textAlign: 'left' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'none' }}>
+                        {r.title}
+                      </button>
+                    ))}
+                    <button data-track-id="recipe-form-servewith-close"
+                      onClick={() => { setServeWithOpen(false); setServeWithQuery(''); setServeWithResults([]) }}
+                      style={{ display: 'block', width: '100%', padding: '0.4rem 1rem', border: 'none', borderTop: '1px solid var(--border)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', textAlign: 'left' }}>
+                      Schließen
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
