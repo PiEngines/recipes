@@ -618,6 +618,8 @@ export default function RecipeForm() {
   const [subRecipeQuery, setSubRecipeQuery] = useState('')
   const [subRecipeResults, setSubRecipeResults] = useState([])
   const [subRecipeLoading, setSubRecipeLoading] = useState(false)
+  const [tippOpen, setTippOpen] = useState(false)
+  const tippRef = useRef(null)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -662,6 +664,13 @@ export default function RecipeForm() {
     }, 250)
     return () => clearTimeout(t)
   }, [subRecipeQuery, subRecipeOpen])
+
+  useEffect(() => {
+    if (!tippOpen) return
+    const h = e => { if (!tippRef.current?.contains(e.target)) setTippOpen(false) }
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
+  }, [tippOpen])
 
   const updateStepMedia = useCallback((stepKey, media) => {
     setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
@@ -1190,6 +1199,14 @@ export default function RecipeForm() {
             <div>
               <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Was kommt rein?</div>
               <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1rem' }}>Eine Zeile pro Zutat — Menge, Einheit und Name.</p>
+              {/* Portionen inline */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.625rem', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', color: 'var(--subtext)' }}>
+                <span>Die Mengen gelten für</span>
+                <button onClick={() => { setServings(String(Math.max(1, servingsNum - 1))); markDirty() }} style={{ width: 22, height: 22, borderRadius: '50%', border: '1px solid var(--border-input)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
+                <span style={{ fontWeight: 700, color: 'var(--text)', minWidth: '1rem', textAlign: 'center' }}>{servingsNum}</span>
+                <button onClick={() => { setServings(String(servingsNum + 1)); markDirty() }} style={{ width: 22, height: 22, borderRadius: '50%', border: '1px solid var(--border-input)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
+                <span>Portionen</span>
+              </div>
               {/* Textarea + Live-Preview */}
               <div className="flex flex-col sm:flex-row" style={{ gap: '1.25rem', alignItems: 'flex-start' }}>
                 <div style={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -1203,9 +1220,34 @@ export default function RecipeForm() {
                     onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
                     onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
                   />
-                  <div style={{ marginTop: '0.625rem', background: 'var(--card)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border)', padding: '0.625rem 0.75rem' }}>
-                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>Tipp: Abschnitte mit ##</div>
-                    <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.73rem', lineHeight: 1.6, color: 'var(--subtext)', whiteSpace: 'pre' }}>{'## Soße\n200 ml Sahne\n1 Zwiebel'}</pre>
+                  <div style={{ marginTop: '0.5rem', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                      <span>Tipp: Abschnitte mit <code style={{ fontFamily: 'monospace', fontSize: '0.75rem', background: 'var(--bg)', padding: '1px 4px', borderRadius: 3 }}>## Gruppenname</code> trennen</span>
+                      <button onClick={() => setTippOpen(o => !o)} aria-label="Mehr erfahren" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.9rem', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>ⓘ</button>
+                    </div>
+                    {tippOpen && (
+                      <div ref={tippRef} style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 200, background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem' }}>
+                        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Abschnitte gruppieren</div>
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--subtext)', margin: '0 0 0.75rem', lineHeight: 1.5 }}>Eine Leerzeile trennt Abschnitte, ## startet einen neuen mit Namen.</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                          <div>
+                            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>Eingabe</div>
+                            <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.72rem', lineHeight: 1.7, color: 'var(--subtext)', whiteSpace: 'pre', background: 'var(--bg)', padding: '0.5rem', borderRadius: 6 }}>{'## Soße\n200 ml Sahne\n1 Zwiebel\n\n## Teig\n300 g Mehl\n2 Eier'}</pre>
+                          </div>
+                          <div>
+                            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>Ergebnis</div>
+                            <div style={{ fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', lineHeight: 1.7 }}>
+                              <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Soße</div>
+                              <div style={{ color: 'var(--subtext)' }}>200 ml Sahne</div>
+                              <div style={{ color: 'var(--subtext)' }}>1 Zwiebel</div>
+                              <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '0.3rem' }}>Teig</div>
+                              <div style={{ color: 'var(--subtext)' }}>300 g Mehl</div>
+                              <div style={{ color: 'var(--subtext)' }}>2 Eier</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {/* Teilrezept einbinden */}
                   <div style={{ marginTop: '0.75rem' }}>
@@ -1257,7 +1299,7 @@ export default function RecipeForm() {
                             >
                               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--text)' }}>{r.title}</span>
                               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--subtext)', flexShrink: 0 }}>
-                                {r.created_by === user?.id ? 'eigenes Rezept' : (r.author_name || '')}
+                                {r.created_by === user?.id ? 'Eigenes Rezept' : (r.author ? `von ${r.author.display_name || r.author.username}` : '')}
                               </span>
                             </button>
                           ))}
@@ -1267,15 +1309,6 @@ export default function RecipeForm() {
                   </div>
                 </div>
                 <div style={{ flex: '0 0 220px', minWidth: 0, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', paddingBottom: '0.625rem', borderBottom: '1px solid var(--border)' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flex: 1 }}>Für</span>
-                    <button onClick={() => { setServings(String(Math.max(1, servingsNum - 1))); markDirty() }}
-                      style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', minWidth: '1rem', textAlign: 'center' }}>{servingsNum}</span>
-                    <button onClick={() => { setServings(String(servingsNum + 1)); markDirty() }}
-                      style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Port.</span>
-                  </div>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.625rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                     ✦ So wird's gespeichert · {parsedA.length} Zutaten
                   </div>
