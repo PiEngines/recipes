@@ -1111,17 +1111,6 @@ export default function RecipeForm() {
                 <FieldLabel>Beschreibung</FieldLabel>
                 <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung …" rows={3} />
               </div>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <FieldLabel required>Art</FieldLabel>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
-                    <button key={value} onClick={() => { setType(value); markDirty() }}
-                      style={{ padding: '0.5rem 1.25rem', border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? '#C8602A' : 'var(--card)', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, transition: 'var(--transition)' }}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <div>
                 <FieldLabel>Quelle / Inspiration</FieldLabel>
                 <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
@@ -1390,11 +1379,22 @@ export default function RecipeForm() {
             </div>
           )}
 
-          {/* Step 4: Veröffentlichen */}
+          {/* Step 4: Feinschliff */}
           {wizardStep === 4 && (
             <div>
               <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Bereit zum Veröffentlichen?</div>
               <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Überprüfe dein Rezept und speichere es.</p>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <FieldLabel required>Art</FieldLabel>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {[['kochen', 'Kochen'], ['backen', 'Backen']].map(([value, label]) => (
+                    <button key={value} onClick={() => { setType(value); markDirty() }}
+                      style={{ padding: '0.5rem 1.25rem', border: `1.5px solid ${type === value ? '#C8602A' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: type === value ? '#C8602A' : 'var(--card)', color: type === value ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, transition: 'var(--transition)' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1.5rem', marginBottom: '1.25rem' }}>
                 <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)', margin: '0 0 0.75rem' }}>{title || '(Kein Titel)'}</h2>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
