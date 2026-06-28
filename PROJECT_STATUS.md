@@ -1,5 +1,5 @@
 # PROJECT_STATUS.md
-> Letzte Aktualisierung: 2026-06-27
+> Letzte Aktualisierung: 2026-06-28
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
 
 ---
@@ -26,7 +26,7 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 
 ## Aktueller Stand
 
-### ✅ Implementiert (verifiziert im Repo, Stand 2026-06-24)
+### ✅ Implementiert (verifiziert im Repo, Stand 2026-06-28)
 
 | Bereich | Details | Letzter Commit |
 |---|---|---|
@@ -45,6 +45,15 @@ Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbun
 | Herzchen Light-Mode Fix | FavoriteHeart.jsx — var(--text) für outline-Zustand + Drop-Shadow | 2026-06-25 |
 | Entwurf-Status entfernt | Migration 0022, Backend (RecipeStatus.draft, toggle_status) + Frontend (Badge, Button, Status-Anzeigen in Recipes.jsx, RecipeForm.jsx, Profile.jsx, AdminRecipes.jsx) vollständig entfernt | 2026-06-25 |
 | Chefkoch Modul-Override | modules/router.py — _check_recipe_access bei einbinden/auslagern/entfernen: Chefkoch/Küchenchef zusätzlich zum Owner erlaubt | 2026-06-25 |
+| Bug A+B Fix (md:hidden + display:flex) | Pull-Tab + Slide-Panel Desktop-Leak behoben | 2026-06-28 |
+| Bug C Fix (Kochlöffel → Text) | DIFF_LABELS in Recipes.jsx | 2026-06-28 |
+| Bug D Fix (Herzchen Startseite) | FavoriteHeart in FeedCard + HeuteCard | 2026-06-28 |
+| Bug E Fix (Kachelgröße) | 3-spaltig, maxWidth 320px | 2026-06-28 |
+| Bug F Fix (Filter OR-Logik) | Backend multi-type + Frontend params | 2026-06-28 |
+| Transparenter Infobereich | rgba(255,255,255,0.88) auf Kacheln | 2026-06-28 |
+| Doppeltes Rendering behoben | md:hidden/hidden md:grid vereinheitlicht | 2026-06-28 |
+| Neue Rezepte Link | /recipes?sort=newest | 2026-06-28 |
+| Fratcher.jsx | Vollständig gebaut nach Design-Prototyp | 2026-06-28 |
 
 #### Modul-System – Architektur-Entscheidungen (zur Referenz)
 - **Modell:** Snapshot-Referenz, kein Fork. 1000 Einbindungen = 1000 Referenzen auf denselben Snapshot
@@ -87,8 +96,11 @@ Design-Prototypen liegen unter `/design/*.dc.html`. Reihenfolge ist priorisiert.
 | Startseite Redesign | `pages/Home.jsx` | 🟡 Mittel | Mobile + Desktop. Karussell, Fratcher-Teaser, Entdecken-Feed 2→3 Spalten Desktop, Infinite Scroll. |
 | Suchergebnisseite Redesign | `pages/Recipes.jsx` | 🟡 Mittel | Desktop Left Sidebar Filter, aktive Filter als Chips. |
 | Detailseite Redesign | `pages/RecipeDetail.jsx` | 🟡 Mittel | Hero-Galerie, Schritt↔Zutat-Highlight, Portionen-Skalierung Pull-Tab (Mobile), Sidebar (Desktop). |
-| RecipeForm Redesign + Wizard | `pages/RecipeForm.jsx` | 🟡 Mittel | 5-Schritt-Wizard Mobile, Stepper-Layout Desktop, Auto-Save, Freigabe-Sheet. |
-| Fratcher (neu) | `pages/Fratcher.jsx` (neu anlegen) | 🟡 Mittel | Kühlschrank-Matcher. Mobile Bottom-Sheet, Desktop 2-Panel. |
+| RecipeForm Wizard Phase 1 | `pages/RecipeForm.jsx` | 🟡 Mittel | Grundgerüst 5 Schritte + Freigabe |
+| RecipeForm Wizard Phase 2 | `pages/RecipeForm.jsx` | 🟡 Mittel | Parser + Schritt-Features |
+| RecipeForm Wizard Phase 3 | `pages/RecipeForm.jsx` | 🟡 Mittel | Autosave + Medien |
+| Fratcher Optik | `pages/Fratcher.jsx` | 🟡 Mittel | Visuelles Polishing |
+| RecipeType Enum | `backend/app/models/recipe.py` | 🟡 Mittel | Grillen, Einkochen, Rohkost etc. |
 | AdminUsers.jsx Frontend-Guards | `pages/AdminUsers.jsx` | 🟡 Mittel | Rollen-Dropdown, Delete, Restore für Chefkoch verstecken. |
 | Drag & Drop Schritte | `pages/RecipeForm.jsx` | 🟠 Niedrig | Standard DnD-Library. Voraussetzung: RecipeForm Wizard fertig. |
 | Kräuterschule-Seite | `pages/Herbs.jsx` (neu) | 🟠 Niedrig | Kein Design vorhanden — erst nach Rücksprache. |
