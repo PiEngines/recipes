@@ -1251,6 +1251,45 @@ export default function RecipeForm() {
                   </div>
                   {/* Teilrezept einbinden */}
                   <div style={{ marginTop: '0.75rem' }}>
+                    {/* Module cards */}
+                    {ingredients.filter(i => i._module_recipe_id).map(mod => {
+                      const modIdx = ingredients.findIndex(i => i._key === mod._key)
+                      const modServings = parseInt(mod._servings_override) || servingsNum
+                      return (
+                        <div key={mod._key} style={{ marginBottom: '0.5rem', padding: '0.75rem 0.875rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '1.1rem', flexShrink: 0, lineHeight: 1.4 }}>🍵</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mod.name}</div>
+                              {mod._author_label && (
+                                <a href={`/recipes/${mod._module_recipe_id}`} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>{mod._author_label}</a>
+                              )}
+                            </div>
+                            <button onClick={() => { setIngredients(prev => prev.filter(i => i._key !== mod._key)); markDirty() }} title="Entfernen" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', padding: 0, flexShrink: 0, lineHeight: 1 }}>✕</button>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--subtext)' }}>Portionen:</span>
+                            <button onClick={() => { setIngredients(prev => prev.map((ing, i) => i === modIdx ? { ...ing, _servings_override: String(Math.max(1, modServings - 1)) } : ing)); markDirty() }} style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--border-input)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 700, color: 'var(--text)', minWidth: '1.25rem', textAlign: 'center' }}>{modServings}</span>
+                            <button onClick={() => { setIngredients(prev => prev.map((ing, i) => i === modIdx ? { ...ing, _servings_override: String(modServings + 1) } : ing)); markDirty() }} style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--border-input)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
+                            <div style={{ flex: 1 }} />
+                            <button
+                              onClick={() => setIngredients(prev => prev.map((ing, i) => i === modIdx ? { ...ing, _note_open: !ing._note_open } : ing))}
+                              style={{ padding: '0.2rem 0.5rem', border: `1px solid ${mod._note_open ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: mod._note_open ? 'rgba(200,96,42,0.08)' : 'none', cursor: 'pointer', color: mod._note_open ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem' }}
+                            >📝 Hinweis für den Koch</button>
+                          </div>
+                          {mod._note_open && (
+                            <textarea
+                              value={mod._note || ''}
+                              onChange={e => setIngredients(prev => prev.map((ing, i) => i === modIdx ? { ...ing, _note: e.target.value } : ing))}
+                              placeholder="Hinweis für den Koch …"
+                              rows={2}
+                              style={{ width: '100%', marginTop: '0.5rem', padding: '0.4rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
                     <button
                       data-track-id="recipe-form-subrecipe-open"
                       onClick={() => { setSubRecipeOpen(o => !o); setSubRecipeQuery(''); setSubRecipeResults([]) }}
@@ -1286,7 +1325,8 @@ export default function RecipeForm() {
                               onClick={() => {
                                 setIngredients(prev => {
                                   if (prev.some(ing => ing._module_recipe_id === r.id)) return prev
-                                  return [...prev, { _key: `mod_${r.id}_${Date.now()}`, component_label: r.title, name: r.title, amount: '', unit: '', is_integer: false, _auto_int: false, _module_recipe_id: r.id, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: true }]
+                                  const authorLabel = r.created_by === user?.id ? 'Eigenes Rezept' : (r.author ? `von ${r.author.display_name || r.author.username}` : '')
+                                  return [...prev, { _key: `mod_${r.id}_${Date.now()}`, component_label: r.title, name: r.title, amount: '', unit: '', is_integer: false, _auto_int: false, _module_recipe_id: r.id, _module_component_id: null, _servings_override: r.servings ? String(r.servings) : '', _scale_factor: '', _module_is_new: true, _author_label: authorLabel }]
                                 })
                                 markDirty()
                                 setSubRecipeOpen(false)
