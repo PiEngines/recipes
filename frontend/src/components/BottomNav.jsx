@@ -35,7 +35,7 @@ export default function BottomNav() {
   })
 
   const slotLabel = (text) => (
-    <span style={{ fontSize: 9, fontWeight: 500 }}>{text}</span>
+    <span style={{ fontSize: 11, fontWeight: 500 }}>{text}</span>
   )
 
   const MEHR_ITEMS = [
@@ -93,7 +93,7 @@ export default function BottomNav() {
             }}
           >
             <i className={`ti ${icon}`} style={{ fontSize: 20 }} />
-            <span style={{ fontSize: 9, fontWeight: 500 }}>{label}</span>
+            <span style={{ fontSize: 11, fontWeight: 500 }}>{label}</span>
           </Link>
         ))}
         <div style={{ flex: 1 }} />

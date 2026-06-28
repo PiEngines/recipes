@@ -127,7 +127,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
   const active = images[activeIdx]
 
   return (
-    <div className="mx-3 mb-3 md:mx-0">
+    <div className="mt-3 mx-3 mb-3 md:mt-0 md:mx-0">
       {/* Main hero image */}
       <div
         onClick={active ? () => onImageClick?.(active.url) : undefined}
@@ -307,7 +307,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
 
 // ── Ingredient sidebar (desktop) ──────────────────────────────────────────────
 
-function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, view, onViewChange, selectedIngredient, onSelectIngredient }) {
+function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, activeIds, selectedIngredient, onSelectIngredient }) {
   const scaleFactor = baseServings ? servings / baseServings : 1
   const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
   return (
@@ -317,46 +317,27 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
       background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)',
     }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0 }}>
+      <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0 }}>
         <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.125rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>Zutaten</h3>
-        <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border-input)' }}>
-          {['grouped', 'all'].map(v => (
-            <button key={v} onClick={() => onViewChange(v)} style={{
-              padding: '0.25rem 0.5rem', fontSize: '0.7rem', fontFamily: 'Inter, sans-serif',
-              border: 'none', cursor: 'pointer',
-              background: view === v ? 'var(--accent)' : 'transparent',
-              color: view === v ? '#fff' : 'var(--subtext)',
-              transition: 'all 0.15s',
-            }}>
-              {v === 'grouped' ? 'Gruppen' : 'Alle'}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Servings */}
       {recipe.servings && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0 }}>
           <span style={{ fontSize: 13, color: 'var(--subtext)', flex: 1, fontFamily: 'Inter, sans-serif' }}>Portionen</span>
-          <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}>−</button>
+          <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}><i className="ti ti-minus" /></button>
           <span style={{ fontSize: 16, fontWeight: 600, minWidth: 20, textAlign: 'center', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{servings}</span>
-          <button onClick={() => onServingsChange(s => s + 1)} style={adjBtnPlus}>+</button>
+          <button onClick={() => onServingsChange(s => s + 1)} style={adjBtnPlus}><i className="ti ti-plus" /></button>
         </div>
       )}
 
       {/* List */}
       <div style={{ overflowY: 'auto', padding: '4px 16px 24px', flex: 1 }}>
-        {selectedIngredient && (
-          <div style={{ margin: '4px 0 8px', padding: '0.375rem 0.625rem', background: 'rgba(200,96,42,0.08)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 500 }}>Filter: {selectedIngredient.name}</span>
-            <button onClick={() => onSelectIngredient(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.8rem', padding: 0, lineHeight: 1 }}>✕</button>
-          </div>
-        )}
         <IngredientList
           ingredients={recipe.ingredients}
           scaleFactor={scaleFactor}
           activeIds={activeIds}
-          view={view}
+          view="grouped"
           selectedIngredient={selectedIngredient}
           onSelectIngredient={onSelectIngredient}
         />
@@ -435,9 +416,9 @@ function MobileIngredientPanel({ recipe, servings, baseServings, onServingsChang
         {recipe.servings && (
           <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0, gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--subtext)', flex: 1, fontFamily: 'Inter, sans-serif' }}>Portionen</span>
-            <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}>−</button>
+            <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}><i className="ti ti-minus" /></button>
             <span style={{ fontSize: 16, fontWeight: 600, minWidth: 20, textAlign: 'center', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{servings}</span>
-            <button onClick={() => onServingsChange(s => s + 1)} style={adjBtnPlus}>+</button>
+            <button onClick={() => onServingsChange(s => s + 1)} style={adjBtnPlus}><i className="ti ti-plus" /></button>
           </div>
         )}
         <div style={{ overflowY: 'auto', padding: '4px 16px 24px', flex: 1 }}>
@@ -470,7 +451,7 @@ function StepImageRow({ images, onImageClick }) {
 
   return (
     <div style={{ marginTop: 12 }}>
-      <div ref={containerRef} onScroll={handleScroll} style={{ display: 'flex', gap: 8, overflowX: 'auto', width: '100%', scrollbarWidth: 'none' }}>
+      <div ref={containerRef} onScroll={handleScroll} style={{ display: 'flex', gap: 8, overflowX: 'auto', width: '100%', scrollbarWidth: 'none', paddingBottom: 6 }}>
         {images.map(m => (
           <img
             key={m.id}
@@ -601,7 +582,7 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
       {!expanded ? (
         <div onClick={() => setExpanded(true)} style={{ padding: '10px 18px 12px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 1 }}>
-            {items.map(ing => (
+            {[...items].sort((a, b) => (checkedIngredients[a.id] ? 1 : 0) - (checkedIngredients[b.id] ? 1 : 0)).map(ing => (
               <div key={ing.id} style={{
                 width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
                 border: '2px solid #C8602A',
@@ -684,11 +665,9 @@ export default function RecipeDetail() {
 
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [hasFreeAccess, setHasFreeAccess] = useState(false)
   const [activeStepIdx, setActiveStepIdx] = useState(0)
   const [servings, setServings] = useState(4)
   const [stepIngredients, setStepIngredients] = useState({})
-  const [ingredientView, setIngredientView] = useState('grouped')
   const [panelOpen, setPanelOpen] = useState(false)
   const [recipeMedia, setRecipeMedia] = useState([])
   const [stepMedia, setStepMedia] = useState(null)
@@ -698,7 +677,6 @@ export default function RecipeDetail() {
   const [selectedIngredient, setSelectedIngredient] = useState(null)
   const [checkedIngredients, setCheckedIngredients] = useState({})
   const [pillsExpanded, setPillsExpanded] = useState(false)
-  const [usedIn, setUsedIn] = useState(null)
 
   const stepRefs = useRef({})
 
@@ -773,20 +751,6 @@ export default function RecipeDetail() {
     ? (isAdmin || (isKochOrAbove(user) && recipe.created_by === user?.id))
     : false
 
-  useEffect(() => {
-    if (!recipe || !isKochOrAbove(user) || !canEdit) return
-    client.get(`/api/recipes/${recipe.id}/access`, { params: { page: 1, page_size: 10 } })
-      .then(({ data }) => setHasFreeAccess(data.items?.some(a => a.access_type === 'free_for_all') ?? false))
-      .catch(() => {})
-  }, [recipe?.id, user?.id])
-
-  useEffect(() => {
-    if (!recipe || !user) return
-    client.get(`/api/recipes/${recipe.id}/used-in`)
-      .then(res => setUsedIn(res.data.count))
-      .catch(() => {})
-  }, [recipe?.id, user?.id])
-
   if (loading) return <LoadingScreen />
   if (!recipe) return null
 
@@ -812,6 +776,20 @@ export default function RecipeDetail() {
   }
 
   const hasTags = (recipe.diet_labels?.length > 0 || recipe.allergens?.length > 0)
+  const pillsChipLabel = pillsExpanded ? '✕ Tags' : (() => {
+    const allTags = [...(recipe.diet_labels || []), ...(recipe.allergens || [])].map(x => x.name)
+    if (!allTags.length) return null
+    let label = '🏷 '
+    let built = ''
+    let shown = 0
+    for (let i = 0; i < allTags.length; i++) {
+      const next = (built ? ' · ' : '') + allTags[i]
+      if ((built + next).length > 28 && i > 0) return label + built + ' +' + (allTags.length - shown)
+      built += next
+      shown++
+    }
+    return label + built
+  })()
   const foreignModuleAuthors = recipe.module_authors?.filter(a => a.id !== user?.id) || []
 
   return (
@@ -849,8 +827,6 @@ export default function RecipeDetail() {
             baseServings={baseServings}
             onServingsChange={setServings}
             activeIds={activeIds}
-            view={ingredientView}
-            onViewChange={setIngredientView}
             selectedIngredient={selectedIngredient}
             onSelectIngredient={handleSelectIngredient}
           />
@@ -864,38 +840,8 @@ export default function RecipeDetail() {
               onEdit={() => navigate(`/recipes/${recipe.id}/edit`)}
             />
 
-            {/* Module "used in" badge */}
-            {user && usedIn > 0 && (
-              <div
-                data-track-id="detail-module-used-in"
-                className="mx-3 md:mx-0"
-                style={{ fontSize: '0.8rem', color: 'var(--subtext)', marginBottom: '0.5rem', padding: '0.4rem 0.875rem', background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', fontFamily: 'Inter, sans-serif' }}
-              >
-                Wird als Modul verwendet in {usedIn} {usedIn === 1 ? 'Rezept' : 'Rezepten'}
-              </div>
-            )}
-
             {/* MetaBar */}
             <MetaBar recipe={recipe} />
-
-            {/* Freigaben (editor only) */}
-            {isKochOrAbove(user) && canEdit && (
-              <div className="px-[18px] md:px-0" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                {hasFreeAccess && (
-                  <span style={{ fontSize: '0.8rem', background: 'rgba(107,124,78,0.15)', color: '#4A7040', borderRadius: 6, padding: '0.25rem 0.625rem', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-                    🌍 Öffentlich zugänglich
-                  </span>
-                )}
-                <Link
-                  to="/profile#meine-rezepte"
-                  style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textDecoration: 'none' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)' }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--subtext)' }}
-                >
-                  Freigaben verwalten →
-                </Link>
-              </div>
-            )}
 
             {/* Author block */}
             <div className="md:px-0" style={{ padding: '6px 18px 0' }}>
@@ -913,7 +859,7 @@ export default function RecipeDetail() {
                       onClick={() => setPillsExpanded(p => !p)}
                       style={{ fontSize: 11, color: 'var(--subtext)', background: 'rgba(0,0,0,.06)', borderRadius: 999, padding: '2px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'Inter, sans-serif' }}
                     >
-                      {pillsExpanded ? '✕ Tags' : '🏷 Tags'}
+                      {pillsChipLabel}
                     </span>
                   )}
                 </div>

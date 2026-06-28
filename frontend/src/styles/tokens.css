@@ -1,4 +1,5 @@
 :root {
+  --heart-outline: var(--text);
   --bg:           #FAF7F2;
   --card:         #FFFFFF;
   --text:         #2C2C2A;
@@ -19,6 +20,7 @@
 }
 
 [data-theme="dark"] {
+  --heart-outline: transparent;
   --bg:           #1C1C1A;
   --card:         #2A2A27;
   --text:         #F0EDE8;
