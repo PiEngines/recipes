@@ -39,6 +39,7 @@ export default function Fratcher() {
   const [loading, setLoading] = useState(false)
   const [allRecipes, setAllRecipes] = useState([])
   const [recipeImgs, setRecipeImgs] = useState({})
+  const [activeIndex, setActiveIndex] = useState(-1)
   const imgFetchedRef = useRef(new Set())
 
   // Fetch recipe list, then all individual details (needed for ingredients)
@@ -122,6 +123,7 @@ export default function Fratcher() {
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({ event: 'fratcher_search', ingredient_count: ingredients.length })
     setView('results')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     setShowAutocomplete(false)
   }
 
@@ -209,9 +211,16 @@ export default function Fratcher() {
         <input
           type="text"
           value={searchText}
-          onChange={e => { setSearchText(e.target.value); setShowAutocomplete(e.target.value.length > 0) }}
+          onChange={e => { setSearchText(e.target.value); setShowAutocomplete(e.target.value.length > 0); setActiveIndex(-1) }}
           onFocus={() => setShowAutocomplete(searchText.length > 0)}
-          onBlur={() => setTimeout(() => setShowAutocomplete(false), 180)}
+          onBlur={() => setTimeout(() => { setShowAutocomplete(false); setActiveIndex(-1) }, 180)}
+          onKeyDown={e => {
+            if (!showAutocomplete || acItems.length === 0) return
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex(prev => Math.min(prev + 1, acItems.length - 1)) }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIndex(prev => Math.max(prev - 1, 0)) }
+            else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); addIngredient(acItems[activeIndex]); setActiveIndex(-1) }
+            else if (e.key === 'Escape') { setShowAutocomplete(false); setActiveIndex(-1) }
+          }}
           placeholder={isMobile ? 'Zutat eingeben …' : 'Zutat suchen …'}
           data-track-id="fratcher-search-input"
           style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 15 : 14, color: 'var(--text)' }}
@@ -227,11 +236,11 @@ export default function Fratcher() {
       </div>
       {showAutocomplete && acItems.length > 0 && (
         <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card)', border: '1px solid rgba(0,0,0,.09)', borderRadius: 13, boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 50, overflow: 'hidden' }}>
-          {acItems.map(item => (
+          {acItems.map((item, idx) => (
             <button
               key={item}
               onMouseDown={() => addIngredient(item)}
-              style={{ width: '100%', padding: isMobile ? '12px 16px' : '10px 14px', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 9, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,.05)', textAlign: 'left', cursor: 'pointer' }}
+              style={{ width: '100%', padding: isMobile ? '12px 16px' : '10px 14px', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 9, background: idx === activeIndex ? 'var(--bg)' : 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,.05)', textAlign: 'left', cursor: 'pointer' }}
             >
               <i className="ti ti-leaf" style={{ fontSize: isMobile ? 14 : 13, color: '#6B7C4E', flexShrink: 0 }} />
               <span style={{ fontSize: isMobile ? 14 : 13, color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{item}</span>
@@ -245,21 +254,17 @@ export default function Fratcher() {
   const renderCategories = isMobile => CATEGORIES.map(cat => (
     <div key={cat.label} style={{ marginBottom: isMobile ? 18 : 16 }}>
       <p style={{ fontSize: 10, fontWeight: 600, color: '#6B7C4E', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.6px', marginBottom: isMobile ? 8 : 7 }}>{cat.label}</p>
-      <div style={{ position: 'relative' }}>
-        <div style={{ display: 'flex', gap: isMobile ? 7 : 6, overflowX: 'auto', paddingBottom: 2, WebkitOverflowScrolling: 'touch' }}>
-          {cat.items.map(item => (
-            <button
-              key={item}
-              data-track-id="fratcher-ingredient-add"
-              onClick={() => ingredients.includes(item) ? removeIngredient(item) : addIngredient(item)}
-              style={chipStyle(item, isMobile)}
-            >
-              {item}
-            </button>
-          ))}
-          <div style={{ width: 6, flexShrink: 0 }} />
-        </div>
-        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: isMobile ? 32 : 28, pointerEvents: 'none', background: 'linear-gradient(to right, transparent, var(--bg, #FAF7F2))' }} />
+      <div style={{ display: 'flex', gap: isMobile ? 7 : 6, flexWrap: 'wrap' }}>
+        {cat.items.map(item => (
+          <button
+            key={item}
+            data-track-id="fratcher-ingredient-add"
+            onClick={() => ingredients.includes(item) ? removeIngredient(item) : addIngredient(item)}
+            style={chipStyle(item, isMobile)}
+          >
+            {item}
+          </button>
+        ))}
       </div>
     </div>
   ))
