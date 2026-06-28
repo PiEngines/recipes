@@ -1,5 +1,5 @@
 import { Fragment, forwardRef, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
@@ -658,6 +658,8 @@ function LoadingScreen() {
 export default function RecipeDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const isPreview = new URLSearchParams(location.search).has('preview')
   const { user } = useAuth()
   const { setDynamicLabel } = useNavigation()
   const isAdmin = isChefkochOrAbove(user)
@@ -796,6 +798,20 @@ export default function RecipeDetail() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
 
+      {/* Preview banner */}
+      {isPreview && (
+        <div style={{ background: 'var(--accent)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+          <span style={{ color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500 }}>Vorschau-Modus</span>
+          <button
+            data-track-id="recipe-detail-preview-close"
+            onClick={() => window.close()}
+            style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.5)', color: '#fff', borderRadius: 'var(--radius-pill)', padding: '0.25rem 0.875rem', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+          >
+            ✕ Schließen
+          </button>
+        </div>
+      )}
+
       {/* Desktop nav bar */}
       <div className="hidden md:flex" style={{ padding: '0.875rem 1.5rem', maxWidth: 1200, margin: '0 auto', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <Breadcrumb items={[
@@ -824,7 +840,7 @@ export default function RecipeDetail() {
             <HeroSection
               recipe={recipe} media={recipeMedia}
               onImageClick={openRecipeLightbox}
-              canEdit={canEdit}
+              canEdit={canEdit && !isPreview}
               onEdit={() => navigate(`/recipes/${recipe.id}/edit`)}
             />
 
