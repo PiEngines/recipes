@@ -301,29 +301,9 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {neue.map(r => (
             <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
-          ))}
-        </div>
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 320px))', gap: 12, justifyContent: 'start' }}>
-          {neue.map(r => (
-            <div key={r.id} onClick={() => navigate(`/recipes/${r.id}`)} data-track-id="home-neue-card-click"
-              style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-              <div style={{ height: 120, position: 'relative', overflow: 'hidden', background: imgSrc(neueImgs[r.id]) ? undefined : cardGradient(r) }}>
-                {imgSrc(neueImgs[r.id]) && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgSrc(neueImgs[r.id])})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
-                <FavoriteHeart recipeId={r.id} recipe={r} size={14} outline={false}
-                  style={{ position: 'absolute', top: 9, right: 9, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
-              </div>
-              <div style={{ padding: '10px 12px 12px' }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 6px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.title}</p>
-                {fmtTime(r) && (
-                  <div style={{ display: 'inline-flex', background: '#F5F2EE', borderRadius: 999, padding: '2px 8px' }}>
-                    <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{fmtTime(r)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
           ))}
         </div>
       </section>
