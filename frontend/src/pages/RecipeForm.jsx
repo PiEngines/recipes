@@ -1173,16 +1173,6 @@ export default function RecipeForm() {
             <div>
               <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Was kommt rein?</div>
               <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1rem' }}>Eine Zeile pro Zutat — Menge, Einheit und Name.</p>
-              {/* Servings stepper */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.625rem 0.875rem', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-input)' }}>
-                <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flex: 1 }}>Die Mengen gelten für</span>
-                <button onClick={() => { setServings(String(Math.max(1, servingsNum - 1))); markDirty() }}
-                  style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--card)', cursor: 'pointer', color: 'var(--text)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--text)', minWidth: '1.25rem', textAlign: 'center' }}>{servingsNum}</span>
-                <button onClick={() => { setServings(String(servingsNum + 1)); markDirty() }}
-                  style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--card)', cursor: 'pointer', color: 'var(--text)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
-                <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Portionen</span>
-              </div>
               {/* Textarea + Live-Preview */}
               <div className="flex flex-col sm:flex-row" style={{ gap: '1.25rem', alignItems: 'flex-start' }}>
                 <div style={{ flex: '1 1 300px', minWidth: 0 }}>
@@ -1196,11 +1186,21 @@ export default function RecipeForm() {
                     onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
                     onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
                   />
-                  <p style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', margin: '0.4rem 0 0' }}>
-                    Tipp: Abschnitte mit <code style={{ background: 'var(--bg)', padding: '1px 4px', borderRadius: 4, fontFamily: 'monospace', fontSize: '0.7rem' }}>## Gruppenname</code> trennen
-                  </p>
+                  <div style={{ marginTop: '0.625rem', background: 'var(--card)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border)', padding: '0.625rem 0.75rem' }}>
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>Tipp: Abschnitte mit ##</div>
+                    <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.73rem', lineHeight: 1.6, color: 'var(--subtext)', whiteSpace: 'pre' }}>{'## Soße\n200 ml Sahne\n1 Zwiebel'}</pre>
+                  </div>
                 </div>
                 <div style={{ flex: '0 0 220px', minWidth: 0, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', paddingBottom: '0.625rem', borderBottom: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flex: 1 }}>Für</span>
+                    <button onClick={() => { setServings(String(Math.max(1, servingsNum - 1))); markDirty() }}
+                      style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>−</button>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text)', minWidth: '1rem', textAlign: 'center' }}>{servingsNum}</span>
+                    <button onClick={() => { setServings(String(servingsNum + 1)); markDirty() }}
+                      style={{ width: 24, height: 24, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--bg)', cursor: 'pointer', color: 'var(--text)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Port.</span>
+                  </div>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.625rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                     ✦ So wird's gespeichert · {parsedA.length} Zutaten
                   </div>
