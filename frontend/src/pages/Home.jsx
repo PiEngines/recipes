@@ -299,7 +299,7 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="md:hidden" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {neue.map(r => (
             <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
