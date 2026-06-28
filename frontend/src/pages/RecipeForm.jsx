@@ -1071,6 +1071,7 @@ export default function RecipeForm() {
   const servingsNum = parseInt(servings) || 4
   const parsedA = wizardStep === 1 ? parseIngText(aText) : []
   const noModules = !ingredients.some(i => i._module_recipe_id)
+  const realIngs = ingredients.filter(i => i.name.trim() && !i._module_recipe_id)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
@@ -1459,57 +1460,148 @@ export default function RecipeForm() {
               <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Zubereitung</div>
               <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Beschreibe die Schritte. Timer und Fotos auf Wunsch.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {steps.map((step, idx) => (
-                  <div
-                    key={step._key}
-                    draggable
-                    onDragStart={() => { dragFromRef.current = idx }}
-                    onDragOver={e => {
-                      e.preventDefault()
-                      if (dragFromRef.current === null || dragFromRef.current === idx) return
-                      const from = dragFromRef.current
-                      setSteps(prev => {
-                        const arr = [...prev]
-                        const [item] = arr.splice(from, 1)
-                        arr.splice(idx, 0, item)
-                        return arr
-                      })
-                      dragFromRef.current = idx
-                    }}
-                    onDragEnd={() => { dragFromRef.current = null }}
-                    data-track-id="recipe-form-step-drag"
-                    style={{ display: 'flex', gap: '0.75rem', padding: '0.875rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', cursor: 'grab', userSelect: 'none' }}
-                  >
-                    <span style={{ fontSize: '1.1rem', color: 'var(--subtext)', flexShrink: 0, lineHeight: 1.8, cursor: 'grab' }}>⠿</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
-                        <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>{idx + 1}</div>
-                        <div style={{ flex: 1 }} />
-                        <button
-                          onClick={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>✕</button>
-                      </div>
-                      <textarea
-                        data-track-id="recipe-form-step-instruction"
-                        value={step.instruction}
-                        onChange={e => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, instruction: e.target.value } : s)); markDirty() }}
-                        placeholder="Schritt beschreiben …"
-                        rows={Math.max(3, (step.instruction || '').split('\n').length + 1)}
-                        style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, cursor: 'text' }}
-                        onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
-                        onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
-                      />
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                        {['⏱ Timer', '📷 Foto', '☰ Zutaten'].map(label => (
-                          <button key={label} disabled
-                            style={{ padding: '0.25rem 0.75rem', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'not-allowed', opacity: 0.5 }}>
-                            {label}
+                {steps.map((step, idx) => {
+                  const firstLine = (step.instruction || '').split('\n')[0] || ''
+                  const stepTitle = firstLine.startsWith('#') ? firstLine.replace(/^#+\s*/, '').trim() : ''
+                  const timerLabel = stepTitle || `Schritt ${idx + 1}`
+                  const timerActive = !!step.timer_minutes
+                  const fotoActive = (step.media?.length > 0)
+                  const ingActive = (step._ing_keys?.length > 0)
+                  const updStep = changes => setSteps(prev => prev.map((s, i) => i === idx ? { ...s, ...changes } : s))
+                  return (
+                    <div
+                      key={step._key}
+                      draggable
+                      onDragStart={() => { dragFromRef.current = idx }}
+                      onDragOver={e => {
+                        e.preventDefault()
+                        if (dragFromRef.current === null || dragFromRef.current === idx) return
+                        const from = dragFromRef.current
+                        setSteps(prev => {
+                          const arr = [...prev]
+                          const [item] = arr.splice(from, 1)
+                          arr.splice(idx, 0, item)
+                          return arr
+                        })
+                        dragFromRef.current = idx
+                      }}
+                      onDragEnd={() => { dragFromRef.current = null }}
+                      data-track-id="recipe-form-step-drag"
+                      style={{ display: 'flex', gap: '0.75rem', padding: '0.875rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', cursor: 'grab', userSelect: 'none' }}
+                    >
+                      <span style={{ fontSize: '1.1rem', color: 'var(--subtext)', flexShrink: 0, lineHeight: 1.8, cursor: 'grab' }}>⠿</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {/* Header: number + title + remove */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>{idx + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                            {stepTitle && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--text)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{stepTitle}</span>}
+                          </div>
+                          <button onClick={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+                        </div>
+                        {/* Textarea */}
+                        <textarea
+                          data-track-id="recipe-form-step-instruction"
+                          value={step.instruction}
+                          onChange={e => { updStep({ instruction: e.target.value }); markDirty() }}
+                          placeholder={'# Titel (optional)\nSchritt beschreiben …'}
+                          rows={Math.max(3, (step.instruction || '').split('\n').length + 1)}
+                          style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, cursor: 'text' }}
+                          onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
+                          onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
+                        />
+                        {/* Pills */}
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                          <button
+                            data-track-id="recipe-form-step-timer-toggle"
+                            onClick={() => updStep({ _open_timer: !step._open_timer, _open_foto: false, _open_ings: false })}
+                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${timerActive || step._open_timer ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: timerActive || step._open_timer ? 'rgba(44,44,42,0.07)' : 'none', color: timerActive || step._open_timer ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
+                            {timerActive ? `⏱ Timer · ${step.timer_minutes} Min.` : '⏱ Timer'}
                           </button>
-                        ))}
+                          <button
+                            data-track-id="recipe-form-step-foto-toggle"
+                            onClick={() => updStep({ _open_foto: !step._open_foto, _open_timer: false, _open_ings: false })}
+                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: fotoActive || step._open_foto ? 'rgba(44,44,42,0.07)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
+                            {fotoActive ? `📷 ${step.media.length} Foto` : '📷 Foto'}
+                          </button>
+                          <button
+                            data-track-id="recipe-form-step-ings-toggle"
+                            onClick={() => updStep({ _open_ings: !step._open_ings, _open_timer: false, _open_foto: false })}
+                            style={{ padding: '0.25rem 0.75rem', border: `1px solid ${ingActive || step._open_ings ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: ingActive || step._open_ings ? 'rgba(44,44,42,0.07)' : 'none', color: ingActive || step._open_ings ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
+                            {ingActive ? `☰ Zutaten · ${step._ing_keys.length}` : '☰ Zutaten'}
+                          </button>
+                        </div>
+                        {/* Timer panel */}
+                        {step._open_timer && (
+                          <div style={{ marginTop: '0.625rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-input)', flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--subtext)', flexShrink: 0 }}>⏱ {timerLabel}</span>
+                            <input
+                              type="number" min="1"
+                              value={step.timer_minutes}
+                              onChange={e => { updStep({ timer_minutes: e.target.value }); markDirty() }}
+                              placeholder="—"
+                              style={{ width: '64px', padding: '0.25rem 0.5rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--card)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', textAlign: 'right', cursor: 'text' }}
+                              onFocus={e => { e.target.style.borderColor = 'var(--accent)' }}
+                              onBlur={e => { e.target.style.borderColor = 'var(--border-input)' }}
+                            />
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', color: 'var(--subtext)' }}>Minuten</span>
+                            {step.timer_minutes && (
+                              <button onClick={() => { updStep({ timer_minutes: '' }); markDirty() }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', padding: '0 2px', lineHeight: 1, marginLeft: 'auto' }}>Entfernen</button>
+                            )}
+                          </div>
+                        )}
+                        {/* Foto panel */}
+                        {step._open_foto && (
+                          <div style={{ marginTop: '0.625rem' }}>
+                            {step.dbId ? (
+                              <MediaUpload
+                                entityType="step"
+                                entityId={step.dbId}
+                                existingMedia={step.media || []}
+                                onMediaChange={media => updateStepMedia(step._key, media)}
+                                allowVideo={false}
+                              />
+                            ) : (
+                              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0, padding: '0.375rem 0' }}>
+                                Erst speichern, um ein Foto hochzuladen.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {/* Zutaten panel */}
+                        {step._open_ings && (
+                          <div style={{ marginTop: '0.625rem', padding: '0.5rem 0.75rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', border: '1px solid var(--border-input)' }}>
+                            {realIngs.length === 0 ? (
+                              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0 }}>Keine Zutaten in Schritt 2 eingetragen.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                                {realIngs.map(ing => {
+                                  const sel = (step._ing_keys || []).includes(ing._key)
+                                  const ingLabel = [ing.amount, ing.unit, ing.name].filter(Boolean).join(' ')
+                                  return (
+                                    <button
+                                      key={ing._key}
+                                      data-track-id="recipe-form-step-ing-toggle"
+                                      onClick={() => {
+                                        const cur = step._ing_keys || []
+                                        updStep({ _ing_keys: sel ? cur.filter(k => k !== ing._key) : [...cur, ing._key] })
+                                        markDirty()
+                                      }}
+                                      style={{ padding: '0.2rem 0.625rem', border: `1px solid ${sel ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: sel ? 'rgba(200,96,42,0.1)' : 'none', color: sel ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'pointer' }}>
+                                      {ingLabel}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
               <button
                 data-track-id="recipe-form-step-add"
