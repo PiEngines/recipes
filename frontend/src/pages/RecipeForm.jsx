@@ -1605,7 +1605,10 @@ export default function RecipeForm() {
                                 setFotoSavingKey(step._key)
                                 await doSave(undefined, true)
                                 setFotoSavingKey(null)
-                                updStep({ _open_foto: true, _open_timer: false })
+                                setSteps(prev => prev.map(s => s._key === step._key
+                                  ? { ...s, _open_foto: true, _open_timer: false }
+                                  : s
+                                ))
                               } else {
                                 updStep({ _open_foto: !step._open_foto, _open_timer: false })
                               }
