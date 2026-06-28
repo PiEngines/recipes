@@ -125,7 +125,7 @@ export function SkeletonCard() {
   )
 }
 
-function EmptyState({ search }) {
+function EmptyState({ search, hasActiveFilters, onClearFilters }) {
   return (
     <div style={{ textAlign: 'center', padding: '5rem 1rem', color: 'var(--subtext)' }}>
       <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🥘</div>
@@ -137,6 +137,14 @@ function EmptyState({ search }) {
           ? `Kein Ergebnis für „${search}". Versuche einen anderen Begriff.`
           : 'Hier erscheinen demnächst leckere Rezepte.'}
       </p>
+      {hasActiveFilters && (
+        <p style={{ margin: '1rem 0 0', fontSize: '0.875rem' }}>
+          Tipp: Du hast aktive Filter gesetzt — diese könnten die Ergebnisse einschränken.{' '}
+          <button onClick={onClearFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'underline', padding: 0 }}>
+            Filter zurücksetzen
+          </button>
+        </p>
+      )}
     </div>
   )
 }
@@ -497,7 +505,7 @@ export default function Recipes() {
         </div>
 
         {/* Main (desktop only) */}
-        <main style={{ flex: 1, minWidth: 0, padding: '2rem 1.5rem' }}>
+        <main style={{ flex: 1, minWidth: 0, padding: '2rem 1.5rem 4rem' }}>
           {/* Favoriten + author chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.625rem', marginBottom: '1rem' }}>
             {isKochOrAbove(user) && (
@@ -550,7 +558,7 @@ export default function Recipes() {
               <SkeletonCard /><SkeletonCard /><SkeletonCard />
             </div>
           ) : displayRecipes.length === 0 ? (
-            showFavorites ? <EmptyFavoritesState /> : <EmptyState search={search} />
+            showFavorites ? <EmptyFavoritesState /> : <EmptyState search={search} hasActiveFilters={hasActiveChipFilters} onClearFilters={clearSidebarFilters} />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
               {displayRecipes.map(r => r.deleted_at
@@ -584,7 +592,7 @@ export default function Recipes() {
       </div>
 
       {/* Mobile content (below filter bar) */}
-      <main className="md:hidden" style={{ padding: '0 1.25rem 6rem', maxWidth: '1200px', margin: '0 auto' }}>
+      <main className="md:hidden" style={{ padding: '0 1.25rem 8rem', maxWidth: '1200px', margin: '0 auto' }}>
         {!loading && total > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', margin: 0 }}>
@@ -603,7 +611,7 @@ export default function Recipes() {
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
         ) : displayRecipes.length === 0 ? (
-          showFavorites ? <EmptyFavoritesState /> : <EmptyState search={search} />
+          showFavorites ? <EmptyFavoritesState /> : <EmptyState search={search} hasActiveFilters={hasActiveChipFilters} onClearFilters={clearSidebarFilters} />
         ) : (
           <div className="grid grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
             {displayRecipes.map(r => r.deleted_at
