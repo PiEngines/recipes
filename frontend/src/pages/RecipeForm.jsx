@@ -614,6 +614,10 @@ export default function RecipeForm() {
   const [wizardStep, setWizardStep] = useState(0)
   const [aText, setAText] = useState('')
   const aTextInitRef = useRef(false)
+  const [subRecipeOpen, setSubRecipeOpen] = useState(false)
+  const [subRecipeQuery, setSubRecipeQuery] = useState('')
+  const [subRecipeResults, setSubRecipeResults] = useState([])
+  const [subRecipeLoading, setSubRecipeLoading] = useState(false)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -645,6 +649,19 @@ export default function RecipeForm() {
       return [...modules, ...(parsed.length ? parsed : [mkIng()])]
     })
   }, [aText]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!subRecipeOpen || !subRecipeQuery.trim()) { setSubRecipeResults([]); setSubRecipeLoading(false); return }
+    setSubRecipeLoading(true)
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await client.get('/api/recipes', { params: { search: subRecipeQuery.trim(), as_module: true, page_size: 8 } })
+        setSubRecipeResults(data.items || [])
+      } catch {}
+      setSubRecipeLoading(false)
+    }, 250)
+    return () => clearTimeout(t)
+  }, [subRecipeQuery, subRecipeOpen])
 
   const updateStepMedia = useCallback((stepKey, media) => {
     setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
@@ -1190,6 +1207,64 @@ export default function RecipeForm() {
                     <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.35rem' }}>Tipp: Abschnitte mit ##</div>
                     <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.73rem', lineHeight: 1.6, color: 'var(--subtext)', whiteSpace: 'pre' }}>{'## Soße\n200 ml Sahne\n1 Zwiebel'}</pre>
                   </div>
+                  {/* Teilrezept einbinden */}
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <button
+                      data-track-id="recipe-form-subrecipe-open"
+                      onClick={() => { setSubRecipeOpen(o => !o); setSubRecipeQuery(''); setSubRecipeResults([]) }}
+                      style={{ width: '100%', padding: '0.625rem 1rem', border: `1.5px solid ${subRecipeOpen ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'none', color: subRecipeOpen ? 'var(--accent)' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'border-color 0.15s, color 0.15s' }}
+                    >
+                      {subRecipeOpen ? '✕ Schließen' : '＋ Teilrezept hinzufügen'}
+                    </button>
+                    {subRecipeOpen && (
+                      <div style={{ marginTop: '0.5rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'var(--card)', overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
+                        <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                          <input
+                            autoFocus
+                            value={subRecipeQuery}
+                            onChange={e => setSubRecipeQuery(e.target.value)}
+                            placeholder="Rezept suchen …"
+                            style={{ width: '100%', padding: '0.5rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+                            onFocus={e => { e.target.style.borderColor = 'var(--accent)' }}
+                            onBlur={e => { e.target.style.borderColor = 'var(--border-input)' }}
+                          />
+                        </div>
+                        <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                          {subRecipeLoading && <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Suche …</div>}
+                          {!subRecipeLoading && subRecipeQuery.trim() && subRecipeResults.length === 0 && (
+                            <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>Keine Ergebnisse</div>
+                          )}
+                          {!subRecipeLoading && !subRecipeQuery.trim() && (
+                            <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Rezeptname eingeben …</div>
+                          )}
+                          {subRecipeResults.map((r, i) => (
+                            <button
+                              key={r.id}
+                              data-track-id="recipe-form-subrecipe-select"
+                              onClick={() => {
+                                setIngredients(prev => {
+                                  if (prev.some(ing => ing._module_recipe_id === r.id)) return prev
+                                  return [...prev, { _key: `mod_${r.id}_${Date.now()}`, component_label: r.title, name: r.title, amount: '', unit: '', is_integer: false, _auto_int: false, _module_recipe_id: r.id, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: true }]
+                                })
+                                markDirty()
+                                setSubRecipeOpen(false)
+                                setSubRecipeQuery('')
+                                setSubRecipeResults([])
+                              }}
+                              style={{ width: '100%', padding: '0.5rem 0.75rem', background: 'none', border: 'none', borderTop: i > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}
+                              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
+                            >
+                              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', color: 'var(--text)' }}>{r.title}</span>
+                              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--subtext)', flexShrink: 0 }}>
+                                {r.created_by === user?.id ? 'eigenes Rezept' : (r.author_name || '')}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={{ flex: '0 0 220px', minWidth: 0, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', paddingBottom: '0.625rem', borderBottom: '1px solid var(--border)' }}>
@@ -1230,6 +1305,18 @@ export default function RecipeForm() {
                         )
                       })}
                     </ul>
+                  )}
+                  {ingredients.filter(i => i._module_recipe_id).length > 0 && (
+                    <div style={{ marginTop: '0.625rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>Teilrezepte</div>
+                      {ingredients.filter(i => i._module_recipe_id).map(mod => (
+                        <div key={mod._key} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontFamily: 'Inter, sans-serif', color: 'var(--text)', paddingBottom: '0.2rem' }}>
+                          <span style={{ color: 'var(--accent)', flexShrink: 0 }}>🔗</span>
+                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mod.name}</span>
+                          <button onClick={() => { setIngredients(prev => prev.filter(i => i._key !== mod._key)); markDirty() }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.8rem', padding: 0, flexShrink: 0, lineHeight: 1 }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
