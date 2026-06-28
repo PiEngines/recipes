@@ -55,6 +55,48 @@ function groupIngsByLabel(ings) {
   return groups
 }
 
+function ingrToText(ings) {
+  const lines = []
+  let prevLabel = null
+  for (const ing of ings) {
+    if (ing._module_recipe_id) continue
+    const label = ing.component_label || ''
+    if (label !== prevLabel) {
+      if (label) lines.push(`## ${label}`)
+      prevLabel = label
+    }
+    if (ing.name.trim()) lines.push([ing.amount, ing.unit, ing.name].filter(Boolean).join(' '))
+  }
+  return lines.join('\n')
+}
+
+function parseIngText(text) {
+  const lines = text.split('\n')
+  const results = []
+  let currentLabel = ''
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (!line) continue
+    if (line.startsWith('##')) { currentLabel = line.replace(/^##\s*/, '').trim(); continue }
+    if (line.startsWith('[') && line.endsWith(']')) { currentLabel = line.slice(1, -1).trim(); continue }
+    let rest = line
+    let amount = ''
+    const am = rest.match(/^([0-9]+(?:[.,][0-9]+)?(?:\/[0-9]+)?|[¼½¾⅓⅔⅛⅜⅝⅞])\s*/)
+    if (am) { amount = am[1]; rest = rest.slice(am[0].length) }
+    let unit = ''
+    for (const u of UNITS) {
+      if (rest.toLowerCase().startsWith(u.toLowerCase())) {
+        const after = rest.slice(u.length)
+        if (!after || /^\s/.test(after)) { unit = u; rest = after.trimStart(); break }
+      }
+    }
+    const name = rest.trim()
+    if (!name) continue
+    results.push({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: currentLabel, name, amount, unit, is_integer: autoIsInteger(name), _auto_int: true, _module_recipe_id: null, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: false })
+  }
+  return results
+}
+
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 
 function ConfirmDialog({ message, onConfirm, onCancel, confirmLabel = 'Fortfahren', confirmDanger = false }) {
@@ -570,6 +612,8 @@ export default function RecipeForm() {
   const [toast, setToast] = useState(null)
   const [toastFading, setToastFading] = useState(false)
   const [wizardStep, setWizardStep] = useState(0)
+  const [aText, setAText] = useState('')
+  const aTextInitRef = useRef(false)
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
@@ -585,6 +629,22 @@ export default function RecipeForm() {
   })
 
   const markDirty = useCallback(() => setIsDirty(true), [])
+
+  useEffect(() => {
+    if (wizardStep === 1 && !aTextInitRef.current) {
+      aTextInitRef.current = true
+      setAText(ingrToText(ingredients))
+    }
+  }, [wizardStep]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (wizardStep !== 1) return
+    const parsed = parseIngText(aText)
+    setIngredients(prev => {
+      const modules = prev.filter(i => i._module_recipe_id)
+      return [...modules, ...(parsed.length ? parsed : [mkIng()])]
+    })
+  }, [aText]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateStepMedia = useCallback((stepKey, media) => {
     setSteps(prev => prev.map(s => s._key === stepKey ? { ...s, media } : s))
@@ -980,6 +1040,7 @@ export default function RecipeForm() {
 
   const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
   const servingsNum = parseInt(servings) || 4
+  const parsedA = wizardStep === 1 ? parseIngText(aText) : []
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
@@ -1122,178 +1183,56 @@ export default function RecipeForm() {
                   style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--border-input)', background: 'var(--card)', cursor: 'pointer', color: 'var(--text)', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>+</button>
                 <span style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Portionen</span>
               </div>
-              {/* Ingredient groups */}
-              {groupIngsByLabel(ingredients).map(group => {
-            const firstIng = group.items[0]
-            const firstIdx = ingredients.findIndex(i => i._key === firstIng._key)
-            const isModule = !!firstIng._module_recipe_id
-            const srch = moduleSearch[firstIng._key] || {}
-
-            return (
-              <div key={firstIng._key} style={{ marginBottom: '0.75rem', ...(isModule ? { borderLeft: '3px solid #C8602A', paddingLeft: '0.75rem', borderRadius: '0 var(--radius-input) var(--radius-input) 0' } : {}) }}>
-                {/* Group header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <SmallInput
-                      value={group.label}
-                      onChange={v => {
-                        const oldLabel = firstIng.component_label
-                        const firstKey = firstIng._key
-                        setIngredients(prev => {
-                          const arr = [...prev]
-                          const si = arr.findIndex(x => x._key === firstKey)
-                          if (si < 0) return arr
-                          for (let i = si; i < arr.length; i++) {
-                            if (i > si && arr[i].component_label !== oldLabel) break
-                            arr[i] = { ...arr[i], component_label: v }
-                          }
-                          return arr
-                        })
-                        markDirty()
-                      }}
-                      placeholder="Gruppe (optional)"
-                    />
+              {/* Textarea + Live-Preview */}
+              <div className="flex flex-col sm:flex-row" style={{ gap: '1.25rem', alignItems: 'flex-start' }}>
+                <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+                  <textarea
+                    data-track-id="recipe-form-ingredients-text"
+                    value={aText}
+                    onChange={e => { setAText(e.target.value); markDirty() }}
+                    placeholder={'200 g Mehl\n2 Eier\n1 Prise Salz\n\n## Sauce\n3 EL Olivenöl'}
+                    rows={Math.max(6, aText.split('\n').length + 2)}
+                    style={{ width: '100%', padding: '0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.7 }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
+                  />
+                  <p style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', margin: '0.4rem 0 0' }}>
+                    Tipp: Abschnitte mit <code style={{ background: 'var(--bg)', padding: '1px 4px', borderRadius: 4, fontFamily: 'monospace', fontSize: '0.7rem' }}>## Gruppenname</code> trennen
+                  </p>
+                </div>
+                <div style={{ flex: '0 0 220px', minWidth: 0, background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)', padding: '1rem' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.625rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
+                    ✦ So wird's gespeichert · {parsedA.length} Zutaten
                   </div>
-                  <button
-                    onClick={() => {
-                      if (isModule) {
-                        if (firstIng._module_component_id) {
-                          client.delete(`/api/recipes/${recipeId}/components/${firstIng._module_component_id}`)
-                            .catch(() => setToast('Modul konnte nicht entfernt werden.'))
-                        }
-                        setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _module_recipe_id: null, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: false } : it))
-                        markDirty()
-                      } else if (srch.open) {
-                        setModuleSearch(prev => { const n = { ...prev }; delete n[firstIng._key]; return n })
-                      } else {
-                        setModuleSearch(prev => ({ ...prev, [firstIng._key]: { query: '', results: [], open: true, loading: false } }))
-                      }
-                    }}
-                    style={{ padding: '0.25rem 0.625rem', border: `1.5px solid ${isModule ? '#C8602A' : (srch.open ? 'var(--accent)' : 'var(--border-input)')}`, borderRadius: 'var(--radius-pill)', background: isModule ? 'rgba(200,96,42,0.1)' : 'none', color: isModule ? '#C8602A' : (srch.open ? 'var(--accent)' : 'var(--subtext)'), cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, transition: 'var(--transition)' }}
-                  >
-                    {isModule ? '🔗 Modul' : (srch.open ? '✕ Schließen' : 'Als Modul')}
-                  </button>
-                  {!isModule && (
-                    <button
-                      data-track-id="form-ingredient-group-extract"
-                      onClick={() => {
-                        if (!recipeId) return
-                        setExtractDialog({ firstKey: firstIng._key, label: group.label, title: group.label || 'Neue Zubereitung' })
-                      }}
-                      disabled={!recipeId}
-                      title={!recipeId ? 'Speichere das Rezept zuerst' : 'Als eigenes Rezept auslagern'}
-                      style={{ padding: '0.25rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: recipeId ? 'var(--subtext)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontSize: '0.78rem', fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', flexShrink: 0, transition: 'var(--transition)' }}
-                    >
-                      Auslagern
-                    </button>
+                  {parsedA.length === 0 ? (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontStyle: 'italic', margin: 0 }}>Noch keine Zutaten …</p>
+                  ) : (
+                    <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                      {parsedA.map((ing, i) => {
+                        const prev = i > 0 ? parsedA[i - 1] : null
+                        const showLabel = ing.component_label && ing.component_label !== (prev?.component_label ?? '')
+                        return (
+                          <li key={i}>
+                            {showLabel && (
+                              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, color: 'var(--subtext)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: i > 0 ? '0.5rem' : 0, marginBottom: '0.2rem' }}>
+                                {ing.component_label}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'baseline', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', color: 'var(--text)', paddingBottom: '0.2rem' }}>
+                              {(ing.amount || ing.unit) && (
+                                <span style={{ color: 'var(--accent)', fontWeight: 600, flexShrink: 0, minWidth: '2.5rem' }}>
+                                  {[ing.amount, ing.unit].filter(Boolean).join(' ')}
+                                </span>
+                              )}
+                              <span>{ing.name}</span>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
                   )}
                 </div>
-
-                {/* Module settings (when already linked) */}
-                {isModule && (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                    <input
-                      type="number" min="1"
-                      value={firstIng._servings_override}
-                      onChange={e => { setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _servings_override: e.target.value } : it)); markDirty() }}
-                      placeholder="Portionen-Override"
-                      style={{ flex: 1, padding: '0.45rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', minWidth: 0 }}
-                    />
-                    <input
-                      type="number" min="0.1" max="10" step="0.1"
-                      value={firstIng._scale_factor}
-                      onChange={e => { setIngredients(prev => prev.map((it, i) => i === firstIdx ? { ...it, _scale_factor: e.target.value } : it)); markDirty() }}
-                      placeholder="Skalierungsfaktor"
-                      style={{ flex: 1, padding: '0.45rem 0.625rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box', minWidth: 0 }}
-                    />
-                  </div>
-                )}
-
-                {/* Module search (when toggled, not yet linked) */}
-                {!isModule && srch.open && (
-                  <div style={{ marginBottom: '0.35rem', position: 'relative' }}>
-                    <SmallInput
-                      value={srch.query || ''}
-                      onChange={v => {
-                        const key = firstIng._key
-                        setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], query: v } }))
-                        clearTimeout(moduleSearchTimers.current[key])
-                        if (!v.trim()) {
-                          setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], results: [], loading: false } }))
-                          return
-                        }
-                        setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], loading: true } }))
-                        moduleSearchTimers.current[key] = setTimeout(async () => {
-                          try {
-                            const res = await client.get('/api/recipes', { params: { as_module: true, search: v.trim(), search_scope: 'title', page_size: 8 } })
-                            setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], results: res.data.items || [], loading: false } }))
-                          } catch {
-                            setModuleSearch(prev => ({ ...prev, [key]: { ...prev[key], loading: false } }))
-                          }
-                        }, 300)
-                      }}
-                      placeholder="Modul-Rezept suchen …"
-                    />
-                    {(srch.loading || (srch.results || []).length > 0 || (srch.query && !srch.loading)) && (
-                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--card)', border: '1.5px solid var(--accent)', borderTop: 'none', borderRadius: '0 0 var(--radius-input) var(--radius-input)', boxShadow: 'var(--shadow-hover)', zIndex: 100, maxHeight: '180px', overflowY: 'auto' }}>
-                        {srch.loading && <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)' }}>Suche …</div>}
-                        {(srch.results || []).map((r, ri) => (
-                          <button
-                            key={r.id}
-                            onMouseDown={e => {
-                              e.preventDefault()
-                              const oldLabel = group.label
-                              const firstKey = firstIng._key
-                              setIngredients(prev => {
-                                const arr = [...prev]
-                                const si = arr.findIndex(x => x._key === firstKey)
-                                if (si < 0) return arr
-                                for (let i = si; i < arr.length; i++) {
-                                  if (i > si && arr[i].component_label !== oldLabel) break
-                                  arr[i] = { ...arr[i], component_label: r.title }
-                                  if (i === si) arr[i] = { ...arr[i], _module_recipe_id: r.id, _module_component_id: null, _module_is_new: true }
-                                }
-                                return arr
-                              })
-                              setModuleSearch(prev => { const n = { ...prev }; delete n[firstKey]; return n })
-                              markDirty()
-                            }}
-                            style={{ width: '100%', padding: '0.4rem 0.75rem', background: 'none', border: 'none', borderTop: ri > 0 ? '1px solid var(--border)' : 'none', textAlign: 'left', cursor: 'pointer', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.06)' }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-                          >
-                            <span>{r.title}</span>
-                            {r.servings && <span style={{ color: 'var(--subtext)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>{r.servings} Port.</span>}
-                          </button>
-                        ))}
-                        {!srch.loading && srch.query && !(srch.results || []).length && (
-                          <div style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)' }}>Keine Ergebnisse</div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Ingredient rows */}
-                {group.items.map(ing => {
-                  const idx = ingredients.findIndex(i => i._key === ing._key)
-                  return (
-                    <IngredientRow
-                      key={ing._key}
-                      item={ing}
-                      index={idx}
-                      total={ingredients.length}
-                      hideLabel
-                      onChange={(field, val) => { setIngredients(prev => prev.map((it, i) => i === idx ? { ...it, [field]: val } : it)); markDirty() }}
-                      onMove={dir => { setIngredients(prev => { const arr = [...prev]; const t = idx + dir; if (t < 0 || t >= arr.length) return arr; ;[arr[idx], arr[t]] = [arr[t], arr[idx]]; return arr }); markDirty() }}
-                      onRemove={() => { setIngredients(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
-                    />
-                  )
-                })}
               </div>
-            )
-          })}
-              <AddRowBtn onClick={() => { setIngredients(prev => [...prev, mkIng()]); markDirty() }}>+ Zutat hinzufügen</AddRowBtn>
             </div>
           )}
 
