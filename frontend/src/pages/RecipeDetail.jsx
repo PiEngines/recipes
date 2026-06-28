@@ -802,18 +802,6 @@ export default function RecipeDetail() {
           { label: 'Alle Rezepte', path: '/recipes' },
           { label: recipe?.title || '…', path: null },
         ]} />
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {canEdit && recipe && (
-            <button
-              onClick={() => navigate(`/recipes/${recipe.id}/edit`)}
-              style={{ padding: '0.4rem 1rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-pill)', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, transition: 'var(--transition)', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,96,42,0.1)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none' }}
-            >
-              ✏ Bearbeiten
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Content */}
