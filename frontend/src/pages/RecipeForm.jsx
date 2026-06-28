@@ -1171,7 +1171,7 @@ export default function RecipeForm() {
           {STEPS.map((label, i) => {
             const stepGrayed = i === 2 && noModules
             return (
-              <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
+              <button key={i} onClick={stepGrayed ? undefined : () => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: stepGrayed ? 'default' : 'pointer', textAlign: 'left', opacity: stepGrayed ? 0.4 : 1 }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
                   {i < wizardStep ? '✓' : i + 1}
@@ -1552,26 +1552,38 @@ export default function RecipeForm() {
 
       {/* Wizard footer */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', zIndex: 200 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.625rem' }}>
-          <button
-            data-track-id="recipe-form-preview"
-            onClick={() => recipeId && window.open(`/recipes/${recipeId}`, '_blank')}
-            disabled={!recipeId}
-            style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: recipeId ? 'var(--text)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
-            Vorschau
-          </button>
-          {wizardStep < STEPS.length - 1 ? (
-            <button onClick={() => setWizardStep(s => { const next = s + 1; return next === 2 && noModules ? 3 : next })} data-track-id="recipe-form-step-next"
-              style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
-              Weiter →
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.625rem' }}>
+          <div>
+            {wizardStep > 0 && (
+              <button
+                data-track-id="recipe-form-step-back"
+                onClick={() => setWizardStep(s => { const prev = s - 1; return prev === 2 && noModules ? 1 : prev })}
+                style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+                ← Zurück
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <button
+              data-track-id="recipe-form-preview"
+              onClick={() => recipeId && window.open(`/recipes/${recipeId}`, '_blank')}
+              disabled={!recipeId}
+              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: recipeId ? 'var(--text)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+              Vorschau
             </button>
-          ) : (
-            <button onClick={handleSave} data-track-id="recipe-form-submit"
-              disabled={!!savingAs || !title.trim() || !isDirty}
-              style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
-              {savingAs ? 'Speichert …' : 'Speichern'}
-            </button>
-          )}
+            {wizardStep < STEPS.length - 1 ? (
+              <button onClick={() => setWizardStep(s => { const next = s + 1; return next === 2 && noModules ? 3 : next })} data-track-id="recipe-form-step-next"
+                style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
+                Weiter →
+              </button>
+            ) : (
+              <button onClick={handleSave} data-track-id="recipe-form-submit"
+                disabled={!!savingAs || !title.trim() || !isDirty}
+                style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
+                {savingAs ? 'Speichert …' : 'Speichern'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
