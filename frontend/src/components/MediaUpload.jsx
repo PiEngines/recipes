@@ -409,7 +409,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
             <Spinner />
             <span style={{ fontSize: '0.875rem' }}>
               {uploadProgress && uploadProgress.total > 1
-                ? `Lade ${uploadProgress.current} von ${uploadProgress.total} Bildern hoch …`
+                ? `Lade Bild ${uploadProgress.current} von ${uploadProgress.total} hoch …`
                 : 'Lädt hoch …'}
             </span>
           </div>
