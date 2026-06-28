@@ -173,6 +173,7 @@ class RecipeCreate(BaseModel):
     difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus = RecipeStatus.published
     type: RecipeType = RecipeType.kochen
+    course: str | None = None
     source: str | None = None
     category_ids: list[int] = []
     tag_ids: list[int] = []
@@ -189,6 +190,7 @@ class RecipeUpdate(BaseModel):
     difficulty: int | None = Field(None, ge=1, le=5)
     status: RecipeStatus | None = None
     type: RecipeType | None = None
+    course: str | None = None
     source: str | None = None
     category_ids: list[int] | None = None
     tag_ids: list[int] | None = None
@@ -232,6 +234,7 @@ class RecipeResponse(BaseModel):
     difficulty: int | None
     status: str
     type: str = "kochen"
+    course: str | None = None
     source: str | None
     review_status: str | None = None
     thumbnail_style: str = "crop"

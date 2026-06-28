@@ -40,6 +40,7 @@ class Recipe(Base):
     difficulty = Column(Integer)  # 1–5
     status = Column(Enum(RecipeStatus, name="recipe_status"), nullable=False, default=RecipeStatus.published)
     type = Column(String(20), nullable=False, default=RecipeType.kochen.value)
+    course = Column(String(50), nullable=True, default=None)
     source = Column(String(500))
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
