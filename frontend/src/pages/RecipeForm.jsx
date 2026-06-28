@@ -1453,56 +1453,73 @@ export default function RecipeForm() {
             </div>
           )}
 
-          {/* Step 3: Feinschliff */}
+          {/* Step 3: Zubereitung */}
           {wizardStep === 3 && (
             <div>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Feinschliff</div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Alles optional — du kannst auch jetzt schon speichern.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1rem', marginBottom: '1.25rem' }}>
-                <div>
-                  <FieldLabel>Vorbereitung (Min.)</FieldLabel>
-                  <StyledInput type="number" min="0" value={prepTime} onChange={v => { setPrepTime(v); markDirty() }} placeholder="z. B. 15" />
-                </div>
-                <div>
-                  <FieldLabel>Kochen / Backen (Min.)</FieldLabel>
-                  <StyledInput type="number" min="0" value={cookTime} onChange={v => { setCookTime(v); markDirty() }} placeholder="z. B. 30" />
-                </div>
+              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Zubereitung</div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.5rem' }}>Beschreibe die Schritte. Timer und Fotos auf Wunsch.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {steps.map((step, idx) => (
+                  <div
+                    key={step._key}
+                    draggable
+                    onDragStart={() => { dragFromRef.current = idx }}
+                    onDragOver={e => {
+                      e.preventDefault()
+                      if (dragFromRef.current === null || dragFromRef.current === idx) return
+                      const from = dragFromRef.current
+                      setSteps(prev => {
+                        const arr = [...prev]
+                        const [item] = arr.splice(from, 1)
+                        arr.splice(idx, 0, item)
+                        return arr
+                      })
+                      dragFromRef.current = idx
+                    }}
+                    onDragEnd={() => { dragFromRef.current = null }}
+                    data-track-id="recipe-form-step-drag"
+                    style={{ display: 'flex', gap: '0.75rem', padding: '0.875rem', background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', cursor: 'grab', userSelect: 'none' }}
+                  >
+                    <span style={{ fontSize: '1.1rem', color: 'var(--subtext)', flexShrink: 0, lineHeight: 1.8, cursor: 'grab' }}>⠿</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                        <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>{idx + 1}</div>
+                        <div style={{ flex: 1 }} />
+                        <button
+                          onClick={() => { setSteps(prev => prev.filter((_, i) => i !== idx)); markDirty() }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', padding: '0 2px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+                      </div>
+                      <textarea
+                        data-track-id="recipe-form-step-instruction"
+                        value={step.instruction}
+                        onChange={e => { setSteps(prev => prev.map((s, i) => i === idx ? { ...s, instruction: e.target.value } : s)); markDirty() }}
+                        placeholder="Schritt beschreiben …"
+                        rows={Math.max(3, (step.instruction || '').split('\n').length + 1)}
+                        style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, cursor: 'text' }}
+                        onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px rgba(200,96,42,0.12)' }}
+                        onBlur={e => { e.target.style.borderColor = 'var(--border-input)'; e.target.style.boxShadow = 'none' }}
+                      />
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                        {['⏱ Timer', '📷 Foto', '☰ Zutaten'].map(label => (
+                          <button key={label} disabled
+                            style={{ padding: '0.25rem 0.75rem', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'none', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', cursor: 'not-allowed', opacity: 0.5 }}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <FieldLabel>Schwierigkeit</FieldLabel>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.375rem' }}>
-                  <input type="range" min="1" max="5" value={difficulty} onChange={e => { setDifficulty(parseInt(e.target.value)); markDirty() }} style={{ flex: 1, accentColor: diffColor(difficulty) }} />
-                  <span style={{ minWidth: '2.5rem', textAlign: 'center', fontWeight: 700, fontSize: '1.05rem', color: diffColor(difficulty) }}>{difficulty}/5</span>
-                </div>
-                <span style={{ display: 'inline-flex', gap: '2px' }}>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} style={{ fontSize: '1.1rem', color: '#C8602A', opacity: i < difficulty ? 1 : 0.2, transform: 'scaleX(-1)', display: 'inline-block', lineHeight: 1 }}>🥄</span>
-                  ))}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: '1.5rem', marginBottom: '1.25rem' }}>
-                <TaxonomyField label="Kategorien" apiPath="/api/categories" selected={selectedCats}
-                  onAdd={cat => { setSelectedCats(prev => prev.some(c => c.id === cat.id) ? prev : [...prev, cat]); markDirty() }}
-                  onRemove={catId => { setSelectedCats(prev => prev.filter(c => c.id !== catId)); markDirty() }}
-                  placeholder="Kategorie suchen oder erstellen …" />
-                <TaxonomyField label="Tags" apiPath="/api/tags" selected={selectedTags}
-                  onAdd={tag => { setSelectedTags(prev => prev.some(t => t.id === tag.id) ? prev : [...prev, tag]); markDirty() }}
-                  onRemove={tagId => { setSelectedTags(prev => prev.filter(t => t.id !== tagId)); markDirty() }}
-                  placeholder="Tag suchen oder erstellen …" />
-              </div>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <FieldLabel>Fotos & Videos</FieldLabel>
-                {recipeId ? (
-                  <MediaUpload entityType="recipe" entityId={recipeId} existingMedia={recipeMedia}
-                    onMediaChange={async () => {
-                      try { const { data } = await client.get(`/api/media/entity/recipe/${recipeId}`); setRecipeMedia(data) } catch {}
-                    }} allowVideo={true} />
-                ) : (
-                  <p style={{ color: 'var(--subtext)', fontSize: '0.875rem', fontStyle: 'italic', margin: 0 }}>
-                    Speichere das Rezept zuerst, um Fotos hochzuladen.
-                  </p>
-                )}
-              </div>
+              <button
+                data-track-id="recipe-form-step-add"
+                onClick={() => { setSteps(prev => [...prev, mkStep()]); markDirty() }}
+                style={{ width: '100%', marginTop: '0.75rem', padding: '0.625rem 1rem', border: '1.5px dashed var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 500 }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)' }}
+              >
+                + Schritt hinzufügen
+              </button>
             </div>
           )}
 
