@@ -906,6 +906,20 @@ export default function RecipeForm() {
       if (!skipVersion) setToast('Gespeichert')
       // Sync serve-with to backend (fire-and-forget, non-blocking)
       client.put(`/api/recipes/${result.data.id}/serve-with`, { recipe_ids: stateRef.current.serveWith.map(r => r.id) }).catch(() => {})
+      // Commit new module components (also covers auto-save path)
+      for (const ing of stateRef.current.ingredients.filter(i => i._module_recipe_id && i._module_is_new)) {
+        try {
+          await client.post(`/api/recipes/${result.data.id}/components`, {
+            child_recipe_id: ing._module_recipe_id,
+            sort_order: 0,
+            servings_override: ing._servings_override ? parseInt(ing._servings_override) || null : null,
+            scale_factor: ing._scale_factor ? parseFloat(ing._scale_factor) || null : null,
+          })
+          setIngredients(prev => prev.map(i => i._key === ing._key ? { ...i, _module_is_new: false } : i))
+        } catch {
+          setToast('Ein Modul konnte nicht eingebunden werden.')
+        }
+      }
       // Map DB step IDs back into form state
       const savedSteps = [...(result.data.steps || [])].sort((a, b) => a.sort_order - b.sort_order)
       setSteps(prev => {
