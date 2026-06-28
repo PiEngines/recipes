@@ -183,6 +183,7 @@ def _make_recipe(
     r.difficulty = None
     r.status = "published"
     r.type = "kochen"
+    r.course = None
     r.source = None
     r.review_status = None
     r.thumbnail_style = "crop"
