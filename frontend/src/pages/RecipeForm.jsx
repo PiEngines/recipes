@@ -592,6 +592,8 @@ export default function RecipeForm() {
   const [source, setSource] = useState('')
   const [type, setType] = useState('kochen')
   const [course, setCourse] = useState('')
+  const [fotoSavingKey, setFotoSavingKey] = useState(null)
+  const [savingForFotos, setSavingForFotos] = useState(false)
   const [selectedCats, setSelectedCats] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
@@ -1598,7 +1600,16 @@ export default function RecipeForm() {
                           </button>
                           <button
                             data-track-id="recipe-form-step-foto-toggle"
-                            onClick={() => updStep({ _open_foto: !step._open_foto, _open_timer: false })}
+                            onClick={async () => {
+                              if (!step._open_foto && !step.dbId) {
+                                setFotoSavingKey(step._key)
+                                await doSave(undefined, true)
+                                setFotoSavingKey(null)
+                                updStep({ _open_foto: true, _open_timer: false })
+                              } else {
+                                updStep({ _open_foto: !step._open_foto, _open_timer: false })
+                              }
+                            }}
                             style={{ padding: '0.15rem 0.5rem', border: `1px solid ${fotoActive || step._open_foto ? 'var(--text)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: fotoActive || step._open_foto ? 'rgba(44,44,42,0.07)' : 'none', color: fotoActive || step._open_foto ? 'var(--text)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', cursor: 'pointer' }}>
                             {fotoActive ? `📷 ${step.media.length}` : '📷 Foto'}
                           </button>
@@ -1636,7 +1647,7 @@ export default function RecipeForm() {
                               />
                             ) : (
                               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0, padding: '0.375rem 0' }}>
-                                Erst speichern, um ein Foto hochzuladen.
+                                {fotoSavingKey === step._key ? 'Speichere …' : 'Erst speichern, um ein Foto hochzuladen.'}
                               </p>
                             )}
                           </div>
@@ -1748,14 +1759,21 @@ export default function RecipeForm() {
               {/* 4. Fotos */}
               <div style={{ marginBottom: '1.75rem' }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Fotos</div>
-                <div title={!recipeId ? 'Speichere zuerst, um Fotos hinzuzufügen' : undefined}
-                  style={{ opacity: recipeId ? 1 : 0.5, pointerEvents: recipeId ? 'auto' : 'none' }}>
-                  <MediaUpload
-                    entityType="recipe"
-                    entityId={recipeId || 0}
-                    existingMedia={recipeMedia}
-                    onMediaChange={setRecipeMedia}
-                  />
+                <div
+                  onClick={!recipeId && !savingForFotos ? async () => { setSavingForFotos(true); await doSave(undefined, true); setSavingForFotos(false) } : undefined}
+                  title={!recipeId ? (savingForFotos ? 'Speichere …' : 'Klicken zum Speichern & Hochladen') : undefined}
+                  style={{ opacity: recipeId ? 1 : 0.5, cursor: !recipeId ? (savingForFotos ? 'default' : 'pointer') : 'auto' }}>
+                  <div style={{ pointerEvents: recipeId ? 'auto' : 'none' }}>
+                    <MediaUpload
+                      entityType="recipe"
+                      entityId={recipeId || 0}
+                      existingMedia={recipeMedia}
+                      onMediaChange={setRecipeMedia}
+                    />
+                  </div>
+                  {!recipeId && savingForFotos && (
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: '0.375rem 0 0' }}>Speichere …</p>
+                  )}
                 </div>
               </div>
 
