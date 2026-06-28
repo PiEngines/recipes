@@ -69,7 +69,7 @@ export function RecipeCard({ recipe, primaryImage, dimmed }) {
     >
       <div className="recipe-card" style={{ height: '100%', minHeight: '280px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {topArea}
-        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem', position: 'relative' }}>
+        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem', position: 'relative', background: 'rgba(255,255,255,0.88)' }}>
           <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3, pointerEvents: 'auto' }} />
           <div style={{ flex: 1 }}>
             {recipe.description ? (
