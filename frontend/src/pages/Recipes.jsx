@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -7,6 +7,7 @@ import { useFavorites } from '../context/FavoritesContext'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
+import FeedCard from '../components/FeedCard'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ function SidebarBtn({ active, color, onClick, trackId, disabled, children }) {
 }
 
 function FilterSidebar({ typeFilters, onTypeToggle, maxTimeFilter, onTimeToggle, onClearAll }) {
-  const hasFilters = typeFilters.size > 0 || maxTimeFilter
+  const hasFilters = typeFilters.size > 0 || maxTimeFilter > 0
   return (
     <div style={{ paddingRight: 20, paddingTop: 32, borderRight: '1px solid rgba(0,0,0,.06)', position: 'sticky', top: 65, maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -293,6 +294,7 @@ function FilterSidebar({ typeFilters, onTypeToggle, maxTimeFilter, onTimeToggle,
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Recipes() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const { favorites, favoriteIds } = useFavorites()
@@ -455,7 +457,7 @@ export default function Recipes() {
     ? [...filteredByTime].sort((a, b) => b.id - a.id)
     : filteredByTime
 
-  const hasActiveChipFilters = typeFilters.size > 0 || maxTimeFilter
+  const hasActiveChipFilters = typeFilters.size > 0 || maxTimeFilter > 0
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -553,7 +555,14 @@ export default function Recipes() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
               {displayRecipes.map(r => r.deleted_at
                 ? <DeletedFavoriteCard key={r.id} recipe={r} />
-                : <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={showFavorites && !favoriteIds.has(r.id)} />
+                : <FeedCard key={r.id} recipe={r} image={primaryImages[r.id] ?? null}
+                    dimmed={showFavorites && !favoriteIds.has(r.id)}
+                    onClick={() => {
+                      sessionStorage.setItem('recipes_scroll_y', window.scrollY)
+                      sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+                      navigate(`/recipes/${r.id}`)
+                    }}
+                  />
               )}
             </div>
           )}
@@ -599,7 +608,14 @@ export default function Recipes() {
           <div className="grid grid-cols-2 gap-6" style={{ alignItems: 'stretch' }}>
             {displayRecipes.map(r => r.deleted_at
               ? <DeletedFavoriteCard key={r.id} recipe={r} />
-              : <RecipeCard key={r.id} recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={showFavorites && !favoriteIds.has(r.id)} />
+              : <FeedCard key={r.id} recipe={r} image={primaryImages[r.id] ?? null}
+                  dimmed={showFavorites && !favoriteIds.has(r.id)}
+                  onClick={() => {
+                    sessionStorage.setItem('recipes_scroll_y', window.scrollY)
+                    sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+                    navigate(`/recipes/${r.id}`)
+                  }}
+                />
             )}
           </div>
         )}

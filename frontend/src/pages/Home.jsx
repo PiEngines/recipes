@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import FavoriteHeart from '../components/FavoriteHeart'
+import FeedCard from '../components/FeedCard'
 
 const CARD_GRADIENTS = [
   'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
@@ -119,31 +120,6 @@ function MiniCard({ recipe, image, onClick }) {
             <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{t}</span>
           </div>
         )}
-      </div>
-    </div>
-  )
-}
-
-// ── FeedCard ─────────────────────────────────────────────────────────────────
-
-function FeedCard({ recipe, image, onClick }) {
-  const src = imgSrc(image)
-  const t = fmtTime(recipe)
-  return (
-    <div onClick={onClick} data-track-id="home-feed-card-click"
-      style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 118, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
-        {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
-        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
-          style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
-      </div>
-      <div style={{ padding: '9px 11px 11px', background: 'rgba(255,255,255,0.88)' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 5px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {recipe.author?.username && <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{recipe.author.username}</span>}
-          {recipe.author?.username && t && <span style={{ fontSize: 11, color: 'var(--border-input)' }}>·</span>}
-          {t && <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>{t}</span>}
-        </div>
       </div>
     </div>
   )
