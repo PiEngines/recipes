@@ -952,22 +952,17 @@ export default function RecipeForm() {
     const data = await doSave()
     if (!data) return
 
-    let curLabel = null
-    for (const ing of capturedIngs) {
-      if (ing.component_label !== curLabel) {
-        curLabel = ing.component_label
-        if (ing._module_recipe_id && ing._module_is_new) {
-          try {
-            await client.post(`/api/recipes/${data.id}/components`, {
-              child_recipe_id: ing._module_recipe_id,
-              sort_order: 0,
-              servings_override: ing._servings_override ? parseInt(ing._servings_override) || null : null,
-              scale_factor: ing._scale_factor ? parseFloat(ing._scale_factor) || null : null,
-            })
-          } catch {
-            setToast('Ein Modul konnte nicht eingebunden werden.')
-          }
-        }
+    for (const ing of capturedIngs.filter(i => i._module_recipe_id && i._module_is_new)) {
+      try {
+        await client.post(`/api/recipes/${data.id}/components`, {
+          child_recipe_id: ing._module_recipe_id,
+          sort_order: 0,
+          servings_override: ing._servings_override ? parseInt(ing._servings_override) || null : null,
+          scale_factor: ing._scale_factor ? parseFloat(ing._scale_factor) || null : null,
+        })
+        setIngredients(prev => prev.map(i => i._key === ing._key ? { ...i, _module_is_new: false } : i))
+      } catch {
+        setToast('Ein Modul konnte nicht eingebunden werden.')
       }
     }
 
