@@ -175,6 +175,9 @@ input[type="date"] {
   .bottom-nav {
     display: none;
   }
+  .mobile-search-bar {
+    bottom: 0;
+  }
   body {
     padding-bottom: 52px;
   }

@@ -85,9 +85,9 @@ export default function MobileSearchBar() {
 
   return (
     <div
-      className="bottom-[60px] md:bottom-0"
+      className="mobile-search-bar"
       style={{
-        position: 'fixed', left: 0, right: 0, zIndex: 95,
+        position: 'fixed', left: 0, right: 0, bottom: 60, zIndex: 95,
         background: 'var(--card)',
         borderTop: '1px solid rgba(0,0,0,.07)',
         boxShadow: '0 -2px 12px rgba(0,0,0,.06)',
