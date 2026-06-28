@@ -1062,19 +1062,12 @@ export default function RecipeForm() {
           {saveStatusText && (
             <span className="hidden sm:inline" style={{ fontSize: '0.75rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
           )}
-          <div className="hidden sm:flex" style={{ gap: '0.5rem', flexShrink: 0 }}>
-            {isEdit && (
-              <button onClick={handleDiscard}
-                style={{ padding: '0.5rem 0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem' }}>
-                Verwerfen
-              </button>
-            )}
-            <button onClick={handleSave} data-track-id="recipe-form-submit"
-              disabled={!!savingAs || !title.trim() || !isDirty}
-              style={{ padding: '0.5rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', fontWeight: 600 }}>
-              {savingAs ? 'Speichert …' : 'Speichern'}
+          {isEdit && (
+            <button onClick={handleDiscard} className="hidden sm:inline"
+              style={{ padding: '0.5rem 0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', flexShrink: 0 }}>
+              Verwerfen
             </button>
-          </div>
+          )}
         </div>
 
       </header>
@@ -1110,10 +1103,6 @@ export default function RecipeForm() {
               <div style={{ marginBottom: '1.25rem' }}>
                 <FieldLabel>Beschreibung</FieldLabel>
                 <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung …" rows={3} />
-              </div>
-              <div>
-                <FieldLabel>Quelle / Inspiration</FieldLabel>
-                <StyledInput value={source} onChange={v => { setSource(v); markDirty() }} placeholder="Buch, Website, Oma …" />
               </div>
             </div>
           )}
