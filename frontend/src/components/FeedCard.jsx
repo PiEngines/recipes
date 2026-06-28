@@ -31,7 +31,7 @@ export default function FeedCard({ recipe, image, onClick, dimmed = false, isPen
   return (
     <div
       onClick={onClick}
-      data-track-id="home-feed-card-click"
+      data-track-id="feed-card-click"
       style={{
         background: 'var(--card)',
         borderRadius: 14,
