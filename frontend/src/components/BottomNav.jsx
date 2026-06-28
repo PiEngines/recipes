@@ -116,17 +116,17 @@ export default function BottomNav() {
         }}
       >
         <Link to="/" data-track-id="bottom-nav-home-click" style={slotStyle(isHome)}>
-          <i className="ti ti-home-2" style={{ fontSize: 21 }} />
+          <i className="ti ti-home" style={{ fontSize: 22 }} />
           {slotLabel('Start')}
         </Link>
 
         <Link to="/recipes" data-track-id="bottom-nav-rezepte-click" style={slotStyle(isRezepte)}>
-          <i className="ti ti-book-2" style={{ fontSize: 21 }} />
+          <i className="ti ti-book-2" style={{ fontSize: 22 }} />
           {slotLabel('Rezepte')}
         </Link>
 
         <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
-          <i className="ti ti-heart" style={{ fontSize: 21 }} />
+          <i className="ti ti-heart" style={{ fontSize: 22 }} />
           {slotLabel('Favoriten')}
         </Link>
 
@@ -147,7 +147,7 @@ export default function BottomNav() {
           data-track-id="bottom-nav-mehr-click"
           style={slotStyle(moreOpen)}
         >
-          <i className="ti ti-dots" style={{ fontSize: 21 }} />
+          <i className="ti ti-dots" style={{ fontSize: 22 }} />
           {slotLabel('Mehr')}
         </button>
       </nav>
