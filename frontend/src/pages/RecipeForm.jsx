@@ -1650,7 +1650,9 @@ export default function RecipeForm() {
                               />
                             ) : (
                               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--subtext)', fontStyle: 'italic', margin: 0, padding: '0.375rem 0' }}>
-                                {fotoSavingKey === step._key ? 'Speichere …' : 'Erst speichern, um ein Foto hochzuladen.'}
+                                {fotoSavingKey === step._key
+                                  ? 'Speichere …'
+                                  : 'Bitte zuerst einen Titel vergeben (Schritt 1), dann Foto hochladen.'}
                               </p>
                             )}
                           </div>
