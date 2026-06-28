@@ -978,7 +978,7 @@ export default function RecipeForm() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const STEPS = ['Basis', 'Zutaten', 'Zubereitung', 'Feinschliff', 'Veröffentlichen']
+  const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
   const servingsNum = parseInt(servings) || 4
 
   return (
@@ -1076,15 +1076,7 @@ export default function RecipeForm() {
             </button>
           </div>
         </div>
-        {/* Mobile step tabs */}
-        <div className="sm:hidden" style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', borderTop: '1px solid var(--border)' }}>
-          {STEPS.map((label, i) => (
-            <button key={i} onClick={() => setWizardStep(i)} data-track-id={`recipe-form-step-${i}-click`}
-              style={{ flex: '0 0 auto', padding: '0.5rem 0.875rem', border: 'none', borderBottom: `2px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: 'none', color: wizardStep === i ? 'var(--accent)' : 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', fontWeight: wizardStep === i ? 600 : 400, whiteSpace: 'nowrap' }}>
-              {i + 1}. {label}
-            </button>
-          ))}
-        </div>
+
       </header>
 
       {/* Main area */}
@@ -1431,34 +1423,26 @@ export default function RecipeForm() {
         </main>
       </div>
 
-      {/* Wizard footer: step navigation */}
+      {/* Wizard footer */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', zIndex: 200 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          {wizardStep > 0 ? (
-            <button onClick={() => setWizardStep(s => s - 1)} data-track-id="recipe-form-step-prev"
-              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
-              ← Zurück
-            </button>
-          ) : (
-            <button onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')}
-              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
-              Abbrechen
-            </button>
-          )}
-          <span className="hidden sm:inline" style={{ fontSize: '0.8rem', color: saveStatusColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {saveStatusText || (!title.trim() && 'Titel eingeben zum Speichern')}
-          </span>
-          <span className="sm:hidden" style={{ flex: 1 }} />
-          {isDirty && title.trim() && wizardStep < 4 && (
-            <button onClick={handleSave} disabled={!!savingAs}
-              style={{ padding: '0.625rem 0.875rem', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--accent)', cursor: savingAs ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, flexShrink: 0 }}>
-              {savingAs ? '…' : 'Speichern'}
-            </button>
-          )}
-          {wizardStep < STEPS.length - 1 && (
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.625rem' }}>
+          <button
+            data-track-id="recipe-form-preview"
+            onClick={() => recipeId && window.open(`/recipes/${recipeId}`, '_blank')}
+            disabled={!recipeId}
+            style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: recipeId ? 'var(--text)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+            Vorschau
+          </button>
+          {wizardStep < STEPS.length - 1 ? (
             <button onClick={() => setWizardStep(s => s + 1)} data-track-id="recipe-form-step-next"
               style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
               Weiter →
+            </button>
+          ) : (
+            <button onClick={handleSave} data-track-id="recipe-form-submit"
+              disabled={!!savingAs || !title.trim() || !isDirty}
+              style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !title.trim() || !isDirty) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !title.trim() || !isDirty) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
+              {savingAs ? 'Speichert …' : 'Speichern'}
             </button>
           )}
         </div>
