@@ -811,16 +811,14 @@ export default function RecipeDetail() {
         </div>
       )}
 
-      {/* Back button */}
-      <div style={{ padding: '0.75rem 1.25rem 0', maxWidth: 1200, margin: '0 auto' }}>
-        <BackButton fallback="/recipes" />
-      </div>
-
       {/* Content */}
       <div className="px-0 md:px-6" style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: '4rem' }}>
         <div className="md:flex md:gap-8" style={{ alignItems: 'flex-start' }}>
 
           {/* Ingredient sidebar (desktop) */}
+          <div style={{ marginBottom: '0.75rem', paddingLeft: '0.25rem' }}>
+            <BackButton fallback="/recipes" />
+          </div>
           <IngredientSidebar
             recipe={recipe}
             servings={servings}
