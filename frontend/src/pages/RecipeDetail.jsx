@@ -145,19 +145,14 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,.22) 0%, transparent 35%, rgba(0,0,0,.62) 100%)' }} />
 
-        {/* Mobile breadcrumb + edit */}
-        <div className="md:hidden" style={{ position: 'absolute', top: 12, left: 14, right: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', flex: 1, minWidth: 0 }}>
-            <Link to="/recipes" style={{ fontSize: 12, color: 'rgba(255,255,255,.65)', whiteSpace: 'nowrap', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>Rezepte</Link>
-            <i className="ti ti-chevron-right" style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', flexShrink: 0 }} />
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Inter, sans-serif' }}>{recipe.title}</span>
-          </div>
-          {canEdit && (
+        {/* Edit button */}
+        {canEdit && (
+          <div className="md:hidden" style={{ position: 'absolute', top: 12, right: 14, zIndex: 2 }}>
             <button onClick={onEdit} style={{ border: '1.5px solid rgba(255,255,255,.45)', background: 'rgba(0,0,0,.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', borderRadius: 999, padding: '5px 13px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}>
               <i className="ti ti-pencil" style={{ fontSize: 12 }} /> Bearbeiten
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Heart */}
         <FavoriteHeart
