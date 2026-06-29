@@ -307,7 +307,7 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
   const minusDisabled = wouldDropBelowMin(recipe.ingredients, servings, baseServings)
   return (
     <aside className="hidden md:flex" style={{
-      width: 260, flexShrink: 0, flexDirection: 'column',
+      flexDirection: 'column',
       position: 'sticky', top: 72, maxHeight: 'calc(100vh - 88px)',
       background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)',
     }}>
@@ -816,18 +816,18 @@ export default function RecipeDetail() {
         <div className="md:flex md:gap-8" style={{ alignItems: 'flex-start' }}>
 
           {/* Ingredient sidebar (desktop) */}
-          <div style={{ marginBottom: '0.75rem', paddingLeft: '0.25rem' }}>
+          <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <BackButton fallback="/recipes" />
+            <IngredientSidebar
+              recipe={recipe}
+              servings={servings}
+              baseServings={baseServings}
+              onServingsChange={setServings}
+              activeIds={activeIds}
+              selectedIngredient={selectedIngredient}
+              onSelectIngredient={handleSelectIngredient}
+            />
           </div>
-          <IngredientSidebar
-            recipe={recipe}
-            servings={servings}
-            baseServings={baseServings}
-            onServingsChange={setServings}
-            activeIds={activeIds}
-            selectedIngredient={selectedIngredient}
-            onSelectIngredient={handleSelectIngredient}
-          />
 
           {/* Main column */}
           <div style={{ flex: 1, minWidth: 0 }}>
