@@ -680,6 +680,7 @@ export default function RecipeDetail() {
   const [selectedIngredient, setSelectedIngredient] = useState(null)
   const [checkedIngredients, setCheckedIngredients] = useState({})
   const [pillsExpanded, setPillsExpanded] = useState(false)
+  const [serveWith, setServeWith] = useState([])
 
   const stepRefs = useRef({})
 
@@ -694,6 +695,9 @@ export default function RecipeDetail() {
         setDynamicLabel(`/recipes/${id}`, r.title)
         client.get(`/api/media/entity/recipe/${id}`)
           .then(m => setRecipeMedia(m.data))
+          .catch(() => {})
+        client.get(`/api/recipes/${id}/serve-with`)
+          .then(sw => setServeWith(sw.data))
           .catch(() => {})
         if (r.steps?.length) {
           Promise.all(
@@ -928,6 +932,28 @@ export default function RecipeDetail() {
                 ))
               )}
             </div>
+
+            {/* Passt dazu */}
+            {serveWith.length > 0 && (
+              <div className="px-[12px] md:px-0" style={{ marginTop: 32 }}>
+                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, marginBottom: 14, padding: '0 4px', color: 'var(--text)' }}>
+                  Passt dazu
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {serveWith.map(r => (
+                    <Link
+                      key={r.id}
+                      to={`/recipes/${r.id}`}
+                      data-track-id="detail-serve-with-click"
+                      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--card)', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,.06)', color: 'var(--text)' }}
+                    >
+                      <i className="ti ti-arrow-right" style={{ fontSize: 14, color: 'var(--accent)', flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500 }}>{r.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

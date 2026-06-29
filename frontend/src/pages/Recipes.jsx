@@ -465,7 +465,7 @@ export default function Recipes() {
   const displayRecipes = sort === 'quickest'
     ? [...filteredByTime].sort((a, b) => ((a.prep_time || 0) + (a.cook_time || 0)) - ((b.prep_time || 0) + (b.cook_time || 0)))
     : sort === 'newest'
-    ? [...filteredByTime].sort((a, b) => b.id - a.id)
+    ? [...filteredByTime].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     : filteredByTime
 
   const hasActiveChipFilters = typeFilters.size > 0 || maxTimeFilter > 0

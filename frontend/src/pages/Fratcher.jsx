@@ -216,9 +216,10 @@ export default function Fratcher() {
           onBlur={() => setTimeout(() => { setShowAutocomplete(false); setActiveIndex(-1) }, 180)}
           onKeyDown={e => {
             if (!showAutocomplete || acItems.length === 0) return
-            if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex(prev => Math.min(prev + 1, acItems.length - 1)) }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIndex(prev => Math.max(prev - 1, 0)) }
-            else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); addIngredient(acItems[activeIndex]); setActiveIndex(-1) }
+            if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) e.preventDefault()
+            if (e.key === 'ArrowDown') setActiveIndex(prev => Math.min(prev + 1, acItems.length - 1))
+            else if (e.key === 'ArrowUp') setActiveIndex(prev => Math.max(prev - 1, 0))
+            else if (e.key === 'Enter' && activeIndex >= 0) { addIngredient(acItems[activeIndex]); setActiveIndex(-1) }
             else if (e.key === 'Escape') { setShowAutocomplete(false); setActiveIndex(-1) }
           }}
           placeholder={isMobile ? 'Zutat eingeben …' : 'Zutat suchen …'}
