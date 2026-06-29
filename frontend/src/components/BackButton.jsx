@@ -1,15 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { useNavigation } from '../context/NavigationContext'
 
 export default function BackButton({ fallback = '/' }) {
   const navigate = useNavigate()
-  const { previousRoute } = useNavigation()
-
-  const label = previousRoute ? `← ${previousRoute.label}` : '← Zurück'
 
   const handleClick = () => {
-    if (previousRoute) navigate(previousRoute.path)
-    else if (window.history.length > 1) navigate(-1)
+    if (window.history.length > 1) navigate(-1)
     else navigate(fallback)
   }
 
@@ -17,20 +12,19 @@ export default function BackButton({ fallback = '/' }) {
     <button
       onClick={handleClick}
       style={{
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: 'var(--accent)',
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 500,
-        fontSize: '0.9rem',
-        padding: 0,
-        display: 'inline-flex',
+        width: 34,
+        height: 34,
+        borderRadius: 999,
+        background: 'var(--card)',
+        border: '1px solid rgba(0,0,0,.08)',
+        display: 'flex',
         alignItems: 'center',
-        gap: '0.4rem',
+        justifyContent: 'center',
+        flexShrink: 0,
+        cursor: 'pointer',
       }}
     >
-      {label}
+      <i className="ti ti-arrow-left" style={{ fontSize: 17, color: 'var(--text)' }} />
     </button>
   )
 }
