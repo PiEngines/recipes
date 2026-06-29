@@ -37,7 +37,7 @@ export default function FavoriteHeart({ recipeId, recipe, size = 22, outline = t
         ...style,
       }}
     >
-      <Heart size={size} fill={isFavorite ? '#C30000' : 'none'} color={isFavorite ? '#C30000' : 'var(--subtext)'} strokeWidth={2} />
+      <Heart size={size} fill={isFavorite ? '#C30000' : 'none'} color={isFavorite ? '#C30000' : '#555'} strokeWidth={2} />
     </button>
   )
 }

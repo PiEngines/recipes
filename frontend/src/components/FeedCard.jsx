@@ -50,7 +50,7 @@ export default function FeedCard({ recipe, image, onClick, dimmed = false, isPen
             Wird geprüft
           </span>
         )}
-        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
+        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false}
           style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
       </div>
       <div style={{ padding: '9px 11px 11px', background: 'rgba(255,255,255,0.88)' }}>
