@@ -274,7 +274,7 @@ export default function Home() {
               Neue Rezepte
             </span>
           </h2>
-          <button onClick={() => navigate('/recipes')} data-track-id="home-neue-mehr-click"
+          <button onClick={() => navigate('/recipes?sort=newest')} data-track-id="home-neue-mehr-click"
             style={{ fontSize: 13, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
             Mehr →
           </button>

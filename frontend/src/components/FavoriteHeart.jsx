@@ -10,7 +10,7 @@ const HEART_OUTLINE_FILTER = [
   [1, 1], [-1, 1], [1, -1], [-1, -1],
 ].map(([x, y]) => `drop-shadow(${x}px ${y}px 0 var(--heart-outline))`).join(' ')
 
-export default function FavoriteHeart({ recipeId, recipe, size = 20, outline = true, style = {}, trackId }) {
+export default function FavoriteHeart({ recipeId, recipe, size = 22, outline = true, style = {}, trackId }) {
   const { user } = useAuth()
   const { favoriteIds, toggleFavorite } = useFavorites()
 
@@ -37,7 +37,7 @@ export default function FavoriteHeart({ recipeId, recipe, size = 20, outline = t
         ...style,
       }}
     >
-      <Heart size={size} fill={isFavorite ? '#C30000' : 'none'} color={isFavorite ? '#C30000' : 'var(--text)'} strokeWidth={2} />
+      <Heart size={size} fill={isFavorite ? '#C30000' : 'none'} color={isFavorite ? '#C30000' : 'var(--subtext)'} strokeWidth={2} />
     </button>
   )
 }
