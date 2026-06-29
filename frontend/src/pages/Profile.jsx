@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
-import Breadcrumb from '../components/Breadcrumb'
 import BackButton from '../components/BackButton'
 import { getRoleLabel, isKochOrAbove } from '../utils/roles'
 
@@ -222,11 +221,8 @@ export default function Profile() {
 
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
-          <div className="md:hidden" style={{ marginBottom: '0.75rem' }}>
+          <div style={{ marginBottom: '0.75rem' }}>
             <BackButton />
-          </div>
-          <div className="hidden md:block">
-            <Breadcrumb items={[{ label: 'Startseite', path: '/' }, { label: 'Profil' }]} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 }}>

@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
-import Breadcrumb from '../components/Breadcrumb'
 import BackButton from '../components/BackButton'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
@@ -817,16 +816,8 @@ export default function RecipeDetail() {
         </div>
       )}
 
-      {/* Desktop nav bar */}
-      <div className="hidden md:flex" style={{ padding: '0.875rem 1.5rem', maxWidth: 1200, margin: '0 auto', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-        <Breadcrumb items={[
-          { label: 'Alle Rezepte', path: '/recipes' },
-          { label: recipe?.title || '…', path: null },
-        ]} />
-      </div>
-
-      {/* Mobile back button */}
-      <div className="md:hidden" style={{ padding: '0.75rem 1.25rem 0' }}>
+      {/* Back button */}
+      <div style={{ padding: '0.75rem 1.25rem 0', maxWidth: 1200, margin: '0 auto' }}>
         <BackButton fallback="/recipes" />
       </div>
 

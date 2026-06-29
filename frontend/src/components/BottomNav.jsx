@@ -73,30 +73,31 @@ export default function BottomNav() {
         }}
         className="bottom-nav"
       >
-        {MEHR_ITEMS.map(({ icon, label, to, trackId }) => (
-          <Link
-            key={label}
-            to={to}
-            onClick={() => setMoreOpen(false)}
-            data-track-id={trackId}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 4,
-              color: MUTED,
-              textDecoration: 'none',
-              padding: '8px 0',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            <i className={`ti ${icon}`} style={{ fontSize: 20 }} />
-            <span style={{ fontSize: 11, fontWeight: 500 }}>{label}</span>
-          </Link>
-        ))}
-        <div style={{ flex: 1 }} />
+        <div style={{ display: 'flex', width: '100%', maxWidth: 480, margin: '0 auto' }}>
+          {MEHR_ITEMS.map(({ icon, label, to, trackId }) => (
+            <Link
+              key={label}
+              to={to}
+              onClick={() => setMoreOpen(false)}
+              data-track-id={trackId}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+                color: MUTED,
+                textDecoration: 'none',
+                padding: '8px 0',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              <i className={`ti ${icon}`} style={{ fontSize: 20 }} />
+              <span style={{ fontSize: 11, fontWeight: 500 }}>{label}</span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Main BottomNav bar */}
