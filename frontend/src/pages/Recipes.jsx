@@ -554,7 +554,7 @@ export default function Recipes() {
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid var(--border-input)', borderRadius: 8, background: 'var(--card)', cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, sans-serif', color: 'var(--text)' }}
               >
                 <i className="ti ti-arrows-sort" style={{ fontSize: 14 }} />
-                {SORT_LABELS[sort]}
+                {sort === 'newest' ? 'Neueste' : sort === 'quickest' ? 'Schnellste' : 'Standard'}
               </button>
             </div>
           )}
@@ -608,7 +608,7 @@ export default function Recipes() {
             <button onClick={cycleSort} data-track-id="recipes-sort-cycle"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid var(--border-input)', borderRadius: 8, background: 'var(--card)', cursor: 'pointer', fontSize: 13, fontFamily: 'Inter, sans-serif', color: 'var(--text)' }}>
               <i className="ti ti-arrows-sort" style={{ fontSize: 14 }} />
-              {SORT_LABELS[sort]}
+              {sort === 'newest' ? 'Neueste' : sort === 'quickest' ? 'Schnellste' : 'Standard'}
             </button>
           </div>
         )}
