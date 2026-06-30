@@ -279,7 +279,7 @@ export default function Home() {
             Mehr →
           </button>
         </div>
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
           {neue.map(r => (
             <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
@@ -291,7 +291,7 @@ export default function Home() {
         <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
           Entdecken
         </h2>
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
           {feed.map(r => (
             <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
