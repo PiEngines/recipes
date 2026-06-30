@@ -52,13 +52,13 @@ export default function Favorites() {
           <BackButton />
         </div>
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
         ) : favorites.length === 0 ? (
           <EmptyFavoritesState />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             {favorites.map(r => (
               <div key={r.id} data-track-id="favorites-recipe-card-click">
                 <RecipeCard recipe={r} primaryImage={primaryImages[r.id] ?? null} dimmed={!favoriteIds.has(r.id)} />
