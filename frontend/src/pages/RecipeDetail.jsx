@@ -147,7 +147,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 
         {/* Edit button */}
         {canEdit && (
-          <div className="md:hidden" style={{ position: 'absolute', top: 12, right: 14, zIndex: 2 }}>
+          <div style={{ position: 'absolute', top: 12, right: 14, zIndex: 2 }}>
             <button onClick={onEdit} style={{ border: '1.5px solid rgba(255,255,255,.45)', background: 'rgba(0,0,0,.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', borderRadius: 999, padding: '5px 13px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}>
               <i className="ti ti-pencil" style={{ fontSize: 12 }} /> Bearbeiten
             </button>
