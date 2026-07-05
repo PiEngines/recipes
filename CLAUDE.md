@@ -107,7 +107,7 @@ Berechtigungs-Konvention: Owner-Checks vergleichen gegen `recipe.created_by` (ni
 
 ### Backend
 - Bei Analyse: konkrete `grep`-Befehle mitliefern
-- Migrations-Nummerierung: fortlaufend (aktuell bis 0020)
+- Migrations-Nummerierung: fortlaufend — aktueller Stand siehe PROJECT_STATUS.md
 
 ### Deploy
 - Befehle immer vollständig ausgeben (lokal UND Pi, am Stück kopierbar)
@@ -297,23 +297,6 @@ respond /docker-compose* 403
 - Immer `async with aiofiles.open(...)` statt synchronem `open()`
 - Upload-Temp-Dateien nach Verarbeitung löschen (`finally`-Block)
 
-### Offene Sicherheitslücken — sofort beheben (nicht parken)
-
-**🔴 Medien-Upload Owner-Check (media/router.py POST):**
-Jeder authentifizierte User kann aktuell Medien zu fremden Rezepten hochladen.
-Fix: Vor dem Speichern prüfen ob `current_user.id == recipe.owner_id` oder User ist Küchenchef.
-```python
-recipe = db.get(Recipe, recipe_id)
-if not recipe:
-    raise HTTPException(404)
-if recipe.owner_id != current_user.id and current_user.role not in [UserRole.kuechenchef, UserRole.chefkoch]:
-    raise HTTPException(403, "Keine Berechtigung")
-```
-
-**🟡 AdminUsers.jsx Frontend-Guards:**
-Rollen-Dropdown, Delete, Restore für Chefkoch sichtbar aber ohne Guards.
-Fix: Elemente mit `{currentUser.role === 'kuechenchef' && ...}` wrappen.
-
 ### Frontend — Allgemeine Sicherheitsregeln
 
 - Kein `dangerouslySetInnerHTML` außer mit explizit sanitizierten Strings (DOMPurify)
@@ -355,7 +338,7 @@ useEffect(() => {
 - Kein auskommentierter Code committen
 - Keine `console.log` in Production-Code (ESLint-Regel ergänzen: `no-console: warn`)
 - Typen dokumentieren: JSDoc für komplexe Props, Pydantic-Models als Single Source of Truth
-- Migrations-Nummerierung fortlaufend: aktuell bis 0022, nächste ist 0023
+- Migrations-Nummerierung fortlaufend — aktueller Stand siehe PROJECT_STATUS.md
 
 ---
 
