@@ -1,0 +1,3139 @@
+pflanzen_id,deutscher_name,facet,canonical,ist_stil
+KR000001,Petersilie,laenderkueche,deutsch,0
+KR000001,Petersilie,laenderkueche,französisch,0
+KR000001,Petersilie,laenderkueche,mediterran,0
+KR000001,Petersilie,laenderkueche,nahöstlich,0
+KR000001,Petersilie,passt_zu,Kartoffel,
+KR000001,Petersilie,passt_zu,Ei,
+KR000001,Petersilie,passt_zu,Fisch,
+KR000001,Petersilie,passt_zu,Geflügel,
+KR000001,Petersilie,passt_zu,Gemüse,
+KR000001,Petersilie,passt_zu,Quark,
+KR000001,Petersilie,passt_zu,Butter,
+KR000001,Petersilie,kombiniert_mit,Schnittlauch,
+KR000001,Petersilie,kombiniert_mit,Dill,
+KR000001,Petersilie,kombiniert_mit,Kerbel,
+KR000001,Petersilie,kombiniert_mit,Knoblauch,
+KR000001,Petersilie,kombiniert_mit,Zitrone,
+KR000002,Schnittlauch,laenderkueche,deutsch,0
+KR000002,Schnittlauch,laenderkueche,französisch,0
+KR000002,Schnittlauch,laenderkueche,osteuropäisch,0
+KR000002,Schnittlauch,passt_zu,Ei,
+KR000002,Schnittlauch,passt_zu,Kartoffel,
+KR000002,Schnittlauch,passt_zu,Quark,
+KR000002,Schnittlauch,passt_zu,Frischkäse,
+KR000002,Schnittlauch,passt_zu,Fisch,
+KR000002,Schnittlauch,passt_zu,Gurke,
+KR000002,Schnittlauch,kombiniert_mit,Petersilie,
+KR000002,Schnittlauch,kombiniert_mit,Dill,
+KR000002,Schnittlauch,kombiniert_mit,Kerbel,
+KR000002,Schnittlauch,kombiniert_mit,Estragon,
+KR000003,Dill,laenderkueche,skandinavisch,0
+KR000003,Dill,laenderkueche,osteuropäisch,0
+KR000003,Dill,laenderkueche,deutsch,0
+KR000003,Dill,laenderkueche,baltisch,0
+KR000003,Dill,passt_zu,Gurke,
+KR000003,Dill,passt_zu,Fisch,
+KR000003,Dill,passt_zu,Kartoffel,
+KR000003,Dill,passt_zu,Joghurt,
+KR000003,Dill,passt_zu,Senf,
+KR000003,Dill,passt_zu,Zucchini,
+KR000003,Dill,kombiniert_mit,Schnittlauch,
+KR000003,Dill,kombiniert_mit,Petersilie,
+KR000003,Dill,kombiniert_mit,Senf,
+KR000003,Dill,kombiniert_mit,Zitrone,
+KR000004,Kerbel,laenderkueche,französisch,0
+KR000004,Kerbel,laenderkueche,deutsch,0
+KR000004,Kerbel,passt_zu,Ei,
+KR000004,Kerbel,passt_zu,Kartoffel,
+KR000004,Kerbel,passt_zu,Spargel,
+KR000004,Kerbel,passt_zu,Geflügel,
+KR000004,Kerbel,passt_zu,Fisch,
+KR000004,Kerbel,passt_zu,Salat,
+KR000004,Kerbel,kombiniert_mit,Petersilie,
+KR000004,Kerbel,kombiniert_mit,Schnittlauch,
+KR000004,Kerbel,kombiniert_mit,Estragon,
+KR000005,Liebstöckel,laenderkueche,deutsch,0
+KR000005,Liebstöckel,laenderkueche,österreichisch,0
+KR000005,Liebstöckel,laenderkueche,osteuropäisch,0
+KR000005,Liebstöckel,passt_zu,Kartoffel,
+KR000005,Liebstöckel,passt_zu,Bohnen,
+KR000005,Liebstöckel,passt_zu,Suppengemüse,
+KR000005,Liebstöckel,passt_zu,Linse,
+KR000005,Liebstöckel,passt_zu,Pilz,
+KR000005,Liebstöckel,kombiniert_mit,Petersilie,
+KR000005,Liebstöckel,kombiniert_mit,Sellerie,
+KR000005,Liebstöckel,kombiniert_mit,Majoran,
+KR000006,Koriander,laenderkueche,indisch,0
+KR000006,Koriander,laenderkueche,mexikanisch,0
+KR000006,Koriander,laenderkueche,südostasiatisch,0
+KR000006,Koriander,laenderkueche,südostasiatisch,0
+KR000006,Koriander,laenderkueche,nahöstlich,0
+KR000006,Koriander,passt_zu,Limette,
+KR000006,Koriander,passt_zu,Chili,
+KR000006,Koriander,passt_zu,Kokos,
+KR000006,Koriander,passt_zu,Hülsenfrüchte,
+KR000006,Koriander,passt_zu,Huhn,
+KR000006,Koriander,passt_zu,Fisch,
+KR000006,Koriander,kombiniert_mit,Minze,
+KR000006,Koriander,kombiniert_mit,Kreuzkümmel,
+KR000006,Koriander,kombiniert_mit,Chili,
+KR000006,Koriander,kombiniert_mit,Ingwer,
+KR000006,Koriander,kombiniert_mit,Knoblauch,
+KR000007,Basilikum,laenderkueche,italienisch,0
+KR000007,Basilikum,laenderkueche,mediterran,0
+KR000007,Basilikum,passt_zu,Tomate,
+KR000007,Basilikum,passt_zu,Mozzarella,
+KR000007,Basilikum,passt_zu,Zucchini,
+KR000007,Basilikum,passt_zu,Aubergine,
+KR000007,Basilikum,passt_zu,Pasta,
+KR000007,Basilikum,passt_zu,Olivenöl,
+KR000007,Basilikum,kombiniert_mit,Tomate,
+KR000007,Basilikum,kombiniert_mit,Knoblauch,
+KR000007,Basilikum,kombiniert_mit,Oregano,
+KR000007,Basilikum,kombiniert_mit,Petersilie,
+KR000008,Thai-Basilikum,laenderkueche,südostasiatisch,0
+KR000008,Thai-Basilikum,laenderkueche,südostasiatisch,0
+KR000008,Thai-Basilikum,laenderkueche,südostasiatisch,0
+KR000008,Thai-Basilikum,passt_zu,Kokosmilch,
+KR000008,Thai-Basilikum,passt_zu,Chili,
+KR000008,Thai-Basilikum,passt_zu,Limette,
+KR000008,Thai-Basilikum,passt_zu,Huhn,
+KR000008,Thai-Basilikum,passt_zu,Aubergine,
+KR000008,Thai-Basilikum,passt_zu,Tofu,
+KR000008,Thai-Basilikum,kombiniert_mit,Koriander,
+KR000008,Thai-Basilikum,kombiniert_mit,Chili,
+KR000008,Thai-Basilikum,kombiniert_mit,Kaffernlimette,
+KR000008,Thai-Basilikum,kombiniert_mit,Fischsauce,
+KR000009,Zitronenbasilikum,laenderkueche,südostasiatisch,0
+KR000009,Zitronenbasilikum,laenderkueche,mediterran,0
+KR000009,Zitronenbasilikum,laenderkueche,international/modern,1
+KR000009,Zitronenbasilikum,passt_zu,Fisch,
+KR000009,Zitronenbasilikum,passt_zu,Garnelen,
+KR000009,Zitronenbasilikum,passt_zu,Tomate,
+KR000009,Zitronenbasilikum,passt_zu,Zucchini,
+KR000009,Zitronenbasilikum,passt_zu,Beere,
+KR000009,Zitronenbasilikum,passt_zu,Obstsalat,
+KR000009,Zitronenbasilikum,kombiniert_mit,Zitrone,
+KR000009,Zitronenbasilikum,kombiniert_mit,Minze,
+KR000009,Zitronenbasilikum,kombiniert_mit,Koriander,
+KR000009,Zitronenbasilikum,kombiniert_mit,Chili,
+KR000010,Heiliges Basilikum,laenderkueche,indisch,0
+KR000010,Heiliges Basilikum,laenderkueche,indisch,0
+KR000010,Heiliges Basilikum,laenderkueche,südostasiatisch,0
+KR000010,Heiliges Basilikum,passt_zu,Linse,
+KR000010,Heiliges Basilikum,passt_zu,Kichererbsen,
+KR000010,Heiliges Basilikum,passt_zu,Reisgerichte,
+KR000010,Heiliges Basilikum,passt_zu,Chutneys,
+KR000010,Heiliges Basilikum,kombiniert_mit,Ingwer,
+KR000010,Heiliges Basilikum,kombiniert_mit,Chili,
+KR000010,Heiliges Basilikum,kombiniert_mit,Kreuzkümmel,
+KR000010,Heiliges Basilikum,kombiniert_mit,Kokosmilch,
+KR000011,Oregano,laenderkueche,italienisch,0
+KR000011,Oregano,laenderkueche,griechisch,0
+KR000011,Oregano,laenderkueche,mediterran,0
+KR000011,Oregano,passt_zu,Tomate,
+KR000011,Oregano,passt_zu,Aubergine,
+KR000011,Oregano,passt_zu,Lamm,
+KR000011,Oregano,passt_zu,Käse,
+KR000011,Oregano,passt_zu,Oliven,
+KR000011,Oregano,passt_zu,Bohnen,
+KR000011,Oregano,kombiniert_mit,Basilikum,
+KR000011,Oregano,kombiniert_mit,Thymian,
+KR000011,Oregano,kombiniert_mit,Rosmarin,
+KR000011,Oregano,kombiniert_mit,Knoblauch,
+KR000012,Majoran,laenderkueche,deutsch,0
+KR000012,Majoran,laenderkueche,österreichisch,0
+KR000012,Majoran,laenderkueche,mediterran,0
+KR000012,Majoran,passt_zu,Kartoffel,
+KR000012,Majoran,passt_zu,Schwein,
+KR000012,Majoran,passt_zu,Bohnen,
+KR000012,Majoran,passt_zu,Pilz,
+KR000012,Majoran,passt_zu,Kohl,
+KR000012,Majoran,kombiniert_mit,Petersilie,
+KR000012,Majoran,kombiniert_mit,Liebstöckel,
+KR000012,Majoran,kombiniert_mit,Thymian,
+KR000013,Thymian,laenderkueche,französisch,0
+KR000013,Thymian,laenderkueche,mediterran,0
+KR000013,Thymian,passt_zu,Kartoffel,
+KR000013,Thymian,passt_zu,Lamm,
+KR000013,Thymian,passt_zu,Huhn,
+KR000013,Thymian,passt_zu,Tomate,
+KR000013,Thymian,passt_zu,Pilz,
+KR000013,Thymian,passt_zu,Bohnen,
+KR000013,Thymian,kombiniert_mit,Rosmarin,
+KR000013,Thymian,kombiniert_mit,Oregano,
+KR000013,Thymian,kombiniert_mit,Salbei,
+KR000013,Thymian,kombiniert_mit,Knoblauch,
+KR000014,Zitronenthymian,laenderkueche,französisch,0
+KR000014,Zitronenthymian,laenderkueche,mediterran,0
+KR000014,Zitronenthymian,laenderkueche,international/modern,1
+KR000014,Zitronenthymian,passt_zu,Fisch,
+KR000014,Zitronenthymian,passt_zu,Huhn,
+KR000014,Zitronenthymian,passt_zu,Zucchini,
+KR000014,Zitronenthymian,passt_zu,Möhre,
+KR000014,Zitronenthymian,passt_zu,Zitronendesserts,
+KR000014,Zitronenthymian,passt_zu,Kartoffel,
+KR000014,Zitronenthymian,kombiniert_mit,Dill,
+KR000014,Zitronenthymian,kombiniert_mit,Petersilie,
+KR000014,Zitronenthymian,kombiniert_mit,Zitrone,
+KR000014,Zitronenthymian,kombiniert_mit,Knoblauch,
+KR000015,Quendel,laenderkueche,alpenländisch,0
+KR000015,Quendel,laenderkueche,mediterran,0
+KR000015,Quendel,passt_zu,Kartoffel,
+KR000015,Quendel,passt_zu,Pilzgerichten,
+KR000015,Quendel,passt_zu,Lamm,
+KR000015,Quendel,passt_zu,Wild,
+KR000015,Quendel,passt_zu,Kräuterbutter,
+KR000015,Quendel,kombiniert_mit,Thymian,
+KR000015,Quendel,kombiniert_mit,Rosmarin,
+KR000015,Quendel,kombiniert_mit,Majoran,
+KR000016,Rosmarin,laenderkueche,italienisch,0
+KR000016,Rosmarin,laenderkueche,französisch,0
+KR000016,Rosmarin,laenderkueche,mediterran,0
+KR000016,Rosmarin,passt_zu,Kartoffel,
+KR000016,Rosmarin,passt_zu,Lamm,
+KR000016,Rosmarin,passt_zu,Huhn,
+KR000016,Rosmarin,passt_zu,Focaccia,
+KR000016,Rosmarin,passt_zu,Bohnen,
+KR000016,Rosmarin,passt_zu,Kürbis,
+KR000016,Rosmarin,kombiniert_mit,Thymian,
+KR000016,Rosmarin,kombiniert_mit,Salbei,
+KR000016,Rosmarin,kombiniert_mit,Knoblauch,
+KR000016,Rosmarin,kombiniert_mit,Oregano,
+KR000017,Salbei,laenderkueche,italienisch,0
+KR000017,Salbei,laenderkueche,mediterran,0
+KR000017,Salbei,passt_zu,Butter,
+KR000017,Salbei,passt_zu,Gnocchi,
+KR000017,Salbei,passt_zu,Kürbis,
+KR000017,Salbei,passt_zu,Schwein,
+KR000017,Salbei,passt_zu,Bohnen,
+KR000017,Salbei,passt_zu,Pilz,
+KR000017,Salbei,kombiniert_mit,Rosmarin,
+KR000017,Salbei,kombiniert_mit,Thymian,
+KR000017,Salbei,kombiniert_mit,Knoblauch,
+KR000018,Bohnenkraut,laenderkueche,deutsch,0
+KR000018,Bohnenkraut,laenderkueche,österreichisch,0
+KR000018,Bohnenkraut,laenderkueche,balkanisch,0
+KR000018,Bohnenkraut,passt_zu,Bohnen,
+KR000018,Bohnenkraut,passt_zu,Linse,
+KR000018,Bohnenkraut,passt_zu,Kartoffel,
+KR000018,Bohnenkraut,passt_zu,Kohl,
+KR000018,Bohnenkraut,passt_zu,Schwein,
+KR000018,Bohnenkraut,kombiniert_mit,Thymian,
+KR000018,Bohnenkraut,kombiniert_mit,Majoran,
+KR000018,Bohnenkraut,kombiniert_mit,Petersilie,
+KR000019,Bergbohnenkraut,laenderkueche,balkanisch,0
+KR000019,Bergbohnenkraut,laenderkueche,österreichisch,0
+KR000019,Bergbohnenkraut,laenderkueche,balkanisch,0
+KR000019,Bergbohnenkraut,passt_zu,Bohnen,
+KR000019,Bergbohnenkraut,passt_zu,Linse,
+KR000019,Bergbohnenkraut,passt_zu,Kartoffel,
+KR000019,Bergbohnenkraut,passt_zu,Kohl,
+KR000019,Bergbohnenkraut,passt_zu,Wildgerichte,
+KR000019,Bergbohnenkraut,kombiniert_mit,Thymian,
+KR000019,Bergbohnenkraut,kombiniert_mit,Rosmarin,
+KR000019,Bergbohnenkraut,kombiniert_mit,Majoran,
+KR000020,Estragon,laenderkueche,französisch,0
+KR000020,Estragon,laenderkueche,mediterran,0
+KR000020,Estragon,passt_zu,Huhn,
+KR000020,Estragon,passt_zu,Fisch,
+KR000020,Estragon,passt_zu,Ei,
+KR000020,Estragon,passt_zu,Spargel,
+KR000020,Estragon,passt_zu,Butter,
+KR000020,Estragon,passt_zu,Essig,
+KR000020,Estragon,kombiniert_mit,Kerbel,
+KR000020,Estragon,kombiniert_mit,Schnittlauch,
+KR000020,Estragon,kombiniert_mit,Petersilie,
+KR000021,Beifuß,laenderkueche,deutsch,0
+KR000021,Beifuß,laenderkueche,österreichisch,0
+KR000021,Beifuß,laenderkueche,osteuropäisch,0
+KR000021,Beifuß,passt_zu,Gans,
+KR000021,Beifuß,passt_zu,Ente,
+KR000021,Beifuß,passt_zu,Schwein,
+KR000021,Beifuß,passt_zu,Pilz,
+KR000021,Beifuß,passt_zu,Kartoffel,
+KR000021,Beifuß,kombiniert_mit,Majoran,
+KR000021,Beifuß,kombiniert_mit,Thymian,
+KR000021,Beifuß,kombiniert_mit,Lorbeer,
+KR000022,Wermut,laenderkueche,französisch,0
+KR000022,Wermut,laenderkueche,alpenländisch,0
+KR000022,Wermut,laenderkueche,international/modern,1
+KR000022,Wermut,passt_zu,fetten Fleischgerichten nur sehr sparsam,
+KR000022,Wermut,passt_zu,Bitterlikören,
+KR000022,Wermut,passt_zu,Aperitifweinen,
+KR000022,Wermut,kombiniert_mit,Beifuß,
+KR000022,Wermut,kombiniert_mit,Ysop,
+KR000023,Lorbeer,laenderkueche,mediterran,0
+KR000023,Lorbeer,laenderkueche,französisch,0
+KR000023,Lorbeer,laenderkueche,nahöstlich,0
+KR000023,Lorbeer,passt_zu,Linse,
+KR000023,Lorbeer,passt_zu,Bohnen,
+KR000023,Lorbeer,passt_zu,Tomatensauce,
+KR000023,Lorbeer,passt_zu,Schmorgerichte,
+KR000023,Lorbeer,passt_zu,Wild,
+KR000023,Lorbeer,kombiniert_mit,Thymian,
+KR000023,Lorbeer,kombiniert_mit,Petersilie,
+KR000023,Lorbeer,kombiniert_mit,Pfeffer,
+KR000023,Lorbeer,kombiniert_mit,Nelke,
+KR000024,Pfefferminze,laenderkueche,britisch,0
+KR000024,Pfefferminze,laenderkueche,nordafrikanisch,0
+KR000024,Pfefferminze,laenderkueche,nahöstlich,0
+KR000024,Pfefferminze,passt_zu,Schokolade,
+KR000024,Pfefferminze,passt_zu,Obst,
+KR000024,Pfefferminze,passt_zu,Tee,
+KR000024,Pfefferminze,passt_zu,Lamm,
+KR000024,Pfefferminze,passt_zu,Joghurt,
+KR000024,Pfefferminze,kombiniert_mit,Zitronenmelisse,
+KR000024,Pfefferminze,kombiniert_mit,Koriander,
+KR000025,Grüne Minze,laenderkueche,nahöstlich,0
+KR000025,Grüne Minze,laenderkueche,nordafrikanisch,0
+KR000025,Grüne Minze,laenderkueche,britisch,0
+KR000025,Grüne Minze,passt_zu,Lamm,
+KR000025,Grüne Minze,passt_zu,Erbsen,
+KR000025,Grüne Minze,passt_zu,Gurke,
+KR000025,Grüne Minze,passt_zu,Tee,
+KR000025,Grüne Minze,passt_zu,Joghurt,
+KR000025,Grüne Minze,kombiniert_mit,Petersilie,
+KR000025,Grüne Minze,kombiniert_mit,Koriander,
+KR000025,Grüne Minze,kombiniert_mit,Dill,
+KR000026,Marokkanische Minze,laenderkueche,nordafrikanisch,0
+KR000026,Marokkanische Minze,laenderkueche,nordafrikanisch,0
+KR000026,Marokkanische Minze,passt_zu,Grüner Tee,
+KR000026,Marokkanische Minze,passt_zu,Zucker,
+KR000026,Marokkanische Minze,passt_zu,Zitrone,
+KR000026,Marokkanische Minze,passt_zu,Couscous,
+KR000026,Marokkanische Minze,passt_zu,Obst,
+KR000026,Marokkanische Minze,kombiniert_mit,Zitronenmelisse,
+KR000026,Marokkanische Minze,kombiniert_mit,Koriander,
+KR000027,Zitronenmelisse,laenderkueche,französisch,0
+KR000027,Zitronenmelisse,laenderkueche,nahöstlich,0
+KR000027,Zitronenmelisse,laenderkueche,mediterran,0
+KR000027,Zitronenmelisse,passt_zu,Obst,
+KR000027,Zitronenmelisse,passt_zu,Tee,
+KR000027,Zitronenmelisse,passt_zu,Fisch,
+KR000027,Zitronenmelisse,passt_zu,Geflügel,
+KR000027,Zitronenmelisse,passt_zu,Salat,
+KR000027,Zitronenmelisse,passt_zu,Dessert,
+KR000027,Zitronenmelisse,kombiniert_mit,Minze,
+KR000027,Zitronenmelisse,kombiniert_mit,Basilikum,
+KR000027,Zitronenmelisse,kombiniert_mit,Dill,
+KR000028,Borretsch,laenderkueche,deutsch,0
+KR000028,Borretsch,laenderkueche,nahöstlich,0
+KR000028,Borretsch,passt_zu,Gurke,
+KR000028,Borretsch,passt_zu,Quark,
+KR000028,Borretsch,passt_zu,Joghurt,
+KR000028,Borretsch,passt_zu,Kartoffel,
+KR000028,Borretsch,passt_zu,Salat,
+KR000028,Borretsch,kombiniert_mit,Dill,
+KR000028,Borretsch,kombiniert_mit,Schnittlauch,
+KR000028,Borretsch,kombiniert_mit,Petersilie,
+KR000029,Pimpinelle,laenderkueche,deutsch,0
+KR000029,Pimpinelle,laenderkueche,französisch,0
+KR000029,Pimpinelle,passt_zu,Quark,
+KR000029,Pimpinelle,passt_zu,Gurke,
+KR000029,Pimpinelle,passt_zu,Kartoffel,
+KR000029,Pimpinelle,passt_zu,Ei,
+KR000029,Pimpinelle,passt_zu,Salat,
+KR000029,Pimpinelle,kombiniert_mit,Kerbel,
+KR000029,Pimpinelle,kombiniert_mit,Schnittlauch,
+KR000029,Pimpinelle,kombiniert_mit,Petersilie,
+KR000029,Pimpinelle,kombiniert_mit,Borretsch,
+KR000030,Sauerampfer,laenderkueche,französisch,0
+KR000030,Sauerampfer,laenderkueche,osteuropäisch,0
+KR000030,Sauerampfer,passt_zu,Kartoffel,
+KR000030,Sauerampfer,passt_zu,Ei,
+KR000030,Sauerampfer,passt_zu,Fisch,
+KR000030,Sauerampfer,passt_zu,Sahne,
+KR000030,Sauerampfer,passt_zu,Spinat,
+KR000030,Sauerampfer,kombiniert_mit,Schnittlauch,
+KR000030,Sauerampfer,kombiniert_mit,Petersilie,
+KR000030,Sauerampfer,kombiniert_mit,Dill,
+KR000031,Schildampfer,laenderkueche,französisch,0
+KR000031,Schildampfer,laenderkueche,mediterran,0
+KR000031,Schildampfer,passt_zu,Fisch,
+KR000031,Schildampfer,passt_zu,Salat,
+KR000031,Schildampfer,passt_zu,Butter,
+KR000031,Schildampfer,passt_zu,Ei,
+KR000031,Schildampfer,passt_zu,Geflügel,
+KR000031,Schildampfer,kombiniert_mit,Kerbel,
+KR000031,Schildampfer,kombiniert_mit,Petersilie,
+KR000031,Schildampfer,kombiniert_mit,Schnittlauch,
+KR000032,Gartenkresse,laenderkueche,deutsch,0
+KR000032,Gartenkresse,laenderkueche,mitteleuropäisch,0
+KR000032,Gartenkresse,laenderkueche,britisch,0
+KR000032,Gartenkresse,passt_zu,Ei,
+KR000032,Gartenkresse,passt_zu,Frischkäse,
+KR000032,Gartenkresse,passt_zu,Kartoffel,
+KR000032,Gartenkresse,passt_zu,Radieschen,
+KR000032,Gartenkresse,kombiniert_mit,Schnittlauch,
+KR000032,Gartenkresse,kombiniert_mit,Radieschen,
+KR000032,Gartenkresse,kombiniert_mit,Senf,
+KR000032,Gartenkresse,kombiniert_mit,Frischkäse,
+KR000033,Brunnenkresse,laenderkueche,britisch,0
+KR000033,Brunnenkresse,laenderkueche,französisch,0
+KR000033,Brunnenkresse,passt_zu,Ei,
+KR000033,Brunnenkresse,passt_zu,Kartoffel,
+KR000033,Brunnenkresse,passt_zu,Butterbrot,
+KR000033,Brunnenkresse,passt_zu,Frischkäse,
+KR000033,Brunnenkresse,passt_zu,Fisch,
+KR000033,Brunnenkresse,kombiniert_mit,Schnittlauch,
+KR000033,Brunnenkresse,kombiniert_mit,Petersilie,
+KR000033,Brunnenkresse,kombiniert_mit,Dill,
+KR000034,Kapuzinerkresse,laenderkueche,mitteleuropäisch,0
+KR000034,Kapuzinerkresse,passt_zu,Salat,
+KR000034,Kapuzinerkresse,passt_zu,Frischkäse,
+KR000034,Kapuzinerkresse,passt_zu,Butter,
+KR000034,Kapuzinerkresse,passt_zu,Kartoffel,
+KR000034,Kapuzinerkresse,passt_zu,Ei,
+KR000034,Kapuzinerkresse,kombiniert_mit,Schnittlauch,
+KR000034,Kapuzinerkresse,kombiniert_mit,Petersilie,
+KR000035,Rucola,laenderkueche,italienisch,0
+KR000035,Rucola,laenderkueche,mediterran,0
+KR000035,Rucola,passt_zu,Tomate,
+KR000035,Rucola,passt_zu,Parmesan,
+KR000035,Rucola,passt_zu,Zitrone,
+KR000035,Rucola,passt_zu,Pizza,
+KR000035,Rucola,passt_zu,Pasta,
+KR000035,Rucola,passt_zu,Birne,
+KR000035,Rucola,kombiniert_mit,Basilikum,
+KR000035,Rucola,kombiniert_mit,Petersilie,
+KR000036,Wilde Rauke,laenderkueche,italienisch,0
+KR000036,Wilde Rauke,laenderkueche,mediterran,0
+KR000036,Wilde Rauke,passt_zu,Tomate,
+KR000036,Wilde Rauke,passt_zu,Parmesan,
+KR000036,Wilde Rauke,passt_zu,Zitrone,
+KR000036,Wilde Rauke,passt_zu,Pizza,
+KR000036,Wilde Rauke,passt_zu,Pasta,
+KR000036,Wilde Rauke,kombiniert_mit,Basilikum,
+KR000036,Wilde Rauke,kombiniert_mit,Petersilie,
+KR000037,Portulak,laenderkueche,nahöstlich,0
+KR000037,Portulak,laenderkueche,griechisch,0
+KR000037,Portulak,laenderkueche,nahöstlich,0
+KR000037,Portulak,laenderkueche,mitteleuropäisch,0
+KR000037,Portulak,passt_zu,Joghurt,
+KR000037,Portulak,passt_zu,Tomate,
+KR000037,Portulak,passt_zu,Gurke,
+KR000037,Portulak,passt_zu,Kartoffel,
+KR000037,Portulak,passt_zu,Quark,
+KR000037,Portulak,kombiniert_mit,Dill,
+KR000037,Portulak,kombiniert_mit,Petersilie,
+KR000037,Portulak,kombiniert_mit,Minze,
+KR000038,Winterportulak,laenderkueche,mitteleuropäisch,0
+KR000038,Winterportulak,passt_zu,Salat,
+KR000038,Winterportulak,passt_zu,Kartoffel,
+KR000038,Winterportulak,passt_zu,Quark,
+KR000038,Winterportulak,passt_zu,Ei,
+KR000038,Winterportulak,passt_zu,Apfel,
+KR000038,Winterportulak,kombiniert_mit,Schnittlauch,
+KR000038,Winterportulak,kombiniert_mit,Petersilie,
+KR000039,Bärlauch,laenderkueche,deutsch,0
+KR000039,Bärlauch,laenderkueche,österreichisch,0
+KR000039,Bärlauch,laenderkueche,osteuropäisch,0
+KR000039,Bärlauch,passt_zu,Butter,
+KR000039,Bärlauch,passt_zu,Kartoffel,
+KR000039,Bärlauch,passt_zu,Pasta,
+KR000039,Bärlauch,passt_zu,Ei,
+KR000039,Bärlauch,passt_zu,Frischkäse,
+KR000039,Bärlauch,passt_zu,Spargel,
+KR000039,Bärlauch,kombiniert_mit,Petersilie,
+KR000039,Bärlauch,kombiniert_mit,Schnittlauch,
+KR000040,Knoblauchsrauke,laenderkueche,mitteleuropäisch,0
+KR000040,Knoblauchsrauke,passt_zu,Quark,
+KR000040,Knoblauchsrauke,passt_zu,Butter,
+KR000040,Knoblauchsrauke,passt_zu,Kartoffel,
+KR000040,Knoblauchsrauke,passt_zu,Salat,
+KR000040,Knoblauchsrauke,passt_zu,Frischkäse,
+KR000040,Knoblauchsrauke,kombiniert_mit,Petersilie,
+KR000040,Knoblauchsrauke,kombiniert_mit,Schnittlauch,
+KR000041,Schnittknoblauch,laenderkueche,chinesisch,0
+KR000041,Schnittknoblauch,laenderkueche,südostasiatisch,0
+KR000041,Schnittknoblauch,laenderkueche,koreanisch,0
+KR000041,Schnittknoblauch,passt_zu,Ei,
+KR000041,Schnittknoblauch,passt_zu,Quark,
+KR000041,Schnittknoblauch,passt_zu,Wokgemüse,
+KR000041,Schnittknoblauch,passt_zu,Fisch,
+KR000041,Schnittknoblauch,passt_zu,Nudeln,
+KR000041,Schnittknoblauch,kombiniert_mit,Koriander,
+KR000041,Schnittknoblauch,kombiniert_mit,Ingwer,
+KR000041,Schnittknoblauch,kombiniert_mit,Frühlingszwiebel,
+KR000042,Frühlingszwiebel,laenderkueche,chinesisch,0
+KR000042,Frühlingszwiebel,laenderkueche,japanisch,0
+KR000042,Frühlingszwiebel,laenderkueche,koreanisch,0
+KR000042,Frühlingszwiebel,laenderkueche,europäisch,0
+KR000042,Frühlingszwiebel,passt_zu,Wokgemüse,
+KR000042,Frühlingszwiebel,passt_zu,Ei,
+KR000042,Frühlingszwiebel,passt_zu,Kartoffel,
+KR000042,Frühlingszwiebel,passt_zu,Quark,
+KR000042,Frühlingszwiebel,passt_zu,Suppe,
+KR000042,Frühlingszwiebel,kombiniert_mit,Ingwer,
+KR000042,Frühlingszwiebel,kombiniert_mit,Knoblauch,
+KR000042,Frühlingszwiebel,kombiniert_mit,Koriander,
+KR000042,Frühlingszwiebel,kombiniert_mit,Sesam,
+KR000043,Etagenzwiebel,laenderkueche,mitteleuropäisch,0
+KR000043,Etagenzwiebel,laenderkueche,nordamerikanisch,0
+KR000043,Etagenzwiebel,passt_zu,Kartoffel,
+KR000043,Etagenzwiebel,passt_zu,Butter,
+KR000043,Etagenzwiebel,passt_zu,Ei,
+KR000043,Etagenzwiebel,passt_zu,Fleisch,
+KR000043,Etagenzwiebel,passt_zu,Gemüse,
+KR000043,Etagenzwiebel,kombiniert_mit,Knoblauch,
+KR000043,Etagenzwiebel,kombiniert_mit,Petersilie,
+KR000043,Etagenzwiebel,kombiniert_mit,Thymian,
+KR000044,Selleriegrün,laenderkueche,deutsch,0
+KR000044,Selleriegrün,laenderkueche,französisch,0
+KR000044,Selleriegrün,laenderkueche,italienisch,0
+KR000044,Selleriegrün,passt_zu,Suppe,
+KR000044,Selleriegrün,passt_zu,Kartoffel,
+KR000044,Selleriegrün,passt_zu,Tomate,
+KR000044,Selleriegrün,passt_zu,Bohnen,
+KR000044,Selleriegrün,passt_zu,Linse,
+KR000044,Selleriegrün,kombiniert_mit,Petersilie,
+KR000044,Selleriegrün,kombiniert_mit,Liebstöckel,
+KR000044,Selleriegrün,kombiniert_mit,Majoran,
+KR000045,Fenchelgrün,laenderkueche,italienisch,0
+KR000045,Fenchelgrün,laenderkueche,mediterran,0
+KR000045,Fenchelgrün,passt_zu,Fisch,
+KR000045,Fenchelgrün,passt_zu,Tomate,
+KR000045,Fenchelgrün,passt_zu,Kartoffel,
+KR000045,Fenchelgrün,passt_zu,Zitrone,
+KR000045,Fenchelgrün,passt_zu,Orange,
+KR000045,Fenchelgrün,kombiniert_mit,Dill,
+KR000045,Fenchelgrün,kombiniert_mit,Petersilie,
+KR000045,Fenchelgrün,kombiniert_mit,Knoblauch,
+KR000046,Anis,laenderkueche,deutsch,0
+KR000046,Anis,laenderkueche,österreichisch,0
+KR000046,Anis,laenderkueche,mediterran,0
+KR000046,Anis,laenderkueche,indisch,0
+KR000046,Anis,passt_zu,Brot,
+KR000046,Anis,passt_zu,Gebäck,
+KR000046,Anis,passt_zu,Fenchel,
+KR000046,Anis,passt_zu,Apfel,
+KR000046,Anis,passt_zu,Birne,
+KR000046,Anis,passt_zu,Fisch,
+KR000046,Anis,kombiniert_mit,Fenchel,
+KR000046,Anis,kombiniert_mit,Kümmel,
+KR000046,Anis,kombiniert_mit,Koriander,
+KR000047,Kümmel,laenderkueche,deutsch,0
+KR000047,Kümmel,laenderkueche,österreichisch,0
+KR000047,Kümmel,laenderkueche,osteuropäisch,0
+KR000047,Kümmel,passt_zu,Kohl,
+KR000047,Kümmel,passt_zu,Kartoffel,
+KR000047,Kümmel,passt_zu,Brot,
+KR000047,Kümmel,passt_zu,Käse,
+KR000047,Kümmel,passt_zu,Schwein,
+KR000047,Kümmel,kombiniert_mit,Anis,
+KR000047,Kümmel,kombiniert_mit,Fenchel,
+KR000047,Kümmel,kombiniert_mit,Majoran,
+KR000048,Kreuzkümmel,laenderkueche,indisch,0
+KR000048,Kreuzkümmel,laenderkueche,nahöstlich,0
+KR000048,Kreuzkümmel,laenderkueche,mexikanisch,0
+KR000048,Kreuzkümmel,laenderkueche,nordafrikanisch,0
+KR000048,Kreuzkümmel,passt_zu,Kichererbsen,
+KR000048,Kreuzkümmel,passt_zu,Linse,
+KR000048,Kreuzkümmel,passt_zu,Lamm,
+KR000048,Kreuzkümmel,passt_zu,Joghurt,
+KR000048,Kreuzkümmel,passt_zu,Tomate,
+KR000048,Kreuzkümmel,passt_zu,Reis,
+KR000048,Kreuzkümmel,kombiniert_mit,Koriander,
+KR000048,Kreuzkümmel,kombiniert_mit,Chili,
+KR000048,Kreuzkümmel,kombiniert_mit,Zimt,
+KR000048,Kreuzkümmel,kombiniert_mit,Kurkuma,
+KR000048,Kreuzkümmel,kombiniert_mit,Knoblauch,
+KR000049,Bockshornklee,laenderkueche,indisch,0
+KR000049,Bockshornklee,laenderkueche,nahöstlich,0
+KR000049,Bockshornklee,laenderkueche,nordafrikanisch,0
+KR000049,Bockshornklee,passt_zu,Linse,
+KR000049,Bockshornklee,passt_zu,Kartoffel,
+KR000049,Bockshornklee,passt_zu,Currygerichte,
+KR000049,Bockshornklee,passt_zu,Brot,
+KR000049,Bockshornklee,passt_zu,Gemüse,
+KR000049,Bockshornklee,kombiniert_mit,Koriander,
+KR000049,Bockshornklee,kombiniert_mit,Kreuzkümmel,
+KR000049,Bockshornklee,kombiniert_mit,Kurkuma,
+KR000049,Bockshornklee,kombiniert_mit,Chili,
+KR000050,Schabzigerklee,laenderkueche,schweizerisch,0
+KR000050,Schabzigerklee,laenderkueche,deutsch,0
+KR000050,Schabzigerklee,laenderkueche,alpenländisch,0
+KR000050,Schabzigerklee,passt_zu,Brot,
+KR000050,Schabzigerklee,passt_zu,Käse,
+KR000050,Schabzigerklee,passt_zu,Kartoffel,
+KR000050,Schabzigerklee,passt_zu,Quark,
+KR000050,Schabzigerklee,kombiniert_mit,Kümmel,
+KR000050,Schabzigerklee,kombiniert_mit,Koriander,
+KR000051,Schwarzkümmel,laenderkueche,nahöstlich,0
+KR000051,Schwarzkümmel,laenderkueche,nahöstlich,0
+KR000051,Schwarzkümmel,laenderkueche,indisch,0
+KR000051,Schwarzkümmel,passt_zu,Fladenbrot,
+KR000051,Schwarzkümmel,passt_zu,Joghurt,
+KR000051,Schwarzkümmel,passt_zu,Gemüse,
+KR000051,Schwarzkümmel,passt_zu,Linse,
+KR000051,Schwarzkümmel,passt_zu,Käse,
+KR000051,Schwarzkümmel,kombiniert_mit,Sesam,
+KR000051,Schwarzkümmel,kombiniert_mit,Koriander,
+KR000051,Schwarzkümmel,kombiniert_mit,Kreuzkümmel,
+KR000052,Zitronengras,laenderkueche,südostasiatisch,0
+KR000052,Zitronengras,laenderkueche,südostasiatisch,0
+KR000052,Zitronengras,laenderkueche,südostasiatisch,0
+KR000052,Zitronengras,passt_zu,Kokosmilch,
+KR000052,Zitronengras,passt_zu,Huhn,
+KR000052,Zitronengras,passt_zu,Fisch,
+KR000052,Zitronengras,passt_zu,Chili,
+KR000052,Zitronengras,passt_zu,Ingwer,
+KR000052,Zitronengras,passt_zu,Limette,
+KR000052,Zitronengras,kombiniert_mit,Kaffirlimette,
+KR000052,Zitronengras,kombiniert_mit,Koriander,
+KR000052,Zitronengras,kombiniert_mit,Chili,
+KR000052,Zitronengras,kombiniert_mit,Ingwer,
+KR000053,Currykraut,laenderkueche,mediterran,0
+KR000053,Currykraut,passt_zu,Reis,
+KR000053,Currykraut,passt_zu,Geflügel,
+KR000053,Currykraut,passt_zu,Gemüse,
+KR000053,Currykraut,passt_zu,Butter,
+KR000053,Currykraut,passt_zu,Kartoffel,
+KR000053,Currykraut,kombiniert_mit,Rosmarin,
+KR000053,Currykraut,kombiniert_mit,Thymian,
+KR000053,Currykraut,kombiniert_mit,Lorbeer,
+KR000054,Olivenkraut,laenderkueche,mediterran,0
+KR000054,Olivenkraut,passt_zu,Antipasti,
+KR000054,Olivenkraut,passt_zu,Tomate,
+KR000054,Olivenkraut,passt_zu,Käse,
+KR000054,Olivenkraut,passt_zu,Brot,
+KR000054,Olivenkraut,passt_zu,mediterranes Gemüse,
+KR000054,Olivenkraut,kombiniert_mit,Rosmarin,
+KR000054,Olivenkraut,kombiniert_mit,Oregano,
+KR000054,Olivenkraut,kombiniert_mit,Thymian,
+KR000055,Ysop,laenderkueche,französisch,0
+KR000055,Ysop,laenderkueche,mediterran,0
+KR000055,Ysop,laenderkueche,nahöstlich,0
+KR000055,Ysop,passt_zu,Bohnen,
+KR000055,Ysop,passt_zu,Kartoffel,
+KR000055,Ysop,passt_zu,Lamm,
+KR000055,Ysop,passt_zu,Frischkäse,
+KR000055,Ysop,kombiniert_mit,Salbei,
+KR000055,Ysop,kombiniert_mit,Thymian,
+KR000055,Ysop,kombiniert_mit,Rosmarin,
+KR000056,Weinraute,laenderkueche,italienisch,0
+KR000056,Weinraute,laenderkueche,mitteleuropäisch,0
+KR000056,Weinraute,passt_zu,Ei,
+KR000056,Weinraute,passt_zu,Frischkäse,
+KR000056,Weinraute,passt_zu,mediterrane Kräutermischungen,
+KR000056,Weinraute,kombiniert_mit,Petersilie,
+KR000056,Weinraute,kombiniert_mit,Majoran,
+KR000057,Perilla,laenderkueche,japanisch,0
+KR000057,Perilla,laenderkueche,koreanisch,0
+KR000057,Perilla,laenderkueche,südostasiatisch,0
+KR000057,Perilla,passt_zu,Reis,
+KR000057,Perilla,passt_zu,Fisch,
+KR000057,Perilla,passt_zu,Gurke,
+KR000057,Perilla,passt_zu,Aubergine,
+KR000057,Perilla,passt_zu,Sesam,
+KR000057,Perilla,kombiniert_mit,Sojasauce,
+KR000057,Perilla,kombiniert_mit,Ingwer,
+KR000057,Perilla,kombiniert_mit,Frühlingszwiebel,
+KR000058,Vietnamesischer Koriander,laenderkueche,südostasiatisch,0
+KR000058,Vietnamesischer Koriander,laenderkueche,südostasiatisch,0
+KR000058,Vietnamesischer Koriander,passt_zu,Nudelsuppen,
+KR000058,Vietnamesischer Koriander,passt_zu,Huhn,
+KR000058,Vietnamesischer Koriander,passt_zu,Fisch,
+KR000058,Vietnamesischer Koriander,passt_zu,Limette,
+KR000058,Vietnamesischer Koriander,passt_zu,Chili,
+KR000058,Vietnamesischer Koriander,kombiniert_mit,Koriander,
+KR000058,Vietnamesischer Koriander,kombiniert_mit,Minze,
+KR000058,Vietnamesischer Koriander,kombiniert_mit,Thai-Basilikum,
+KR000059,Curryblatt,laenderkueche,indisch,0
+KR000059,Curryblatt,laenderkueche,indisch,0
+KR000059,Curryblatt,laenderkueche,südostasiatisch,0
+KR000059,Curryblatt,passt_zu,Linse,
+KR000059,Curryblatt,passt_zu,Kokosmilch,
+KR000059,Curryblatt,passt_zu,Reis,
+KR000059,Curryblatt,passt_zu,Kartoffel,
+KR000059,Curryblatt,kombiniert_mit,Senfsaat,
+KR000059,Curryblatt,kombiniert_mit,Kokos,
+KR000059,Curryblatt,kombiniert_mit,Chili,
+KR000059,Curryblatt,kombiniert_mit,Tamarinde,
+KR000060,Weißer Senf,laenderkueche,deutsch,0
+KR000060,Weißer Senf,laenderkueche,französisch,0
+KR000060,Weißer Senf,laenderkueche,mitteleuropäisch,0
+KR000060,Weißer Senf,passt_zu,Wurst,
+KR000060,Weißer Senf,passt_zu,Kartoffelsalat,
+KR000060,Weißer Senf,passt_zu,Gurken,
+KR000060,Weißer Senf,passt_zu,Kohlgerichte,
+KR000060,Weißer Senf,kombiniert_mit,Dill,
+KR000060,Weißer Senf,kombiniert_mit,Estragon,
+KR000060,Weißer Senf,kombiniert_mit,Essig,
+KR000060,Weißer Senf,kombiniert_mit,Honig,
+KR000061,Brauner Senf,laenderkueche,indisch,0
+KR000061,Brauner Senf,laenderkueche,indisch,0
+KR000061,Brauner Senf,laenderkueche,indisch,0
+KR000061,Brauner Senf,passt_zu,Linse,
+KR000061,Brauner Senf,passt_zu,Curry,
+KR000061,Brauner Senf,passt_zu,Kohl,
+KR000061,Brauner Senf,passt_zu,Pickles,
+KR000061,Brauner Senf,kombiniert_mit,Kreuzkümmel,
+KR000061,Brauner Senf,kombiniert_mit,Curryblatt,
+KR000061,Brauner Senf,kombiniert_mit,Kurkuma,
+KR000061,Brauner Senf,kombiniert_mit,Chili,
+KR000062,Schwarzer Senf,laenderkueche,indisch,0
+KR000062,Schwarzer Senf,laenderkueche,indisch,0
+KR000062,Schwarzer Senf,passt_zu,Dal,
+KR000062,Schwarzer Senf,passt_zu,Kartoffel,
+KR000062,Schwarzer Senf,passt_zu,Blumenkohl,
+KR000062,Schwarzer Senf,passt_zu,Chutneys,
+KR000062,Schwarzer Senf,kombiniert_mit,Curryblatt,
+KR000062,Schwarzer Senf,kombiniert_mit,Chili,
+KR000062,Schwarzer Senf,kombiniert_mit,Asafoetida,
+KR000062,Schwarzer Senf,kombiniert_mit,Kurkuma,
+KR000063,Zitronenverbene,laenderkueche,französisch,0
+KR000063,Zitronenverbene,laenderkueche,südamerikanisch,0
+KR000063,Zitronenverbene,laenderkueche,international/modern,1
+KR000063,Zitronenverbene,passt_zu,Pfirsiche,
+KR000063,Zitronenverbene,passt_zu,Beere,
+KR000063,Zitronenverbene,passt_zu,Zitronendesserts,
+KR000063,Zitronenverbene,passt_zu,Kräutertee,
+KR000063,Zitronenverbene,kombiniert_mit,Minze,
+KR000063,Zitronenverbene,kombiniert_mit,Zitronenmelisse,
+KR000063,Zitronenverbene,kombiniert_mit,Vanille,
+KR000063,Zitronenverbene,kombiniert_mit,Pfirsich,
+KR000064,Gewürztagetes,laenderkueche,mexikanisch,0
+KR000064,Gewürztagetes,laenderkueche,international/modern,1
+KR000064,Gewürztagetes,passt_zu,Tomate,
+KR000064,Gewürztagetes,passt_zu,Gurken,
+KR000064,Gewürztagetes,passt_zu,Zitrusdesserts,
+KR000064,Gewürztagetes,passt_zu,Kräuterbutter,
+KR000064,Gewürztagetes,kombiniert_mit,Tomate,
+KR000064,Gewürztagetes,kombiniert_mit,Chili,
+KR000064,Gewürztagetes,kombiniert_mit,Limette,
+KR000064,Gewürztagetes,kombiniert_mit,Koriander,
+KR000065,Lakritz-Tagetes,laenderkueche,mexikanisch,0
+KR000065,Lakritz-Tagetes,laenderkueche,international/modern,1
+KR000065,Lakritz-Tagetes,passt_zu,Obstsalat,
+KR000065,Lakritz-Tagetes,passt_zu,Quarkdesserts,
+KR000065,Lakritz-Tagetes,passt_zu,Fenchel,
+KR000065,Lakritz-Tagetes,passt_zu,Kräutertee,
+KR000065,Lakritz-Tagetes,kombiniert_mit,Fenchel,
+KR000065,Lakritz-Tagetes,kombiniert_mit,Anis,
+KR000065,Lakritz-Tagetes,kombiniert_mit,Zitrone,
+KR000065,Lakritz-Tagetes,kombiniert_mit,Beere,
+KR000066,Mexikanischer Estragon,laenderkueche,mexikanisch,0
+KR000066,Mexikanischer Estragon,laenderkueche,mittelamerikanisch,0
+KR000066,Mexikanischer Estragon,passt_zu,Geflügel,
+KR000066,Mexikanischer Estragon,passt_zu,Fisch,
+KR000066,Mexikanischer Estragon,passt_zu,Bohnen,
+KR000066,Mexikanischer Estragon,passt_zu,Tomatensalsa,
+KR000066,Mexikanischer Estragon,kombiniert_mit,Chili,
+KR000066,Mexikanischer Estragon,kombiniert_mit,Limette,
+KR000066,Mexikanischer Estragon,kombiniert_mit,Tomate,
+KR000066,Mexikanischer Estragon,kombiniert_mit,Geflügel,
+KR000067,Süßkraut,laenderkueche,südamerikanisch,0
+KR000067,Süßkraut,laenderkueche,international/modern,1
+KR000067,Süßkraut,passt_zu,Tee,
+KR000067,Süßkraut,passt_zu,Kräuterteemischungen,
+KR000067,Süßkraut,passt_zu,Dessert,
+KR000067,Süßkraut,passt_zu,Fruchtsalate,
+KR000067,Süßkraut,passt_zu,Joghurt,
+KR000067,Süßkraut,passt_zu,Quark,
+KR000067,Süßkraut,kombiniert_mit,Minze,
+KR000067,Süßkraut,kombiniert_mit,Zitronenverbene,
+KR000067,Süßkraut,kombiniert_mit,Beere,
+KR000067,Süßkraut,kombiniert_mit,Zitrone,
+KR000068,Echter Lavendel,laenderkueche,französisch,0
+KR000068,Echter Lavendel,laenderkueche,französisch,0
+KR000068,Echter Lavendel,laenderkueche,mediterran,0
+KR000068,Echter Lavendel,passt_zu,Lamm,
+KR000068,Echter Lavendel,passt_zu,Aprikosen,
+KR000068,Echter Lavendel,passt_zu,Honig,
+KR000068,Echter Lavendel,passt_zu,Mürbegebäck,
+KR000068,Echter Lavendel,kombiniert_mit,Rosmarin,
+KR000068,Echter Lavendel,kombiniert_mit,Thymian,
+KR000068,Echter Lavendel,kombiniert_mit,Honig,
+KR000068,Echter Lavendel,kombiniert_mit,Zitrone,
+KR000069,Provence-Lavendel,laenderkueche,französisch,0
+KR000069,Provence-Lavendel,laenderkueche,französisch,0
+KR000069,Provence-Lavendel,laenderkueche,mediterran,0
+KR000069,Provence-Lavendel,passt_zu,Lamm,
+KR000069,Provence-Lavendel,passt_zu,Kartoffel,
+KR000069,Provence-Lavendel,passt_zu,Aprikosen,
+KR000069,Provence-Lavendel,passt_zu,Honig,
+KR000069,Provence-Lavendel,kombiniert_mit,Rosmarin,
+KR000069,Provence-Lavendel,kombiniert_mit,Thymian,
+KR000069,Provence-Lavendel,kombiniert_mit,Bohnenkraut,
+KR000069,Provence-Lavendel,kombiniert_mit,Honig,
+KR000070,Bergminze,laenderkueche,italienisch,0
+KR000070,Bergminze,laenderkueche,mediterran,0
+KR000070,Bergminze,passt_zu,Lamm,
+KR000070,Bergminze,passt_zu,Bohnen,
+KR000070,Bergminze,passt_zu,Joghurt,
+KR000070,Bergminze,passt_zu,Tomate,
+KR000070,Bergminze,kombiniert_mit,Thymian,
+KR000070,Bergminze,kombiniert_mit,Bohnenkraut,
+KR000070,Bergminze,kombiniert_mit,Tomate,
+KR000070,Bergminze,kombiniert_mit,Zitrone,
+KR000071,Korsische Minze,laenderkueche,mediterran,0
+KR000071,Korsische Minze,laenderkueche,international/modern,1
+KR000071,Korsische Minze,passt_zu,Schokolade,
+KR000071,Korsische Minze,passt_zu,Erdbeeren,
+KR000071,Korsische Minze,passt_zu,Obstsalat,
+KR000071,Korsische Minze,passt_zu,Kräutertee,
+KR000071,Korsische Minze,kombiniert_mit,Schokolade,
+KR000071,Korsische Minze,kombiniert_mit,Erdbeere,
+KR000071,Korsische Minze,kombiniert_mit,Vanille,
+KR000071,Korsische Minze,kombiniert_mit,Zitrone,
+KR000072,Apfelminze,laenderkueche,britisch,0
+KR000072,Apfelminze,laenderkueche,nahöstlich,0
+KR000072,Apfelminze,laenderkueche,international/modern,1
+KR000072,Apfelminze,passt_zu,Erbsen,
+KR000072,Apfelminze,passt_zu,Gurke,
+KR000072,Apfelminze,passt_zu,Joghurt,
+KR000072,Apfelminze,passt_zu,Obstsalat,
+KR000072,Apfelminze,kombiniert_mit,Zitrone,
+KR000072,Apfelminze,kombiniert_mit,Gurke,
+KR000072,Apfelminze,kombiniert_mit,Joghurt,
+KR000072,Apfelminze,kombiniert_mit,Beere,
+KR000073,Ackerminze,laenderkueche,mitteleuropäisch,0
+KR000073,Ackerminze,passt_zu,Kartoffel,
+KR000073,Ackerminze,passt_zu,Erbsen,
+KR000073,Ackerminze,passt_zu,Joghurt,
+KR000073,Ackerminze,passt_zu,Kräutertee,
+KR000073,Ackerminze,kombiniert_mit,Zitrone,
+KR000073,Ackerminze,kombiniert_mit,Honig,
+KR000073,Ackerminze,kombiniert_mit,Kartoffel,
+KR000073,Ackerminze,kombiniert_mit,Erbsen,
+KR000074,Wasserminze,laenderkueche,britisch,0
+KR000074,Wasserminze,laenderkueche,mitteleuropäisch,0
+KR000074,Wasserminze,passt_zu,Lamm,
+KR000074,Wasserminze,passt_zu,Erbsen,
+KR000074,Wasserminze,passt_zu,Gurke,
+KR000074,Wasserminze,passt_zu,Fruchtsalate,
+KR000074,Wasserminze,kombiniert_mit,Gurke,
+KR000074,Wasserminze,kombiniert_mit,Joghurt,
+KR000074,Wasserminze,kombiniert_mit,Zitrone,
+KR000074,Wasserminze,kombiniert_mit,Beere,
+KR000075,Katzenminze,laenderkueche,mitteleuropäisch,0
+KR000075,Katzenminze,laenderkueche,international/modern,1
+KR000075,Katzenminze,passt_zu,Kräutertee,
+KR000075,Katzenminze,passt_zu,Zitronendesserts,
+KR000075,Katzenminze,passt_zu,Obstsalat,
+KR000075,Katzenminze,passt_zu,Blattsalate,
+KR000075,Katzenminze,kombiniert_mit,Zitrone,
+KR000075,Katzenminze,kombiniert_mit,Honig,
+KR000075,Katzenminze,kombiniert_mit,Apfel,
+KR000075,Katzenminze,kombiniert_mit,Beere,
+KR000076,Monarde,laenderkueche,nordamerikanisch,0
+KR000076,Monarde,laenderkueche,international/modern,1
+KR000076,Monarde,passt_zu,Obstsalat,
+KR000076,Monarde,passt_zu,Wildgeflügel,
+KR000076,Monarde,passt_zu,Kräutertee,
+KR000076,Monarde,passt_zu,Sommerdesserts,
+KR000076,Monarde,kombiniert_mit,Zitrone,
+KR000076,Monarde,kombiniert_mit,Honig,
+KR000076,Monarde,kombiniert_mit,Beere,
+KR000076,Monarde,kombiniert_mit,Wildgeflügel,
+KR000077,Anis-Ysop,laenderkueche,nordamerikanisch,0
+KR000077,Anis-Ysop,laenderkueche,international/modern,1
+KR000077,Anis-Ysop,passt_zu,Aprikosen,
+KR000077,Anis-Ysop,passt_zu,Pfirsiche,
+KR000077,Anis-Ysop,passt_zu,Kräutertee,
+KR000077,Anis-Ysop,passt_zu,Blattsalate,
+KR000077,Anis-Ysop,kombiniert_mit,Pfirsich,
+KR000077,Anis-Ysop,kombiniert_mit,Aprikose,
+KR000077,Anis-Ysop,kombiniert_mit,Honig,
+KR000077,Anis-Ysop,kombiniert_mit,Zitrone,
+KR000078,Koreanische Minze,laenderkueche,koreanisch,0
+KR000078,Koreanische Minze,laenderkueche,ostasiatisch,0
+KR000078,Koreanische Minze,passt_zu,Kimchi,
+KR000078,Koreanische Minze,passt_zu,Gurkensalat,
+KR000078,Koreanische Minze,passt_zu,Tofu,
+KR000078,Koreanische Minze,passt_zu,Schweinefleisch,
+KR000078,Koreanische Minze,kombiniert_mit,Gochugaru,
+KR000078,Koreanische Minze,kombiniert_mit,Sesam,
+KR000078,Koreanische Minze,kombiniert_mit,Knoblauch,
+KR000078,Koreanische Minze,kombiniert_mit,Sojasauce,
+KR000079,Echte Kamille,laenderkueche,mitteleuropäisch,0
+KR000079,Echte Kamille,laenderkueche,international/modern,1
+KR000079,Echte Kamille,passt_zu,Apfelkompott,
+KR000079,Echte Kamille,passt_zu,Kräutertee,
+KR000079,Echte Kamille,passt_zu,Honig,
+KR000079,Echte Kamille,passt_zu,Milchspeisen,
+KR000079,Echte Kamille,kombiniert_mit,Honig,
+KR000079,Echte Kamille,kombiniert_mit,Apfel,
+KR000079,Echte Kamille,kombiniert_mit,Zitrone,
+KR000079,Echte Kamille,kombiniert_mit,Vanille,
+KR000080,Römische Kamille,laenderkueche,britisch,0
+KR000080,Römische Kamille,laenderkueche,mitteleuropäisch,0
+KR000080,Römische Kamille,passt_zu,Kräutertee,
+KR000080,Römische Kamille,passt_zu,Apfeldesserts,
+KR000080,Römische Kamille,passt_zu,Honig,
+KR000080,Römische Kamille,passt_zu,Gebäck,
+KR000080,Römische Kamille,kombiniert_mit,Honig,
+KR000080,Römische Kamille,kombiniert_mit,Apfel,
+KR000080,Römische Kamille,kombiniert_mit,Zitrone,
+KR000080,Römische Kamille,kombiniert_mit,Mandeln,
+KR000081,Echte Goldrute,laenderkueche,mitteleuropäisch,0
+KR000081,Echte Goldrute,passt_zu,Kräutertee,
+KR000081,Echte Goldrute,passt_zu,Blütenmischungen,
+KR000081,Echte Goldrute,passt_zu,Honig,
+KR000081,Echte Goldrute,passt_zu,Zitronengetränke,
+KR000081,Echte Goldrute,kombiniert_mit,Honig,
+KR000081,Echte Goldrute,kombiniert_mit,Zitrone,
+KR000081,Echte Goldrute,kombiniert_mit,Apfel,
+KR000081,Echte Goldrute,kombiniert_mit,Minze,
+KR000082,Mädesüß,laenderkueche,britisch,0
+KR000082,Mädesüß,laenderkueche,mitteleuropäisch,0
+KR000082,Mädesüß,passt_zu,Apfel,
+KR000082,Mädesüß,passt_zu,Birne,
+KR000082,Mädesüß,passt_zu,Beerenkompott,
+KR000082,Mädesüß,passt_zu,Dessert,
+KR000082,Mädesüß,kombiniert_mit,Apfel,
+KR000082,Mädesüß,kombiniert_mit,Birne,
+KR000082,Mädesüß,kombiniert_mit,Sahne,
+KR000082,Mädesüß,kombiniert_mit,Vanille,
+KR000083,Holunder,laenderkueche,mitteleuropäisch,0
+KR000083,Holunder,laenderkueche,britisch,0
+KR000083,Holunder,laenderkueche,skandinavisch,0
+KR000083,Holunder,passt_zu,Holunderblüten-Sirup,
+KR000083,Holunder,passt_zu,Gelee,
+KR000083,Holunder,passt_zu,Kompott,
+KR000083,Holunder,passt_zu,Sekt,
+KR000083,Holunder,passt_zu,Apfel,
+KR000083,Holunder,passt_zu,Zitrone,
+KR000083,Holunder,kombiniert_mit,Zitrone,
+KR000083,Holunder,kombiniert_mit,Apfel,
+KR000083,Holunder,kombiniert_mit,Minze,
+KR000083,Holunder,kombiniert_mit,Sekt,
+KR000084,Hagebuttenrose,laenderkueche,mitteleuropäisch,0
+KR000084,Hagebuttenrose,laenderkueche,skandinavisch,0
+KR000084,Hagebuttenrose,laenderkueche,osteuropäisch,0
+KR000084,Hagebuttenrose,passt_zu,Marmelade,
+KR000084,Hagebuttenrose,passt_zu,Tee,
+KR000084,Hagebuttenrose,passt_zu,Apfel,
+KR000084,Hagebuttenrose,passt_zu,Hibiskus,
+KR000084,Hagebuttenrose,passt_zu,Zimt,
+KR000084,Hagebuttenrose,passt_zu,Wildfruchtgelee,
+KR000084,Hagebuttenrose,kombiniert_mit,Apfel,
+KR000084,Hagebuttenrose,kombiniert_mit,Hibiskus,
+KR000084,Hagebuttenrose,kombiniert_mit,Zimt,
+KR000084,Hagebuttenrose,kombiniert_mit,Orange,
+KR000085,Damaszener-Rose,laenderkueche,nahöstlich,0
+KR000085,Damaszener-Rose,laenderkueche,nahöstlich,0
+KR000085,Damaszener-Rose,laenderkueche,nahöstlich,0
+KR000085,Damaszener-Rose,laenderkueche,indisch,0
+KR000085,Damaszener-Rose,passt_zu,Joghurt,
+KR000085,Damaszener-Rose,passt_zu,Rosenwasser-Desserts,
+KR000085,Damaszener-Rose,passt_zu,Pistazien,
+KR000085,Damaszener-Rose,passt_zu,Himbeeren,
+KR000085,Damaszener-Rose,kombiniert_mit,Pistazie,
+KR000085,Damaszener-Rose,kombiniert_mit,Joghurt,
+KR000085,Damaszener-Rose,kombiniert_mit,Himbeere,
+KR000085,Damaszener-Rose,kombiniert_mit,Kardamom,
+KR000086,Eibisch,laenderkueche,mitteleuropäisch,0
+KR000086,Eibisch,laenderkueche,international/modern,1
+KR000086,Eibisch,passt_zu,Kräutertee,
+KR000086,Eibisch,passt_zu,Sirup,
+KR000086,Eibisch,passt_zu,Hustenbonbons,
+KR000086,Eibisch,passt_zu,Süßspeisen,
+KR000086,Eibisch,kombiniert_mit,Honig,
+KR000086,Eibisch,kombiniert_mit,Anis,
+KR000086,Eibisch,kombiniert_mit,Fenchel,
+KR000086,Eibisch,kombiniert_mit,Zitrone,
+KR000087,Malve,laenderkueche,mitteleuropäisch,0
+KR000087,Malve,laenderkueche,nordafrikanisch,0
+KR000087,Malve,passt_zu,Salat,
+KR000087,Malve,passt_zu,Kräuterquark,
+KR000087,Malve,passt_zu,Suppe,
+KR000087,Malve,passt_zu,Gemüsefüllungen,
+KR000087,Malve,passt_zu,Tee,
+KR000087,Malve,passt_zu,Wildkräutermischungen,
+KR000087,Malve,kombiniert_mit,Zitrone,
+KR000087,Malve,kombiniert_mit,Honig,
+KR000087,Malve,kombiniert_mit,Gurke,
+KR000087,Malve,kombiniert_mit,Frischkäse,
+KR000088,Stockrose,laenderkueche,mitteleuropäisch,0
+KR000088,Stockrose,passt_zu,Salat,
+KR000088,Stockrose,passt_zu,Dessert,
+KR000088,Stockrose,passt_zu,Kräuterbutter,
+KR000088,Stockrose,passt_zu,Quark,
+KR000088,Stockrose,passt_zu,Blütenmischungen,
+KR000088,Stockrose,passt_zu,Dekoration,
+KR000088,Stockrose,kombiniert_mit,Frischkäse,
+KR000088,Stockrose,kombiniert_mit,Salat,
+KR000088,Stockrose,kombiniert_mit,Honig,
+KR000088,Stockrose,kombiniert_mit,Zitrone,
+KR000089,Ringelblume,laenderkueche,mitteleuropäisch,0
+KR000089,Ringelblume,laenderkueche,mediterran,0
+KR000089,Ringelblume,passt_zu,Salat,
+KR000089,Ringelblume,passt_zu,Kräuterbutter,
+KR000089,Ringelblume,passt_zu,Reisgerichte,
+KR000089,Ringelblume,passt_zu,Suppe,
+KR000089,Ringelblume,passt_zu,Brotaufstriche,
+KR000089,Ringelblume,passt_zu,Blütenbutter,
+KR000089,Ringelblume,kombiniert_mit,Reis,
+KR000089,Ringelblume,kombiniert_mit,Butter,
+KR000089,Ringelblume,kombiniert_mit,Frischkäse,
+KR000089,Ringelblume,kombiniert_mit,Salat,
+KR000090,Kornblume,laenderkueche,mitteleuropäisch,0
+KR000090,Kornblume,passt_zu,Salat,
+KR000090,Kornblume,passt_zu,Frischkäse,
+KR000090,Kornblume,passt_zu,Kräuterquark,
+KR000090,Kornblume,passt_zu,Dessert,
+KR000090,Kornblume,passt_zu,Blütenzucker,
+KR000090,Kornblume,passt_zu,Dekoration,
+KR000090,Kornblume,kombiniert_mit,Frischkäse,
+KR000090,Kornblume,kombiniert_mit,Salat,
+KR000090,Kornblume,kombiniert_mit,Zitrone,
+KR000090,Kornblume,kombiniert_mit,Beere,
+KR000091,Duftveilchen,laenderkueche,französisch,0
+KR000091,Duftveilchen,laenderkueche,britisch,0
+KR000091,Duftveilchen,laenderkueche,mitteleuropäisch,0
+KR000091,Duftveilchen,passt_zu,Salat,
+KR000091,Duftveilchen,passt_zu,Dessert,
+KR000091,Duftveilchen,passt_zu,kandierte Blüten,
+KR000091,Duftveilchen,passt_zu,Zitronencreme,
+KR000091,Duftveilchen,kombiniert_mit,Zitrone,
+KR000091,Duftveilchen,kombiniert_mit,Sahne,
+KR000091,Duftveilchen,kombiniert_mit,Schokolade,
+KR000091,Duftveilchen,kombiniert_mit,Beere,
+KR000092,Hornveilchen,laenderkueche,international/modern,1
+KR000092,Hornveilchen,laenderkueche,mitteleuropäisch,0
+KR000092,Hornveilchen,passt_zu,Salat,
+KR000092,Hornveilchen,passt_zu,Dessert,
+KR000092,Hornveilchen,passt_zu,Frischkäse,
+KR000092,Hornveilchen,passt_zu,kandierte Blüten,
+KR000092,Hornveilchen,kombiniert_mit,Frischkäse,
+KR000092,Hornveilchen,kombiniert_mit,Blattsalat,
+KR000092,Hornveilchen,kombiniert_mit,Beere,
+KR000092,Hornveilchen,kombiniert_mit,Zitrone,
+KR000093,Taglilie,laenderkueche,chinesisch,0
+KR000093,Taglilie,laenderkueche,international/modern,1
+KR000093,Taglilie,passt_zu,Wokgemüse,
+KR000093,Taglilie,passt_zu,Spargel,
+KR000093,Taglilie,passt_zu,Knospen in Essig,
+KR000093,Taglilie,passt_zu,Salat,
+KR000093,Taglilie,kombiniert_mit,Ingwer,
+KR000093,Taglilie,kombiniert_mit,Sojasauce,
+KR000093,Taglilie,kombiniert_mit,Spargel,
+KR000093,Taglilie,kombiniert_mit,Pilz,
+KR000094,Gänseblümchen,laenderkueche,mitteleuropäisch,0
+KR000094,Gänseblümchen,passt_zu,Salat,
+KR000094,Gänseblümchen,passt_zu,Kräuterquark,
+KR000094,Gänseblümchen,passt_zu,Butterbrot,
+KR000094,Gänseblümchen,passt_zu,Suppe,
+KR000094,Gänseblümchen,passt_zu,Blütenbutter,
+KR000094,Gänseblümchen,passt_zu,Wildkräutermischungen,
+KR000094,Gänseblümchen,kombiniert_mit,Quark,
+KR000094,Gänseblümchen,kombiniert_mit,Schnittlauch,
+KR000094,Gänseblümchen,kombiniert_mit,Radieschen,
+KR000094,Gänseblümchen,kombiniert_mit,Butterbrot,
+KR000095,Schafgarbe,laenderkueche,mitteleuropäisch,0
+KR000095,Schafgarbe,passt_zu,Wildkräutersalat,
+KR000095,Schafgarbe,passt_zu,Kräuterbutter,
+KR000095,Schafgarbe,passt_zu,Kartoffel,
+KR000095,Schafgarbe,passt_zu,Gurke,
+KR000095,Schafgarbe,passt_zu,Frischkäse,
+KR000095,Schafgarbe,passt_zu,Bitterkräutermischungen,
+KR000095,Schafgarbe,kombiniert_mit,Gurke,
+KR000095,Schafgarbe,kombiniert_mit,Kartoffel,
+KR000095,Schafgarbe,kombiniert_mit,Frischkäse,
+KR000095,Schafgarbe,kombiniert_mit,Dill,
+KR000096,Löwenzahn,laenderkueche,französisch,0
+KR000096,Löwenzahn,laenderkueche,italienisch,0
+KR000096,Löwenzahn,laenderkueche,mitteleuropäisch,0
+KR000096,Löwenzahn,passt_zu,Salat,
+KR000096,Löwenzahn,passt_zu,Pesto,
+KR000096,Löwenzahn,passt_zu,Quark,
+KR000096,Löwenzahn,passt_zu,Kartoffel,
+KR000096,Löwenzahn,passt_zu,Suppe,
+KR000096,Löwenzahn,passt_zu,Wildkräuterküche,
+KR000096,Löwenzahn,kombiniert_mit,Speck,
+KR000096,Löwenzahn,kombiniert_mit,Ei,
+KR000096,Löwenzahn,kombiniert_mit,Kartoffel,
+KR000096,Löwenzahn,kombiniert_mit,Senfdressing,
+KR000097,Brennnessel,laenderkueche,mitteleuropäisch,0
+KR000097,Brennnessel,laenderkueche,alpenländisch,0
+KR000097,Brennnessel,passt_zu,Spinatgerichte,
+KR000097,Brennnessel,passt_zu,Suppe,
+KR000097,Brennnessel,passt_zu,Quiche,
+KR000097,Brennnessel,passt_zu,Pesto,
+KR000097,Brennnessel,passt_zu,Kartoffel,
+KR000097,Brennnessel,passt_zu,Wildkräuterfüllungen,
+KR000097,Brennnessel,kombiniert_mit,Kartoffel,
+KR000097,Brennnessel,kombiniert_mit,Muskat,
+KR000097,Brennnessel,kombiniert_mit,Ei,
+KR000097,Brennnessel,kombiniert_mit,Feta,
+KR000098,Kleine Brennnessel,laenderkueche,mitteleuropäisch,0
+KR000098,Kleine Brennnessel,passt_zu,Wildkräutergerichte,
+KR000098,Kleine Brennnessel,passt_zu,Suppe,
+KR000098,Kleine Brennnessel,passt_zu,Spinatgerichte,
+KR000098,Kleine Brennnessel,passt_zu,Kräuterquark,
+KR000098,Kleine Brennnessel,kombiniert_mit,Kartoffel,
+KR000098,Kleine Brennnessel,kombiniert_mit,Ei,
+KR000098,Kleine Brennnessel,kombiniert_mit,Muskat,
+KR000098,Kleine Brennnessel,kombiniert_mit,Frischkäse,
+KR000099,Giersch,laenderkueche,mitteleuropäisch,0
+KR000099,Giersch,passt_zu,Kartoffel,
+KR000099,Giersch,passt_zu,Spinatgerichte,
+KR000099,Giersch,passt_zu,Frischkäse,
+KR000099,Giersch,passt_zu,Ei,
+KR000099,Giersch,kombiniert_mit,Kartoffel,
+KR000099,Giersch,kombiniert_mit,Ei,
+KR000099,Giersch,kombiniert_mit,Sauerrahm,
+KR000099,Giersch,kombiniert_mit,Muskat,
+KR000100,Vogelmiere,laenderkueche,mitteleuropäisch,0
+KR000100,Vogelmiere,passt_zu,Salat,
+KR000100,Vogelmiere,passt_zu,Kräuterquark,
+KR000100,Vogelmiere,passt_zu,Pesto,
+KR000100,Vogelmiere,passt_zu,grüne Smoothies,
+KR000100,Vogelmiere,kombiniert_mit,Quark,
+KR000100,Vogelmiere,kombiniert_mit,Ei,
+KR000100,Vogelmiere,kombiniert_mit,Kartoffel,
+KR000100,Vogelmiere,kombiniert_mit,Radieschen,
+KR000101,Gundermann,laenderkueche,mitteleuropäisch,0
+KR000101,Gundermann,passt_zu,Kartoffel,
+KR000101,Gundermann,passt_zu,Frischkäse,
+KR000101,Gundermann,passt_zu,Kräuterquark,
+KR000101,Gundermann,passt_zu,Wildkräutersalat,
+KR000101,Gundermann,kombiniert_mit,Kartoffel,
+KR000101,Gundermann,kombiniert_mit,Frischkäse,
+KR000101,Gundermann,kombiniert_mit,Schokolade,
+KR000101,Gundermann,kombiniert_mit,Wildkräutersalat,
+KR000102,Spitzwegerich,laenderkueche,mitteleuropäisch,0
+KR000102,Spitzwegerich,passt_zu,Wildkräutersalat,
+KR000102,Spitzwegerich,passt_zu,Kräuterquark,
+KR000102,Spitzwegerich,passt_zu,Suppe,
+KR000102,Spitzwegerich,passt_zu,Gemüsefüllungen,
+KR000102,Spitzwegerich,passt_zu,Tee,
+KR000102,Spitzwegerich,passt_zu,Kräutermischungen,
+KR000102,Spitzwegerich,kombiniert_mit,Quark,
+KR000102,Spitzwegerich,kombiniert_mit,Kartoffel,
+KR000102,Spitzwegerich,kombiniert_mit,Honig,
+KR000102,Spitzwegerich,kombiniert_mit,Zitrone,
+KR000103,Breitwegerich,laenderkueche,mitteleuropäisch,0
+KR000103,Breitwegerich,passt_zu,Wildkräutersuppen,
+KR000103,Breitwegerich,passt_zu,Kräuterquark,
+KR000103,Breitwegerich,passt_zu,Salat,
+KR000103,Breitwegerich,passt_zu,Pfannkuchenfüllungen,
+KR000103,Breitwegerich,kombiniert_mit,Kartoffel,
+KR000103,Breitwegerich,kombiniert_mit,Ei,
+KR000103,Breitwegerich,kombiniert_mit,Frischkäse,
+KR000103,Breitwegerich,kombiniert_mit,Zwiebel,
+KR000104,Wiesenlabkraut,laenderkueche,mitteleuropäisch,0
+KR000104,Wiesenlabkraut,passt_zu,Wildkräutersalate,
+KR000104,Wiesenlabkraut,passt_zu,Kräuterquark,
+KR000104,Wiesenlabkraut,passt_zu,Gemüsepfannen,
+KR000104,Wiesenlabkraut,passt_zu,Suppe,
+KR000104,Wiesenlabkraut,kombiniert_mit,Quark,
+KR000104,Wiesenlabkraut,kombiniert_mit,Kartoffel,
+KR000104,Wiesenlabkraut,kombiniert_mit,Gurke,
+KR000104,Wiesenlabkraut,kombiniert_mit,Zitrone,
+KR000105,Klettenlabkraut,laenderkueche,mitteleuropäisch,0
+KR000105,Klettenlabkraut,passt_zu,Wildkräutersuppen,
+KR000105,Klettenlabkraut,passt_zu,gedünstetes Gemüse,
+KR000105,Klettenlabkraut,passt_zu,Brühen,
+KR000105,Klettenlabkraut,passt_zu,Kräuterfüllungen,
+KR000105,Klettenlabkraut,kombiniert_mit,Kartoffel,
+KR000105,Klettenlabkraut,kombiniert_mit,Zwiebel,
+KR000105,Klettenlabkraut,kombiniert_mit,Brühe,
+KR000105,Klettenlabkraut,kombiniert_mit,Frischkäse,
+KR000106,Hirtentäschel,laenderkueche,mitteleuropäisch,0
+KR000106,Hirtentäschel,laenderkueche,chinesisch,0
+KR000106,Hirtentäschel,passt_zu,Wildkräutersalat,
+KR000106,Hirtentäschel,passt_zu,Quark,
+KR000106,Hirtentäschel,passt_zu,Gemüsepfannen,
+KR000106,Hirtentäschel,passt_zu,Samen als Gewürz,
+KR000106,Hirtentäschel,kombiniert_mit,Ei,
+KR000106,Hirtentäschel,kombiniert_mit,Kartoffel,
+KR000106,Hirtentäschel,kombiniert_mit,Reis,
+KR000106,Hirtentäschel,kombiniert_mit,Sojasauce,
+KR000107,Barbarakraut,laenderkueche,mitteleuropäisch,0
+KR000107,Barbarakraut,passt_zu,Salat,
+KR000107,Barbarakraut,passt_zu,Kräuterbutter,
+KR000107,Barbarakraut,passt_zu,Sandwiches,
+KR000107,Barbarakraut,passt_zu,Kartoffelgerichte,
+KR000107,Barbarakraut,kombiniert_mit,Kartoffel,
+KR000107,Barbarakraut,kombiniert_mit,Ei,
+KR000107,Barbarakraut,kombiniert_mit,Senf,
+KR000107,Barbarakraut,kombiniert_mit,Frischkäse,
+KR000108,Wiesenschaumkraut,laenderkueche,mitteleuropäisch,0
+KR000108,Wiesenschaumkraut,passt_zu,Ei,
+KR000108,Wiesenschaumkraut,passt_zu,Kartoffel,
+KR000108,Wiesenschaumkraut,passt_zu,Quark,
+KR000108,Wiesenschaumkraut,passt_zu,Blattsalate,
+KR000108,Wiesenschaumkraut,kombiniert_mit,Ei,
+KR000108,Wiesenschaumkraut,kombiniert_mit,Kartoffel,
+KR000108,Wiesenschaumkraut,kombiniert_mit,Quark,
+KR000108,Wiesenschaumkraut,kombiniert_mit,Radieschen,
+KR000109,Schaumkraut,laenderkueche,mitteleuropäisch,0
+KR000109,Schaumkraut,passt_zu,Ei,
+KR000109,Schaumkraut,passt_zu,Kartoffel,
+KR000109,Schaumkraut,passt_zu,Quark,
+KR000109,Schaumkraut,passt_zu,Wildkräutersalat,
+KR000109,Schaumkraut,kombiniert_mit,Ei,
+KR000109,Schaumkraut,kombiniert_mit,Kartoffel,
+KR000109,Schaumkraut,kombiniert_mit,Quark,
+KR000109,Schaumkraut,kombiniert_mit,Frischkäse,
+KR000110,Huflattich,laenderkueche,mitteleuropäisch,0
+KR000110,Huflattich,passt_zu,Kräuterteemischungen,
+KR000110,Huflattich,passt_zu,Honig,
+KR000110,Huflattich,passt_zu,Zitrone,
+KR000110,Huflattich,passt_zu,Sirup,
+KR000110,Huflattich,kombiniert_mit,Honig,
+KR000110,Huflattich,kombiniert_mit,Zitrone,
+KR000110,Huflattich,kombiniert_mit,Kräutertee,
+KR000110,Huflattich,kombiniert_mit,Sirup,
+KR000111,Wilde Möhre,laenderkueche,mitteleuropäisch,0
+KR000111,Wilde Möhre,passt_zu,Suppe,
+KR000111,Wilde Möhre,passt_zu,Wurzelgemüse,
+KR000111,Wilde Möhre,passt_zu,Samen als Gewürz,
+KR000111,Wilde Möhre,passt_zu,Gemüsebrühen,
+KR000111,Wilde Möhre,kombiniert_mit,Suppengemüse,
+KR000111,Wilde Möhre,kombiniert_mit,Honig,
+KR000111,Wilde Möhre,kombiniert_mit,Kreuzkümmel,
+KR000111,Wilde Möhre,kombiniert_mit,Kartoffel,
+KR000112,Wiesen-Bärenklau,laenderkueche,osteuropäisch,0
+KR000112,Wiesen-Bärenklau,laenderkueche,mitteleuropäisch,0
+KR000112,Wiesen-Bärenklau,passt_zu,Wildkräuterfüllungen,
+KR000112,Wiesen-Bärenklau,passt_zu,Suppe,
+KR000112,Wiesen-Bärenklau,passt_zu,Kartoffelgerichte,
+KR000112,Wiesen-Bärenklau,passt_zu,Gemüsepfannen,
+KR000112,Wiesen-Bärenklau,kombiniert_mit,Kartoffel,
+KR000112,Wiesen-Bärenklau,kombiniert_mit,Ei,
+KR000112,Wiesen-Bärenklau,kombiniert_mit,Sauerrahm,
+KR000112,Wiesen-Bärenklau,kombiniert_mit,Muskat,
+KR000113,Sauerklee,laenderkueche,mitteleuropäisch,0
+KR000113,Sauerklee,passt_zu,Salat,
+KR000113,Sauerklee,passt_zu,Kräuterquark,
+KR000113,Sauerklee,passt_zu,Fisch,
+KR000113,Sauerklee,passt_zu,Frühlingssuppen,
+KR000113,Sauerklee,kombiniert_mit,Fisch,
+KR000113,Sauerklee,kombiniert_mit,Gurke,
+KR000113,Sauerklee,kombiniert_mit,Kartoffel,
+KR000113,Sauerklee,kombiniert_mit,Frischkäse,
+KR000114,Franzosenkraut,laenderkueche,südamerikanisch,0
+KR000114,Franzosenkraut,laenderkueche,ostafrikanisch,0
+KR000114,Franzosenkraut,laenderkueche,mitteleuropäisch,0
+KR000114,Franzosenkraut,passt_zu,Salat,
+KR000114,Franzosenkraut,passt_zu,Gemüsepfannen,
+KR000114,Franzosenkraut,passt_zu,Omeletts,
+KR000114,Franzosenkraut,passt_zu,Kräuterquark,
+KR000114,Franzosenkraut,kombiniert_mit,Ei,
+KR000114,Franzosenkraut,kombiniert_mit,Kartoffel,
+KR000114,Franzosenkraut,kombiniert_mit,Tomate,
+KR000114,Franzosenkraut,kombiniert_mit,Reis,
+KR000115,Behaartes Knopfkraut,laenderkueche,lateinamerikanisch,0
+KR000115,Behaartes Knopfkraut,laenderkueche,ostafrikanisch,0
+KR000115,Behaartes Knopfkraut,laenderkueche,international/modern,1
+KR000115,Behaartes Knopfkraut,passt_zu,Salat,
+KR000115,Behaartes Knopfkraut,passt_zu,Gemüsepfannen,
+KR000115,Behaartes Knopfkraut,passt_zu,Suppe,
+KR000115,Behaartes Knopfkraut,passt_zu,Kräuterbutter,
+KR000115,Behaartes Knopfkraut,kombiniert_mit,Ei,
+KR000115,Behaartes Knopfkraut,kombiniert_mit,Kartoffel,
+KR000115,Behaartes Knopfkraut,kombiniert_mit,Reis,
+KR000115,Behaartes Knopfkraut,kombiniert_mit,Chili,
+KR000116,Guter Heinrich,laenderkueche,alpenländisch,0
+KR000116,Guter Heinrich,laenderkueche,mitteleuropäisch,0
+KR000116,Guter Heinrich,passt_zu,Spinatgerichte,
+KR000116,Guter Heinrich,passt_zu,Quiches,
+KR000116,Guter Heinrich,passt_zu,Suppe,
+KR000116,Guter Heinrich,passt_zu,Kartoffelgerichte,
+KR000116,Guter Heinrich,kombiniert_mit,Kartoffel,
+KR000116,Guter Heinrich,kombiniert_mit,Ei,
+KR000116,Guter Heinrich,kombiniert_mit,Muskat,
+KR000116,Guter Heinrich,kombiniert_mit,Käse,
+KR000117,Melde,laenderkueche,mitteleuropäisch,0
+KR000117,Melde,laenderkueche,mediterran,0
+KR000117,Melde,passt_zu,Feta,
+KR000117,Melde,passt_zu,Knoblauch,
+KR000117,Melde,passt_zu,Zitrone,
+KR000117,Melde,passt_zu,Ei,
+KR000117,Melde,passt_zu,Kartoffel,
+KR000117,Melde,kombiniert_mit,Zwiebel,
+KR000117,Melde,kombiniert_mit,Muskat,
+KR000117,Melde,kombiniert_mit,Sauerampfer,
+KR000117,Melde,kombiniert_mit,Dill,
+KR000118,Baumspinat,laenderkueche,mitteleuropäisch,0
+KR000118,Baumspinat,laenderkueche,international/modern,1
+KR000118,Baumspinat,passt_zu,Knoblauch,
+KR000118,Baumspinat,passt_zu,Zitrone,
+KR000118,Baumspinat,passt_zu,Kartoffel,
+KR000118,Baumspinat,passt_zu,Feta,
+KR000118,Baumspinat,passt_zu,Ei,
+KR000118,Baumspinat,kombiniert_mit,Zwiebel,
+KR000118,Baumspinat,kombiniert_mit,Muskat,
+KR000118,Baumspinat,kombiniert_mit,Dill,
+KR000118,Baumspinat,kombiniert_mit,Chili,
+KR000119,Weißer Gänsefuß,laenderkueche,indisch,0
+KR000119,Weißer Gänsefuß,laenderkueche,mexikanisch,0
+KR000119,Weißer Gänsefuß,laenderkueche,mitteleuropäisch,0
+KR000119,Weißer Gänsefuß,passt_zu,Spinatgerichte,
+KR000119,Weißer Gänsefuß,passt_zu,Suppe,
+KR000119,Weißer Gänsefuß,passt_zu,Curry,
+KR000119,Weißer Gänsefuß,passt_zu,Pfannengerichte,
+KR000119,Weißer Gänsefuß,kombiniert_mit,Kartoffel,
+KR000119,Weißer Gänsefuß,kombiniert_mit,Linse,
+KR000119,Weißer Gänsefuß,kombiniert_mit,Knoblauch,
+KR000119,Weißer Gänsefuß,kombiniert_mit,Muskat,
+KR000120,Wiesenknopf,laenderkueche,deutsch,0
+KR000120,Wiesenknopf,laenderkueche,französisch,0
+KR000120,Wiesenknopf,laenderkueche,mitteleuropäisch,0
+KR000120,Wiesenknopf,passt_zu,Gurken,
+KR000120,Wiesenknopf,passt_zu,Kartoffelsalat,
+KR000120,Wiesenknopf,passt_zu,Quark,
+KR000120,Wiesenknopf,passt_zu,Kräuteressig,
+KR000120,Wiesenknopf,kombiniert_mit,Gurke,
+KR000120,Wiesenknopf,kombiniert_mit,Kartoffelsalat,
+KR000120,Wiesenknopf,kombiniert_mit,Quark,
+KR000120,Wiesenknopf,kombiniert_mit,Essig,
+KR000121,Nachtkerze,laenderkueche,mitteleuropäisch,0
+KR000121,Nachtkerze,passt_zu,Wurzelgemüse,
+KR000121,Nachtkerze,passt_zu,Suppe,
+KR000121,Nachtkerze,passt_zu,Blütenknospen in Essig,
+KR000121,Nachtkerze,passt_zu,Salat,
+KR000121,Nachtkerze,kombiniert_mit,Kartoffel,
+KR000121,Nachtkerze,kombiniert_mit,Wurzelgemüse,
+KR000121,Nachtkerze,kombiniert_mit,Essig,
+KR000121,Nachtkerze,kombiniert_mit,Honig,
+KR000122,Wilde Malve,laenderkueche,mitteleuropäisch,0
+KR000122,Wilde Malve,laenderkueche,nordafrikanisch,0
+KR000122,Wilde Malve,passt_zu,Suppe,
+KR000122,Wilde Malve,passt_zu,Wildkräutersalate,
+KR000122,Wilde Malve,passt_zu,Kräuterquark,
+KR000122,Wilde Malve,passt_zu,Blüten als Dekor,
+KR000122,Wilde Malve,kombiniert_mit,Zitrone,
+KR000122,Wilde Malve,kombiniert_mit,Honig,
+KR000122,Wilde Malve,kombiniert_mit,Frischkäse,
+KR000122,Wilde Malve,kombiniert_mit,Blattsalat,
+KR000123,Waldmeister,laenderkueche,deutsch,0
+KR000123,Waldmeister,laenderkueche,österreichisch,0
+KR000123,Waldmeister,laenderkueche,mitteleuropäisch,0
+KR000123,Waldmeister,passt_zu,Milchdesserts,
+KR000123,Waldmeister,passt_zu,Erdbeeren,
+KR000123,Waldmeister,passt_zu,Bowle,
+KR000123,Waldmeister,passt_zu,Sirup,
+KR000123,Waldmeister,kombiniert_mit,Erdbeeren,
+KR000123,Waldmeister,kombiniert_mit,Sahne,
+KR000123,Waldmeister,kombiniert_mit,Weißwein,
+KR000123,Waldmeister,kombiniert_mit,Zitrone,
+KR000124,Spinat,laenderkueche,europäisch,0
+KR000124,Spinat,laenderkueche,indisch,0
+KR000124,Spinat,laenderkueche,nahöstlich,0
+KR000124,Spinat,passt_zu,Sahne,
+KR000124,Spinat,passt_zu,Knoblauch,
+KR000124,Spinat,passt_zu,Ei,
+KR000124,Spinat,passt_zu,Kartoffel,
+KR000124,Spinat,passt_zu,Feta,
+KR000124,Spinat,passt_zu,Muskat,
+KR000124,Spinat,kombiniert_mit,Knoblauch,
+KR000124,Spinat,kombiniert_mit,Zwiebel,
+KR000124,Spinat,kombiniert_mit,Sauerampfer,
+KR000125,Mangold,laenderkueche,mediterran,0
+KR000125,Mangold,laenderkueche,nahöstlich,0
+KR000125,Mangold,laenderkueche,mitteleuropäisch,0
+KR000125,Mangold,passt_zu,Knoblauch,
+KR000125,Mangold,passt_zu,Zitrone,
+KR000125,Mangold,passt_zu,Feta,
+KR000125,Mangold,passt_zu,Tomate,
+KR000125,Mangold,passt_zu,Sahne,
+KR000125,Mangold,passt_zu,Pinienkerne,
+KR000125,Mangold,kombiniert_mit,Knoblauch,
+KR000125,Mangold,kombiniert_mit,Zitrone,
+KR000125,Mangold,kombiniert_mit,Muskat,
+KR000125,Mangold,kombiniert_mit,Feta,
+KR000126,Rote Bete,laenderkueche,osteuropäisch,0
+KR000126,Rote Bete,laenderkueche,mitteleuropäisch,0
+KR000126,Rote Bete,laenderkueche,europäisch,0
+KR000126,Rote Bete,passt_zu,Ziegenkäse,
+KR000126,Rote Bete,passt_zu,Apfel,
+KR000126,Rote Bete,passt_zu,Meerrettich,
+KR000126,Rote Bete,passt_zu,Walnuss,
+KR000126,Rote Bete,passt_zu,Dill,
+KR000126,Rote Bete,passt_zu,Orange,
+KR000126,Rote Bete,kombiniert_mit,Zwiebel,
+KR000126,Rote Bete,kombiniert_mit,Dill,
+KR000126,Rote Bete,kombiniert_mit,Thymian,
+KR000127,Zuckerwurzel,laenderkueche,mitteleuropäisch,0
+KR000127,Zuckerwurzel,laenderkueche,französisch,0
+KR000127,Zuckerwurzel,passt_zu,Butter,
+KR000127,Zuckerwurzel,passt_zu,Sahne,
+KR000127,Zuckerwurzel,passt_zu,Haselnuss,
+KR000127,Zuckerwurzel,passt_zu,Petersilie,
+KR000127,Zuckerwurzel,passt_zu,Kartoffel,
+KR000127,Zuckerwurzel,kombiniert_mit,Kerbel,
+KR000127,Zuckerwurzel,kombiniert_mit,Muskat,
+KR000127,Zuckerwurzel,kombiniert_mit,Zitrone,
+KR000127,Zuckerwurzel,kombiniert_mit,Schalotte,
+KR000128,Feldsalat,laenderkueche,mitteleuropäisch,0
+KR000128,Feldsalat,laenderkueche,französisch,0
+KR000128,Feldsalat,passt_zu,Apfel,
+KR000128,Feldsalat,passt_zu,Birne,
+KR000128,Feldsalat,passt_zu,Speck,
+KR000128,Feldsalat,passt_zu,Walnuss,
+KR000128,Feldsalat,passt_zu,Kartoffel,
+KR000128,Feldsalat,passt_zu,Ei,
+KR000128,Feldsalat,kombiniert_mit,Schnittlauch,
+KR000128,Feldsalat,kombiniert_mit,Petersilie,
+KR000129,Kopfsalat,laenderkueche,mitteleuropäisch,0
+KR000129,Kopfsalat,laenderkueche,französisch,0
+KR000129,Kopfsalat,laenderkueche,nordamerikanisch,0
+KR000129,Kopfsalat,passt_zu,Gurke,
+KR000129,Kopfsalat,passt_zu,Tomate,
+KR000129,Kopfsalat,passt_zu,Radieschen,
+KR000129,Kopfsalat,passt_zu,Kräuterdressing,
+KR000129,Kopfsalat,passt_zu,Ei,
+KR000129,Kopfsalat,kombiniert_mit,Schnittlauch,
+KR000129,Kopfsalat,kombiniert_mit,Petersilie,
+KR000129,Kopfsalat,kombiniert_mit,Dill,
+KR000130,Römersalat,laenderkueche,mediterran,0
+KR000130,Römersalat,laenderkueche,nordamerikanisch,0
+KR000130,Römersalat,passt_zu,Parmesan,
+KR000130,Römersalat,passt_zu,Ei,
+KR000130,Römersalat,passt_zu,Sardelle,
+KR000130,Römersalat,passt_zu,Huhn,
+KR000130,Römersalat,passt_zu,Croutons,
+KR000130,Römersalat,passt_zu,Zitrone,
+KR000130,Römersalat,kombiniert_mit,Schnittlauch,
+KR000130,Römersalat,kombiniert_mit,Petersilie,
+KR000130,Römersalat,kombiniert_mit,Dill,
+KR000131,Eichblattsalat,laenderkueche,französisch,0
+KR000131,Eichblattsalat,laenderkueche,mitteleuropäisch,0
+KR000131,Eichblattsalat,laenderkueche,international/modern,1
+KR000131,Eichblattsalat,passt_zu,Tomate,
+KR000131,Eichblattsalat,passt_zu,Gurke,
+KR000131,Eichblattsalat,passt_zu,Walnuss,
+KR000131,Eichblattsalat,passt_zu,Ziegenkäse,
+KR000131,Eichblattsalat,passt_zu,Kräuterdressing,
+KR000131,Eichblattsalat,kombiniert_mit,Schnittlauch,
+KR000131,Eichblattsalat,kombiniert_mit,Petersilie,
+KR000131,Eichblattsalat,kombiniert_mit,Dill,
+KR000132,Endivie,laenderkueche,französisch,0
+KR000132,Endivie,laenderkueche,italienisch,0
+KR000132,Endivie,laenderkueche,mitteleuropäisch,0
+KR000132,Endivie,passt_zu,Kartoffel,
+KR000132,Endivie,passt_zu,Speck,
+KR000132,Endivie,passt_zu,Walnuss,
+KR000132,Endivie,passt_zu,Orange,
+KR000132,Endivie,passt_zu,Senfdressing,
+KR000132,Endivie,kombiniert_mit,Schnittlauch,
+KR000132,Endivie,kombiniert_mit,Petersilie,
+KR000132,Endivie,kombiniert_mit,Knoblauch,
+KR000133,Frisée,laenderkueche,französisch,0
+KR000133,Frisée,laenderkueche,belgisch,0
+KR000133,Frisée,laenderkueche,mitteleuropäisch,0
+KR000133,Frisée,passt_zu,Speck,
+KR000133,Frisée,passt_zu,Ei,
+KR000133,Frisée,passt_zu,Walnuss,
+KR000133,Frisée,passt_zu,Senfdressing,
+KR000133,Frisée,passt_zu,Croutons,
+KR000133,Frisée,kombiniert_mit,Estragon,
+KR000133,Frisée,kombiniert_mit,Schnittlauch,
+KR000133,Frisée,kombiniert_mit,Petersilie,
+KR000133,Frisée,kombiniert_mit,Schalotte,
+KR000134,Chicorée,laenderkueche,belgisch,0
+KR000134,Chicorée,laenderkueche,französisch,0
+KR000134,Chicorée,laenderkueche,mitteleuropäisch,0
+KR000134,Chicorée,passt_zu,Orange,
+KR000134,Chicorée,passt_zu,Schinken,
+KR000134,Chicorée,passt_zu,Käse,
+KR000134,Chicorée,passt_zu,Walnuss,
+KR000134,Chicorée,passt_zu,Honig,
+KR000134,Chicorée,kombiniert_mit,Estragon,
+KR000134,Chicorée,kombiniert_mit,Petersilie,
+KR000134,Chicorée,kombiniert_mit,Senf,
+KR000134,Chicorée,kombiniert_mit,Zitrone,
+KR000135,Radicchio,laenderkueche,italienisch,0
+KR000135,Radicchio,passt_zu,Balsamico,
+KR000135,Radicchio,passt_zu,Orange,
+KR000135,Radicchio,passt_zu,Gorgonzola,
+KR000135,Radicchio,passt_zu,Walnuss,
+KR000135,Radicchio,passt_zu,Risotto,
+KR000135,Radicchio,kombiniert_mit,Petersilie,
+KR000135,Radicchio,kombiniert_mit,Thymian,
+KR000135,Radicchio,kombiniert_mit,Knoblauch,
+KR000136,Zuckerhut,laenderkueche,italienisch,0
+KR000136,Zuckerhut,laenderkueche,schweizerisch,0
+KR000136,Zuckerhut,laenderkueche,mitteleuropäisch,0
+KR000136,Zuckerhut,passt_zu,Apfel,
+KR000136,Zuckerhut,passt_zu,Speck,
+KR000136,Zuckerhut,passt_zu,Kartoffel,
+KR000136,Zuckerhut,passt_zu,Senfdressing,
+KR000136,Zuckerhut,passt_zu,Walnuss,
+KR000136,Zuckerhut,kombiniert_mit,Schnittlauch,
+KR000136,Zuckerhut,kombiniert_mit,Petersilie,
+KR000136,Zuckerhut,kombiniert_mit,Schalotte,
+KR000136,Zuckerhut,kombiniert_mit,Kümmel,
+KR000137,Catalogna,laenderkueche,italienisch,0
+KR000137,Catalogna,laenderkueche,historisch europäisch,0
+KR000137,Catalogna,laenderkueche,mediterran,0
+KR000137,Catalogna,passt_zu,Knoblauch,
+KR000137,Catalogna,passt_zu,Chili,
+KR000137,Catalogna,passt_zu,Zitrone,
+KR000137,Catalogna,passt_zu,Sardellen,
+KR000137,Catalogna,passt_zu,Bohnen,
+KR000137,Catalogna,kombiniert_mit,Petersilie,
+KR000137,Catalogna,kombiniert_mit,Olivenöl,
+KR000137,Catalogna,kombiniert_mit,Kapern,
+KR000137,Catalogna,kombiniert_mit,Pecorino,
+KR000138,Portulakröschen,laenderkueche,international/modern,1
+KR000138,Portulakröschen,passt_zu,Salat,
+KR000138,Portulakröschen,passt_zu,essbare Blütendekoration,
+KR000138,Portulakröschen,passt_zu,sommerliche Desserts,
+KR000138,Portulakröschen,passt_zu,Kräuterbutter,
+KR000138,Portulakröschen,kombiniert_mit,Frischkäse,
+KR000138,Portulakröschen,kombiniert_mit,Blattsalat,
+KR000138,Portulakröschen,kombiniert_mit,Zitrone,
+KR000138,Portulakröschen,kombiniert_mit,Sommergemüse,
+KR000139,Neuseeländer Spinat,laenderkueche,ozeanisch,0
+KR000139,Neuseeländer Spinat,laenderkueche,ozeanisch,0
+KR000139,Neuseeländer Spinat,laenderkueche,international/modern,1
+KR000139,Neuseeländer Spinat,passt_zu,Knoblauch,
+KR000139,Neuseeländer Spinat,passt_zu,Zitrone,
+KR000139,Neuseeländer Spinat,passt_zu,Butter,
+KR000139,Neuseeländer Spinat,passt_zu,Fisch,
+KR000139,Neuseeländer Spinat,passt_zu,Kartoffel,
+KR000139,Neuseeländer Spinat,kombiniert_mit,Zwiebel,
+KR000139,Neuseeländer Spinat,kombiniert_mit,Muskat,
+KR000139,Neuseeländer Spinat,kombiniert_mit,Dill,
+KR000139,Neuseeländer Spinat,kombiniert_mit,Petersilie,
+KR000140,Malabarspinat,laenderkueche,indisch,0
+KR000140,Malabarspinat,laenderkueche,indisch,0
+KR000140,Malabarspinat,laenderkueche,südostasiatisch,0
+KR000140,Malabarspinat,passt_zu,Knoblauch,
+KR000140,Malabarspinat,passt_zu,Chili,
+KR000140,Malabarspinat,passt_zu,Kokosmilch,
+KR000140,Malabarspinat,passt_zu,Linse,
+KR000140,Malabarspinat,passt_zu,Tomate,
+KR000140,Malabarspinat,kombiniert_mit,Ingwer,
+KR000140,Malabarspinat,kombiniert_mit,Kreuzkümmel,
+KR000140,Malabarspinat,kombiniert_mit,Koriander,
+KR000140,Malabarspinat,kombiniert_mit,Zwiebel,
+KR000141,Eiskraut,laenderkueche,südafrikanisch,0
+KR000141,Eiskraut,laenderkueche,international/modern,1
+KR000141,Eiskraut,laenderkueche,mediterran,0
+KR000141,Eiskraut,passt_zu,Zitrone,
+KR000141,Eiskraut,passt_zu,Tomate,
+KR000141,Eiskraut,passt_zu,Gurke,
+KR000141,Eiskraut,passt_zu,Fisch,
+KR000141,Eiskraut,passt_zu,Joghurt,
+KR000141,Eiskraut,kombiniert_mit,Minze,
+KR000141,Eiskraut,kombiniert_mit,Dill,
+KR000141,Eiskraut,kombiniert_mit,Schnittlauch,
+KR000141,Eiskraut,kombiniert_mit,Olivenöl,
+KR000142,Asiasalat Mizuna,laenderkueche,japanisch,0
+KR000142,Asiasalat Mizuna,laenderkueche,koreanisch,0
+KR000142,Asiasalat Mizuna,laenderkueche,international/modern,1
+KR000142,Asiasalat Mizuna,passt_zu,Sesam,
+KR000142,Asiasalat Mizuna,passt_zu,Sojasauce,
+KR000142,Asiasalat Mizuna,passt_zu,Pilz,
+KR000142,Asiasalat Mizuna,passt_zu,Nudeln,
+KR000142,Asiasalat Mizuna,passt_zu,Rettich,
+KR000142,Asiasalat Mizuna,kombiniert_mit,Ingwer,
+KR000142,Asiasalat Mizuna,kombiniert_mit,Frühlingszwiebel,
+KR000142,Asiasalat Mizuna,kombiniert_mit,Chili,
+KR000142,Asiasalat Mizuna,kombiniert_mit,Koriander,
+KR000143,Mibuna,laenderkueche,japanisch,0
+KR000143,Mibuna,laenderkueche,koreanisch,0
+KR000143,Mibuna,passt_zu,Sesam,
+KR000143,Mibuna,passt_zu,Sojasauce,
+KR000143,Mibuna,passt_zu,Pilz,
+KR000143,Mibuna,passt_zu,Tofu,
+KR000143,Mibuna,passt_zu,Nudeln,
+KR000143,Mibuna,kombiniert_mit,Ingwer,
+KR000143,Mibuna,kombiniert_mit,Frühlingszwiebel,
+KR000143,Mibuna,kombiniert_mit,Chili,
+KR000143,Mibuna,kombiniert_mit,Koriander,
+KR000144,Tatsoi,laenderkueche,chinesisch,0
+KR000144,Tatsoi,laenderkueche,japanisch,0
+KR000144,Tatsoi,laenderkueche,koreanisch,0
+KR000144,Tatsoi,passt_zu,Knoblauch,
+KR000144,Tatsoi,passt_zu,Sojasauce,
+KR000144,Tatsoi,passt_zu,Sesam,
+KR000144,Tatsoi,passt_zu,Pilz,
+KR000144,Tatsoi,passt_zu,Nudeln,
+KR000144,Tatsoi,kombiniert_mit,Pak Choi,
+KR000144,Tatsoi,kombiniert_mit,Frühlingszwiebel,
+KR000144,Tatsoi,kombiniert_mit,Ingwer,
+KR000145,Pak Choi,laenderkueche,chinesisch,0
+KR000145,Pak Choi,laenderkueche,japanisch,0
+KR000145,Pak Choi,laenderkueche,koreanisch,0
+KR000145,Pak Choi,passt_zu,Sojasauce,
+KR000145,Pak Choi,passt_zu,Ingwer,
+KR000145,Pak Choi,passt_zu,Knoblauch,
+KR000145,Pak Choi,passt_zu,Sesam,
+KR000145,Pak Choi,passt_zu,Pilz,
+KR000145,Pak Choi,passt_zu,Nudeln,
+KR000145,Pak Choi,kombiniert_mit,Frühlingszwiebel,
+KR000145,Pak Choi,kombiniert_mit,Chili,
+KR000145,Pak Choi,kombiniert_mit,Koriander,
+KR000146,Komatsuna,laenderkueche,japanisch,0
+KR000146,Komatsuna,laenderkueche,chinesisch,0
+KR000146,Komatsuna,laenderkueche,koreanisch,0
+KR000146,Komatsuna,passt_zu,Sojasauce,
+KR000146,Komatsuna,passt_zu,Sesam,
+KR000146,Komatsuna,passt_zu,Pilz,
+KR000146,Komatsuna,passt_zu,Tofu,
+KR000146,Komatsuna,passt_zu,Nudeln,
+KR000146,Komatsuna,kombiniert_mit,Ingwer,
+KR000146,Komatsuna,kombiniert_mit,Frühlingszwiebel,
+KR000146,Komatsuna,kombiniert_mit,Knoblauch,
+KR000146,Komatsuna,kombiniert_mit,Miso,
+KR000147,Kai Lan,laenderkueche,chinesisch,0
+KR000147,Kai Lan,laenderkueche,chinesisch,0
+KR000147,Kai Lan,laenderkueche,südostasiatisch,0
+KR000147,Kai Lan,passt_zu,Austernsauce,
+KR000147,Kai Lan,passt_zu,Knoblauch,
+KR000147,Kai Lan,passt_zu,Ingwer,
+KR000147,Kai Lan,passt_zu,Reis,
+KR000147,Kai Lan,passt_zu,Rind,
+KR000147,Kai Lan,kombiniert_mit,Sesam,
+KR000147,Kai Lan,kombiniert_mit,Frühlingszwiebel,
+KR000147,Kai Lan,kombiniert_mit,Sojasauce,
+KR000147,Kai Lan,kombiniert_mit,Chili,
+KR000148,Choy Sum,laenderkueche,chinesisch,0
+KR000148,Choy Sum,laenderkueche,chinesisch,0
+KR000148,Choy Sum,laenderkueche,südostasiatisch,0
+KR000148,Choy Sum,passt_zu,Knoblauch,
+KR000148,Choy Sum,passt_zu,Austernsauce,
+KR000148,Choy Sum,passt_zu,Ingwer,
+KR000148,Choy Sum,passt_zu,Nudeln,
+KR000148,Choy Sum,passt_zu,Tofu,
+KR000148,Choy Sum,kombiniert_mit,Sesam,
+KR000148,Choy Sum,kombiniert_mit,Frühlingszwiebel,
+KR000148,Choy Sum,kombiniert_mit,Sojasauce,
+KR000148,Choy Sum,kombiniert_mit,Chili,
+KR000149,Amaranth-Blatt,laenderkueche,indisch,0
+KR000149,Amaranth-Blatt,laenderkueche,karibisch,0
+KR000149,Amaranth-Blatt,laenderkueche,westafrikanisch,0
+KR000149,Amaranth-Blatt,passt_zu,Knoblauch,
+KR000149,Amaranth-Blatt,passt_zu,Chili,
+KR000149,Amaranth-Blatt,passt_zu,Kokos,
+KR000149,Amaranth-Blatt,passt_zu,Linse,
+KR000149,Amaranth-Blatt,passt_zu,Tomate,
+KR000149,Amaranth-Blatt,kombiniert_mit,Zwiebel,
+KR000149,Amaranth-Blatt,kombiniert_mit,Kreuzkümmel,
+KR000149,Amaranth-Blatt,kombiniert_mit,Koriander,
+KR000149,Amaranth-Blatt,kombiniert_mit,Ingwer,
+KR000150,Wasserspinat,laenderkueche,südostasiatisch,0
+KR000150,Wasserspinat,laenderkueche,südostasiatisch,0
+KR000150,Wasserspinat,laenderkueche,chinesisch,0
+KR000150,Wasserspinat,passt_zu,Knoblauch,
+KR000150,Wasserspinat,passt_zu,Chili,
+KR000150,Wasserspinat,passt_zu,Fischsauce,
+KR000150,Wasserspinat,passt_zu,Reis,
+KR000150,Wasserspinat,passt_zu,Tofu,
+KR000150,Wasserspinat,kombiniert_mit,Sojasauce,
+KR000150,Wasserspinat,kombiniert_mit,Ingwer,
+KR000150,Wasserspinat,kombiniert_mit,Sesam,
+KR000150,Wasserspinat,kombiniert_mit,Frühlingszwiebel,
+KR000151,Weißkohl,laenderkueche,deutsch,0
+KR000151,Weißkohl,laenderkueche,osteuropäisch,0
+KR000151,Weißkohl,laenderkueche,koreanisch,0
+KR000151,Weißkohl,passt_zu,Kümmel,
+KR000151,Weißkohl,passt_zu,Speck,
+KR000151,Weißkohl,passt_zu,Apfel,
+KR000151,Weißkohl,passt_zu,Kartoffel,
+KR000151,Weißkohl,passt_zu,Essig,
+KR000151,Weißkohl,passt_zu,Senf,
+KR000151,Weißkohl,kombiniert_mit,Kümmel,
+KR000151,Weißkohl,kombiniert_mit,Zwiebel,
+KR000151,Weißkohl,kombiniert_mit,Apfel,
+KR000151,Weißkohl,kombiniert_mit,Speck,
+KR000152,Rotkohl,laenderkueche,deutsch,0
+KR000152,Rotkohl,laenderkueche,mitteleuropäisch,0
+KR000152,Rotkohl,passt_zu,Apfel,
+KR000152,Rotkohl,passt_zu,Nelke,
+KR000152,Rotkohl,passt_zu,Zimt,
+KR000152,Rotkohl,passt_zu,Essig,
+KR000152,Rotkohl,passt_zu,Gans,
+KR000152,Rotkohl,passt_zu,Kartoffel,
+KR000152,Rotkohl,kombiniert_mit,Zwiebel,
+KR000152,Rotkohl,kombiniert_mit,Apfel,
+KR000152,Rotkohl,kombiniert_mit,Nelke,
+KR000153,Wirsing,laenderkueche,deutsch,0
+KR000153,Wirsing,laenderkueche,mitteleuropäisch,0
+KR000153,Wirsing,passt_zu,Kartoffel,
+KR000153,Wirsing,passt_zu,Sahne,
+KR000153,Wirsing,passt_zu,Speck,
+KR000153,Wirsing,passt_zu,Muskat,
+KR000153,Wirsing,passt_zu,Senf,
+KR000153,Wirsing,kombiniert_mit,Zwiebel,
+KR000153,Wirsing,kombiniert_mit,Knoblauch,
+KR000153,Wirsing,kombiniert_mit,Muskat,
+KR000154,Spitzkohl,laenderkueche,mitteleuropäisch,0
+KR000154,Spitzkohl,passt_zu,Butter,
+KR000154,Spitzkohl,passt_zu,Kümmel,
+KR000154,Spitzkohl,passt_zu,Sahne,
+KR000154,Spitzkohl,passt_zu,Speck,
+KR000154,Spitzkohl,passt_zu,Kartoffel,
+KR000154,Spitzkohl,kombiniert_mit,Zwiebel,
+KR000154,Spitzkohl,kombiniert_mit,Kümmel,
+KR000154,Spitzkohl,kombiniert_mit,Dill,
+KR000155,Grünkohl,laenderkueche,deutsch,0
+KR000155,Grünkohl,laenderkueche,britisch,0
+KR000155,Grünkohl,laenderkueche,nordamerikanisch,0
+KR000155,Grünkohl,passt_zu,Kartoffel,
+KR000155,Grünkohl,passt_zu,Speck,
+KR000155,Grünkohl,passt_zu,Senf,
+KR000155,Grünkohl,passt_zu,Knoblauch,
+KR000155,Grünkohl,passt_zu,Bohnen,
+KR000155,Grünkohl,passt_zu,Apfel,
+KR000155,Grünkohl,kombiniert_mit,Zwiebel,
+KR000155,Grünkohl,kombiniert_mit,Knoblauch,
+KR000155,Grünkohl,kombiniert_mit,Chili,
+KR000156,Palmkohl,laenderkueche,italienisch,0
+KR000156,Palmkohl,laenderkueche,italienisch,0
+KR000156,Palmkohl,laenderkueche,mediterran,0
+KR000156,Palmkohl,passt_zu,Weiße Bohnen,
+KR000156,Palmkohl,passt_zu,Knoblauch,
+KR000156,Palmkohl,passt_zu,Tomate,
+KR000156,Palmkohl,passt_zu,Parmesan,
+KR000156,Palmkohl,passt_zu,Kartoffel,
+KR000156,Palmkohl,kombiniert_mit,Rosmarin,
+KR000156,Palmkohl,kombiniert_mit,Chili,
+KR000156,Palmkohl,kombiniert_mit,Zwiebel,
+KR000156,Palmkohl,kombiniert_mit,Petersilie,
+KR000157,Rosenkohl,laenderkueche,mitteleuropäisch,0
+KR000157,Rosenkohl,laenderkueche,britisch,0
+KR000157,Rosenkohl,passt_zu,Butter,
+KR000157,Rosenkohl,passt_zu,Speck,
+KR000157,Rosenkohl,passt_zu,Maronen,
+KR000157,Rosenkohl,passt_zu,Senf,
+KR000157,Rosenkohl,passt_zu,Parmesan,
+KR000157,Rosenkohl,kombiniert_mit,Knoblauch,
+KR000157,Rosenkohl,kombiniert_mit,Zwiebel,
+KR000157,Rosenkohl,kombiniert_mit,Muskat,
+KR000158,Kohlrabi,laenderkueche,mitteleuropäisch,0
+KR000158,Kohlrabi,passt_zu,Butter,
+KR000158,Kohlrabi,passt_zu,Muskat,
+KR000158,Kohlrabi,passt_zu,Petersilie,
+KR000158,Kohlrabi,passt_zu,Sahne,
+KR000158,Kohlrabi,passt_zu,Apfel,
+KR000158,Kohlrabi,kombiniert_mit,Petersilie,
+KR000158,Kohlrabi,kombiniert_mit,Schnittlauch,
+KR000158,Kohlrabi,kombiniert_mit,Dill,
+KR000159,Blumenkohl,laenderkueche,mitteleuropäisch,0
+KR000159,Blumenkohl,laenderkueche,indisch,0
+KR000159,Blumenkohl,laenderkueche,nahöstlich,0
+KR000159,Blumenkohl,passt_zu,Butter,
+KR000159,Blumenkohl,passt_zu,Muskat,
+KR000159,Blumenkohl,passt_zu,Curry,
+KR000159,Blumenkohl,passt_zu,Käse,
+KR000159,Blumenkohl,passt_zu,Tahin,
+KR000159,Blumenkohl,passt_zu,Zitrone,
+KR000159,Blumenkohl,kombiniert_mit,Knoblauch,
+KR000159,Blumenkohl,kombiniert_mit,Petersilie,
+KR000159,Blumenkohl,kombiniert_mit,Curry,
+KR000159,Blumenkohl,kombiniert_mit,Kreuzkümmel,
+KR000160,Brokkoli,laenderkueche,mediterran,0
+KR000160,Brokkoli,laenderkueche,asiatisch,0
+KR000160,Brokkoli,laenderkueche,mitteleuropäisch,0
+KR000160,Brokkoli,passt_zu,Knoblauch,
+KR000160,Brokkoli,passt_zu,Zitrone,
+KR000160,Brokkoli,passt_zu,Chili,
+KR000160,Brokkoli,passt_zu,Sesam,
+KR000160,Brokkoli,passt_zu,Käse,
+KR000160,Brokkoli,passt_zu,Butter,
+KR000160,Brokkoli,kombiniert_mit,Knoblauch,
+KR000160,Brokkoli,kombiniert_mit,Chili,
+KR000160,Brokkoli,kombiniert_mit,Zitrone,
+KR000160,Brokkoli,kombiniert_mit,Petersilie,
+KR000161,Romanesco,laenderkueche,italienisch,0
+KR000161,Romanesco,laenderkueche,mediterran,0
+KR000161,Romanesco,passt_zu,Butter,
+KR000161,Romanesco,passt_zu,Parmesan,
+KR000161,Romanesco,passt_zu,Zitrone,
+KR000161,Romanesco,passt_zu,Knoblauch,
+KR000161,Romanesco,passt_zu,Muskat,
+KR000161,Romanesco,kombiniert_mit,Knoblauch,
+KR000161,Romanesco,kombiniert_mit,Petersilie,
+KR000161,Romanesco,kombiniert_mit,Zitrone,
+KR000162,Stängelkohl,laenderkueche,italienisch,0
+KR000162,Stängelkohl,laenderkueche,italienisch,0
+KR000162,Stängelkohl,laenderkueche,mediterran,0
+KR000162,Stängelkohl,passt_zu,Orecchiette,
+KR000162,Stängelkohl,passt_zu,Knoblauch,
+KR000162,Stängelkohl,passt_zu,Chili,
+KR000162,Stängelkohl,passt_zu,Salsiccia,
+KR000162,Stängelkohl,passt_zu,Bohnen,
+KR000162,Stängelkohl,kombiniert_mit,Petersilie,
+KR000162,Stängelkohl,kombiniert_mit,Zitrone,
+KR000162,Stängelkohl,kombiniert_mit,Olivenöl,
+KR000162,Stängelkohl,kombiniert_mit,Sardellen,
+KR000163,Rübstiel,laenderkueche,deutsch,0
+KR000163,Rübstiel,laenderkueche,deutsch,0
+KR000163,Rübstiel,laenderkueche,mitteleuropäisch,0
+KR000163,Rübstiel,passt_zu,Kartoffel,
+KR000163,Rübstiel,passt_zu,Speck,
+KR000163,Rübstiel,passt_zu,Sahne,
+KR000163,Rübstiel,passt_zu,Senf,
+KR000163,Rübstiel,passt_zu,Zwiebel,
+KR000163,Rübstiel,kombiniert_mit,Petersilie,
+KR000163,Rübstiel,kombiniert_mit,Muskat,
+KR000163,Rübstiel,kombiniert_mit,Kümmel,
+KR000163,Rübstiel,kombiniert_mit,Schnittlauch,
+KR000164,Speiserübe,laenderkueche,mitteleuropäisch,0
+KR000164,Speiserübe,laenderkueche,französisch,0
+KR000164,Speiserübe,laenderkueche,skandinavisch,0
+KR000164,Speiserübe,passt_zu,Butter,
+KR000164,Speiserübe,passt_zu,Honig,
+KR000164,Speiserübe,passt_zu,Kartoffel,
+KR000164,Speiserübe,passt_zu,Speck,
+KR000164,Speiserübe,passt_zu,Senf,
+KR000164,Speiserübe,kombiniert_mit,Petersilie,
+KR000164,Speiserübe,kombiniert_mit,Kümmel,
+KR000164,Speiserübe,kombiniert_mit,Thymian,
+KR000164,Speiserübe,kombiniert_mit,Muskat,
+KR000165,Steckrübe,laenderkueche,deutsch,0
+KR000165,Steckrübe,laenderkueche,skandinavisch,0
+KR000165,Steckrübe,laenderkueche,britisch,0
+KR000165,Steckrübe,passt_zu,Kartoffel,
+KR000165,Steckrübe,passt_zu,Speck,
+KR000165,Steckrübe,passt_zu,Muskat,
+KR000165,Steckrübe,passt_zu,Apfel,
+KR000165,Steckrübe,passt_zu,Senf,
+KR000165,Steckrübe,kombiniert_mit,Petersilie,
+KR000165,Steckrübe,kombiniert_mit,Kümmel,
+KR000165,Steckrübe,kombiniert_mit,Lorbeer,
+KR000165,Steckrübe,kombiniert_mit,Zwiebel,
+KR000166,Möhre,laenderkueche,französisch,0
+KR000166,Möhre,laenderkueche,mitteleuropäisch,0
+KR000166,Möhre,laenderkueche,nordafrikanisch,0
+KR000166,Möhre,laenderkueche,asiatisch,0
+KR000166,Möhre,passt_zu,Butter,
+KR000166,Möhre,passt_zu,Honig,
+KR000166,Möhre,passt_zu,Ingwer,
+KR000166,Möhre,passt_zu,Orange,
+KR000166,Möhre,passt_zu,Kartoffel,
+KR000166,Möhre,passt_zu,Erbse,
+KR000166,Möhre,kombiniert_mit,Zwiebel,
+KR000166,Möhre,kombiniert_mit,Petersilie,
+KR000166,Möhre,kombiniert_mit,Dill,
+KR000166,Möhre,kombiniert_mit,Kreuzkümmel,
+KR000167,Pastinake,laenderkueche,mitteleuropäisch,0
+KR000167,Pastinake,laenderkueche,britisch,0
+KR000167,Pastinake,passt_zu,Butter,
+KR000167,Pastinake,passt_zu,Sahne,
+KR000167,Pastinake,passt_zu,Apfel,
+KR000167,Pastinake,passt_zu,Kartoffel,
+KR000167,Pastinake,passt_zu,Muskat,
+KR000167,Pastinake,passt_zu,Lamm,
+KR000167,Pastinake,kombiniert_mit,Möhre,
+KR000167,Pastinake,kombiniert_mit,Petersilie,
+KR000167,Pastinake,kombiniert_mit,Thymian,
+KR000168,Petersilienwurzel,laenderkueche,mitteleuropäisch,0
+KR000168,Petersilienwurzel,passt_zu,Suppengemüse,
+KR000168,Petersilienwurzel,passt_zu,Kartoffel,
+KR000168,Petersilienwurzel,passt_zu,Butter,
+KR000168,Petersilienwurzel,passt_zu,Sahne,
+KR000168,Petersilienwurzel,passt_zu,Pilz,
+KR000168,Petersilienwurzel,kombiniert_mit,Möhre,
+KR000168,Petersilienwurzel,kombiniert_mit,Sellerie,
+KR000168,Petersilienwurzel,kombiniert_mit,Petersilie,
+KR000169,Knollensellerie,laenderkueche,französisch,0
+KR000169,Knollensellerie,laenderkueche,mitteleuropäisch,0
+KR000169,Knollensellerie,passt_zu,Apfel,
+KR000169,Knollensellerie,passt_zu,Walnuss,
+KR000169,Knollensellerie,passt_zu,Sahne,
+KR000169,Knollensellerie,passt_zu,Kartoffel,
+KR000169,Knollensellerie,passt_zu,Trüffel,
+KR000169,Knollensellerie,kombiniert_mit,Petersilie,
+KR000169,Knollensellerie,kombiniert_mit,Muskat,
+KR000169,Knollensellerie,kombiniert_mit,Zitrone,
+KR000169,Knollensellerie,kombiniert_mit,Schalotte,
+KR000170,Stangensellerie,laenderkueche,französisch,0
+KR000170,Stangensellerie,laenderkueche,nordamerikanisch,0
+KR000170,Stangensellerie,laenderkueche,mediterran,0
+KR000170,Stangensellerie,passt_zu,Tomate,
+KR000170,Stangensellerie,passt_zu,Erdnussbutter,
+KR000170,Stangensellerie,passt_zu,Apfel,
+KR000170,Stangensellerie,passt_zu,Zitrone,
+KR000170,Stangensellerie,passt_zu,Suppengemüse,
+KR000170,Stangensellerie,kombiniert_mit,Möhre,
+KR000170,Stangensellerie,kombiniert_mit,Zwiebel,
+KR000170,Stangensellerie,kombiniert_mit,Petersilie,
+KR000170,Stangensellerie,kombiniert_mit,Dill,
+KR000171,Schnittsellerie,laenderkueche,chinesisch,0
+KR000171,Schnittsellerie,laenderkueche,balkanisch,0
+KR000171,Schnittsellerie,passt_zu,Suppe,
+KR000171,Schnittsellerie,passt_zu,Eintöpfe,
+KR000171,Schnittsellerie,passt_zu,Kartoffel,
+KR000171,Schnittsellerie,passt_zu,Tomatensaucen,
+KR000171,Schnittsellerie,kombiniert_mit,Liebstöckel,
+KR000171,Schnittsellerie,kombiniert_mit,Petersilie,
+KR000171,Schnittsellerie,kombiniert_mit,Möhre,
+KR000171,Schnittsellerie,kombiniert_mit,Zwiebel,
+KR000172,Fenchelknolle,laenderkueche,italienisch,0
+KR000172,Fenchelknolle,laenderkueche,mediterran,0
+KR000172,Fenchelknolle,passt_zu,Orange,
+KR000172,Fenchelknolle,passt_zu,Zitrone,
+KR000172,Fenchelknolle,passt_zu,Fisch,
+KR000172,Fenchelknolle,passt_zu,Tomate,
+KR000172,Fenchelknolle,passt_zu,Parmesan,
+KR000172,Fenchelknolle,passt_zu,Olive,
+KR000172,Fenchelknolle,kombiniert_mit,Dill,
+KR000172,Fenchelknolle,kombiniert_mit,Petersilie,
+KR000172,Fenchelknolle,kombiniert_mit,Knoblauch,
+KR000172,Fenchelknolle,kombiniert_mit,Zitrone,
+KR000173,Schwarzwurzel,laenderkueche,deutsch,0
+KR000173,Schwarzwurzel,laenderkueche,belgisch,0
+KR000173,Schwarzwurzel,laenderkueche,französisch,0
+KR000173,Schwarzwurzel,passt_zu,Butter,
+KR000173,Schwarzwurzel,passt_zu,Sahne,
+KR000173,Schwarzwurzel,passt_zu,Zitrone,
+KR000173,Schwarzwurzel,passt_zu,Schinken,
+KR000173,Schwarzwurzel,passt_zu,Muskat,
+KR000173,Schwarzwurzel,kombiniert_mit,Petersilie,
+KR000173,Schwarzwurzel,kombiniert_mit,Kerbel,
+KR000173,Schwarzwurzel,kombiniert_mit,Schalotte,
+KR000173,Schwarzwurzel,kombiniert_mit,Estragon,
+KR000174,Haferwurzel,laenderkueche,mitteleuropäisch,0
+KR000174,Haferwurzel,laenderkueche,britisch,0
+KR000174,Haferwurzel,passt_zu,Butter,
+KR000174,Haferwurzel,passt_zu,Sahne,
+KR000174,Haferwurzel,passt_zu,Zitrone,
+KR000174,Haferwurzel,passt_zu,Pilz,
+KR000174,Haferwurzel,passt_zu,Kartoffel,
+KR000174,Haferwurzel,kombiniert_mit,Petersilie,
+KR000174,Haferwurzel,kombiniert_mit,Kerbel,
+KR000174,Haferwurzel,kombiniert_mit,Schalotte,
+KR000174,Haferwurzel,kombiniert_mit,Muskat,
+KR000175,Topinambur,laenderkueche,französisch,0
+KR000175,Topinambur,laenderkueche,mitteleuropäisch,0
+KR000175,Topinambur,laenderkueche,international/modern,1
+KR000175,Topinambur,passt_zu,Haselnuss,
+KR000175,Topinambur,passt_zu,Apfel,
+KR000175,Topinambur,passt_zu,Sahne,
+KR000175,Topinambur,passt_zu,Kartoffel,
+KR000175,Topinambur,passt_zu,Pilz,
+KR000175,Topinambur,kombiniert_mit,Thymian,
+KR000175,Topinambur,kombiniert_mit,Petersilie,
+KR000175,Topinambur,kombiniert_mit,Muskat,
+KR000175,Topinambur,kombiniert_mit,Schalotte,
+KR000176,Yacon,laenderkueche,südamerikanisch,0
+KR000176,Yacon,laenderkueche,international/modern,1
+KR000176,Yacon,passt_zu,Apfel,
+KR000176,Yacon,passt_zu,Limette,
+KR000176,Yacon,passt_zu,Joghurt,
+KR000176,Yacon,passt_zu,Nuss,
+KR000176,Yacon,passt_zu,Karotte,
+KR000176,Yacon,kombiniert_mit,Minze,
+KR000176,Yacon,kombiniert_mit,Koriander,
+KR000176,Yacon,kombiniert_mit,Chili,
+KR000176,Yacon,kombiniert_mit,Honig,
+KR000177,Meerrettich,laenderkueche,deutsch,0
+KR000177,Meerrettich,laenderkueche,österreichisch,0
+KR000177,Meerrettich,laenderkueche,osteuropäisch,0
+KR000177,Meerrettich,laenderkueche,nahöstlich,0
+KR000177,Meerrettich,passt_zu,Rindfleisch,
+KR000177,Meerrettich,passt_zu,Lachs,
+KR000177,Meerrettich,passt_zu,Apfel,
+KR000177,Meerrettich,passt_zu,Rote Bete,
+KR000177,Meerrettich,passt_zu,Sahne,
+KR000177,Meerrettich,kombiniert_mit,Dill,
+KR000177,Meerrettich,kombiniert_mit,Schnittlauch,
+KR000177,Meerrettich,kombiniert_mit,Senf,
+KR000177,Meerrettich,kombiniert_mit,Zitrone,
+KR000178,Wasabi,laenderkueche,japanisch,0
+KR000178,Wasabi,passt_zu,Sushi,
+KR000178,Wasabi,passt_zu,Sashimi,
+KR000178,Wasabi,passt_zu,Sojasauce,
+KR000178,Wasabi,passt_zu,Gurke,
+KR000178,Wasabi,passt_zu,Rind,
+KR000178,Wasabi,kombiniert_mit,Ingwer,
+KR000178,Wasabi,kombiniert_mit,Sesam,
+KR000178,Wasabi,kombiniert_mit,Frühlingszwiebel,
+KR000178,Wasabi,kombiniert_mit,Reisessig,
+KR000179,Rettich,laenderkueche,deutsch,0
+KR000179,Rettich,laenderkueche,japanisch,0
+KR000179,Rettich,laenderkueche,koreanisch,0
+KR000179,Rettich,passt_zu,Butterbrot,
+KR000179,Rettich,passt_zu,Salz,
+KR000179,Rettich,passt_zu,Salat,
+KR000179,Rettich,passt_zu,Joghurt,
+KR000179,Rettich,passt_zu,asiatische Pickles,
+KR000179,Rettich,kombiniert_mit,Schnittlauch,
+KR000179,Rettich,kombiniert_mit,Dill,
+KR000179,Rettich,kombiniert_mit,Sojasauce,
+KR000180,Radieschen,laenderkueche,mitteleuropäisch,0
+KR000180,Radieschen,laenderkueche,japanisch,0
+KR000180,Radieschen,passt_zu,Butterbrot,
+KR000180,Radieschen,passt_zu,Quark,
+KR000180,Radieschen,passt_zu,Salat,
+KR000180,Radieschen,passt_zu,Gurke,
+KR000180,Radieschen,passt_zu,Ei,
+KR000180,Radieschen,kombiniert_mit,Schnittlauch,
+KR000180,Radieschen,kombiniert_mit,Petersilie,
+KR000180,Radieschen,kombiniert_mit,Kresse,
+KR000181,Schalotte,laenderkueche,französisch,0
+KR000181,Schalotte,laenderkueche,mediterran,0
+KR000181,Schalotte,passt_zu,Butter,
+KR000181,Schalotte,passt_zu,Wein,
+KR000181,Schalotte,passt_zu,Pilz,
+KR000181,Schalotte,passt_zu,Fisch,
+KR000181,Schalotte,passt_zu,Dressings,
+KR000181,Schalotte,passt_zu,Essig,
+KR000181,Schalotte,kombiniert_mit,Knoblauch,
+KR000181,Schalotte,kombiniert_mit,Estragon,
+KR000181,Schalotte,kombiniert_mit,Petersilie,
+KR000181,Schalotte,kombiniert_mit,Thymian,
+KR000182,Zwiebel,laenderkueche,deutsch,0
+KR000182,Zwiebel,laenderkueche,französisch,0
+KR000182,Zwiebel,laenderkueche,indisch,0
+KR000182,Zwiebel,laenderkueche,nahöstlich,0
+KR000182,Zwiebel,passt_zu,Kartoffel,
+KR000182,Zwiebel,passt_zu,Tomate,
+KR000182,Zwiebel,passt_zu,Butter,
+KR000182,Zwiebel,passt_zu,Ei,
+KR000182,Zwiebel,passt_zu,Fleisch,
+KR000182,Zwiebel,passt_zu,Hülsenfrüchte,
+KR000182,Zwiebel,kombiniert_mit,Knoblauch,
+KR000182,Zwiebel,kombiniert_mit,Möhre,
+KR000182,Zwiebel,kombiniert_mit,Sellerie,
+KR000182,Zwiebel,kombiniert_mit,Petersilie,
+KR000182,Zwiebel,kombiniert_mit,Thymian,
+KR000183,Knoblauch,laenderkueche,mediterran,0
+KR000183,Knoblauch,laenderkueche,chinesisch,0
+KR000183,Knoblauch,laenderkueche,koreanisch,0
+KR000183,Knoblauch,laenderkueche,nahöstlich,0
+KR000183,Knoblauch,passt_zu,Tomate,
+KR000183,Knoblauch,passt_zu,Butter,
+KR000183,Knoblauch,passt_zu,Joghurt,
+KR000183,Knoblauch,passt_zu,Fleisch,
+KR000183,Knoblauch,passt_zu,Pilz,
+KR000183,Knoblauch,passt_zu,Bohnen,
+KR000183,Knoblauch,kombiniert_mit,Petersilie,
+KR000183,Knoblauch,kombiniert_mit,Rosmarin,
+KR000183,Knoblauch,kombiniert_mit,Thymian,
+KR000183,Knoblauch,kombiniert_mit,Zitrone,
+KR000183,Knoblauch,kombiniert_mit,Chili,
+KR000184,Lauch,laenderkueche,französisch,0
+KR000184,Lauch,laenderkueche,mitteleuropäisch,0
+KR000184,Lauch,passt_zu,Kartoffel,
+KR000184,Lauch,passt_zu,Sahne,
+KR000184,Lauch,passt_zu,Käse,
+KR000184,Lauch,passt_zu,Speck,
+KR000184,Lauch,passt_zu,Pilz,
+KR000184,Lauch,passt_zu,Quiche,
+KR000184,Lauch,kombiniert_mit,Möhre,
+KR000184,Lauch,kombiniert_mit,Sellerie,
+KR000184,Lauch,kombiniert_mit,Zwiebel,
+KR000184,Lauch,kombiniert_mit,Thymian,
+KR000185,Bärlauch-Zwiebel,laenderkueche,mitteleuropäisch,0
+KR000185,Bärlauch-Zwiebel,passt_zu,Kartoffel,
+KR000185,Bärlauch-Zwiebel,passt_zu,Ei,
+KR000185,Bärlauch-Zwiebel,passt_zu,Pilz,
+KR000185,Bärlauch-Zwiebel,passt_zu,Frischkäse,
+KR000185,Bärlauch-Zwiebel,passt_zu,Nudeln,
+KR000185,Bärlauch-Zwiebel,kombiniert_mit,Schnittlauch,
+KR000185,Bärlauch-Zwiebel,kombiniert_mit,Petersilie,
+KR000185,Bärlauch-Zwiebel,kombiniert_mit,Sauerrahm,
+KR000185,Bärlauch-Zwiebel,kombiniert_mit,Zitrone,
+KR000186,Kartoffel,laenderkueche,deutsch,0
+KR000186,Kartoffel,laenderkueche,österreichisch,0
+KR000186,Kartoffel,laenderkueche,französisch,0
+KR000186,Kartoffel,laenderkueche,südamerikanisch,0
+KR000186,Kartoffel,passt_zu,Butter,
+KR000186,Kartoffel,passt_zu,Quark,
+KR000186,Kartoffel,passt_zu,Rosmarin,
+KR000186,Kartoffel,passt_zu,Speck,
+KR000186,Kartoffel,passt_zu,Lauch,
+KR000186,Kartoffel,kombiniert_mit,Petersilie,
+KR000186,Kartoffel,kombiniert_mit,Schnittlauch,
+KR000186,Kartoffel,kombiniert_mit,Kümmel,
+KR000186,Kartoffel,kombiniert_mit,Muskat,
+KR000187,Süßkartoffel,laenderkueche,nordamerikanisch,0
+KR000187,Süßkartoffel,laenderkueche,mexikanisch,0
+KR000187,Süßkartoffel,laenderkueche,karibisch,0
+KR000187,Süßkartoffel,laenderkueche,asiatisch,0
+KR000187,Süßkartoffel,passt_zu,Limette,
+KR000187,Süßkartoffel,passt_zu,Chili,
+KR000187,Süßkartoffel,passt_zu,Kokos,
+KR000187,Süßkartoffel,passt_zu,Feta,
+KR000187,Süßkartoffel,passt_zu,schwarze Bohnen,
+KR000187,Süßkartoffel,kombiniert_mit,Koriander,
+KR000187,Süßkartoffel,kombiniert_mit,Kreuzkümmel,
+KR000187,Süßkartoffel,kombiniert_mit,Paprika,
+KR000187,Süßkartoffel,kombiniert_mit,Ingwer,
+KR000188,Maniok,laenderkueche,westafrikanisch,0
+KR000188,Maniok,laenderkueche,südamerikanisch,0
+KR000188,Maniok,laenderkueche,karibisch,0
+KR000188,Maniok,passt_zu,Kokos,
+KR000188,Maniok,passt_zu,Chili,
+KR000188,Maniok,passt_zu,Limette,
+KR000188,Maniok,passt_zu,Erdnuss,
+KR000188,Maniok,passt_zu,Fisch,
+KR000188,Maniok,kombiniert_mit,Koriander,
+KR000188,Maniok,kombiniert_mit,Knoblauch,
+KR000188,Maniok,kombiniert_mit,Palmöl,
+KR000188,Maniok,kombiniert_mit,Ingwer,
+KR000189,Tomate,laenderkueche,italienisch,0
+KR000189,Tomate,laenderkueche,mediterran,0
+KR000189,Tomate,laenderkueche,mexikanisch,0
+KR000189,Tomate,laenderkueche,nahöstlich,0
+KR000189,Tomate,passt_zu,Basilikum,
+KR000189,Tomate,passt_zu,Mozzarella,
+KR000189,Tomate,passt_zu,Knoblauch,
+KR000189,Tomate,passt_zu,Olivenöl,
+KR000189,Tomate,passt_zu,Aubergine,
+KR000189,Tomate,passt_zu,Zucchini,
+KR000189,Tomate,kombiniert_mit,Basilikum,
+KR000189,Tomate,kombiniert_mit,Oregano,
+KR000189,Tomate,kombiniert_mit,Knoblauch,
+KR000189,Tomate,kombiniert_mit,Petersilie,
+KR000190,Paprika,laenderkueche,mediterran,0
+KR000190,Paprika,laenderkueche,osteuropäisch,0
+KR000190,Paprika,laenderkueche,nahöstlich,0
+KR000190,Paprika,laenderkueche,mexikanisch,0
+KR000190,Paprika,passt_zu,Tomate,
+KR000190,Paprika,passt_zu,Zwiebel,
+KR000190,Paprika,passt_zu,Knoblauch,
+KR000190,Paprika,passt_zu,Reis,
+KR000190,Paprika,passt_zu,Feta,
+KR000190,Paprika,passt_zu,Aubergine,
+KR000190,Paprika,kombiniert_mit,Basilikum,
+KR000190,Paprika,kombiniert_mit,Oregano,
+KR000190,Paprika,kombiniert_mit,Petersilie,
+KR000190,Paprika,kombiniert_mit,Chili,
+KR000191,Chili,laenderkueche,mexikanisch,0
+KR000191,Chili,laenderkueche,indisch,0
+KR000191,Chili,laenderkueche,südostasiatisch,0
+KR000191,Chili,laenderkueche,koreanisch,0
+KR000191,Chili,passt_zu,Limette,
+KR000191,Chili,passt_zu,Knoblauch,
+KR000191,Chili,passt_zu,Tomate,
+KR000191,Chili,passt_zu,Bohnen,
+KR000191,Chili,passt_zu,Schokolade,
+KR000191,Chili,passt_zu,Mango,
+KR000191,Chili,kombiniert_mit,Koriander,
+KR000191,Chili,kombiniert_mit,Knoblauch,
+KR000191,Chili,kombiniert_mit,Kreuzkümmel,
+KR000191,Chili,kombiniert_mit,Zwiebel,
+KR000192,Habanero,laenderkueche,karibisch,0
+KR000192,Habanero,laenderkueche,mexikanisch,0
+KR000192,Habanero,laenderkueche,mittelamerikanisch,0
+KR000192,Habanero,passt_zu,Mango,
+KR000192,Habanero,passt_zu,Tomate,
+KR000192,Habanero,passt_zu,Bohnen,
+KR000192,Habanero,passt_zu,Grillmarinaden,
+KR000192,Habanero,kombiniert_mit,Mango,
+KR000192,Habanero,kombiniert_mit,Limette,
+KR000192,Habanero,kombiniert_mit,Koriander,
+KR000192,Habanero,kombiniert_mit,Knoblauch,
+KR000193,Aubergine,laenderkueche,mediterran,0
+KR000193,Aubergine,laenderkueche,nahöstlich,0
+KR000193,Aubergine,laenderkueche,indisch,0
+KR000193,Aubergine,passt_zu,Tomate,
+KR000193,Aubergine,passt_zu,Knoblauch,
+KR000193,Aubergine,passt_zu,Tahin,
+KR000193,Aubergine,passt_zu,Joghurt,
+KR000193,Aubergine,passt_zu,Petersilie,
+KR000193,Aubergine,passt_zu,Kreuzkümmel,
+KR000193,Aubergine,kombiniert_mit,Knoblauch,
+KR000193,Aubergine,kombiniert_mit,Petersilie,
+KR000193,Aubergine,kombiniert_mit,Oregano,
+KR000193,Aubergine,kombiniert_mit,Chili,
+KR000194,Andenbeere,laenderkueche,südamerikanisch,0
+KR000194,Andenbeere,laenderkueche,international/modern,1
+KR000194,Andenbeere,passt_zu,Vanille,
+KR000194,Andenbeere,passt_zu,Schokolade,
+KR000194,Andenbeere,passt_zu,Chili,
+KR000194,Andenbeere,passt_zu,Joghurt,
+KR000194,Andenbeere,passt_zu,Geflügel,
+KR000194,Andenbeere,kombiniert_mit,Minze,
+KR000194,Andenbeere,kombiniert_mit,Limette,
+KR000194,Andenbeere,kombiniert_mit,Ingwer,
+KR000194,Andenbeere,kombiniert_mit,Koriander,
+KR000195,Tomatillo,laenderkueche,mexikanisch,0
+KR000195,Tomatillo,laenderkueche,mittelamerikanisch,0
+KR000195,Tomatillo,passt_zu,Chili,
+KR000195,Tomatillo,passt_zu,Koriander,
+KR000195,Tomatillo,passt_zu,Limette,
+KR000195,Tomatillo,passt_zu,Zwiebel,
+KR000195,Tomatillo,passt_zu,Avocado,
+KR000195,Tomatillo,kombiniert_mit,Knoblauch,
+KR000195,Tomatillo,kombiniert_mit,Kreuzkümmel,
+KR000195,Tomatillo,kombiniert_mit,Papalo,
+KR000195,Tomatillo,kombiniert_mit,Epazote,
+KR000196,Gurke,laenderkueche,deutsch,0
+KR000196,Gurke,laenderkueche,griechisch,0
+KR000196,Gurke,laenderkueche,nahöstlich,0
+KR000196,Gurke,laenderkueche,japanisch,0
+KR000196,Gurke,laenderkueche,koreanisch,0
+KR000196,Gurke,passt_zu,Dill,
+KR000196,Gurke,passt_zu,Joghurt,
+KR000196,Gurke,passt_zu,Minze,
+KR000196,Gurke,passt_zu,Knoblauch,
+KR000196,Gurke,passt_zu,Essig,
+KR000196,Gurke,passt_zu,Sesam,
+KR000196,Gurke,kombiniert_mit,Dill,
+KR000196,Gurke,kombiniert_mit,Minze,
+KR000196,Gurke,kombiniert_mit,Knoblauch,
+KR000196,Gurke,kombiniert_mit,Schnittlauch,
+KR000197,Melone,laenderkueche,mediterran,0
+KR000197,Melone,laenderkueche,nahöstlich,0
+KR000197,Melone,laenderkueche,international/modern,1
+KR000197,Melone,passt_zu,Schinken,
+KR000197,Melone,passt_zu,Feta,
+KR000197,Melone,passt_zu,Minze,
+KR000197,Melone,passt_zu,Limette,
+KR000197,Melone,passt_zu,Chili,
+KR000197,Melone,kombiniert_mit,Basilikum,
+KR000197,Melone,kombiniert_mit,Koriander,
+KR000197,Melone,kombiniert_mit,Ingwer,
+KR000197,Melone,kombiniert_mit,Honig,
+KR000198,Wassermelone,laenderkueche,nahöstlich,0
+KR000198,Wassermelone,laenderkueche,mediterran,0
+KR000198,Wassermelone,laenderkueche,nordamerikanisch,0
+KR000198,Wassermelone,passt_zu,Feta,
+KR000198,Wassermelone,passt_zu,Minze,
+KR000198,Wassermelone,passt_zu,Limette,
+KR000198,Wassermelone,passt_zu,Gurke,
+KR000198,Wassermelone,passt_zu,Chili,
+KR000198,Wassermelone,kombiniert_mit,Basilikum,
+KR000198,Wassermelone,kombiniert_mit,Koriander,
+KR000198,Wassermelone,kombiniert_mit,rote Zwiebel,
+KR000198,Wassermelone,kombiniert_mit,Sesam,
+KR000199,Zucchini,laenderkueche,mediterran,0
+KR000199,Zucchini,laenderkueche,mitteleuropäisch,0
+KR000199,Zucchini,passt_zu,Tomate,
+KR000199,Zucchini,passt_zu,Knoblauch,
+KR000199,Zucchini,passt_zu,Feta,
+KR000199,Zucchini,passt_zu,Zitrone,
+KR000199,Zucchini,passt_zu,Basilikum,
+KR000199,Zucchini,passt_zu,Minze,
+KR000199,Zucchini,kombiniert_mit,Basilikum,
+KR000199,Zucchini,kombiniert_mit,Petersilie,
+KR000199,Zucchini,kombiniert_mit,Knoblauch,
+KR000199,Zucchini,kombiniert_mit,Oregano,
+KR000200,Gartenkürbis,laenderkueche,mitteleuropäisch,0
+KR000200,Gartenkürbis,laenderkueche,nordamerikanisch,0
+KR000200,Gartenkürbis,laenderkueche,mediterran,0
+KR000200,Gartenkürbis,passt_zu,Sahne,
+KR000200,Gartenkürbis,passt_zu,Muskat,
+KR000200,Gartenkürbis,passt_zu,Salbei,
+KR000200,Gartenkürbis,passt_zu,Apfel,
+KR000200,Gartenkürbis,passt_zu,Speck,
+KR000200,Gartenkürbis,kombiniert_mit,Thymian,
+KR000200,Gartenkürbis,kombiniert_mit,Rosmarin,
+KR000200,Gartenkürbis,kombiniert_mit,Ingwer,
+KR000200,Gartenkürbis,kombiniert_mit,Chili,
+KR000201,Riesenkürbis,laenderkueche,mitteleuropäisch,0
+KR000201,Riesenkürbis,laenderkueche,nordamerikanisch,0
+KR000201,Riesenkürbis,passt_zu,Ingwer,
+KR000201,Riesenkürbis,passt_zu,Muskat,
+KR000201,Riesenkürbis,passt_zu,Kartoffel,
+KR000201,Riesenkürbis,passt_zu,Sahne,
+KR000201,Riesenkürbis,passt_zu,Speck,
+KR000201,Riesenkürbis,kombiniert_mit,Thymian,
+KR000201,Riesenkürbis,kombiniert_mit,Petersilie,
+KR000201,Riesenkürbis,kombiniert_mit,Chili,
+KR000201,Riesenkürbis,kombiniert_mit,Zwiebel,
+KR000202,Moschuskürbis,laenderkueche,italienisch,0
+KR000202,Moschuskürbis,laenderkueche,nordamerikanisch,0
+KR000202,Moschuskürbis,laenderkueche,karibisch,0
+KR000202,Moschuskürbis,passt_zu,Salbei,
+KR000202,Moschuskürbis,passt_zu,Parmesan,
+KR000202,Moschuskürbis,passt_zu,Amaretti,
+KR000202,Moschuskürbis,passt_zu,Ingwer,
+KR000202,Moschuskürbis,passt_zu,Kokos,
+KR000202,Moschuskürbis,kombiniert_mit,Thymian,
+KR000202,Moschuskürbis,kombiniert_mit,Chili,
+KR000202,Moschuskürbis,kombiniert_mit,Muskat,
+KR000202,Moschuskürbis,kombiniert_mit,Zimt,
+KR000203,Flaschenkürbis,laenderkueche,indisch,0
+KR000203,Flaschenkürbis,laenderkueche,südostasiatisch,0
+KR000203,Flaschenkürbis,laenderkueche,mediterran,0
+KR000203,Flaschenkürbis,passt_zu,Tomate,
+KR000203,Flaschenkürbis,passt_zu,Linse,
+KR000203,Flaschenkürbis,passt_zu,Kokos,
+KR000203,Flaschenkürbis,passt_zu,Ingwer,
+KR000203,Flaschenkürbis,passt_zu,Reis,
+KR000203,Flaschenkürbis,kombiniert_mit,Kreuzkümmel,
+KR000203,Flaschenkürbis,kombiniert_mit,Koriander,
+KR000203,Flaschenkürbis,kombiniert_mit,Chili,
+KR000203,Flaschenkürbis,kombiniert_mit,Kurkuma,
+KR000204,Bittermelone,laenderkueche,chinesisch,0
+KR000204,Bittermelone,laenderkueche,indisch,0
+KR000204,Bittermelone,laenderkueche,südostasiatisch,0
+KR000204,Bittermelone,laenderkueche,karibisch,0
+KR000204,Bittermelone,passt_zu,Chili,
+KR000204,Bittermelone,passt_zu,Knoblauch,
+KR000204,Bittermelone,passt_zu,Ei,
+KR000204,Bittermelone,passt_zu,Schweinefleisch,
+KR000204,Bittermelone,passt_zu,schwarze Bohnen,
+KR000204,Bittermelone,kombiniert_mit,Ingwer,
+KR000204,Bittermelone,kombiniert_mit,Sojasauce,
+KR000204,Bittermelone,kombiniert_mit,Kurkuma,
+KR000204,Bittermelone,kombiniert_mit,Tamarinde,
+KR000205,Schwammgurke,laenderkueche,chinesisch,0
+KR000205,Schwammgurke,laenderkueche,südostasiatisch,0
+KR000205,Schwammgurke,laenderkueche,indisch,0
+KR000205,Schwammgurke,passt_zu,Knoblauch,
+KR000205,Schwammgurke,passt_zu,Ingwer,
+KR000205,Schwammgurke,passt_zu,Ei,
+KR000205,Schwammgurke,passt_zu,Tofu,
+KR000205,Schwammgurke,passt_zu,Reis,
+KR000205,Schwammgurke,kombiniert_mit,Sojasauce,
+KR000205,Schwammgurke,kombiniert_mit,Frühlingszwiebel,
+KR000205,Schwammgurke,kombiniert_mit,Chili,
+KR000205,Schwammgurke,kombiniert_mit,Koriander,
+KR000206,Okra,laenderkueche,westafrikanisch,0
+KR000206,Okra,laenderkueche,karibisch,0
+KR000206,Okra,laenderkueche,indisch,0
+KR000206,Okra,laenderkueche,nahöstlich,0
+KR000206,Okra,passt_zu,Tomate,
+KR000206,Okra,passt_zu,Chili,
+KR000206,Okra,passt_zu,Zwiebel,
+KR000206,Okra,passt_zu,Knoblauch,
+KR000206,Okra,passt_zu,Kreuzkümmel,
+KR000206,Okra,kombiniert_mit,Chili,
+KR000206,Okra,kombiniert_mit,Knoblauch,
+KR000206,Okra,kombiniert_mit,Koriander,
+KR000206,Okra,kombiniert_mit,Kreuzkümmel,
+KR000207,Mais,laenderkueche,mexikanisch,0
+KR000207,Mais,laenderkueche,nordamerikanisch,0
+KR000207,Mais,laenderkueche,italienisch,0
+KR000207,Mais,passt_zu,Butter,
+KR000207,Mais,passt_zu,Chili,
+KR000207,Mais,passt_zu,Limette,
+KR000207,Mais,passt_zu,Bohnen,
+KR000207,Mais,passt_zu,Käse,
+KR000207,Mais,kombiniert_mit,Koriander,
+KR000207,Mais,kombiniert_mit,Kreuzkümmel,
+KR000207,Mais,kombiniert_mit,Paprika,
+KR000207,Mais,kombiniert_mit,Frühlingszwiebel,
+KR000208,Artischocke,laenderkueche,italienisch,0
+KR000208,Artischocke,laenderkueche,französisch,0
+KR000208,Artischocke,laenderkueche,mediterran,0
+KR000208,Artischocke,passt_zu,Zitrone,
+KR000208,Artischocke,passt_zu,Butter,
+KR000208,Artischocke,passt_zu,Knoblauch,
+KR000208,Artischocke,passt_zu,Parmesan,
+KR000208,Artischocke,passt_zu,Sardellen,
+KR000208,Artischocke,kombiniert_mit,Petersilie,
+KR000208,Artischocke,kombiniert_mit,Minze,
+KR000208,Artischocke,kombiniert_mit,Thymian,
+KR000208,Artischocke,kombiniert_mit,Kapern,
+KR000209,Karde,laenderkueche,italienisch,0
+KR000209,Karde,laenderkueche,französisch,0
+KR000209,Karde,laenderkueche,spanisch,0
+KR000209,Karde,passt_zu,Zitrone,
+KR000209,Karde,passt_zu,Butter,
+KR000209,Karde,passt_zu,Sardellen,
+KR000209,Karde,passt_zu,Parmesan,
+KR000209,Karde,passt_zu,Tomate,
+KR000209,Karde,kombiniert_mit,Petersilie,
+KR000209,Karde,kombiniert_mit,Knoblauch,
+KR000209,Karde,kombiniert_mit,Thymian,
+KR000209,Karde,kombiniert_mit,Kapern,
+KR000210,Gartenerbse,laenderkueche,britisch,0
+KR000210,Gartenerbse,laenderkueche,französisch,0
+KR000210,Gartenerbse,laenderkueche,mitteleuropäisch,0
+KR000210,Gartenerbse,passt_zu,Minze,
+KR000210,Gartenerbse,passt_zu,Butter,
+KR000210,Gartenerbse,passt_zu,Möhre,
+KR000210,Gartenerbse,passt_zu,Speck,
+KR000210,Gartenerbse,passt_zu,Reis,
+KR000210,Gartenerbse,kombiniert_mit,Petersilie,
+KR000210,Gartenerbse,kombiniert_mit,Dill,
+KR000210,Gartenerbse,kombiniert_mit,Estragon,
+KR000210,Gartenerbse,kombiniert_mit,Frühlingszwiebel,
+KR000211,Zuckererbse,laenderkueche,asiatisch,0
+KR000211,Zuckererbse,laenderkueche,französisch,0
+KR000211,Zuckererbse,laenderkueche,international/modern,1
+KR000211,Zuckererbse,passt_zu,Wokgemüse,
+KR000211,Zuckererbse,passt_zu,Butter,
+KR000211,Zuckererbse,passt_zu,Sesam,
+KR000211,Zuckererbse,passt_zu,Karotte,
+KR000211,Zuckererbse,passt_zu,Frühlingszwiebel,
+KR000211,Zuckererbse,kombiniert_mit,Minze,
+KR000211,Zuckererbse,kombiniert_mit,Frühlingszwiebel,
+KR000211,Zuckererbse,kombiniert_mit,Ingwer,
+KR000211,Zuckererbse,kombiniert_mit,Sesam,
+KR000212,Buschbohne,laenderkueche,mitteleuropäisch,0
+KR000212,Buschbohne,laenderkueche,französisch,0
+KR000212,Buschbohne,laenderkueche,mediterran,0
+KR000212,Buschbohne,passt_zu,Bohnenkraut,
+KR000212,Buschbohne,passt_zu,Tomate,
+KR000212,Buschbohne,passt_zu,Speck,
+KR000212,Buschbohne,passt_zu,Knoblauch,
+KR000212,Buschbohne,passt_zu,Kartoffel,
+KR000212,Buschbohne,kombiniert_mit,Bohnenkraut,
+KR000212,Buschbohne,kombiniert_mit,Petersilie,
+KR000212,Buschbohne,kombiniert_mit,Knoblauch,
+KR000212,Buschbohne,kombiniert_mit,Zwiebel,
+KR000213,Stangenbohne,laenderkueche,mitteleuropäisch,0
+KR000213,Stangenbohne,laenderkueche,mediterran,0
+KR000213,Stangenbohne,passt_zu,Bohnenkraut,
+KR000213,Stangenbohne,passt_zu,Tomate,
+KR000213,Stangenbohne,passt_zu,Speck,
+KR000213,Stangenbohne,passt_zu,Kartoffel,
+KR000213,Stangenbohne,passt_zu,Knoblauch,
+KR000213,Stangenbohne,kombiniert_mit,Bohnenkraut,
+KR000213,Stangenbohne,kombiniert_mit,Petersilie,
+KR000213,Stangenbohne,kombiniert_mit,Knoblauch,
+KR000214,Feuerbohne,laenderkueche,österreichisch,0
+KR000214,Feuerbohne,laenderkueche,mitteleuropäisch,0
+KR000214,Feuerbohne,laenderkueche,mexikanisch,0
+KR000214,Feuerbohne,passt_zu,Bohnenkraut,
+KR000214,Feuerbohne,passt_zu,Tomate,
+KR000214,Feuerbohne,passt_zu,Speck,
+KR000214,Feuerbohne,passt_zu,Kürbis,
+KR000214,Feuerbohne,passt_zu,Mais,
+KR000214,Feuerbohne,kombiniert_mit,Knoblauch,
+KR000214,Feuerbohne,kombiniert_mit,Zwiebel,
+KR000214,Feuerbohne,kombiniert_mit,Chili,
+KR000214,Feuerbohne,kombiniert_mit,Kreuzkümmel,
+KR000215,Dicke Bohne,laenderkueche,mediterran,0
+KR000215,Dicke Bohne,laenderkueche,britisch,0
+KR000215,Dicke Bohne,laenderkueche,nahöstlich,0
+KR000215,Dicke Bohne,passt_zu,Minze,
+KR000215,Dicke Bohne,passt_zu,Zitrone,
+KR000215,Dicke Bohne,passt_zu,Speck,
+KR000215,Dicke Bohne,passt_zu,Knoblauch,
+KR000215,Dicke Bohne,passt_zu,Pecorino,
+KR000215,Dicke Bohne,kombiniert_mit,Minze,
+KR000215,Dicke Bohne,kombiniert_mit,Petersilie,
+KR000215,Dicke Bohne,kombiniert_mit,Dill,
+KR000216,Linse,laenderkueche,indisch,0
+KR000216,Linse,laenderkueche,französisch,0
+KR000216,Linse,laenderkueche,deutsch,0
+KR000216,Linse,laenderkueche,nahöstlich,0
+KR000216,Linse,passt_zu,Möhre,
+KR000216,Linse,passt_zu,Sellerie,
+KR000216,Linse,passt_zu,Essig,
+KR000216,Linse,passt_zu,Speck,
+KR000216,Linse,passt_zu,Kokos,
+KR000216,Linse,kombiniert_mit,Lorbeer,
+KR000216,Linse,kombiniert_mit,Kreuzkümmel,
+KR000216,Linse,kombiniert_mit,Koriander,
+KR000216,Linse,kombiniert_mit,Thymian,
+KR000217,Kichererbse,laenderkueche,nahöstlich,0
+KR000217,Kichererbse,laenderkueche,indisch,0
+KR000217,Kichererbse,laenderkueche,nordafrikanisch,0
+KR000217,Kichererbse,passt_zu,Tahin,
+KR000217,Kichererbse,passt_zu,Zitrone,
+KR000217,Kichererbse,passt_zu,Kreuzkümmel,
+KR000217,Kichererbse,passt_zu,Tomate,
+KR000217,Kichererbse,passt_zu,Spinat,
+KR000217,Kichererbse,kombiniert_mit,Koriander,
+KR000217,Kichererbse,kombiniert_mit,Petersilie,
+KR000217,Kichererbse,kombiniert_mit,Paprika,
+KR000217,Kichererbse,kombiniert_mit,Knoblauch,
+KR000218,Sojabohne,laenderkueche,japanisch,0
+KR000218,Sojabohne,laenderkueche,chinesisch,0
+KR000218,Sojabohne,laenderkueche,koreanisch,0
+KR000218,Sojabohne,laenderkueche,südostasiatisch,0
+KR000218,Sojabohne,passt_zu,Miso,
+KR000218,Sojabohne,passt_zu,Sesam,
+KR000218,Sojabohne,passt_zu,Ingwer,
+KR000218,Sojabohne,passt_zu,Reis,
+KR000218,Sojabohne,passt_zu,Chili,
+KR000218,Sojabohne,kombiniert_mit,Sojasauce,
+KR000218,Sojabohne,kombiniert_mit,Frühlingszwiebel,
+KR000218,Sojabohne,kombiniert_mit,Knoblauch,
+KR000218,Sojabohne,kombiniert_mit,Koriander,
+KR000219,Lupine,laenderkueche,mediterran,0
+KR000219,Lupine,laenderkueche,mitteleuropäisch,0
+KR000219,Lupine,passt_zu,Tomate,
+KR000219,Lupine,passt_zu,Paprika,
+KR000219,Lupine,passt_zu,Kräuteröl,
+KR000219,Lupine,passt_zu,Zitrone,
+KR000219,Lupine,passt_zu,Getreide,
+KR000219,Lupine,kombiniert_mit,Bohnenkraut,
+KR000219,Lupine,kombiniert_mit,Petersilie,
+KR000219,Lupine,kombiniert_mit,Knoblauch,
+KR000219,Lupine,kombiniert_mit,Kreuzkümmel,
+KR000220,Erdnuss,laenderkueche,westafrikanisch,0
+KR000220,Erdnuss,laenderkueche,südostasiatisch,0
+KR000220,Erdnuss,laenderkueche,nordamerikanisch,0
+KR000220,Erdnuss,passt_zu,Chili,
+KR000220,Erdnuss,passt_zu,Kokos,
+KR000220,Erdnuss,passt_zu,Huhn,
+KR000220,Erdnuss,passt_zu,Banane,
+KR000220,Erdnuss,passt_zu,Schokolade,
+KR000220,Erdnuss,kombiniert_mit,Koriander,
+KR000220,Erdnuss,kombiniert_mit,Limette,
+KR000220,Erdnuss,kombiniert_mit,Ingwer,
+KR000220,Erdnuss,kombiniert_mit,Knoblauch,
+KR000221,Ingwer,laenderkueche,indisch,0
+KR000221,Ingwer,laenderkueche,chinesisch,0
+KR000221,Ingwer,laenderkueche,südostasiatisch,0
+KR000221,Ingwer,laenderkueche,japanisch,0
+KR000221,Ingwer,passt_zu,Karotten,
+KR000221,Ingwer,passt_zu,Kürbis,
+KR000221,Ingwer,passt_zu,Huhn,
+KR000221,Ingwer,passt_zu,Kokosmilch,
+KR000221,Ingwer,kombiniert_mit,Knoblauch,
+KR000221,Ingwer,kombiniert_mit,Chili,
+KR000221,Ingwer,kombiniert_mit,Limette,
+KR000221,Ingwer,kombiniert_mit,Koriander,
+KR000222,Kurkuma,laenderkueche,indisch,0
+KR000222,Kurkuma,laenderkueche,südostasiatisch,0
+KR000222,Kurkuma,laenderkueche,nahöstlich,0
+KR000222,Kurkuma,passt_zu,Reis,
+KR000222,Kurkuma,passt_zu,Linse,
+KR000222,Kurkuma,passt_zu,Blumenkohl,
+KR000222,Kurkuma,passt_zu,Kokosmilch,
+KR000222,Kurkuma,kombiniert_mit,Ingwer,
+KR000222,Kurkuma,kombiniert_mit,Kreuzkümmel,
+KR000222,Kurkuma,kombiniert_mit,Koriander,
+KR000222,Kurkuma,kombiniert_mit,Pfeffer,
+KR000223,Galgant,laenderkueche,südostasiatisch,0
+KR000223,Galgant,laenderkueche,südostasiatisch,0
+KR000223,Galgant,laenderkueche,südostasiatisch,0
+KR000223,Galgant,passt_zu,Kokosmilch,
+KR000223,Galgant,passt_zu,Huhn,
+KR000223,Galgant,passt_zu,Fisch,
+KR000223,Galgant,passt_zu,Suppe,
+KR000223,Galgant,kombiniert_mit,Zitronengras,
+KR000223,Galgant,kombiniert_mit,Kaffernlimette,
+KR000223,Galgant,kombiniert_mit,Chili,
+KR000223,Galgant,kombiniert_mit,Fischsauce,
+KR000224,Kleiner Galgant,laenderkueche,südostasiatisch,0
+KR000224,Kleiner Galgant,laenderkueche,südostasiatisch,0
+KR000224,Kleiner Galgant,laenderkueche,historisch europäisch,0
+KR000224,Kleiner Galgant,passt_zu,Reisgerichte,
+KR000224,Kleiner Galgant,passt_zu,Curry,
+KR000224,Kleiner Galgant,passt_zu,Geflügel,
+KR000224,Kleiner Galgant,passt_zu,Wurzelgemüse,
+KR000224,Kleiner Galgant,kombiniert_mit,Koriander,
+KR000224,Kleiner Galgant,kombiniert_mit,Pfeffer,
+KR000224,Kleiner Galgant,kombiniert_mit,Zimt,
+KR000224,Kleiner Galgant,kombiniert_mit,Nelke,
+KR000225,Kardamom,laenderkueche,indisch,0
+KR000225,Kardamom,laenderkueche,nahöstlich,0
+KR000225,Kardamom,laenderkueche,skandinavisch,0
+KR000225,Kardamom,laenderkueche,nahöstlich,0
+KR000225,Kardamom,passt_zu,Reis,
+KR000225,Kardamom,passt_zu,Milchdesserts,
+KR000225,Kardamom,passt_zu,Kaffee,
+KR000225,Kardamom,passt_zu,Gebäck,
+KR000225,Kardamom,kombiniert_mit,Zimt,
+KR000225,Kardamom,kombiniert_mit,Nelke,
+KR000225,Kardamom,kombiniert_mit,Safran,
+KR000225,Kardamom,kombiniert_mit,Pistazie,
+KR000226,Paradieskörner,laenderkueche,westafrikanisch,0
+KR000226,Paradieskörner,laenderkueche,nordafrikanisch,0
+KR000226,Paradieskörner,laenderkueche,international/modern,1
+KR000226,Paradieskörner,passt_zu,Kürbis,
+KR000226,Paradieskörner,passt_zu,Lamm,
+KR000226,Paradieskörner,passt_zu,Wurzelgemüse,
+KR000226,Paradieskörner,passt_zu,Schmorgerichte,
+KR000226,Paradieskörner,kombiniert_mit,Koriander,
+KR000226,Paradieskörner,kombiniert_mit,Ingwer,
+KR000226,Paradieskörner,kombiniert_mit,Zimt,
+KR000226,Paradieskörner,kombiniert_mit,Chili,
+KR000227,Pfeffer,laenderkueche,indisch,0
+KR000227,Pfeffer,laenderkueche,europäisch,0
+KR000227,Pfeffer,laenderkueche,südostasiatisch,0
+KR000227,Pfeffer,laenderkueche,karibisch,0
+KR000227,Pfeffer,passt_zu,Rind,
+KR000227,Pfeffer,passt_zu,Pilz,
+KR000227,Pfeffer,passt_zu,Tomate,
+KR000227,Pfeffer,passt_zu,Ei,
+KR000227,Pfeffer,kombiniert_mit,Salz,
+KR000227,Pfeffer,kombiniert_mit,Thymian,
+KR000227,Pfeffer,kombiniert_mit,Lorbeer,
+KR000227,Pfeffer,kombiniert_mit,Zitrone,
+KR000228,Langer Pfeffer,laenderkueche,indisch,0
+KR000228,Langer Pfeffer,laenderkueche,südostasiatisch,0
+KR000228,Langer Pfeffer,laenderkueche,historisch europäisch,0
+KR000228,Langer Pfeffer,passt_zu,Wild,
+KR000228,Langer Pfeffer,passt_zu,Kürbis,
+KR000228,Langer Pfeffer,passt_zu,Schokolade,
+KR000228,Langer Pfeffer,passt_zu,Schmorgerichte,
+KR000228,Langer Pfeffer,kombiniert_mit,Zimt,
+KR000228,Langer Pfeffer,kombiniert_mit,Nelke,
+KR000228,Langer Pfeffer,kombiniert_mit,Wild,
+KR000228,Langer Pfeffer,kombiniert_mit,Schokolade,
+KR000229,Szechuanpfeffer,laenderkueche,chinesisch,0
+KR000229,Szechuanpfeffer,laenderkueche,chinesisch,0
+KR000229,Szechuanpfeffer,laenderkueche,japanisch,0
+KR000229,Szechuanpfeffer,passt_zu,Ente,
+KR000229,Szechuanpfeffer,passt_zu,Auberginen,
+KR000229,Szechuanpfeffer,passt_zu,Tofu,
+KR000229,Szechuanpfeffer,passt_zu,Zitrus,
+KR000229,Szechuanpfeffer,kombiniert_mit,Chili,
+KR000229,Szechuanpfeffer,kombiniert_mit,Ingwer,
+KR000229,Szechuanpfeffer,kombiniert_mit,Sojasauce,
+KR000229,Szechuanpfeffer,kombiniert_mit,Sesam,
+KR000230,Zimt,laenderkueche,mitteleuropäisch,0
+KR000230,Zimt,laenderkueche,indisch,0
+KR000230,Zimt,laenderkueche,nahöstlich,0
+KR000230,Zimt,laenderkueche,mexikanisch,0
+KR000230,Zimt,passt_zu,Apfel,
+KR000230,Zimt,passt_zu,Pflaumen,
+KR000230,Zimt,passt_zu,Milchreis,
+KR000230,Zimt,passt_zu,Kürbis,
+KR000230,Zimt,kombiniert_mit,Nelke,
+KR000230,Zimt,kombiniert_mit,Kardamom,
+KR000230,Zimt,kombiniert_mit,Apfel,
+KR000230,Zimt,kombiniert_mit,Orange,
+KR000231,Cassia-Zimt,laenderkueche,chinesisch,0
+KR000231,Cassia-Zimt,laenderkueche,südostasiatisch,0
+KR000231,Cassia-Zimt,laenderkueche,mitteleuropäisch,0
+KR000231,Cassia-Zimt,passt_zu,Apfelkompott,
+KR000231,Cassia-Zimt,passt_zu,Gebäck,
+KR000231,Cassia-Zimt,passt_zu,Milchreis,
+KR000231,Cassia-Zimt,passt_zu,Pflaumen,
+KR000231,Cassia-Zimt,kombiniert_mit,Sternanis,
+KR000231,Cassia-Zimt,kombiniert_mit,Nelke,
+KR000231,Cassia-Zimt,kombiniert_mit,Sojasauce,
+KR000231,Cassia-Zimt,kombiniert_mit,Pflaume,
+KR000232,Gewürznelke,laenderkueche,mitteleuropäisch,0
+KR000232,Gewürznelke,laenderkueche,indisch,0
+KR000232,Gewürznelke,laenderkueche,südostasiatisch,0
+KR000232,Gewürznelke,passt_zu,Rotkohl,
+KR000232,Gewürznelke,passt_zu,Birne,
+KR000232,Gewürznelke,passt_zu,Wild,
+KR000232,Gewürznelke,passt_zu,Schmorgerichte,
+KR000232,Gewürznelke,kombiniert_mit,Zimt,
+KR000232,Gewürznelke,kombiniert_mit,Lorbeer,
+KR000232,Gewürznelke,kombiniert_mit,Orange,
+KR000232,Gewürznelke,kombiniert_mit,Piment,
+KR000233,Muskatnuss,laenderkueche,französisch,0
+KR000233,Muskatnuss,laenderkueche,mitteleuropäisch,0
+KR000233,Muskatnuss,laenderkueche,indisch,0
+KR000233,Muskatnuss,passt_zu,Kartoffelpüree,
+KR000233,Muskatnuss,passt_zu,Spinat,
+KR000233,Muskatnuss,passt_zu,Blumenkohl,
+KR000233,Muskatnuss,passt_zu,Béchamel,
+KR000233,Muskatnuss,kombiniert_mit,Sahne,
+KR000233,Muskatnuss,kombiniert_mit,Kartoffel,
+KR000233,Muskatnuss,kombiniert_mit,Spinat,
+KR000233,Muskatnuss,kombiniert_mit,Käse,
+KR000234,Piment,laenderkueche,karibisch,0
+KR000234,Piment,laenderkueche,britisch,0
+KR000234,Piment,laenderkueche,mitteleuropäisch,0
+KR000234,Piment,passt_zu,Kohlgerichte,
+KR000234,Piment,passt_zu,Wild,
+KR000234,Piment,passt_zu,Bohnen,
+KR000234,Piment,passt_zu,Eintöpfe,
+KR000234,Piment,kombiniert_mit,Zimt,
+KR000234,Piment,kombiniert_mit,Nelke,
+KR000234,Piment,kombiniert_mit,Chili,
+KR000234,Piment,kombiniert_mit,Thymian,
+KR000235,Vanille,laenderkueche,französisch,0
+KR000235,Vanille,laenderkueche,mexikanisch,0
+KR000235,Vanille,laenderkueche,international/modern,1
+KR000235,Vanille,passt_zu,Beere,
+KR000235,Vanille,passt_zu,Steinobst,
+KR000235,Vanille,passt_zu,Milchdesserts,
+KR000235,Vanille,passt_zu,Rhabarber,
+KR000235,Vanille,kombiniert_mit,Sahne,
+KR000235,Vanille,kombiniert_mit,Beere,
+KR000235,Vanille,kombiniert_mit,Schokolade,
+KR000235,Vanille,kombiniert_mit,Kardamom,
+KR000236,Sternanis,laenderkueche,südostasiatisch,0
+KR000236,Sternanis,laenderkueche,chinesisch,0
+KR000236,Sternanis,laenderkueche,mitteleuropäisch,0
+KR000236,Sternanis,passt_zu,Pflaumen,
+KR000236,Sternanis,passt_zu,Birne,
+KR000236,Sternanis,passt_zu,Entenbraten,
+KR000236,Sternanis,passt_zu,Kompott,
+KR000236,Sternanis,kombiniert_mit,Zimt,
+KR000236,Sternanis,kombiniert_mit,Sojasauce,
+KR000236,Sternanis,kombiniert_mit,Pflaume,
+KR000236,Sternanis,kombiniert_mit,Ente,
+KR000237,Safran,laenderkueche,spanisch,0
+KR000237,Safran,laenderkueche,italienisch,0
+KR000237,Safran,laenderkueche,nahöstlich,0
+KR000237,Safran,laenderkueche,französisch,0
+KR000237,Safran,passt_zu,Risotto,
+KR000237,Safran,passt_zu,Fisch,
+KR000237,Safran,passt_zu,Muscheln,
+KR000237,Safran,passt_zu,Reis,
+KR000237,Safran,kombiniert_mit,Reis,
+KR000237,Safran,kombiniert_mit,Fisch,
+KR000237,Safran,kombiniert_mit,Fenchel,
+KR000237,Safran,kombiniert_mit,Orange,
+KR000238,Sesam,laenderkueche,nahöstlich,0
+KR000238,Sesam,laenderkueche,japanisch,0
+KR000238,Sesam,laenderkueche,koreanisch,0
+KR000238,Sesam,laenderkueche,chinesisch,0
+KR000238,Sesam,passt_zu,Auberginen,
+KR000238,Sesam,passt_zu,Nudeln,
+KR000238,Sesam,passt_zu,Huhn,
+KR000238,Sesam,passt_zu,Tofu,
+KR000238,Sesam,kombiniert_mit,Sojasauce,
+KR000238,Sesam,kombiniert_mit,Miso,
+KR000238,Sesam,kombiniert_mit,Aubergine,
+KR000238,Sesam,kombiniert_mit,Honig,
+KR000239,Mohn,laenderkueche,österreichisch,0
+KR000239,Mohn,laenderkueche,osteuropäisch,0
+KR000239,Mohn,laenderkueche,deutsch,0
+KR000239,Mohn,laenderkueche,osteuropäisch,0
+KR000239,Mohn,passt_zu,Quark,
+KR000239,Mohn,passt_zu,Hefeteig,
+KR000239,Mohn,passt_zu,Zwetschgen,
+KR000239,Mohn,passt_zu,Nudeln,
+KR000239,Mohn,kombiniert_mit,Quark,
+KR000239,Mohn,kombiniert_mit,Zitrone,
+KR000239,Mohn,kombiniert_mit,Zwetschge,
+KR000239,Mohn,kombiniert_mit,Vanille,
+KR000240,Kokos,laenderkueche,indisch,0
+KR000240,Kokos,laenderkueche,südostasiatisch,0
+KR000240,Kokos,laenderkueche,karibisch,0
+KR000240,Kokos,laenderkueche,ozeanisch,0
+KR000240,Kokos,passt_zu,Kokosmilch,
+KR000240,Kokos,passt_zu,Curry,
+KR000240,Kokos,passt_zu,Ananas,
+KR000240,Kokos,passt_zu,Limette,
+KR000240,Kokos,passt_zu,Chili,
+KR000240,Kokos,kombiniert_mit,Ingwer,
+KR000240,Kokos,kombiniert_mit,Koriander,
+KR000240,Kokos,kombiniert_mit,Zitronengras,
+KR000240,Kokos,kombiniert_mit,Kardamom,
+KR000241,Kaffee,laenderkueche,ostafrikanisch,0
+KR000241,Kaffee,laenderkueche,nahöstlich,0
+KR000241,Kaffee,laenderkueche,italienisch,0
+KR000241,Kaffee,laenderkueche,international/modern,1
+KR000241,Kaffee,passt_zu,Schokolade,
+KR000241,Kaffee,passt_zu,Dessert,
+KR000241,Kaffee,passt_zu,Chili,
+KR000241,Kaffee,passt_zu,Kardamom,
+KR000241,Kaffee,kombiniert_mit,Schokolade,
+KR000241,Kaffee,kombiniert_mit,Kardamom,
+KR000241,Kaffee,kombiniert_mit,Vanille,
+KR000241,Kaffee,kombiniert_mit,Orange,
+KR000242,Kakao,laenderkueche,mexikanisch,0
+KR000242,Kakao,laenderkueche,französisch,0
+KR000242,Kakao,laenderkueche,mitteleuropäisch,0
+KR000242,Kakao,passt_zu,Vanille,
+KR000242,Kakao,passt_zu,Zimt,
+KR000242,Kakao,passt_zu,Chili,
+KR000242,Kakao,passt_zu,Haselnüsse,
+KR000242,Kakao,kombiniert_mit,Vanille,
+KR000242,Kakao,kombiniert_mit,Chili,
+KR000242,Kakao,kombiniert_mit,Zimt,
+KR000242,Kakao,kombiniert_mit,Haselnuss,
+KR000243,Tee,laenderkueche,chinesisch,0
+KR000243,Tee,laenderkueche,japanisch,0
+KR000243,Tee,laenderkueche,britisch,0
+KR000243,Tee,laenderkueche,indisch,0
+KR000243,Tee,passt_zu,Zitrone,
+KR000243,Tee,passt_zu,Honig,
+KR000243,Tee,passt_zu,Bergamotte,
+KR000243,Tee,passt_zu,Gebäck,
+KR000243,Tee,kombiniert_mit,Zitrone,
+KR000243,Tee,kombiniert_mit,Milch,
+KR000243,Tee,kombiniert_mit,Honig,
+KR000243,Tee,kombiniert_mit,Bergamotte,
+KR000244,Mate,laenderkueche,südamerikanisch,0
+KR000244,Mate,laenderkueche,südamerikanisch,0
+KR000244,Mate,laenderkueche,südamerikanisch,0
+KR000244,Mate,passt_zu,Zitrusfrüchte,
+KR000244,Mate,passt_zu,Minze,
+KR000244,Mate,passt_zu,Ingwer,
+KR000244,Mate,passt_zu,Limette,
+KR000244,Mate,kombiniert_mit,Zitrone,
+KR000244,Mate,kombiniert_mit,Minze,
+KR000244,Mate,kombiniert_mit,Ingwer,
+KR000244,Mate,kombiniert_mit,Orange,
+KR000245,Rooibos,laenderkueche,südafrikanisch,0
+KR000245,Rooibos,laenderkueche,international/modern,1
+KR000245,Rooibos,passt_zu,Orange,
+KR000245,Rooibos,passt_zu,Vanille,
+KR000245,Rooibos,passt_zu,Apfel,
+KR000245,Rooibos,passt_zu,Gewürzkuchen,
+KR000245,Rooibos,kombiniert_mit,Vanille,
+KR000245,Rooibos,kombiniert_mit,Orange,
+KR000245,Rooibos,kombiniert_mit,Zimt,
+KR000245,Rooibos,kombiniert_mit,Honig,
+KR000246,Honigbusch,laenderkueche,südafrikanisch,0
+KR000246,Honigbusch,laenderkueche,international/modern,1
+KR000246,Honigbusch,passt_zu,Pfirsiche,
+KR000246,Honigbusch,passt_zu,Vanille,
+KR000246,Honigbusch,passt_zu,Zitrusfrüchte,
+KR000246,Honigbusch,passt_zu,Gebäck,
+KR000246,Honigbusch,kombiniert_mit,Pfirsich,
+KR000246,Honigbusch,kombiniert_mit,Vanille,
+KR000246,Honigbusch,kombiniert_mit,Zitrone,
+KR000246,Honigbusch,kombiniert_mit,Honig,
+KR000247,Langer Koriander,laenderkueche,südostasiatisch,0
+KR000247,Langer Koriander,laenderkueche,karibisch,0
+KR000247,Langer Koriander,laenderkueche,südostasiatisch,0
+KR000247,Langer Koriander,passt_zu,Curry,
+KR000247,Langer Koriander,passt_zu,Reis,
+KR000247,Langer Koriander,passt_zu,Chutneys,
+KR000247,Langer Koriander,passt_zu,Fisch,
+KR000247,Langer Koriander,kombiniert_mit,Limette,
+KR000247,Langer Koriander,kombiniert_mit,Chili,
+KR000247,Langer Koriander,kombiniert_mit,Fischsauce,
+KR000247,Langer Koriander,kombiniert_mit,Reisnudeln,
+KR000248,Epazote,laenderkueche,mexikanisch,0
+KR000248,Epazote,laenderkueche,mittelamerikanisch,0
+KR000248,Epazote,passt_zu,Schwarze Bohnen,
+KR000248,Epazote,passt_zu,Mais,
+KR000248,Epazote,passt_zu,Kürbis,
+KR000248,Epazote,passt_zu,Quesadillas,
+KR000248,Epazote,kombiniert_mit,Bohnen,
+KR000248,Epazote,kombiniert_mit,Mais,
+KR000248,Epazote,kombiniert_mit,Tomatillo,
+KR000248,Epazote,kombiniert_mit,Chili,
+KR000249,Papalo,laenderkueche,mexikanisch,0
+KR000249,Papalo,passt_zu,Avocado,
+KR000249,Papalo,passt_zu,Bohnen,
+KR000249,Papalo,passt_zu,Tacos,
+KR000249,Papalo,passt_zu,Tomatensalsa,
+KR000249,Papalo,kombiniert_mit,Avocado,
+KR000249,Papalo,kombiniert_mit,Tomate,
+KR000249,Papalo,kombiniert_mit,Chili,
+KR000249,Papalo,kombiniert_mit,Limette,
+KR000250,Hoja Santa,laenderkueche,mexikanisch,0
+KR000250,Hoja Santa,laenderkueche,mittelamerikanisch,0
+KR000250,Hoja Santa,passt_zu,Fisch,
+KR000250,Hoja Santa,passt_zu,Bohnen,
+KR000250,Hoja Santa,passt_zu,Maisteig,
+KR000250,Hoja Santa,passt_zu,Mole,
+KR000250,Hoja Santa,kombiniert_mit,Maisteig,
+KR000250,Hoja Santa,kombiniert_mit,Fisch,
+KR000250,Hoja Santa,kombiniert_mit,Bohnen,
+KR000250,Hoja Santa,kombiniert_mit,Chili,
+KR000251,Reisfeldpflanze,laenderkueche,südostasiatisch,0
+KR000251,Reisfeldpflanze,laenderkueche,südostasiatisch,0
+KR000251,Reisfeldpflanze,laenderkueche,südostasiatisch,0
+KR000251,Reisfeldpflanze,passt_zu,Fischsuppen,
+KR000251,Reisfeldpflanze,passt_zu,Curry,
+KR000251,Reisfeldpflanze,passt_zu,Reisnudeln,
+KR000251,Reisfeldpflanze,passt_zu,Kokosmilch,
+KR000251,Reisfeldpflanze,kombiniert_mit,Fischsauce,
+KR000251,Reisfeldpflanze,kombiniert_mit,Limette,
+KR000251,Reisfeldpflanze,kombiniert_mit,Kokos,
+KR000251,Reisfeldpflanze,kombiniert_mit,Chili,
+KR000252,Asiatischer Wassernabel,laenderkueche,indisch,0
+KR000252,Asiatischer Wassernabel,laenderkueche,südostasiatisch,0
+KR000252,Asiatischer Wassernabel,laenderkueche,südostasiatisch,0
+KR000252,Asiatischer Wassernabel,passt_zu,Kokos,
+KR000252,Asiatischer Wassernabel,passt_zu,Limette,
+KR000252,Asiatischer Wassernabel,passt_zu,Fischsauce,
+KR000252,Asiatischer Wassernabel,passt_zu,Chili,
+KR000252,Asiatischer Wassernabel,passt_zu,Reis,
+KR000252,Asiatischer Wassernabel,kombiniert_mit,Koriander,
+KR000252,Asiatischer Wassernabel,kombiniert_mit,Minze,
+KR000252,Asiatischer Wassernabel,kombiniert_mit,Ingwer,
+KR000252,Asiatischer Wassernabel,kombiniert_mit,Schalotte,
+KR000253,Heiliger Koriander,laenderkueche,karibisch,0
+KR000253,Heiliger Koriander,laenderkueche,südostasiatisch,0
+KR000253,Heiliger Koriander,laenderkueche,lateinamerikanisch,0
+KR000253,Heiliger Koriander,passt_zu,Curry,
+KR000253,Heiliger Koriander,passt_zu,Fisch,
+KR000253,Heiliger Koriander,passt_zu,Chutneys,
+KR000253,Heiliger Koriander,passt_zu,Reisgerichte,
+KR000253,Heiliger Koriander,kombiniert_mit,Limette,
+KR000253,Heiliger Koriander,kombiniert_mit,Chili,
+KR000253,Heiliger Koriander,kombiniert_mit,Bohnen,
+KR000253,Heiliger Koriander,kombiniert_mit,Reis,
+KR000254,Pandan,laenderkueche,südostasiatisch,0
+KR000254,Pandan,laenderkueche,südostasiatisch,0
+KR000254,Pandan,laenderkueche,südostasiatisch,0
+KR000254,Pandan,laenderkueche,südostasiatisch,0
+KR000254,Pandan,passt_zu,Klebreis,
+KR000254,Pandan,passt_zu,Kokosmilch,
+KR000254,Pandan,passt_zu,Huhn,
+KR000254,Pandan,passt_zu,Süßspeisen,
+KR000254,Pandan,kombiniert_mit,Kokosmilch,
+KR000254,Pandan,kombiniert_mit,Klebreis,
+KR000254,Pandan,kombiniert_mit,Palmzucker,
+KR000254,Pandan,kombiniert_mit,Vanille,
+KR000255,Kaffernlimette,laenderkueche,südostasiatisch,0
+KR000255,Kaffernlimette,laenderkueche,südostasiatisch,0
+KR000255,Kaffernlimette,laenderkueche,südostasiatisch,0
+KR000255,Kaffernlimette,passt_zu,Kokosmilch,
+KR000255,Kaffernlimette,passt_zu,Huhn,
+KR000255,Kaffernlimette,passt_zu,Fisch,
+KR000255,Kaffernlimette,passt_zu,Curry,
+KR000255,Kaffernlimette,kombiniert_mit,Kokosmilch,
+KR000255,Kaffernlimette,kombiniert_mit,Chili,
+KR000255,Kaffernlimette,kombiniert_mit,Fischsauce,
+KR000255,Kaffernlimette,kombiniert_mit,Zitronengras,
+KR000256,Zitronenmyrte,laenderkueche,ozeanisch,0
+KR000256,Zitronenmyrte,laenderkueche,international/modern,1
+KR000256,Zitronenmyrte,passt_zu,Fisch,
+KR000256,Zitronenmyrte,passt_zu,Huhn,
+KR000256,Zitronenmyrte,passt_zu,Zitronendesserts,
+KR000256,Zitronenmyrte,passt_zu,Kräutertee,
+KR000256,Zitronenmyrte,kombiniert_mit,Fisch,
+KR000256,Zitronenmyrte,kombiniert_mit,Huhn,
+KR000256,Zitronenmyrte,kombiniert_mit,Beere,
+KR000256,Zitronenmyrte,kombiniert_mit,Sahne,
+KR000257,Australischer Minzbusch,laenderkueche,ozeanisch,0
+KR000257,Australischer Minzbusch,laenderkueche,international/modern,1
+KR000257,Australischer Minzbusch,passt_zu,Lamm,
+KR000257,Australischer Minzbusch,passt_zu,Kartoffel,
+KR000257,Australischer Minzbusch,passt_zu,Erbsen,
+KR000257,Australischer Minzbusch,passt_zu,Kräuterbutter,
+KR000257,Australischer Minzbusch,kombiniert_mit,Lamm,
+KR000257,Australischer Minzbusch,kombiniert_mit,Erbsen,
+KR000257,Australischer Minzbusch,kombiniert_mit,Kartoffel,
+KR000257,Australischer Minzbusch,kombiniert_mit,Joghurt,
+KR000258,Rhabarber,laenderkueche,britisch,0
+KR000258,Rhabarber,laenderkueche,deutsch,0
+KR000258,Rhabarber,laenderkueche,skandinavisch,0
+KR000258,Rhabarber,passt_zu,Erdbeere,
+KR000258,Rhabarber,passt_zu,Vanille,
+KR000258,Rhabarber,passt_zu,Ingwer,
+KR000258,Rhabarber,passt_zu,Orange,
+KR000258,Rhabarber,passt_zu,Baiser,
+KR000258,Rhabarber,kombiniert_mit,Zimt,
+KR000258,Rhabarber,kombiniert_mit,Kardamom,
+KR000258,Rhabarber,kombiniert_mit,Minze,
+KR000258,Rhabarber,kombiniert_mit,Holunderblüte,
+KR000259,Erdbeere,laenderkueche,deutsch,0
+KR000259,Erdbeere,laenderkueche,französisch,0
+KR000259,Erdbeere,laenderkueche,britisch,0
+KR000259,Erdbeere,laenderkueche,international/modern,1
+KR000259,Erdbeere,passt_zu,Sahne,
+KR000259,Erdbeere,passt_zu,Vanille,
+KR000259,Erdbeere,passt_zu,Minze,
+KR000259,Erdbeere,passt_zu,Rhabarber,
+KR000259,Erdbeere,passt_zu,Balsamico,
+KR000259,Erdbeere,kombiniert_mit,Zitrone,
+KR000259,Erdbeere,kombiniert_mit,Basilikum,
+KR000259,Erdbeere,kombiniert_mit,Holunderblüte,
+KR000259,Erdbeere,kombiniert_mit,Schokolade,
+KR000260,Wald-Erdbeere,laenderkueche,mitteleuropäisch,0
+KR000260,Wald-Erdbeere,laenderkueche,französisch,0
+KR000260,Wald-Erdbeere,passt_zu,Sahne,
+KR000260,Wald-Erdbeere,passt_zu,Vanille,
+KR000260,Wald-Erdbeere,passt_zu,Minze,
+KR000260,Wald-Erdbeere,passt_zu,Waldmeister,
+KR000260,Wald-Erdbeere,passt_zu,Schokolade,
+KR000260,Wald-Erdbeere,kombiniert_mit,Zitrone,
+KR000260,Wald-Erdbeere,kombiniert_mit,Holunderblüte,
+KR000260,Wald-Erdbeere,kombiniert_mit,Basilikum,
+KR000260,Wald-Erdbeere,kombiniert_mit,Honig,
+KR000261,Himbeere,laenderkueche,französisch,0
+KR000261,Himbeere,laenderkueche,britisch,0
+KR000261,Himbeere,laenderkueche,mitteleuropäisch,0
+KR000261,Himbeere,passt_zu,Vanille,
+KR000261,Himbeere,passt_zu,Schokolade,
+KR000261,Himbeere,passt_zu,Joghurt,
+KR000261,Himbeere,passt_zu,Pistazie,
+KR000261,Himbeere,passt_zu,Zitrone,
+KR000261,Himbeere,kombiniert_mit,Minze,
+KR000261,Himbeere,kombiniert_mit,Rose,
+KR000261,Himbeere,kombiniert_mit,Kardamom,
+KR000261,Himbeere,kombiniert_mit,Sahne,
+KR000262,Brombeere,laenderkueche,britisch,0
+KR000262,Brombeere,laenderkueche,mitteleuropäisch,0
+KR000262,Brombeere,passt_zu,Apfel,
+KR000262,Brombeere,passt_zu,Vanille,
+KR000262,Brombeere,passt_zu,Zimt,
+KR000262,Brombeere,passt_zu,Wild,
+KR000262,Brombeere,passt_zu,Joghurt,
+KR000262,Brombeere,kombiniert_mit,Minze,
+KR000262,Brombeere,kombiniert_mit,Zitrone,
+KR000262,Brombeere,kombiniert_mit,Thymian,
+KR000262,Brombeere,kombiniert_mit,Honig,
+KR000263,Johannisbeere,laenderkueche,deutsch,0
+KR000263,Johannisbeere,laenderkueche,französisch,0
+KR000263,Johannisbeere,laenderkueche,skandinavisch,0
+KR000263,Johannisbeere,passt_zu,Baiser,
+KR000263,Johannisbeere,passt_zu,Vanille,
+KR000263,Johannisbeere,passt_zu,Joghurt,
+KR000263,Johannisbeere,passt_zu,Apfel,
+KR000263,Johannisbeere,passt_zu,Minze,
+KR000263,Johannisbeere,kombiniert_mit,Zitrone,
+KR000263,Johannisbeere,kombiniert_mit,Holunderblüte,
+KR000263,Johannisbeere,kombiniert_mit,Sahne,
+KR000263,Johannisbeere,kombiniert_mit,Mandel,
+KR000264,Schwarze Johannisbeere,laenderkueche,französisch,0
+KR000264,Schwarze Johannisbeere,laenderkueche,britisch,0
+KR000264,Schwarze Johannisbeere,laenderkueche,osteuropäisch,0
+KR000264,Schwarze Johannisbeere,passt_zu,Wild,
+KR000264,Schwarze Johannisbeere,passt_zu,Apfel,
+KR000264,Schwarze Johannisbeere,passt_zu,Vanille,
+KR000264,Schwarze Johannisbeere,passt_zu,Cassis,
+KR000264,Schwarze Johannisbeere,passt_zu,Schokolade,
+KR000264,Schwarze Johannisbeere,kombiniert_mit,Minze,
+KR000264,Schwarze Johannisbeere,kombiniert_mit,Zitrone,
+KR000264,Schwarze Johannisbeere,kombiniert_mit,Rosmarin,
+KR000264,Schwarze Johannisbeere,kombiniert_mit,Zimt,
+KR000265,Stachelbeere,laenderkueche,britisch,0
+KR000265,Stachelbeere,laenderkueche,deutsch,0
+KR000265,Stachelbeere,laenderkueche,skandinavisch,0
+KR000265,Stachelbeere,passt_zu,Vanille,
+KR000265,Stachelbeere,passt_zu,Baiser,
+KR000265,Stachelbeere,passt_zu,Holunderblüte,
+KR000265,Stachelbeere,passt_zu,Makrele,
+KR000265,Stachelbeere,passt_zu,Joghurt,
+KR000265,Stachelbeere,kombiniert_mit,Minze,
+KR000265,Stachelbeere,kombiniert_mit,Ingwer,
+KR000265,Stachelbeere,kombiniert_mit,Zitrone,
+KR000265,Stachelbeere,kombiniert_mit,Sahne,
+KR000266,Heidelbeere,laenderkueche,skandinavisch,0
+KR000266,Heidelbeere,laenderkueche,nordamerikanisch,0
+KR000266,Heidelbeere,laenderkueche,mitteleuropäisch,0
+KR000266,Heidelbeere,passt_zu,Vanille,
+KR000266,Heidelbeere,passt_zu,Zitrone,
+KR000266,Heidelbeere,passt_zu,Quark,
+KR000266,Heidelbeere,passt_zu,Pfannkuchen,
+KR000266,Heidelbeere,passt_zu,Wild,
+KR000266,Heidelbeere,kombiniert_mit,Zimt,
+KR000266,Heidelbeere,kombiniert_mit,Minze,
+KR000266,Heidelbeere,kombiniert_mit,Joghurt,
+KR000266,Heidelbeere,kombiniert_mit,Mandel,
+KR000267,Kulturheidelbeere,laenderkueche,nordamerikanisch,0
+KR000267,Kulturheidelbeere,laenderkueche,international/modern,1
+KR000267,Kulturheidelbeere,laenderkueche,international/modern,1
+KR000267,Kulturheidelbeere,passt_zu,Joghurt,
+KR000267,Kulturheidelbeere,passt_zu,Vanille,
+KR000267,Kulturheidelbeere,passt_zu,Zitrone,
+KR000267,Kulturheidelbeere,passt_zu,Hafer,
+KR000267,Kulturheidelbeere,passt_zu,Schokolade,
+KR000267,Kulturheidelbeere,kombiniert_mit,Minze,
+KR000267,Kulturheidelbeere,kombiniert_mit,Zimt,
+KR000267,Kulturheidelbeere,kombiniert_mit,Mandeln,
+KR000267,Kulturheidelbeere,kombiniert_mit,Sahne,
+KR000268,Preiselbeere,laenderkueche,skandinavisch,0
+KR000268,Preiselbeere,laenderkueche,österreichisch,0
+KR000268,Preiselbeere,laenderkueche,deutsch,0
+KR000268,Preiselbeere,passt_zu,Wild,
+KR000268,Preiselbeere,passt_zu,Camembert,
+KR000268,Preiselbeere,passt_zu,Birne,
+KR000268,Preiselbeere,passt_zu,Apfel,
+KR000268,Preiselbeere,passt_zu,Zimt,
+KR000268,Preiselbeere,kombiniert_mit,Orange,
+KR000268,Preiselbeere,kombiniert_mit,Nelke,
+KR000268,Preiselbeere,kombiniert_mit,Rosmarin,
+KR000268,Preiselbeere,kombiniert_mit,Rotwein,
+KR000269,Apfel,laenderkueche,deutsch,0
+KR000269,Apfel,laenderkueche,österreichisch,0
+KR000269,Apfel,laenderkueche,französisch,0
+KR000269,Apfel,laenderkueche,britisch,0
+KR000269,Apfel,passt_zu,Zimt,
+KR000269,Apfel,passt_zu,Schwein,
+KR000269,Apfel,passt_zu,Walnuss,
+KR000269,Apfel,passt_zu,Vanille,
+KR000269,Apfel,passt_zu,Sellerie,
+KR000269,Apfel,kombiniert_mit,Zitrone,
+KR000269,Apfel,kombiniert_mit,Rosinen,
+KR000269,Apfel,kombiniert_mit,Nelke,
+KR000269,Apfel,kombiniert_mit,Thymian,
+KR000270,Birne,laenderkueche,französisch,0
+KR000270,Birne,laenderkueche,italienisch,0
+KR000270,Birne,laenderkueche,mitteleuropäisch,0
+KR000270,Birne,passt_zu,Walnuss,
+KR000270,Birne,passt_zu,Blauschimmelkäse,
+KR000270,Birne,passt_zu,Vanille,
+KR000270,Birne,passt_zu,Schokolade,
+KR000270,Birne,passt_zu,Wild,
+KR000270,Birne,kombiniert_mit,Zimt,
+KR000270,Birne,kombiniert_mit,Kardamom,
+KR000270,Birne,kombiniert_mit,Thymian,
+KR000270,Birne,kombiniert_mit,Zitrone,
+KR000271,Quitte,laenderkueche,nahöstlich,0
+KR000271,Quitte,laenderkueche,nahöstlich,0
+KR000271,Quitte,laenderkueche,mitteleuropäisch,0
+KR000271,Quitte,passt_zu,Apfel,
+KR000271,Quitte,passt_zu,Lamm,
+KR000271,Quitte,passt_zu,Honig,
+KR000271,Quitte,passt_zu,Zimt,
+KR000271,Quitte,passt_zu,Walnuss,
+KR000271,Quitte,kombiniert_mit,Nelke,
+KR000271,Quitte,kombiniert_mit,Kardamom,
+KR000271,Quitte,kombiniert_mit,Zitrone,
+KR000271,Quitte,kombiniert_mit,Rosmarin,
+KR000272,Kirsche,laenderkueche,deutsch,0
+KR000272,Kirsche,laenderkueche,französisch,0
+KR000272,Kirsche,laenderkueche,österreichisch,0
+KR000272,Kirsche,passt_zu,Schokolade,
+KR000272,Kirsche,passt_zu,Mandeln,
+KR000272,Kirsche,passt_zu,Vanille,
+KR000272,Kirsche,passt_zu,Zimt,
+KR000272,Kirsche,passt_zu,Ente,
+KR000272,Kirsche,kombiniert_mit,Kirschwasser,
+KR000272,Kirsche,kombiniert_mit,Minze,
+KR000272,Kirsche,kombiniert_mit,Nelke,
+KR000272,Kirsche,kombiniert_mit,Sahne,
+KR000273,Sauerkirsche,laenderkueche,osteuropäisch,0
+KR000273,Sauerkirsche,laenderkueche,deutsch,0
+KR000273,Sauerkirsche,laenderkueche,österreichisch,0
+KR000273,Sauerkirsche,laenderkueche,französisch,0
+KR000273,Sauerkirsche,passt_zu,Schokolade,
+KR000273,Sauerkirsche,passt_zu,Mohn,
+KR000273,Sauerkirsche,passt_zu,Vanille,
+KR000273,Sauerkirsche,passt_zu,Wild,
+KR000273,Sauerkirsche,passt_zu,Mandeln,
+KR000273,Sauerkirsche,kombiniert_mit,Zimt,
+KR000273,Sauerkirsche,kombiniert_mit,Nelke,
+KR000273,Sauerkirsche,kombiniert_mit,Kirschwasser,
+KR000273,Sauerkirsche,kombiniert_mit,Orange,
+KR000274,Pflaume,laenderkueche,deutsch,0
+KR000274,Pflaume,laenderkueche,österreichisch,0
+KR000274,Pflaume,laenderkueche,osteuropäisch,0
+KR000274,Pflaume,laenderkueche,chinesisch,0
+KR000274,Pflaume,passt_zu,Zimt,
+KR000274,Pflaume,passt_zu,Mohn,
+KR000274,Pflaume,passt_zu,Schwein,
+KR000274,Pflaume,passt_zu,Mandeln,
+KR000274,Pflaume,passt_zu,Vanille,
+KR000274,Pflaume,kombiniert_mit,Nelke,
+KR000274,Pflaume,kombiniert_mit,Sternanis,
+KR000274,Pflaume,kombiniert_mit,Rosmarin,
+KR000274,Pflaume,kombiniert_mit,Orange,
+KR000275,Pfirsich,laenderkueche,französisch,0
+KR000275,Pfirsich,laenderkueche,italienisch,0
+KR000275,Pfirsich,laenderkueche,nordamerikanisch,0
+KR000275,Pfirsich,passt_zu,Vanille,
+KR000275,Pfirsich,passt_zu,Mandeln,
+KR000275,Pfirsich,passt_zu,Himbeere,
+KR000275,Pfirsich,passt_zu,Basilikum,
+KR000275,Pfirsich,passt_zu,Prosciutto,
+KR000275,Pfirsich,kombiniert_mit,Minze,
+KR000275,Pfirsich,kombiniert_mit,Lavendel,
+KR000275,Pfirsich,kombiniert_mit,Honig,
+KR000275,Pfirsich,kombiniert_mit,Zitrone,
+KR000276,Aprikose,laenderkueche,österreichisch,0
+KR000276,Aprikose,laenderkueche,französisch,0
+KR000276,Aprikose,laenderkueche,nahöstlich,0
+KR000276,Aprikose,laenderkueche,nahöstlich,0
+KR000276,Aprikose,passt_zu,Mandeln,
+KR000276,Aprikose,passt_zu,Pistazie,
+KR000276,Aprikose,passt_zu,Honig,
+KR000276,Aprikose,passt_zu,Lamm,
+KR000276,Aprikose,passt_zu,Vanille,
+KR000276,Aprikose,kombiniert_mit,Rosmarin,
+KR000276,Aprikose,kombiniert_mit,Kardamom,
+KR000276,Aprikose,kombiniert_mit,Zimt,
+KR000276,Aprikose,kombiniert_mit,Zitrone,
+KR000277,Haselnuss,laenderkueche,deutsch,0
+KR000277,Haselnuss,laenderkueche,österreichisch,0
+KR000277,Haselnuss,laenderkueche,italienisch,0
+KR000277,Haselnuss,laenderkueche,französisch,0
+KR000277,Haselnuss,passt_zu,Schokolade,
+KR000277,Haselnuss,passt_zu,Apfel,
+KR000277,Haselnuss,passt_zu,Birne,
+KR000277,Haselnuss,passt_zu,Kaffee,
+KR000277,Haselnuss,passt_zu,Karamell,
+KR000277,Haselnuss,kombiniert_mit,Vanille,
+KR000277,Haselnuss,kombiniert_mit,Zimt,
+KR000277,Haselnuss,kombiniert_mit,Mohn,
+KR000277,Haselnuss,kombiniert_mit,Honig,
+KR000278,Walnuss,laenderkueche,französisch,0
+KR000278,Walnuss,laenderkueche,nahöstlich,0
+KR000278,Walnuss,laenderkueche,nahöstlich,0
+KR000278,Walnuss,laenderkueche,mitteleuropäisch,0
+KR000278,Walnuss,passt_zu,Birne,
+KR000278,Walnuss,passt_zu,Blauschimmelkäse,
+KR000278,Walnuss,passt_zu,Apfel,
+KR000278,Walnuss,passt_zu,Honig,
+KR000278,Walnuss,passt_zu,Rote Bete,
+KR000278,Walnuss,kombiniert_mit,Thymian,
+KR000278,Walnuss,kombiniert_mit,Zimt,
+KR000278,Walnuss,kombiniert_mit,Petersilie,
+KR000278,Walnuss,kombiniert_mit,Granatapfel,
+KR000279,Esskastanie,laenderkueche,französisch,0
+KR000279,Esskastanie,laenderkueche,italienisch,0
+KR000279,Esskastanie,laenderkueche,schweizerisch,0
+KR000279,Esskastanie,laenderkueche,österreichisch,0
+KR000279,Esskastanie,passt_zu,Wild,
+KR000279,Esskastanie,passt_zu,Rosenkohl,
+KR000279,Esskastanie,passt_zu,Pilz,
+KR000279,Esskastanie,passt_zu,Sahne,
+KR000279,Esskastanie,passt_zu,Apfel,
+KR000279,Esskastanie,kombiniert_mit,Rosmarin,
+KR000279,Esskastanie,kombiniert_mit,Thymian,
+KR000279,Esskastanie,kombiniert_mit,Muskat,
+KR000279,Esskastanie,kombiniert_mit,Zwiebel,
