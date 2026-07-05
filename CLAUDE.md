@@ -76,6 +76,24 @@ Notable packages beyond FastAPI/SQLAlchemy:
 - `python-multipart` — file upload support
 - `Pillow` — image processing
 
+## Rollen-Modell
+
+Rollen-Enum (`app/models/user.py`, `UserRole`):
+
+| Rolle | Rang |
+|---|---|
+| `kuechenchef` | höchste reguläre Rolle |
+| `chefkoch` | |
+| `koch` | |
+| `kuechenhilfe` | niedrigste, **Default** für neue User |
+| `admin` | Sonderrolle (technischer Vollzugriff) |
+
+Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` (+ `admin`).
+
+**Hinweis:** Es gibt **keine** Rolle `user`. Ältere Notizen/Übergaben mit „… > user" sind obsolet.
+
+Berechtigungs-Konvention: Owner-Checks vergleichen gegen `recipe.created_by` (nicht `owner_id`). Chefkoch/Küchenchef/Admin haben bewusst erweiterten Zugriff auf fremde Rezepte/Medien (Redaktionsrolle).
+
 ## Coding conventions
 
 ### General

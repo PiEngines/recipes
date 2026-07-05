@@ -1,131 +1,155 @@
 # PROJECT_STATUS.md
-> Letzte Aktualisierung: 2026-06-28
+> Letzte Aktualisierung: 2026-07-05
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
+> Stand verifiziert gegen `main` (Reconciliation-Durchgang 2026-07-05).
 
 ---
 
 ## Stack (Kurzreferenz)
 - **Backend:** Python 3.12, FastAPI, SQLAlchemy, Alembic, PostgreSQL 16
-- **Frontend:** React, Vite, Tailwind
+- **Frontend:** React 19, Vite, Tailwind v4 (@theme in index.css)
 - **Infra:** Docker Compose, Caddy, Raspberry Pi 5, Cloudflare Tunnel
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
+- **Migrationsstand:** 0001–0025 (höchste: `0025_add_recipe_serve_with.py`)
+
+## Rollen-Modell (korrekt, verifiziert user.py)
+Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` — plus `admin` als Sonderrolle.
+Default-Rolle neuer User: `kuechenhilfe`.
+⚠️ Frühere Docs/Übergaben nannten fälschlich „… > user" — das ist obsolet, es gibt keine Rolle `user`.
 
 ## Claude-Zugriff auf den Code
 
-Claude (claude.ai) kann den Code direkt via Browser-Plugin lesen:
-- Tool: "Claude in Chrome" (Browser-Plugin, muss verbunden sein)
-- Methode: `get_page_text` auf GitHub-Seiten liefert echten Text, kein Bild
-- Repo: https://github.com/PiEngines/recipes
-- Workflow: Claude navigiert selbst zu Dateien und liest sie — kein CC als Zwischenstufe für Analysen nötig
-
-Voraussetzung: Browser mit GitHub-Tab offen und Plugin aktiv.
-Zu Beginn jedes Threads: Claude via `tabs_context_mcp` prüfen ob Browser verbunden ist.
+Claude (claude.ai) kann den Code direkt lesen:
+- **Browser-Plugin** „Claude in Chrome" (muss verbunden sein) — `get_page_text` auf GitHub liefert echten Text.
+- **bash_tool / curl** auf `https://raw.githubusercontent.com/PiEngines/recipes/main/<pfad>` — funktioniert solange Repo öffentlich.
+- Repo: https://github.com/PiEngines/recipes, Branch `main`.
+- Workflow: Claude navigiert/liest selbst — kein CC als Zwischenstufe für reine Analysen.
+- Zu Thread-Beginn: Browser via `tabs_context_mcp` prüfen.
 
 ---
 
 ## Aktueller Stand
 
-### ✅ Implementiert (verifiziert im Repo, Stand 2026-06-28)
+### ✅ Implementiert (verifiziert gegen `main`, Stand 2026-07-05)
 
-| Bereich | Details | Letzter Commit |
+| Bereich | Details | Beleg / Datum |
 |---|---|---|
-| Migrationen 0001–0021 | Initial bis `add_module_fields` | heute |
-| Modul-System | Migration, Backend, API, Frontend – 68 Tests grün | heute |
-| pytest im Container | `requirements-dev.txt` + Dockerfile DEV-Stage | heute |
-| RecipeForm | Toggle Kochen/Backen, Gruppen-UX, Modul-Toggle, Auslagern-Button | heute |
-| Rezept-Typ Badge | Karte + Detailseite + Formular | vor 2 Wochen |
-| Ingredient Matching | Pipeline + Review-Flow (0016) | vor 2 Wochen |
-| Seasonal Tags | Migration 0019 | vor 2 Wochen |
-| User Favorites / History / Comments | Migration 0015 | vor 2 Wochen |
-| Auth / Rollen / Einladungen | Migrationen 0007–0013 | letzten Monat |
-| Media Upload | Migration 0004, MediaUpload.jsx | letzten Monat |
-| Soft Delete Rezepte | Migration 0014 | letzten Monat |
-| Admin Dashboard | AdminDashboard, AdminRecipes, AdminUsers | vor 2 Wochen |
-| Herzchen Light-Mode Fix | FavoriteHeart.jsx — var(--text) für outline-Zustand + Drop-Shadow | 2026-06-25 |
-| Entwurf-Status entfernt | Migration 0022, Backend (RecipeStatus.draft, toggle_status) + Frontend (Badge, Button, Status-Anzeigen in Recipes.jsx, RecipeForm.jsx, Profile.jsx, AdminRecipes.jsx) vollständig entfernt | 2026-06-25 |
-| Chefkoch Modul-Override | modules/router.py — _check_recipe_access bei einbinden/auslagern/entfernen: Chefkoch/Küchenchef zusätzlich zum Owner erlaubt | 2026-06-25 |
-| Bug A+B Fix (md:hidden + display:flex) | Pull-Tab + Slide-Panel Desktop-Leak behoben | 2026-06-28 |
-| Bug C Fix (Kochlöffel → Text) | DIFF_LABELS in Recipes.jsx | 2026-06-28 |
-| Bug D Fix (Herzchen Startseite) | FavoriteHeart in FeedCard + HeuteCard | 2026-06-28 |
-| Bug E Fix (Kachelgröße) | 3-spaltig, maxWidth 320px | 2026-06-28 |
-| Bug F Fix (Filter OR-Logik) | Backend multi-type + Frontend params | 2026-06-28 |
-| Transparenter Infobereich | rgba(255,255,255,0.88) auf Kacheln | 2026-06-28 |
-| Doppeltes Rendering behoben | md:hidden/hidden md:grid vereinheitlicht | 2026-06-28 |
-| Neue Rezepte Link | /recipes?sort=newest | 2026-06-28 |
-| Fratcher.jsx | Vollständig gebaut nach Design-Prototyp | 2026-06-28 |
+| Migrationen 0001–0025 | zuletzt: 0023 extend_recipe_type, 0024 add_course_field, 0025 add_recipe_serve_with | 2026-07-05 |
+| **GTM-Basis eingebunden** | index.html zweistufig (head-Snippet + noscript-Iframe), GTM-K2H9JG5J | verifiziert |
+| **DataLayer SPA-Fix** | main.jsx `page_view` bei Route-Wechsel via useLocation | verifiziert |
+| **Security: Medien-Upload Owner-Check** | media/router.py `_check_owner` auf allen POST/PUT/DELETE-Endpunkten (upload_image, upload_video, update_media, set_primary, crop_thumbnail, delete_media). Chefkoch/Küchenchef/Admin-Vollzugriff **gewollt** | verifiziert |
+| **Security: Caddy Security-Header** | Caddyfile: HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy, CSP, `-Server`; `respond 403` für /.env, /.git*, /docker-compose*. Tabler-Icons via cdn.jsdelivr.net in style-src + font-src | verifiziert |
+| **Design Tokens @theme** | index.css `@theme`-Block (terracotta, app-bg, radius-card etc.) | verifiziert |
+| **AdminUsers Frontend-Guards** | AdminUsers.jsx `isKuechenchef`-Gate für Rollen-Dropdown/Delete/Restore | verifiziert |
+| **RecipeType Enum erweitert** | recipe.py (grillen, einkochen …), Migration 0023 | verifiziert |
+| **Course/Gang-Feld** | Migration 0024 (Backend-Feld vorhanden; Admin-UI dafür noch offen) | verifiziert |
+| **serve_with-Feld** | Migration 0025 (Backend-Feld vorhanden) | verifiziert |
+| Modul-System | Migration, Backend, API, Frontend | vor 2026-06-28 |
+| Ingredient Matching | Pipeline + Review-Flow (0016) | älter |
+| Auth / Rollen / Einladungen | Migrationen 0007–0013 | älter |
+| Media Upload | Migration 0004, MediaUpload.jsx | älter |
+| Soft Delete Rezepte | Migration 0014 | älter |
+| Admin Dashboard | AdminDashboard, AdminRecipes, AdminUsers | älter |
+| Entwurf-Status entfernt | Migration 0022, Backend + Frontend | 2026-06-25 |
+| Chefkoch Modul-Override | modules/router.py `_check_recipe_access` | 2026-06-25 |
+| **Bug #7: Bearbeiten-Button Desktop** | RecipeDetail.jsx HeroSection — `md:hidden`-Wrapper entfernt, Preview-Unterdrückung (`!isPreview`) intakt | 2026-07-05 |
+
+#### Session 2026-07-01 (Thread 6) — nachgetragen
+| Task | Beleg |
+|---|---|
+| Bug #19b: Sortier-Button „Standard" statt „Neueste" | Home.jsx navigate-Fix |
+| Bug #20: Fav-Herz Dark Mode | FeedCard size 13→20, FavoriteHeart color #555 |
+| BackButton: Pill-Design (Terracotta-Tint) + i18n-Basis | RecipeForm-Fix, de.js `backButton: 'Zurück'` |
+| BackButton in RecipeDetail linke Spalte integriert | Wrapper-div |
+| Home-Grid responsive (2-spaltig Mobile / 3-spaltig Desktop) | Tailwind-Klassen |
+| Favorites-Grid (grid-cols-2 lg:grid-cols-3) | — |
+
+#### DataLayer-Events — Verdrahtungsstand (Teil-Implementierung)
+Verdrahtet: `page_view` (main.jsx), `fratcher_search` (Fratcher.jsx).
+**Offen (10):** `recipe_view`, `favorite_add`, `favorite_remove`, `search_performed`, `cook_mode_start`, `timer_start`, `recipe_create_start`, `recipe_create_complete`, `recipe_edit_start`, `login_success`/`register_success`.
+→ Bewusst **nach Redesign**, da die Trägerkomponenten (FavoriteHeart, RecipeDetail, RecipeForm, Recipes) im Redesign ohnehin angefasst werden.
 
 #### Modul-System – Architektur-Entscheidungen (zur Referenz)
-- **Modell:** Snapshot-Referenz, kein Fork. 1000 Einbindungen = 1000 Referenzen auf denselben Snapshot
-- **Einbinden:** immer ganzes Rezept, keine Teilgruppen (V1)
-- **Auslagern:** Button auf Gruppe → Gruppe wird automatisch durch Modul-Referenz ersetzt
-- **Zusätzliche Zutaten:** manuelle Zutaten zusätzlich in Modul-Gruppe erlaubt
-- **Schritte:** als Block anhängen, Präfix `"{component_label}: Schritt {n}"` nur bei Modul-Schritten
-- **Skalierung:** `modul_menge * hauptrezept_portionen / modul_portionen`; `servings_override` + `scale_factor` als Overrides
-- **Nicht-parsbare Mengen:** unverändert übernehmen
-- **Zirkelreferenz:** rekursive CTE, HTTP 400 mit deutscher Fehlermeldung
+- **Modell:** Snapshot-Referenz, kein Fork.
+- **Einbinden:** immer ganzes Rezept (V1). **Auslagern:** Button auf Gruppe → Modul-Referenz.
+- **Skalierung:** `modul_menge * hauptrezept_portionen / modul_portionen`; `servings_override` + `scale_factor` als Overrides.
+- **Zirkelreferenz:** rekursive CTE, HTTP 400 mit deutscher Fehlermeldung.
 
 ---
 
-### 🔲 Offen – Formular-UX (Konzept fertig, nicht implementiert)
+## 🔲 Offen — priorisiert
 
-| Task | Priorität | Aufwand | Notiz |
-|---|---|---|---|
-| Mobile: Übersichtsscreen mit thematischen Blöcken | Hoch | Groß | Separate Screens pro Block |
-| Mobile: Eigener Fertig-Button + Zurück pro Block | Hoch | Mittel | |
-| Desktop: Erweiterte Felder eingeklappt hinter "Weitere Details" | Mittel | Mittel | Portionen + Art bleiben sichtbar |
-| Expertenmodus-Toggle im Nutzerprofil | Mittel | Klein | |
-| DB: `form_expert_mode BOOLEAN DEFAULT false` auf User-Tabelle | Mittel | Klein | Unklar ob in Migration 0006 enthalten – prüfen! |
-| Zutaten-Block: Info-Icon + Tooltip | Niedrig | Klein | |
-| Zutaten-Block: Immer mit 1 Gruppe öffnen, Gruppenname optional | Mittel | Klein | |
-| Zutaten: Mengenfeld-Validierung | Mittel | Klein | Nur Frontend. Erlaubt: ganze Zahlen, Dezimalzahlen (0.5), Brüche (1/2, ¾), Bereiche (2-3). Alles andere ablehnen. Backend-Validierung nicht nötig solange kein direkter API-Zugriff. |
+### 🔴 Karten-Redesign (Konzept fertig, Thread 7) — nächster großer Block
+Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCard).
+- Card-Footer: Bild/Gradient + Titel + Autor + Zeit + Favorit-Herz + „Wird geprüft"-Badge. **Raus:** Description, Typ-Pill, Schwierigkeit-Pill.
+- HeuteCard bleibt unverändert (Editorial/Hero).
+- **Dark-Mode-Fix:** Card-Footer `rgba(255,255,255,0.88)` → `var(--card)`/`var(--surface)`, Textfarbe explizit `var(--text)`.
+- Umstellen: Home „Entdecken", MiniCard (Horizontal-Scroll), Recipes.jsx, Favorites.jsx; alte RecipeCard-Definition entfernen.
 
----
+### 🟡 Redesign restliche Seiten (Design-Prototypen /design/*.dc.html)
+| Task | Datei | Notiz |
+|---|---|---|
+| Startseite Redesign | Home.jsx | Karussell, Fratcher-Teaser, Entdecken-Feed, Infinite Scroll |
+| Suchergebnisseite | Recipes.jsx | Desktop Left-Sidebar-Filter, aktive Filter als Chips |
+| Detailseite | RecipeDetail.jsx | Hero-Galerie, Schritt↔Zutat-Highlight, Portionen-Skalierung |
+| RecipeForm Wizard Phase 1–3 | RecipeForm.jsx | Grundgerüst / Parser / Autosave+Medien |
+| Fratcher Optik | Fratcher.jsx | Visuelles Polishing |
 
-### 🔲 Offen — Redesign & neue Features (Design-Paket Juni 2026)
+### 🟡 GTM / Analytics — nach Redesign
+- **DataLayer-Events granular** (10 offen, s.o.).
+- **CSP-GTM-Tuning** (Caddyfile): `connect-src` um `https://*.google-analytics.com` erweitern (regionale GA4-Endpunkte werden sonst **stumm** geblockt); `frame-src https://www.googletagmanager.com` ergänzen (GTM-Preview + noscript-Iframe). Scope-Notiz: **Consent Mode v2 Pflicht**; **Ads/AdSense** evtl., **Server-Side GTM** später → erweitert `script-src`/`connect-src` weiter. Verifikation nur via GTM-Preview + Netzwerk-Tab (collect-Requests ≠ blocked).
 
-Design-Prototypen liegen unter `/design/*.dc.html`. Reihenfolge ist priorisiert.
+### 🔴 Bugs offen
+| # | Beschreibung | Status |
+|---|---|---|
+| 21 | Abstand Header→Content fehlt überall — BackButton/Hero kleben an Navbar | geparkt bis Redesign |
 
-| Task | Datei | Priorität | Notiz |
-|---|---|---|---|
-| GTM einbinden + DataLayer SPA-Fix | `frontend/index.html`, `frontend/src/main.jsx` | 🔴 Hoch | GTM-K2H9JG5J. DataLayer-Events laut CLAUDE.md. Vor allen anderen Redesign-Tasks. |
-| Security: Medien-Upload Owner-Check | `backend/media/router.py` POST | 🔴 Hoch | Sicherheitslücke in Production. Fix laut CLAUDE.md Security-Abschnitt. |
-| Security: Caddy Security-Header | `caddy/Caddyfile` | 🔴 Hoch | Header + sensible Pfade blockieren laut CLAUDE.md. |
-| Design Tokens in index.css | `frontend/src/index.css` | 🔴 Hoch | @theme-Block mit neuen Tokens. Voraussetzung für alle weiteren Redesign-Tasks. |
-| Design-Prototypen ins Repo | `/design/` (neuer Ordner) | 🔴 Hoch | *.dc.html + support.js aus Übergabe-Paket. |
-| Startseite Redesign | `pages/Home.jsx` | 🟡 Mittel | Mobile + Desktop. Karussell, Fratcher-Teaser, Entdecken-Feed 2→3 Spalten Desktop, Infinite Scroll. |
-| Suchergebnisseite Redesign | `pages/Recipes.jsx` | 🟡 Mittel | Desktop Left Sidebar Filter, aktive Filter als Chips. |
-| Detailseite Redesign | `pages/RecipeDetail.jsx` | 🟡 Mittel | Hero-Galerie, Schritt↔Zutat-Highlight, Portionen-Skalierung Pull-Tab (Mobile), Sidebar (Desktop). |
-| RecipeForm Wizard Phase 1 | `pages/RecipeForm.jsx` | 🟡 Mittel | Grundgerüst 5 Schritte + Freigabe |
-| RecipeForm Wizard Phase 2 | `pages/RecipeForm.jsx` | 🟡 Mittel | Parser + Schritt-Features |
-| RecipeForm Wizard Phase 3 | `pages/RecipeForm.jsx` | 🟡 Mittel | Autosave + Medien |
-| Fratcher Optik | `pages/Fratcher.jsx` | 🟡 Mittel | Visuelles Polishing |
-| RecipeType Enum | `backend/app/models/recipe.py` | 🟡 Mittel | Grillen, Einkochen, Rohkost etc. |
-| AdminUsers.jsx Frontend-Guards | `pages/AdminUsers.jsx` | 🟡 Mittel | Rollen-Dropdown, Delete, Restore für Chefkoch verstecken. |
-| Drag & Drop Schritte | `pages/RecipeForm.jsx` | 🟠 Niedrig | Standard DnD-Library. Voraussetzung: RecipeForm Wizard fertig. |
-| Kräuterschule-Seite | `pages/Herbs.jsx` (neu) | 🟠 Niedrig | Kein Design vorhanden — erst nach Rücksprache. |
+### 🟠 Getestet / bestätigt
+| # | Thema | Ergebnis |
+|---|---|---|
+| DD | Drag & Drop Touch iPad | ❌ funktioniert nicht → Trigger für `@dnd-kit/core`-Umbau (Wizard Schritt 3) erfüllt |
 
----
-
-### ⏸ Geparkt (bewusst zurückgestellt)
-
+### 🔲 Offen — Formular-UX / Expertenmodus
 | Task | Notiz |
 |---|---|
-| Drag & Drop für Schritte | Voraussetzung für freie Modul-Schritt-Sortierung |
+| `form_expert_mode BOOLEAN` auf User | **nicht im Model** (verifiziert 2026-07-05) → Feature komplett offen |
+| Expertenmodus-Toggle im Profil | hängt an obiger DB-Spalte |
+| Mengenfeld-Validierung (Frontend) | ganze/Dezimal/Brüche/Bereiche erlauben, Rest ablehnen |
+
+### 🟡 Features / UX — Merkliste
+- Sortierung „Älteste" (zusätzliche Option)
+- „Entdecken" → Link auf Rezepteseite (Home-Sektion klickbar)
+- Suchleiste schmal + Fokus-Animation (alle Seiten)
+- Kochschritte Erledigt-Button (pro Schritt, nur Kochmodus, springt zum nächsten)
+- Stiller Retry `serve_with` PUT (fire-and-forget; Backend-Feld existiert via 0025)
+- Headline zwischen Modul-Rezepten (Zutaten-Strecke)
+- Autor im Dropdown („Passt dazu"-Suche); Limitierung „Passt dazu" auf max. 3
+
+### 🟢 Größere Tasks / geplant
+- Edit-Session + Versions-Restore (Auto-Save-Warnung, Banner, Restore)
+- Admin-UI Art + Gang (Gang-Feld via 0024 vorhanden — UI fehlt)
+- Orphan-Cleanup (Draft-Rezepte + Fotos in DB/Storage)
+- Dict/Einheiten-Normalisierung (g/gr/Gramm, Tippfehler)
+- Wizard DnD Touch via `@dnd-kit/core` (iPad-Bug bestätigt)
+- Kräuterschule-Seite (kein Design — erst nach Rücksprache)
+
+---
+
+## ⏸ Geparkt (bewusst zurückgestellt)
+| Task | Notiz |
+|---|---|
 | Foto-Upload vor erstem Speichern | Technische Lösung ausstehend |
-| Modul-System: Einzelne Gruppe direkt einbinden | Aktuell muss Gruppe erst ausgelagert werden. Später: direkt referenzieren ohne Auslagern |
-| Modul-System: Varianten-Gruppierung im Dropdown | Varianten desselben Rezepts gruppiert anzeigen – erst relevant wenn Fremdrezepte als Module häufig genutzt werden |
+| Modul: Einzelne Gruppe direkt einbinden | Aktuell erst Auslagern nötig |
+| Modul: Varianten-Gruppierung im Dropdown | Erst bei häufiger Fremdrezept-Nutzung relevant |
 
 ---
 
 ## Konventionen (für neue Sessions)
-
-- **data-track-id Schema:** `{seite}-{element}-{aktion}` – alle neuen Komponenten bekommen dieses Attribut
-- **PowerShell:** kein `-Recurse` bei `Select-String`, stattdessen `Get-ChildItem ... | Select-String`
-- **PowerShell-Befehle:** immer einzeilig ausgeben (`;` als Trenner), sodass sie direkt einfügbar sind – nie mehrzeilig
-- **Saubere Lösungen vor schnellen Lösungen**
-- **Keine Änderungen außerhalb des Aufgabenscopes**
-- **Deploy-Befehle:** immer vollständig (lokal UND Pi, am Stück kopierbar)
-- **Plattform:** bei Wechsel zwischen Pi/Lokal immer explizit kennzeichnen
+- **data-track-id Schema:** `{seite}-{element}-{aktion}` – alle neuen Komponenten
+- **PowerShell:** kein `-Recurse` bei `Select-String`; Befehle einzeilig (`;` als Trenner)
+- **Saubere Lösungen vor schnellen Lösungen**; keine Änderungen außerhalb des Scopes
+- **Deploy-Befehle:** immer vollständig (lokal UND Pi), Plattform explizit kennzeichnen
 - **Vor größeren Teilen:** Umfang einschätzen, ggf. in a/b/c aufbrechen
 - **Fragen immer nummerieren**
+- **Doku-Drift-Warnung:** Vor jedem „Fix" den Ist-Zustand gegen `main` verifizieren — diese Datei hinkt erfahrungsgemäß hinterher.
