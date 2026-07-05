@@ -15,6 +15,8 @@ from app.models.recipe import (
     RecipeVideo,
 )
 from app.models.media import Media
+from app.models.phaenophase import Phaenophase
+from app.models.plant import AnbauTyp, Essbarkeit, Lebensdauer, Plant, Schwierigkeitsgrad
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
@@ -51,4 +53,10 @@ __all__ = [
     "DisposableEmailDomain",
     "UserFavorite",
     "StepUnmatchedSuggestion",
+    "Plant",
+    "Lebensdauer",
+    "AnbauTyp",
+    "Schwierigkeitsgrad",
+    "Essbarkeit",
+    "Phaenophase",
 ]
