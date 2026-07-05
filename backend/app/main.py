@@ -13,6 +13,7 @@ from app.config import settings
 from app.favorites.router import router as favorites_router
 from app.media.router import router as media_router
 from app.modules.router import router as modules_router
+from app.plants.router import router as plants_router
 from app.plants.seed import seed_plant_data
 from app.recipes.access_router import router as access_router
 from app.recipes.router import router as recipes_router
@@ -264,6 +265,7 @@ app.include_router(favorites_router)
 app.include_router(seasonal_router)
 app.include_router(users_router)
 app.include_router(admin_router)
+app.include_router(plants_router)
 
 
 @app.get("/api/health")
