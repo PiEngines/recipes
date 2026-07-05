@@ -26,9 +26,6 @@ NULLABLE_TEXT_FIELDS = [
     "bild_dateiname", "beschreibungstext", "giftige_teile", "warnung", "schwierigkeitsgrad",
 ]
 
-# Redaktionell/SEO/Sicherheit/Assets — bei bestehenden Pflanzen nie aus dem CSV überschreiben
-PROTECTED_ON_UPDATE = {"beschreibungstext", "slug", "essbarkeit", "giftige_teile", "warnung", "bild_dateiname"}
-
 UPDATE_FIELDS = [
     "deutscher_name", "botanischer_name", "botanische_familie", "hauptkategorie",
     "weitere_kategorien", "synonyme", "quelle_botanik", "typische_verwendung",

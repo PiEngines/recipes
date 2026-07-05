@@ -84,4 +84,4 @@ class Plant(Base):
     schwierigkeitsgrad = Column(String(20), nullable=True)
     essbarkeit = Column(String(30), nullable=False)
 
-    redaktion_freigegeben = Column(Boolean, nullable=False, server_default="false")
+    redaktion_freigegeben = Column(Boolean, nullable=False, default=False, server_default="false")
