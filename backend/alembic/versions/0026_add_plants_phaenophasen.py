@@ -82,6 +82,20 @@ def upgrade() -> None:
         "plants",
         "essbarkeit IN ('essbar', 'essbar-mit-einschränkung', 'nur-verarbeitet', 'teilweise-giftig')",
     )
+    op.create_check_constraint(
+        "ck_plants_taste_ranges",
+        "plants",
+        "geschmacksintensitaet BETWEEN 0 AND 5 AND frische BETWEEN 0 AND 5 AND suesse BETWEEN 0 AND 5 "
+        "AND saeure BETWEEN 0 AND 5 AND bitterkeit BETWEEN 0 AND 5 AND schaerfe BETWEEN 0 AND 5 "
+        "AND umami BETWEEN 0 AND 5 AND zitronig BETWEEN 0 AND 5 AND anisartig BETWEEN 0 AND 5 "
+        "AND menthol BETWEEN 0 AND 5 AND harzig BETWEEN 0 AND 5 AND erdig BETWEEN 0 AND 5 "
+        "AND blumig BETWEEN 0 AND 5 AND pfeffrig BETWEEN 0 AND 5 AND knoblauchartig BETWEEN 0 AND 5",
+    )
+    op.create_check_constraint(
+        "ck_plants_standort_eignung",
+        "plants",
+        "standort_eignung IS NULL OR standort_eignung BETWEEN 1 AND 3",
+    )
 
     op.create_table(
         "phaenophasen",
@@ -96,6 +110,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("phaenophasen")
 
+    op.drop_constraint("ck_plants_standort_eignung", "plants", type_="check")
+    op.drop_constraint("ck_plants_taste_ranges", "plants", type_="check")
     op.drop_constraint("ck_plants_essbarkeit", "plants", type_="check")
     op.drop_constraint("ck_plants_schwierigkeitsgrad", "plants", type_="check")
     op.drop_constraint("ck_plants_anbau_typ", "plants", type_="check")
