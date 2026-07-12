@@ -14,6 +14,30 @@ class PlantListItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PlantLaenderkuecheItem(BaseModel):
+    name: str
+    ist_stil: bool
+
+
+class PlantTags(BaseModel):
+    passt_zu: list[str] = []
+    kombiniert_mit: list[str] = []
+    laenderkueche: list[PlantLaenderkuecheItem] = []
+
+
+class PlantRelationItem(BaseModel):
+    ziel_typ: str
+    ziel_name: str
+    ziel_slug: str | None = None
+    qualifier: str | None = None
+
+
+class PlantRelations(BaseModel):
+    mischkultur_gut: list[PlantRelationItem] = []
+    mischkultur_schlecht: list[PlantRelationItem] = []
+    ersatz: list[PlantRelationItem] = []
+
+
 class PlantDetail(PlantListItem):
     botanische_familie: str | None = None
     weitere_kategorien: str | None = None
@@ -49,3 +73,6 @@ class PlantDetail(PlantListItem):
     anbau_typ: str
     schwierigkeitsgrad: str | None = None
     giftige_teile: str | None = None
+
+    tags: PlantTags = PlantTags()
+    relationen: PlantRelations = PlantRelations()
