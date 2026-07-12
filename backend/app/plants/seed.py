@@ -7,7 +7,7 @@ from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Phaenophase, Plant, PlantRelation, PlantTag
+from app.models import Phaenophase, Plant, PlantCalendar, PlantRelation, PlantTag
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,25 @@ def seed_plant_relations(db: Session) -> int:
     return count
 
 
+def seed_plant_calendar(db: Session) -> int:
+    db.query(PlantCalendar).delete()
+    count = 0
+    with open(DATA_DIR / "kalender.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            db.add(PlantCalendar(
+                pflanzen_id=row["pflanzen_id"],
+                kategorie=row["kategorie"],
+                aktivitaet=row["aktivitaet"],
+                phase_von=int(row["phase_von"]) if row["phase_von"] else None,
+                phase_bis=int(row["phase_bis"]) if row["phase_bis"] else None,
+                laufend=(row["laufend"] == "1"),
+                hinweis=row["hinweis"] or None,
+                quelle=row["quelle"] or None,
+            ))
+            count += 1
+    return count
+
+
 def seed_plant_data() -> None:
     db: Session = SessionLocal()
     try:
@@ -136,11 +155,13 @@ def seed_plant_data() -> None:
         plant_inserted, plant_updated = seed_plants(db)
         tags_count = seed_plant_tags(db)
         relations_count = seed_plant_relations(db)
+        calendar_count = seed_plant_calendar(db)
         db.commit()
         logger.info("phaenophasen: %d inserted, %d updated", phaeno_inserted, phaeno_updated)
         logger.info("plants: %d inserted, %d updated", plant_inserted, plant_updated)
         logger.info("plant_tags: %d reloaded", tags_count)
         logger.info("plant_relations: %d reloaded", relations_count)
+        logger.info("plant_calendar: %d reloaded", calendar_count)
     except ProgrammingError:
         db.rollback()
         logger.info("Seed skipped — Tabellen noch nicht da (erst migrieren)")

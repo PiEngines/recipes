@@ -1,11 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, aliased
 
 from app.auth.dependencies import get_current_user
 from app.database import get_db
-from app.models import Plant, PlantRelation, PlantTag, User
+from app.models import Phaenophase, Plant, PlantCalendar, PlantRelation, PlantTag, User
 from app.plants.permissions import can_view_plants, can_view_unreleased
 from app.plants.schemas import (
+    CalendarActivityItem,
+    MonthCalendar,
+    PlantCalendarGrouped,
+    PlantCalendarItem,
     PlantDetail,
     PlantLaenderkuecheItem,
     PlantListItem,
@@ -30,6 +36,61 @@ def list_plants(
         query = query.filter(Plant.redaktion_freigegeben.is_(True))
 
     return query.order_by(Plant.deutscher_name).all()
+
+
+def _active_phases(monat: int, phaeno_rows: list[Phaenophase]) -> list[int]:
+    active = []
+    for p in phaeno_rows:
+        von, bis = p.ref_monat_von, p.ref_monat_bis
+        hit = (von <= monat <= bis) if von <= bis else (monat >= von or monat <= bis)
+        if hit:
+            active.append(p.phase_id)
+    return sorted(active)
+
+
+@router.get("/calendar", response_model=MonthCalendar)
+def get_month_calendar(
+    monat: int | None = Query(default=None, ge=1, le=12),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not can_view_plants(current_user):
+        raise HTTPException(status_code=403, detail="Kein Zugriff auf Pflanzendaten")
+
+    if monat is None:
+        monat = date.today().month
+
+    phaeno_rows = db.query(Phaenophase).all()
+    active = _active_phases(monat, phaeno_rows)
+    active_set = set(active)
+
+    query = db.query(PlantCalendar, Plant.deutscher_name, Plant.slug).join(
+        Plant, PlantCalendar.pflanzen_id == Plant.id
+    )
+    if not can_view_unreleased(current_user):
+        query = query.filter(Plant.redaktion_freigegeben.is_(True))
+
+    eintraege: list[CalendarActivityItem] = []
+    for cal, ziel_name, ziel_slug in query.all():
+        if cal.phase_von is None:
+            aktiv = True  # ganzjährig (z. B. Pflege allgemein)
+        else:
+            aktiv = any(p in active_set for p in range(cal.phase_von, cal.phase_bis + 1))
+        if not aktiv:
+            continue
+        eintraege.append(CalendarActivityItem(
+            pflanzen_id=cal.pflanzen_id,
+            pflanze_name=ziel_name,
+            pflanze_slug=ziel_slug,
+            kategorie=cal.kategorie,
+            aktivitaet=cal.aktivitaet,
+            phase_von=cal.phase_von,
+            phase_bis=cal.phase_bis,
+            laufend=cal.laufend,
+            hinweis=cal.hinweis,
+        ))
+    eintraege.sort(key=lambda e: (e.pflanze_name, e.kategorie, e.aktivitaet))
+    return MonthCalendar(monat=monat, aktive_phasen=active, eintraege=eintraege)
 
 
 @router.get("/{slug}", response_model=PlantDetail)
@@ -105,7 +166,31 @@ def get_plant(
         items.sort(key=lambda item: item.ziel_name)
     relationen = PlantRelations(**groups)
 
+    # Kalender gruppieren (Phase 3), Phasennamen aufgelöst
+    phase_name = {p.phase_id: p.phase_name for p in db.query(Phaenophase).all()}
+    cal_rows = (
+        db.query(PlantCalendar)
+        .filter(PlantCalendar.pflanzen_id == plant.id)
+        .order_by(PlantCalendar.kategorie, PlantCalendar.aktivitaet)
+        .all()
+    )
+    kalender_groups: dict[str, list[PlantCalendarItem]] = {"anbau": [], "nutzung": [], "pflege": []}
+    kat_map = {"Anbau": "anbau", "Nutzung": "nutzung", "Pflege": "pflege"}
+    for c in cal_rows:
+        kalender_groups[kat_map[c.kategorie]].append(PlantCalendarItem(
+            kategorie=c.kategorie,
+            aktivitaet=c.aktivitaet,
+            phase_von=c.phase_von,
+            phase_bis=c.phase_bis,
+            phase_von_name=phase_name.get(c.phase_von) if c.phase_von else None,
+            phase_bis_name=phase_name.get(c.phase_bis) if c.phase_bis else None,
+            laufend=c.laufend,
+            hinweis=c.hinweis,
+        ))
+    kalender = PlantCalendarGrouped(**kalender_groups)
+
     detail = PlantDetail.model_validate(plant)
     detail.tags = tags
     detail.relationen = relationen
+    detail.kalender = kalender
     return detail

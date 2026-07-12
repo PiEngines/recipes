@@ -107,3 +107,17 @@ class PlantRelation(Base):
     ziel_pflanze_id = Column(String(20), ForeignKey("plants.id", ondelete="CASCADE"), nullable=True)
     ziel_name = Column(Text, nullable=True)
     qualifier = Column(Text, nullable=True)
+
+
+class PlantCalendar(Base):
+    __tablename__ = "plant_calendar"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pflanzen_id = Column(String(20), ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    kategorie = Column(String(20), nullable=False)
+    aktivitaet = Column(String(40), nullable=False)
+    phase_von = Column(Integer, nullable=True)
+    phase_bis = Column(Integer, nullable=True)
+    laufend = Column(Boolean, nullable=False)
+    hinweis = Column(Text, nullable=True)
+    quelle = Column(Text, nullable=True)

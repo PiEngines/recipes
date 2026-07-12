@@ -38,6 +38,23 @@ class PlantRelations(BaseModel):
     ersatz: list[PlantRelationItem] = []
 
 
+class PlantCalendarItem(BaseModel):
+    kategorie: str
+    aktivitaet: str
+    phase_von: int | None = None
+    phase_bis: int | None = None
+    phase_von_name: str | None = None
+    phase_bis_name: str | None = None
+    laufend: bool
+    hinweis: str | None = None
+
+
+class PlantCalendarGrouped(BaseModel):
+    anbau: list[PlantCalendarItem] = []
+    nutzung: list[PlantCalendarItem] = []
+    pflege: list[PlantCalendarItem] = []
+
+
 class PlantDetail(PlantListItem):
     botanische_familie: str | None = None
     weitere_kategorien: str | None = None
@@ -76,3 +93,22 @@ class PlantDetail(PlantListItem):
 
     tags: PlantTags = PlantTags()
     relationen: PlantRelations = PlantRelations()
+    kalender: PlantCalendarGrouped = PlantCalendarGrouped()
+
+
+class CalendarActivityItem(BaseModel):
+    pflanzen_id: str
+    pflanze_name: str
+    pflanze_slug: str
+    kategorie: str
+    aktivitaet: str
+    phase_von: int | None = None
+    phase_bis: int | None = None
+    laufend: bool
+    hinweis: str | None = None
+
+
+class MonthCalendar(BaseModel):
+    monat: int
+    aktive_phasen: list[int] = []
+    eintraege: list[CalendarActivityItem] = []
