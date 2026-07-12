@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 > Letzte Aktualisierung: 2026-07-12
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
-> Stand verifiziert gegen `main` (Reconciliation-Durchgang 2026-07-05).
+> Stand verifiziert gegen `main` (Phase-2-Reconciliation 2026-07-12).
 
 ---
 
@@ -11,7 +11,7 @@
 - **Infra:** Docker Compose, Caddy, Raspberry Pi 5, Cloudflare Tunnel
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
-- **Migrationsstand:** 0001–0026 (höchste: `0026_add_plants_phaenophasen.py`)
+- **Migrationsstand:** 0001–0027 (höchste: `0027_add_plant_tags_relations.py`)
 
 ## Rollen-Modell (korrekt, verifiziert user.py)
 Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` — plus `admin` als Sonderrolle.
@@ -48,6 +48,9 @@ Claude (claude.ai) kann den Code direkt lesen:
 | **Kräuterschule Phase 1 — Schema** | Migration 0026: Tabellen plants (40 Felder + redaktion_freigegeben) & phaenophasen; Enums (lebensdauer/anbau_typ/schwierigkeitsgrad/essbarkeit) + CHECK-Constraints inkl. Range-CHECKs (Geschmacksachsen 0–5, standort_eignung 1–3); Unique-slug | 2026-07-12 deployed |
 | **Kräuterschule Phase 1 — Seed** | app/plants/seed.py: idempotenter Upsert (plants+phaenophasen), Feld-Schutz (beschreibungstext, redaktion_freigegeben, slug, essbarkeit, giftige_teile, warnung, bild_dateiname werden bei Re-Import NIE überschrieben), leer→NULL; CLI (python -m app.plants.seed) + lifespan-Erstbefüllung (nur wenn Tabelle leer). Quelldaten in backend/app/data/plants/ | 2026-07-12 deployed |
 | **Kräuterschule Phase 1 — Endpoints** | GET /api/plants (schlankes DTO, 9 Felder) + GET /api/plants/{slug} (voll, 40 Felder); zentrale Gates app/plants/permissions.py (can_view_plants / can_view_unreleased, aktuell offen für alle Eingeloggten, später ABO/Rollen); 404-statt-403-Leakschutz | 2026-07-12 deployed |
+| **Kräuterschule Phase 2 — Schema** | Migration 0027: Tabellen plant_tags + plant_relations; XOR-CHECK (ck_plant_relations_ziel), 2× FK→plants.id (CASCADE), Enum-CHECKs (facet/beziehung/ziel_typ), Indizes | 2026-07-12 deployed |
+| **Kräuterschule Phase 2 — Seed** | seed_plant_tags/seed_plant_relations Full-Reload (delete+reload, idempotent, keine schützenswerten Felder); Pflanze-Ziele → ziel_pflanze_id (ziel_name NULL, CHECK-konform); B-Normalisierung Qualifier (nur…/eingeschränkt/nicht direkt aus ziel_name → qualifier, nur ziel_typ=zutat, 20 Zeilen); live: 3138 tags / 875 relations | 2026-07-12 deployed |
+| **Kräuterschule Phase 2 — Endpoint** | GET /api/plants/{slug} angereichert: tags (passt_zu/kombiniert_mit als Strings, laenderkueche {name, ist_stil}, alphabetisch) + relationen (mischkultur_gut/schlecht/ersatz; Pflanze-Ziele via aliased+outerjoin auf name+slug aufgelöst, Non-Pflanze ziel_slug=null, qualifier durchgereicht); Sichtbarkeits-Gate (unveröffentlichte Pflanze-Ziele bei !can_view_unreleased gefiltert); List-Endpoint unverändert schlank | 2026-07-12 deployed |
 | **Doku-Hygiene** | design/PROJECT_STATUS_UPDATE.md + design/CLAUDE_ERWEITERUNG.md entfernt (Drift-Quellen); CLAUDE.md Migrations-Verweis + obsolete Security-Sektion bereinigt | 2026-07-12 |
 | Modul-System | Migration, Backend, API, Frontend | vor 2026-06-28 |
 | Ingredient Matching | Pipeline + Review-Flow (0016) | älter |
@@ -82,8 +85,8 @@ Verdrahtet: `page_view` (main.jsx), `fratcher_search` (Fratcher.jsx).
 
 #### Kräuterschule — Roadmap & Design-Entscheidungen
 **Phase 1 (✅ deployed 2026-07-12):** Entität plants (279) + phaenophasen (10), Seed, Read-Endpoints.
-**Phase 2 (nächster Block):** Facetten & Relationen — pflanzen_tags (passt_zu/kombiniert_mit/laenderkueche), pflanzen_relationen (mischkultur_gut/schlecht, ersatz), vokabulare. Reichert Detail an.
-**Phase 3:** Arbeitskalender — Kalender (1744) + Phaenophasen-Join. ⚠️ Jahresübergang (ref_monat_von=12 > bis=1) → kein reines BETWEEN (README §8.1); Phasen als INT.
+**Phase 2 (✅ deployed 2026-07-12):** Facetten & Relationen — pflanzen_tags (passt_zu/kombiniert_mit/laenderkueche), pflanzen_relationen (mischkultur_gut/schlecht, ersatz). Endpoint-Anreicherung (Detail liefert gruppierte tags + relationen) + B-Normalisierung Qualifier. Vokabular-Tabellen bewusst nicht angelegt (Daten vor-kanonisiert; relevant erst Phase 4).
+**Phase 3 (nächster Block):** Arbeitskalender — Kalender (1744) + Phaenophasen-Join. ⚠️ Jahresübergang (ref_monat_von=12 > bis=1) → kein reines BETWEEN (README §8.1); Phasen als INT.
 **Phase 4:** Recipes-Mapping — Brücken-Tabelle plant_ingredient_map (pflanzen_id ↔ ingredient_id), Exakt-Match zuerst, Fuzzy später (fällt mit matching.py Stage 3 zusammen). Lose Kopplung, kein Merge.
 **UI:** bewusst zurückgestellt bis neues Design steht. Frontend-Route geplant /kraeuterschule (Teaser KrauterCard zeigt aktuell noch auf /seasonal).
 **Kern-Entscheidungen:** (a) Sichtbarkeit über zentrale can_view_*-Funktionen (späteres ABO-Gate an einer Stelle). (b) Erst hinter Login, später öffentlich schaltbar (slug/SEO bereits vorbereitet). (c) Sicherheits-Invariante: warnung/giftige_teile IMMER rendern; redaktion_freigegeben gatet spätere Public-Sichtbarkeit. (d) essbarkeit/warnung sind auto-vorbefüllt → vor Go-public redaktionell freigeben (README §12). (e) Bilder KI-generiert, nach und nach → UI braucht Platzhalter-Fallback.
@@ -151,6 +154,7 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Kräuterschule UI-Seite (Phase 1 Backend deployed; UI wartet auf neues Design) — siehe Roadmap oben
 - AI-Zutaten-Matching Stage 3 (LLM-Fallback) — matching.py:100–102 nur Platzhalter; Stage 1 (exakt) + Stage 2 (rapidfuzz) aktiv, LLM-Matching für paraphrasierte Zutaten offen. Fällt mit Kräuterschule Phase 4 (Recipes-Mapping Fuzzy) zusammen.
 - Toter Code entfernen — recipes/router.py: "# TODO: deprecated, replaced by matching.py" (Cleanup).
+- Sammel-Cleanup (konsolidiert, nach Michaels Wunsch in einem Durchgang): Root-Artefakte `0006,` / `0007,` / `0008,` (0-Byte, git rm); toter Code recipes/router.py (# TODO deprecated).
 
 ---
 
@@ -171,3 +175,5 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - **Vor größeren Teilen:** Umfang einschätzen, ggf. in a/b/c aufbrechen
 - **Fragen immer nummerieren**
 - **Doku-Drift-Warnung:** Vor jedem „Fix" den Ist-Zustand gegen `main` verifizieren — diese Datei hinkt erfahrungsgemäß hinterher.
+- **Ableitungs-/Referenztabellen:** Idempotenz per Full-Reload (delete+reload), kein Upsert/Unique-Key nötig.
+- **FK-aufgelöste Relationen im Read-Endpoint:** via aliased+outerjoin (kein N+1).
