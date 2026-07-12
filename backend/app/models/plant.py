@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Boolean, Column, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 
 from app.database import Base
 
@@ -85,3 +85,25 @@ class Plant(Base):
     essbarkeit = Column(String(30), nullable=False)
 
     redaktion_freigegeben = Column(Boolean, nullable=False, default=False, server_default="false")
+
+
+class PlantTag(Base):
+    __tablename__ = "plant_tags"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pflanzen_id = Column(String(20), ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    facet = Column(String(20), nullable=False)
+    canonical = Column(Text, nullable=False)
+    ist_stil = Column(Boolean, nullable=False, default=False, server_default="false")
+
+
+class PlantRelation(Base):
+    __tablename__ = "plant_relations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pflanzen_id = Column(String(20), ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    beziehung = Column(String(30), nullable=False)
+    ziel_typ = Column(String(20), nullable=False)
+    ziel_pflanze_id = Column(String(20), ForeignKey("plants.id", ondelete="CASCADE"), nullable=True)
+    ziel_name = Column(Text, nullable=True)
+    qualifier = Column(Text, nullable=True)
