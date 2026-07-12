@@ -1,5 +1,5 @@
 # PROJECT_STATUS.md
-> Letzte Aktualisierung: 2026-07-05
+> Letzte Aktualisierung: 2026-07-12
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
 > Stand verifiziert gegen `main` (Reconciliation-Durchgang 2026-07-05).
 
@@ -11,7 +11,7 @@
 - **Infra:** Docker Compose, Caddy, Raspberry Pi 5, Cloudflare Tunnel
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
-- **Migrationsstand:** 0001–0025 (höchste: `0025_add_recipe_serve_with.py`)
+- **Migrationsstand:** 0001–0026 (höchste: `0026_add_plants_phaenophasen.py`)
 
 ## Rollen-Modell (korrekt, verifiziert user.py)
 Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` — plus `admin` als Sonderrolle.
@@ -45,6 +45,10 @@ Claude (claude.ai) kann den Code direkt lesen:
 | **RecipeType Enum erweitert** | recipe.py (grillen, einkochen …), Migration 0023 | verifiziert |
 | **Course/Gang-Feld** | Migration 0024 (Backend-Feld vorhanden; Admin-UI dafür noch offen) | verifiziert |
 | **serve_with-Feld** | Migration 0025 (Backend-Feld vorhanden) | verifiziert |
+| **Kräuterschule Phase 1 — Schema** | Migration 0026: Tabellen plants (40 Felder + redaktion_freigegeben) & phaenophasen; Enums (lebensdauer/anbau_typ/schwierigkeitsgrad/essbarkeit) + CHECK-Constraints inkl. Range-CHECKs (Geschmacksachsen 0–5, standort_eignung 1–3); Unique-slug | 2026-07-12 deployed |
+| **Kräuterschule Phase 1 — Seed** | app/plants/seed.py: idempotenter Upsert (plants+phaenophasen), Feld-Schutz (beschreibungstext, redaktion_freigegeben, slug, essbarkeit, giftige_teile, warnung, bild_dateiname werden bei Re-Import NIE überschrieben), leer→NULL; CLI (python -m app.plants.seed) + lifespan-Erstbefüllung (nur wenn Tabelle leer). Quelldaten in backend/app/data/plants/ | 2026-07-12 deployed |
+| **Kräuterschule Phase 1 — Endpoints** | GET /api/plants (schlankes DTO, 9 Felder) + GET /api/plants/{slug} (voll, 40 Felder); zentrale Gates app/plants/permissions.py (can_view_plants / can_view_unreleased, aktuell offen für alle Eingeloggten, später ABO/Rollen); 404-statt-403-Leakschutz | 2026-07-12 deployed |
+| **Doku-Hygiene** | design/PROJECT_STATUS_UPDATE.md + design/CLAUDE_ERWEITERUNG.md entfernt (Drift-Quellen); CLAUDE.md Migrations-Verweis + obsolete Security-Sektion bereinigt | 2026-07-12 |
 | Modul-System | Migration, Backend, API, Frontend | vor 2026-06-28 |
 | Ingredient Matching | Pipeline + Review-Flow (0016) | älter |
 | Auth / Rollen / Einladungen | Migrationen 0007–0013 | älter |
@@ -76,6 +80,14 @@ Verdrahtet: `page_view` (main.jsx), `fratcher_search` (Fratcher.jsx).
 - **Skalierung:** `modul_menge * hauptrezept_portionen / modul_portionen`; `servings_override` + `scale_factor` als Overrides.
 - **Zirkelreferenz:** rekursive CTE, HTTP 400 mit deutscher Fehlermeldung.
 
+#### Kräuterschule — Roadmap & Design-Entscheidungen
+**Phase 1 (✅ deployed 2026-07-12):** Entität plants (279) + phaenophasen (10), Seed, Read-Endpoints.
+**Phase 2 (nächster Block):** Facetten & Relationen — pflanzen_tags (passt_zu/kombiniert_mit/laenderkueche), pflanzen_relationen (mischkultur_gut/schlecht, ersatz), vokabulare. Reichert Detail an.
+**Phase 3:** Arbeitskalender — Kalender (1744) + Phaenophasen-Join. ⚠️ Jahresübergang (ref_monat_von=12 > bis=1) → kein reines BETWEEN (README §8.1); Phasen als INT.
+**Phase 4:** Recipes-Mapping — Brücken-Tabelle plant_ingredient_map (pflanzen_id ↔ ingredient_id), Exakt-Match zuerst, Fuzzy später (fällt mit matching.py Stage 3 zusammen). Lose Kopplung, kein Merge.
+**UI:** bewusst zurückgestellt bis neues Design steht. Frontend-Route geplant /kraeuterschule (Teaser KrauterCard zeigt aktuell noch auf /seasonal).
+**Kern-Entscheidungen:** (a) Sichtbarkeit über zentrale can_view_*-Funktionen (späteres ABO-Gate an einer Stelle). (b) Erst hinter Login, später öffentlich schaltbar (slug/SEO bereits vorbereitet). (c) Sicherheits-Invariante: warnung/giftige_teile IMMER rendern; redaktion_freigegeben gatet spätere Public-Sichtbarkeit. (d) essbarkeit/warnung sind auto-vorbefüllt → vor Go-public redaktionell freigeben (README §12). (e) Bilder KI-generiert, nach und nach → UI braucht Platzhalter-Fallback.
+
 ---
 
 ## 🔲 Offen — priorisiert
@@ -104,6 +116,7 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 | # | Beschreibung | Status |
 |---|---|---|
 | 21 | Abstand Header→Content fehlt überall — BackButton/Hero kleben an Navbar | geparkt bis Redesign |
+| S1 | Seasonal-Tagging bricht beim Startup — seasonal/matcher.py:43 json.loads(text) mit leerem text (JSONDecodeError). Log-Rauschen, Tags werden für betroffene Rezepte nicht gesetzt. **Nicht patchen — Feature soll komplett neu gedacht werden.** | offen, Rethink |
 
 ### 🟠 Getestet / bestätigt
 | # | Thema | Ergebnis |
@@ -132,7 +145,7 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Orphan-Cleanup (Draft-Rezepte + Fotos in DB/Storage)
 - Dict/Einheiten-Normalisierung (g/gr/Gramm, Tippfehler)
 - Wizard DnD Touch via `@dnd-kit/core` (iPad-Bug bestätigt)
-- Kräuterschule-Seite (kein Design — erst nach Rücksprache)
+- Kräuterschule UI-Seite (Phase 1 Backend deployed; UI wartet auf neues Design) — siehe Roadmap oben
 
 ---
 
