@@ -108,6 +108,8 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 | RecipeForm Wizard Phase 1–3 | RecipeForm.jsx | Grundgerüst / Parser / Autosave+Medien |
 | Fratcher Optik | Fratcher.jsx | Visuelles Polishing |
 
+> ⚠️ Offener Abgleich: Bug-#7-Fix (Desktop-Position Bearbeiten-Button) wurde funktional getestet, aber NICHT optisch gegen design/Detailseite Desktop.dc.html verifiziert. Beim Detailseiten-Redesign mitprüfen.
+
 ### 🟡 GTM / Analytics — nach Redesign
 - **DataLayer-Events granular** (10 offen, s.o.).
 - **CSP-GTM-Tuning** (Caddyfile): `connect-src` um `https://*.google-analytics.com` erweitern (regionale GA4-Endpunkte werden sonst **stumm** geblockt); `frame-src https://www.googletagmanager.com` ergänzen (GTM-Preview + noscript-Iframe). Scope-Notiz: **Consent Mode v2 Pflicht**; **Ads/AdSense** evtl., **Server-Side GTM** später → erweitert `script-src`/`connect-src` weiter. Verifikation nur via GTM-Preview + Netzwerk-Tab (collect-Requests ≠ blocked).
@@ -117,6 +119,7 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 |---|---|---|
 | 21 | Abstand Header→Content fehlt überall — BackButton/Hero kleben an Navbar | geparkt bis Redesign |
 | S1 | Seasonal-Tagging bricht beim Startup — seasonal/matcher.py:43 json.loads(text) mit leerem text (JSONDecodeError). Log-Rauschen, Tags werden für betroffene Rezepte nicht gesetzt. **Nicht patchen — Feature soll komplett neu gedacht werden.** | offen, Rethink |
+| P1 | Privacy `/users/:id` — PublicProfile läuft ohne ProtectedRoute (main.jsx:100, Z.50 nimmt /users/ von Auth-Redirect aus) → öffentliche Profile. **Prüfen:** liefert der Backend-Endpunkt Daten ohne Auth, und ist das gewollt? | offen, verifizieren |
 
 ### 🟠 Getestet / bestätigt
 | # | Thema | Ergebnis |
@@ -146,6 +149,8 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Dict/Einheiten-Normalisierung (g/gr/Gramm, Tippfehler)
 - Wizard DnD Touch via `@dnd-kit/core` (iPad-Bug bestätigt)
 - Kräuterschule UI-Seite (Phase 1 Backend deployed; UI wartet auf neues Design) — siehe Roadmap oben
+- AI-Zutaten-Matching Stage 3 (LLM-Fallback) — matching.py:100–102 nur Platzhalter; Stage 1 (exakt) + Stage 2 (rapidfuzz) aktiv, LLM-Matching für paraphrasierte Zutaten offen. Fällt mit Kräuterschule Phase 4 (Recipes-Mapping Fuzzy) zusammen.
+- Toter Code entfernen — recipes/router.py: "# TODO: deprecated, replaced by matching.py" (Cleanup).
 
 ---
 
