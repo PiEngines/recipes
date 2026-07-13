@@ -1,0 +1,7 @@
+aktion,slug,zutat
+# Kuratierte Korrekturen zum abgeleiteten Exakt-Match (Phase 4).
+# Spalten: aktion=add|remove , slug=Pflanzen-slug , zutat=Zutatenname (wird normalisiert+synonym-expandiert).
+# Nur Zeilen mit aktion 'add' oder 'remove' werden angewendet; alles andere (inkl. dieser Zeilen) wird ignoriert.
+# Beispiel-Syntax (inert, Praefix 'bsp-' => wird uebersprungen, kein Log-Rauschen):
+bsp-add,koriander,Koriandersamen
+bsp-remove,petersilie,Antipasti

@@ -13,6 +13,8 @@ from app.config import settings
 from app.favorites.router import router as favorites_router
 from app.media.router import router as media_router
 from app.modules.router import router as modules_router
+from app.plants.ingredient_map_router import router as plant_ingredient_map_router
+from app.plants.ingredient_map_seed import seed_plant_ingredient_map
 from app.plants.router import router as plants_router
 from app.plants.seed import seed_plant_data
 from app.recipes.access_router import router as access_router
@@ -211,6 +213,10 @@ async def lifespan(app: FastAPI):
     if plants_table_empty:
         seed_plant_data()
 
+    # Kräuterschule Phase 4: Brücke Pflanze<->Zutat (Full-Reload, idempotent).
+    # Läuft nach dem Plant-Seed und unabhängig davon, ob Pflanzen neu geseedet wurden.
+    seed_plant_ingredient_map()
+
     await _seed_disposable_domains()
 
     scheduler = AsyncIOScheduler()
@@ -266,6 +272,7 @@ app.include_router(seasonal_router)
 app.include_router(users_router)
 app.include_router(admin_router)
 app.include_router(plants_router)
+app.include_router(plant_ingredient_map_router)
 
 
 @app.get("/api/health")
