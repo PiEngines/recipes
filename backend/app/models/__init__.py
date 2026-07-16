@@ -16,6 +16,7 @@ from app.models.recipe import (
 )
 from app.models.media import Media
 from app.models.phaenophase import Phaenophase
+from app.models.rating import Rating
 from app.models.plant import (
     AnbauTyp,
     Essbarkeit,
@@ -62,6 +63,7 @@ __all__ = [
     "DisposableEmailDomain",
     "UserFavorite",
     "StepUnmatchedSuggestion",
+    "Rating",
     "Plant",
     "PlantTag",
     "PlantRelation",
