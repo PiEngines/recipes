@@ -25,6 +25,7 @@ from app.seasonal.matcher import run_seasonal_matching
 from app.seasonal.router import router as seasonal_router
 from app.seed import seed_admin, seed_garbage_collector
 from app.tags.router import router as tags_router
+from app.taxonomy.router import router as taxonomy_router
 from app.users.router import admin_router, router as users_router
 
 logger = logging.getLogger(__name__)
@@ -268,6 +269,7 @@ app.include_router(versions_router)
 app.include_router(access_router)
 app.include_router(categories_router)
 app.include_router(tags_router)
+app.include_router(taxonomy_router)
 app.include_router(media_router)
 app.include_router(favorites_router)
 app.include_router(seasonal_router)
