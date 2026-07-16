@@ -301,6 +301,9 @@ class PaginatedRecipes(BaseModel):
     page: int
     page_size: int
     pages: int
+    # Faceted counts: je Facette wird der eigene Filter weggelassen, alle
+    # anderen aktiven Facetten angewandt. Keys sind JSON-Strings (id/value/level).
+    facets: dict[str, dict[str, int]] = {}
 
 
 # ── Serve With ────────────────────────────────────────────────────────────────

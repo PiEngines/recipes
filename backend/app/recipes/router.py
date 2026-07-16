@@ -302,24 +302,6 @@ def list_recipes(
         elif len(enum_values) > 1:
             q = q.filter(Recipe.type.in_(enum_values))
 
-    if category:
-        q = q.filter(Recipe.categories.any(Category.id.in_(category)))
-
-    if tag:
-        q = q.filter(Recipe.tags.any(Tag.id.in_(tag)))
-
-    if diet:
-        q = q.filter(Recipe.diet_labels.any(DietLabel.id.in_(diet)))
-
-    if course:
-        q = q.filter(Recipe.course.in_(course))
-
-    if difficulty:
-        q = q.filter(Recipe.difficulty.in_(difficulty))
-
-    if allergen_exclude:
-        q = q.filter(~Recipe.allergens.any(Allergen.id.in_(allergen_exclude)))
-
     if max_time is not None:
         q = q.filter(
             (func.coalesce(Recipe.prep_time, 0) + func.coalesce(Recipe.cook_time, 0)) <= max_time
@@ -344,6 +326,29 @@ def list_recipes(
         q = q.join(User, Recipe.created_by == User.id).filter(
             User.username.ilike(term) | User.email.ilike(term)
         )
+
+    # ── Facetten: Basis (Sichtbarkeit + type + search + author + max_time) plus
+    # diskrete Facetten einzeln zuschaltbar. OR innerhalb einer Facette (.in_),
+    # AND über Facetten. Für Facet-Counts wird die EIGENE Facette weggelassen,
+    # die Siblings bleiben angewandt (faceted counts / Zero-Result-Diagnose).
+    base_q = q
+
+    discrete_facets = {
+        "category": (bool(category), lambda qq: qq.filter(Recipe.categories.any(Category.id.in_(category)))),
+        "tag": (bool(tag), lambda qq: qq.filter(Recipe.tags.any(Tag.id.in_(tag)))),
+        "diet": (bool(diet), lambda qq: qq.filter(Recipe.diet_labels.any(DietLabel.id.in_(diet)))),
+        "course": (bool(course), lambda qq: qq.filter(Recipe.course.in_(course))),
+        "difficulty": (bool(difficulty), lambda qq: qq.filter(Recipe.difficulty.in_(difficulty))),
+        "allergen_exclude": (bool(allergen_exclude), lambda qq: qq.filter(~Recipe.allergens.any(Allergen.id.in_(allergen_exclude)))),
+    }
+
+    def apply_facets(qq, exclude=None):
+        for name, (active, fn) in discrete_facets.items():
+            if active and name != exclude:
+                qq = fn(qq)
+        return qq
+
+    q = apply_facets(base_q)
 
     _time = func.coalesce(Recipe.prep_time, 0) + func.coalesce(Recipe.cook_time, 0)
     sort_columns = {
@@ -382,12 +387,35 @@ def list_recipes(
     _attach_primary_images(items, db)
     _attach_ratings(items, db)
 
+    # ── Faceted counts (diet/course/difficulty/category) ──
+    # tag/allergen_exclude bewusst ohne Counts (Scope schlank; offener Punkt).
+    def _facet_count(exclude, dimension, join_rel=None, not_null_col=None):
+        cq = apply_facets(base_q, exclude=exclude)
+        if join_rel is not None:
+            cq = cq.join(join_rel)
+        if not_null_col is not None:
+            cq = cq.filter(not_null_col.isnot(None))
+        rows = (
+            cq.with_entities(dimension, func.count(func.distinct(Recipe.id)))
+            .group_by(dimension)
+            .all()
+        )
+        return {str(k): v for k, v in rows if k is not None}
+
+    facets = {
+        "diet": _facet_count("diet", DietLabel.id, join_rel=Recipe.diet_labels),
+        "course": _facet_count("course", Recipe.course, not_null_col=Recipe.course),
+        "difficulty": _facet_count("difficulty", Recipe.difficulty, not_null_col=Recipe.difficulty),
+        "category": _facet_count("category", Category.id, join_rel=Recipe.categories),
+    }
+
     return PaginatedRecipes(
         items=items,
         total=total,
         page=page,
         page_size=page_size,
         pages=max(1, (total + page_size - 1) // page_size),
+        facets=facets,
     )
 
 
