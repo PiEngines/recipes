@@ -16,7 +16,7 @@ from app.auth.dependencies import (
 )
 from app.database import get_db
 from app.matching import step_scanner
-from app.models import Category, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
+from app.models import Allergen, Category, DietLabel, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
 from app.models.recipe import RecipeType
 from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
@@ -181,8 +181,13 @@ def _attach_primary_images(items, db):
 def list_recipes(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    category: int | None = Query(None),
-    tag: int | None = Query(None),
+    category: list[int] = Query([]),
+    tag: list[int] = Query([]),
+    diet: list[int] = Query([]),
+    course: list[str] = Query([]),
+    difficulty: list[int] = Query([]),
+    allergen_exclude: list[int] = Query([]),
+    max_time: int | None = Query(None),
     search: str | None = Query(None),
     search_scope: str = Query("title"),
     author_id: int | None = Query(None),
@@ -280,11 +285,28 @@ def list_recipes(
         elif len(enum_values) > 1:
             q = q.filter(Recipe.type.in_(enum_values))
 
-    if category is not None:
-        q = q.filter(Recipe.categories.any(Category.id == category))
+    if category:
+        q = q.filter(Recipe.categories.any(Category.id.in_(category)))
 
-    if tag is not None:
-        q = q.filter(Recipe.tags.any(Tag.id == tag))
+    if tag:
+        q = q.filter(Recipe.tags.any(Tag.id.in_(tag)))
+
+    if diet:
+        q = q.filter(Recipe.diet_labels.any(DietLabel.id.in_(diet)))
+
+    if course:
+        q = q.filter(Recipe.course.in_(course))
+
+    if difficulty:
+        q = q.filter(Recipe.difficulty.in_(difficulty))
+
+    if allergen_exclude:
+        q = q.filter(~Recipe.allergens.any(Allergen.id.in_(allergen_exclude)))
+
+    if max_time is not None:
+        q = q.filter(
+            (func.coalesce(Recipe.prep_time, 0) + func.coalesce(Recipe.cook_time, 0)) <= max_time
+        )
 
     if search:
         term = f"%{search}%"
@@ -306,9 +328,12 @@ def list_recipes(
             User.username.ilike(term) | User.email.ilike(term)
         )
 
+    _time = func.coalesce(Recipe.prep_time, 0) + func.coalesce(Recipe.cook_time, 0)
     sort_columns = {
         "newest": Recipe.created_at.desc(),
         "oldest": Recipe.created_at.asc(),
+        "time_asc": _time.asc(),
+        "time_desc": _time.desc(),
     }
     if sort not in sort_columns:
         raise HTTPException(
