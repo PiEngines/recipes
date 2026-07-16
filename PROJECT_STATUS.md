@@ -11,7 +11,7 @@
 - **Infra:** Docker Compose, Caddy, Raspberry Pi 5, Cloudflare Tunnel
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
-- **Migrationsstand:** Alembic-Head **0030** (`0030_add_ratings.py`)
+- **Migrationsstand:** Alembic-Head **0031** (`0031_drop_recipe_images.py`)
 
 ## Rollen-Modell (korrekt, verifiziert user.py)
 Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` — plus `admin` als Sonderrolle.
@@ -104,7 +104,8 @@ Verifikations-Trail mit Commits: siehe `DECISIONS.md`.
 - **D1 Recipes + Option-Endpoints (erledigt):** `Recipes.jsx` gegen C1 (Sidebar/Sheet/Chips/Server-Sort, kanonische Card, N+1 raus); `/api/diet-labels|allergens|courses`.
 - **D2 Rating-Sterne FE (erledigt):** `RatingStars.jsx` + Rating-Widget auf Detail; read-only ★ auf Karten.
 - **C3 Facet-Counts (erledigt):** `list_recipes` liefert `facets` (diet/course/difficulty/category) mit faceted-Semantik (Siblings angewandt, eigene Facette weggelassen); `Recipes.jsx` zeigt Counts je Option, dämpft 0-Optionen, neue Schwierigkeits-Gruppe → **Zero-Result-Diagnose freigeschaltet**. `tag`/`allergen_exclude` noch ohne Counts.
-- **K1 Kategorien + Favorites-Cleanup (erledigt):** Übersichtsseite `/categories` (Gradient-Kacheln, `recipe_count`, Klick → `?category=`) + Nav-Einstieg (Home-Teaser, BottomNav-„Mehr"); Kategorie-Filtergruppe in Recipes (`facets.category`); Favorites auf kanonische `RecipeCard` (+ `dimmed`) + serverseitiges `primary_image`/Rating (N+1 raus), Legacy-`RecipeCard` entfernt. **Offen bleibt nur** die tote `recipe_images`-Tabelle.
+- **K1 Kategorien + Favorites-Cleanup (erledigt):** Übersichtsseite `/categories` (Gradient-Kacheln, `recipe_count`, Klick → `?category=`) + Nav-Einstieg (Home-Teaser, BottomNav-„Mehr"); Kategorie-Filtergruppe in Recipes (`facets.category`); Favorites auf kanonische `RecipeCard` (+ `dimmed`) + serverseitiges `primary_image`/Rating (N+1 raus), Legacy-`RecipeCard` entfernt.
+- **Cleanup `recipe_images` (erledigt, Migration 0031):** totes Model/Relationship/Schema (`RecipeResponse.images`) + Löschschleifen entfernt; Detail-Response ohne `images`-Feld (FE nutzt `media`). `recipe_videos` bewusst unberührt. → **Redesign-/Cleanup-Bogen abgeschlossen.**
 
 ## 🔲 Offen — priorisiert
 
@@ -171,7 +172,7 @@ Kanonische Grid-Karte `components/RecipeCard.jsx` gebaut; Home + Recipes-Grid nu
 - Sammel-Cleanup (konsolidiert, nach Michaels Wunsch in einem Durchgang): Root-Artefakte `0006,` / `0007,` / `0008,` (0-Byte, git rm — **erledigt** in Phase-A-Cleanup); toter Code recipes/router.py (# TODO deprecated).
 
 #### Phase-A.1-Nachträge (aus primary_image-Korrektur)
-- **[Legacy-Cleanup]** `recipe_images`-Tabelle + `RecipeImage`-Model + `RecipeResponse.images` sind tot (nichts schreibt sie; Frontend nutzt `media`). Eigenes Ticket: entweder entfernen (Migration) oder bewusst als Reserve dokumentieren. **Nicht** im Autopilot — berührt die Detail-Response-Form.
+- ~~**[Legacy-Cleanup]** `recipe_images`-Tabelle + `RecipeImage`-Model + `RecipeResponse.images`~~ → **erledigt** (`37ffe80`, Migration `0031`): vollständig entfernt; Detail-Response ohne `images`-Feld. `recipe_videos` bleibt (separate Frage).
 - **Folge fürs Frontend:** Home lässt die per-Rezept `/api/media/entity/recipe/{id}`-Aufrufe + die `*Imgs`-State-Maps fallen und nutzt `recipe.primary_image` → N+1 raus. **Erledigt in B1b** (`e0ae05e`).
 
 #### Phase-B1b-Nachträge (aus Home-Reskin)
