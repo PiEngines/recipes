@@ -40,6 +40,13 @@ const ZEIT_OPTS = [
   { value: 30, label: 'Bis 30 Min.' },
   { value: 60, label: 'Bis 60 Min.' },
 ]
+const DIFFICULTY_OPTS = [
+  { value: 1, label: 'Sehr einfach' },
+  { value: 2, label: 'Einfach' },
+  { value: 3, label: 'Mittel' },
+  { value: 4, label: 'Schwer' },
+  { value: 5, label: 'Sehr schwer' },
+]
 
 const DIFF_LABELS = { 1: 'Sehr einfach', 2: 'Einfach', 3: 'Mittel', 4: 'Schwer', 5: 'Sehr schwer' }
 
@@ -158,6 +165,7 @@ function EmptyState({ search, hasActiveFilters, onClearFilters }) {
       </p>
       {hasActiveFilters && (
         <p style={{ margin: '1rem 0 0', fontSize: '0.875rem' }}>
+          Einzelne Filter oben per ✕ entfernen — gedämpfte Optionen (0) grenzen zu stark ein.{' '}
           <button onClick={onClearFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'underline', padding: 0 }}>
             Alle Filter zurücksetzen
           </button>
@@ -227,21 +235,25 @@ function AuthorFilterChip({ author, onClear }) {
 
 // ── Filter panel (shared: desktop sidebar + mobile sheet) ─────────────────────
 
-function FilterPill({ active, onClick, children }) {
+function FilterPill({ active, count, onClick, children }) {
+  // count === undefined → keine Zähl-Anzeige (nicht-zählbare Facette).
+  const disabled = count === 0 && !active
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
       aria-pressed={active}
+      disabled={disabled}
       style={{
-        cursor: 'pointer', fontSize: 13, fontWeight: 500, fontFamily: 'Inter, sans-serif',
+        cursor: disabled ? 'default' : 'pointer', fontSize: 13, fontWeight: 500, fontFamily: 'Inter, sans-serif',
         borderRadius: 'var(--radius-pill)', padding: '7px 13px',
         border: `1px solid ${active ? 'rgba(200,96,42,.35)' : 'var(--border-input)'}`,
         background: active ? 'rgba(200,96,42,.10)' : 'transparent',
         color: active ? 'var(--accent)' : 'var(--text)',
+        opacity: disabled ? 0.4 : 1,
         transition: 'var(--transition)',
       }}
     >
-      {children}
+      {children}{count !== undefined && <span style={{ opacity: 0.65, marginLeft: 5 }}>({count})</span>}
     </button>
   )
 }
@@ -257,7 +269,7 @@ function FilterPanel({ groups }) {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {g.opts.map(o => (
-                <FilterPill key={o.key} active={o.active} onClick={o.toggle}>{o.label}</FilterPill>
+                <FilterPill key={o.key} active={o.active} count={o.count} onClick={o.toggle}>{o.label}</FilterPill>
               ))}
             </div>
           </div>
@@ -286,6 +298,7 @@ export default function Recipes() {
   const typeFilters = new Set((searchParams.get('type') || '').split(',').filter(Boolean))
   const dietFilters = new Set((searchParams.get('diet') || '').split(',').filter(Boolean))
   const courseFilters = new Set((searchParams.get('course') || '').split(',').filter(Boolean))
+  const difficultyFilters = new Set((searchParams.get('difficulty') || '').split(',').filter(Boolean))
   const categoryFilters = new Set((searchParams.get('category') || '').split(',').filter(Boolean))
   const maxTimeFilter = parseInt(searchParams.get('max_time') || '0', 10)
   const sort = searchParams.get('sort') || 'default'
@@ -294,6 +307,7 @@ export default function Recipes() {
   const typeKey = searchParams.get('type') || ''
   const dietKey = searchParams.get('diet') || ''
   const courseKey = searchParams.get('course') || ''
+  const difficultyKey = searchParams.get('difficulty') || ''
   const categoryKey = searchParams.get('category') || ''
 
   const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
@@ -302,6 +316,7 @@ export default function Recipes() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [total, setTotal] = useState(0)
+  const [facets, setFacets] = useState({})           // {diet:{id:count}, course:{value:count}, difficulty:{level:count}, category:{id:count}}
   const [dietOpts, setDietOpts] = useState([])       // [{ id, name }]
   const [courseOpts, setCourseOpts] = useState([])   // [string]
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -330,6 +345,7 @@ export default function Recipes() {
       const start = (page - 1) * PAGE_SIZE
       setRecipes(list.slice(start, start + PAGE_SIZE))
       setTotal(list.length)
+      setFacets({}) // Favoriten sind client-seitig → keine Server-Facetten
       setLoading(false)
       return
     }
@@ -345,6 +361,7 @@ export default function Recipes() {
     else if (typeFilters.size > 1) params.type = [...typeFilters].sort().join(',')
     if (dietFilters.size) params.diet = [...dietFilters]
     if (courseFilters.size) params.course = [...courseFilters]
+    if (difficultyFilters.size) params.difficulty = [...difficultyFilters]
     if (categoryFilters.size) params.category = [...categoryFilters]
     if (maxTimeFilter) params.max_time = maxTimeFilter
     if (SERVER_SORTS.has(sort)) params.sort = sort
@@ -353,6 +370,7 @@ export default function Recipes() {
       .then(res => {
         setRecipes(res.data.items)
         setTotal(res.data.total)
+        setFacets(res.data.facets || {})
         // Scroll-Restore nach Rückkehr aus dem Detail
         const savedY = sessionStorage.getItem('recipes_scroll_y')
         const savedH = sessionStorage.getItem('recipes_scroll_height')
@@ -367,7 +385,7 @@ export default function Recipes() {
       .catch(() => setError(true))
       .finally(() => setLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, categoryKey, maxTimeFilter, sort, reloadNonce])
+  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -426,7 +444,7 @@ export default function Recipes() {
 
   const clearAllFilters = () => setSearchParams(prev => {
     const next = new URLSearchParams(prev)
-    for (const k of ['type', 'diet', 'course', 'max_time', 'category', 'page']) next.delete(k)
+    for (const k of ['type', 'diet', 'course', 'difficulty', 'max_time', 'category', 'page']) next.delete(k)
     return next
   }, { replace: true })
 
@@ -438,7 +456,11 @@ export default function Recipes() {
     return p
   }, { replace: true })
 
+  // Facet-Count-Lookup (fehlende Optionen → 0; das ist die Zero-Result-Diagnose).
+  const facetCount = (dim, key) => facets?.[dim]?.[String(key)] ?? 0
+
   // Filtergruppen für Sidebar + Sheet
+  // Zählbare Facetten (diet/course/difficulty) tragen `count`; type/Zeit nicht.
   const groups = [
     {
       label: 'Art',
@@ -446,11 +468,15 @@ export default function Recipes() {
     },
     {
       label: 'Ernährung',
-      opts: dietOpts.map(d => ({ key: 'diet-' + d.id, label: d.name, active: dietFilters.has(String(d.id)), toggle: () => toggleMulti('diet', String(d.id)) })),
+      opts: dietOpts.map(d => ({ key: 'diet-' + d.id, label: d.name, active: dietFilters.has(String(d.id)), count: facetCount('diet', d.id), toggle: () => toggleMulti('diet', String(d.id)) })),
     },
     {
       label: 'Gang',
-      opts: courseOpts.map(c => ({ key: 'course-' + c, label: c, active: courseFilters.has(c), toggle: () => toggleMulti('course', c) })),
+      opts: courseOpts.map(c => ({ key: 'course-' + c, label: c, active: courseFilters.has(c), count: facetCount('course', c), toggle: () => toggleMulti('course', c) })),
+    },
+    {
+      label: 'Schwierigkeit',
+      opts: DIFFICULTY_OPTS.map(o => ({ key: 'diff-' + o.value, label: o.label, active: difficultyFilters.has(String(o.value)), count: facetCount('difficulty', o.value), toggle: () => toggleMulti('difficulty', String(o.value)) })),
     },
     {
       label: 'Zeitaufwand',
@@ -463,10 +489,11 @@ export default function Recipes() {
     ...[...typeFilters].map(t => ({ key: 'type-' + t, label: t === 'kochen' ? 'Kochen' : 'Backen', remove: () => toggleTypeFilter(t) })),
     ...[...dietFilters].map(id => ({ key: 'diet-' + id, label: dietOpts.find(d => String(d.id) === id)?.name || 'Ernährung', remove: () => toggleMulti('diet', id) })),
     ...[...courseFilters].map(c => ({ key: 'course-' + c, label: c, remove: () => toggleMulti('course', c) })),
+    ...[...difficultyFilters].map(v => ({ key: 'diff-' + v, label: DIFFICULTY_OPTS.find(o => String(o.value) === v)?.label || `Stufe ${v}`, remove: () => toggleMulti('difficulty', v) })),
     ...(maxTimeFilter ? [{ key: 'time', label: `Bis ${maxTimeFilter} Min.`, remove: () => toggleTimeFilter(maxTimeFilter) }] : []),
     ...[...categoryFilters].map(id => ({ key: 'cat-' + id, label: 'Kategorie', remove: () => toggleMulti('category', id) })),
   ]
-  const activeFilterCount = typeFilters.size + dietFilters.size + courseFilters.size + categoryFilters.size + (maxTimeFilter ? 1 : 0)
+  const activeFilterCount = typeFilters.size + dietFilters.size + courseFilters.size + difficultyFilters.size + categoryFilters.size + (maxTimeFilter ? 1 : 0)
 
   const openDetail = (r) => {
     sessionStorage.setItem('recipes_scroll_y', window.scrollY)
