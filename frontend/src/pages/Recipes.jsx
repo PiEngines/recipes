@@ -1,26 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
-import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
-import FavoriteHeart from '../components/FavoriteHeart'
-import AuthorLink from '../components/AuthorLink'
-import CanonicalRecipeCard from '../components/RecipeCard'
+import { isKochOrAbove } from '../utils/roles'
+import RecipeCard from '../components/RecipeCard'
 import BackButton from '../components/BackButton'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 12
-
-const CARD_GRADIENTS = [
-  'linear-gradient(135deg, #C8602A 0%, #E8A07A 100%)',
-  'linear-gradient(135deg, #6B7C4E 0%, #9DB06F 100%)',
-  'linear-gradient(135deg, #8B6914 0%, #C8A84B 100%)',
-  'linear-gradient(135deg, #8B4513 0%, #C47A45 100%)',
-  'linear-gradient(135deg, #C4A55A 0%, #E0C870 100%)',
-]
 
 // Sort-Dropdown → Server-`sort` (Client-Sort entfällt; Reihenfolge kommt vom Server).
 const SORT_OPTIONS = [
@@ -47,93 +37,6 @@ const DIFFICULTY_OPTS = [
   { value: 4, label: 'Schwer' },
   { value: 5, label: 'Sehr schwer' },
 ]
-
-const DIFF_LABELS = { 1: 'Sehr einfach', 2: 'Einfach', 3: 'Mittel', 4: 'Schwer', 5: 'Sehr schwer' }
-
-// ── Legacy card (weiterhin von Favorites.jsx importiert — Signatur bewahren) ──
-
-export function RecipeCard({ recipe, primaryImage, dimmed }) {
-  const { user } = useAuth()
-  const gradient = CARD_GRADIENTS[recipe.id % CARD_GRADIENTS.length]
-  const isPendingReview = recipe.review_status === 'pending'
-  const blockClick = isPendingReview && !isChefkochOrAbove(user) && user?.id !== recipe.created_by
-
-  const pendingBadge = isPendingReview && (
-    <span style={{ position: 'absolute', top: '0.625rem', right: '0.625rem', padding: '0.2rem 0.55rem', background: 'rgba(200,160,32,0.9)', color: '#5a4400', borderRadius: 'var(--radius-pill)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.02em', zIndex: 2 }}>
-      Wird geprüft
-    </span>
-  )
-
-  const titleSpan = (
-    <span style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 600, textShadow: '0 1px 6px rgba(0,0,0,0.45)', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-      {recipe.title}
-    </span>
-  )
-
-  const isBlurThumb = recipe.thumbnail_style === 'blur'
-
-  const topArea = primaryImage ? (
-    <div style={{ height: '180px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: isBlurThumb ? 'var(--card)' : undefined }}>
-      <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${primaryImage.thumbnail_url || primaryImage.url})`, backgroundSize: isBlurThumb ? 'contain' : 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', transition: 'transform 0.3s ease' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.52) 0%, transparent 58%)' }} />
-      {pendingBadge}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.875rem 1rem' }}>{titleSpan}</div>
-    </div>
-  ) : (
-    <div style={{ background: gradient, height: '180px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.875rem 1rem', position: 'relative' }}>
-      {pendingBadge}
-      {titleSpan}
-    </div>
-  )
-
-  return (
-    <Link
-      to={`/recipes/${recipe.id}`}
-      style={{ textDecoration: 'none', display: 'block', color: 'inherit', height: '100%', opacity: dimmed ? 0.4 : isPendingReview ? 0.65 : 1, pointerEvents: dimmed ? 'none' : blockClick ? 'none' : 'auto' }}
-      tabIndex={dimmed || blockClick ? -1 : 0}
-    >
-      <div className="recipe-card" style={{ height: '100%', minHeight: '280px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-        {topArea}
-        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.625rem', position: 'relative', background: 'rgba(255,255,255,0.88)' }}>
-          <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={20} outline={false} style={{ position: 'absolute', top: '0.6rem', right: '0.6rem', zIndex: 3, pointerEvents: 'auto' }} />
-          <div style={{ flex: 1 }}>
-            {recipe.description ? (
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', paddingRight: '2rem' }}>
-                {recipe.description}
-              </p>
-            ) : (
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--border-input)' }}>&nbsp;</p>
-            )}
-            {recipe.author && (
-              <p style={{ margin: '0.375rem 0 0', fontSize: '0.75rem', color: 'var(--subtext)' }}>
-                von <AuthorLink author={recipe.author} style={{ fontSize: '0.75rem' }} />
-              </p>
-            )}
-          </div>
-          <div>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.625rem' }}>
-              {(recipe.prep_time || recipe.cook_time) && (
-                <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(200,96,42,0.1)', color: 'var(--accent)', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                  ⏱ {recipe.prep_time && recipe.cook_time
-                    ? `${recipe.prep_time} + ${recipe.cook_time} Min.`
-                    : `${recipe.prep_time || recipe.cook_time} Min.`}
-                </span>
-              )}
-              <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                {recipe.type === 'backen' ? 'Backen' : 'Kochen'}
-              </span>
-            </div>
-            {recipe.difficulty && (
-              <span style={{ padding: '0.2rem 0.55rem', background: 'rgba(107,124,78,0.12)', color: '#6B7C4E', borderRadius: 'var(--radius-pill)', fontSize: '0.72rem', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                {DIFF_LABELS[recipe.difficulty] ?? `Stufe ${recipe.difficulty}`}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
 
 export function SkeletonCard() {
   return (
@@ -513,7 +416,7 @@ export default function Recipes() {
         ? <DeletedFavoriteCard key={r.id} recipe={r} />
         : (
           <div key={r.id} style={{ opacity: showFavorites && !favoriteIds.has(r.id) ? 0.4 : 1, pointerEvents: showFavorites && !favoriteIds.has(r.id) ? 'none' : 'auto' }}>
-            <CanonicalRecipeCard recipe={r} onClick={() => openDetail(r)} />
+            <RecipeCard recipe={r} onClick={() => openDetail(r)} />
           </div>
         )
       )}

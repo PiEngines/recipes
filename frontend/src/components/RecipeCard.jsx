@@ -20,7 +20,7 @@ function formatTime(recipe) {
   return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
 }
 
-export default function RecipeCard({ recipe, onClick }) {
+export default function RecipeCard({ recipe, onClick, dimmed = false }) {
   if (!recipe) return null
   const img = recipe.primary_image || null
   const time = formatTime(recipe)
@@ -42,6 +42,8 @@ export default function RecipeCard({ recipe, onClick }) {
         boxShadow: 'var(--shadow)',
         transition: 'var(--transition)',
         cursor: onClick ? 'pointer' : 'default',
+        opacity: dimmed ? 0.4 : 1,
+        pointerEvents: dimmed ? 'none' : undefined,
       }}
     >
       <div style={{ position: 'relative', aspectRatio: '4 / 3', background: img ? undefined : gradientFor(recipe.id) }}>

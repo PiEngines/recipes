@@ -69,4 +69,10 @@ def list_favorites(
         .all()
     )
     by_id = {r.id: r for r in recipes}
-    return [by_id[rid] for rid in recipe_ids if rid in by_id]
+    ordered = [by_id[rid] for rid in recipe_ids if rid in by_id]
+
+    # Primärbild + Rating serverseitig anreichern (eine Quelle: recipes/router).
+    from app.recipes.router import _attach_primary_images, _attach_ratings
+    _attach_primary_images(ordered, db)
+    _attach_ratings(ordered, db)
+    return ordered
