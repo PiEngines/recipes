@@ -211,6 +211,22 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Kategorien-Einstieg */}
+      <div style={{ paddingBottom: 32 }}>
+        <div
+          onClick={() => navigate('/categories')}
+          data-track-id="home-categories-teaser-click"
+          style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', cursor: 'pointer', boxShadow: 'var(--shadow)' }}
+        >
+          <i className="ti ti-category" style={{ fontSize: 22, color: 'var(--accent)', flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Nach Kategorie stöbern</div>
+            <div style={{ fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Alle Kategorien auf einen Blick</div>
+          </div>
+          <i className="ti ti-arrow-right" style={{ fontSize: 16, color: 'var(--subtext)', flexShrink: 0 }} />
+        </div>
+      </div>
+
       {/* Neue Rezepte */}
       <section style={{ paddingBottom: 28 }} aria-label="Neue Rezepte">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
