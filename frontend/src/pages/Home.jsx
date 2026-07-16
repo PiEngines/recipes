@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import FavoriteHeart from '../components/FavoriteHeart'
-import FeedCard from '../components/FeedCard'
+import RecipeCard from '../components/RecipeCard'
 
 const CARD_GRADIENTS = [
   'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
@@ -26,34 +26,10 @@ function getGreeting() {
   return 'Hallo'
 }
 
-function fmtTime(r) {
-  const t = (r?.prep_time || 0) + (r?.cook_time || 0)
-  if (!t) return null
-  return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
-}
-
-function imgSrc(img) {
-  return img?.thumbnail_url || img?.url || null
-}
-
-function loadPrimaryImages(items, setImages) {
-  return Promise.all(
-    items.map(r =>
-      client.get(`/api/media/entity/recipe/${r.id}`)
-        .then(({ data }) => ({ id: r.id, primary: data.find(m => m.is_primary && m.media_type === 'image') ?? null }))
-        .catch(() => ({ id: r.id, primary: null }))
-    )
-  ).then(results => {
-    const map = {}
-    results.forEach(({ id, primary }) => { map[id] = primary })
-    setImages(prev => ({ ...prev, ...map }))
-  })
-}
-
 // ── HeuteCard ────────────────────────────────────────────────────────────────
 
-function HeuteCard({ recipe, image, label, labelIcon, onClick, trackId, height, fullWidth }) {
-  const src = imgSrc(image)
+function HeuteCard({ recipe, label, labelIcon, onClick, trackId, height, fullWidth }) {
+  const src = recipe?.primary_image || null
   return (
     <div
       onClick={onClick}
@@ -100,31 +76,6 @@ function KrauterCard({ height, onClick, fullWidth }) {
   )
 }
 
-// ── MiniCard ─────────────────────────────────────────────────────────────────
-
-function MiniCard({ recipe, image, onClick }) {
-  const src = imgSrc(image)
-  const t = fmtTime(recipe)
-  return (
-    <div onClick={onClick} data-track-id="home-neue-card-click"
-      style={{ width: 140, flexShrink: 0, background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-      <div style={{ height: 100, position: 'relative', overflow: 'hidden', background: src ? undefined : cardGradient(recipe) }}>
-        {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
-        <FavoriteHeart recipeId={recipe.id} recipe={recipe} size={13} outline={false}
-          style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />
-      </div>
-      <div style={{ padding: '9px 11px 11px' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', margin: '0 0 5px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.title}</p>
-        {t && (
-          <div style={{ display: 'inline-flex', background: '#F5F2EE', borderRadius: 999, padding: '2px 8px' }}>
-            <span style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>{t}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Home ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -132,11 +83,8 @@ export default function Home() {
   const { user } = useAuth()
 
   const [carouselRecipes, setCarouselRecipes] = useState([null, null])
-  const [carouselImgs, setCarouselImgs] = useState({})
   const [neue, setNeue] = useState([])
-  const [neueImgs, setNeueImgs] = useState({})
   const [feed, setFeed] = useState([])
-  const [feedImgs, setFeedImgs] = useState({})
   const [feedLoading, setFeedLoading] = useState(false)
   const feedState = useRef({ page: 1, loading: false, done: false })
   const sentinelRef = useRef(null)
@@ -153,8 +101,6 @@ export default function Home() {
       setCarouselRecipes([seasonal ?? null, newestItem])
       const neueItems = neueRes.data || []
       setNeue(neueItems)
-      loadPrimaryImages([seasonal, newestItem].filter(Boolean), setCarouselImgs)
-      loadPrimaryImages(neueItems, setNeueImgs)
     })
   }, [])
 
@@ -169,7 +115,6 @@ export default function Home() {
         if (items.length < 6) st.done = true
         st.page += 1
         setFeed(prev => [...prev, ...items])
-        loadPrimaryImages(items, setFeedImgs)
       })
       .catch(() => {})
       .finally(() => { st.loading = false; setFeedLoading(false) })
@@ -209,17 +154,17 @@ export default function Home() {
           Heute für dich
         </p>
         <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-          <HeuteCard recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={178}
+          <HeuteCard recipe={seasonal} label="Saisonal" labelIcon="🌿" height={178}
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
-          <HeuteCard recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={178}
+          <HeuteCard recipe={newest} label="Neu diese Woche" labelIcon="✦" height={178}
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
         <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
-          <HeuteCard fullWidth recipe={seasonal} image={carouselImgs[seasonal?.id]} label="Saisonal" labelIcon="🌿" height={204}
+          <HeuteCard fullWidth recipe={seasonal} label="Saisonal" labelIcon="🌿" height={204}
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard fullWidth height={204} onClick={() => navigate('/seasonal')} />
-          <HeuteCard fullWidth recipe={newest} image={carouselImgs[newest?.id]} label="Neu diese Woche" labelIcon="✦" height={204}
+          <HeuteCard fullWidth recipe={newest} label="Neu diese Woche" labelIcon="✦" height={204}
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
       </section>
@@ -281,7 +226,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
           {neue.map(r => (
-            <FeedCard key={r.id} recipe={r} image={neueImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+            <RecipeCard key={r.id} recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
       </section>
@@ -293,7 +238,7 @@ export default function Home() {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
           {feed.map(r => (
-            <FeedCard key={r.id} recipe={r} image={feedImgs[r.id]} onClick={() => navigate(`/recipes/${r.id}`)} />
+            <RecipeCard key={r.id} recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
           ))}
         </div>
         {feedLoading && (
