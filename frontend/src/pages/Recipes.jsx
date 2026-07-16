@@ -319,6 +319,7 @@ export default function Recipes() {
   const [facets, setFacets] = useState({})           // {diet:{id:count}, course:{value:count}, difficulty:{level:count}, category:{id:count}}
   const [dietOpts, setDietOpts] = useState([])       // [{ id, name }]
   const [courseOpts, setCourseOpts] = useState([])   // [string]
+  const [categoryOpts, setCategoryOpts] = useState([]) // [{ id, name, slug, recipe_count }]
   const [sheetOpen, setSheetOpen] = useState(false)
   const [reloadNonce, setReloadNonce] = useState(0)
 
@@ -326,6 +327,7 @@ export default function Recipes() {
   useEffect(() => {
     client.get('/api/diet-labels').then(({ data }) => setDietOpts(data)).catch(() => {})
     client.get('/api/courses').then(({ data }) => setCourseOpts(data)).catch(() => {})
+    client.get('/api/categories').then(({ data }) => setCategoryOpts(data)).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -479,6 +481,10 @@ export default function Recipes() {
       opts: DIFFICULTY_OPTS.map(o => ({ key: 'diff-' + o.value, label: o.label, active: difficultyFilters.has(String(o.value)), count: facetCount('difficulty', o.value), toggle: () => toggleMulti('difficulty', String(o.value)) })),
     },
     {
+      label: 'Kategorie',
+      opts: categoryOpts.map(c => ({ key: 'cat-' + c.id, label: c.name, active: categoryFilters.has(String(c.id)), count: facetCount('category', c.id), toggle: () => toggleMulti('category', String(c.id)) })),
+    },
+    {
       label: 'Zeitaufwand',
       opts: ZEIT_OPTS.map(o => ({ key: 'time-' + o.value, label: o.label, active: maxTimeFilter === o.value, toggle: () => toggleTimeFilter(o.value) })),
     },
@@ -491,7 +497,7 @@ export default function Recipes() {
     ...[...courseFilters].map(c => ({ key: 'course-' + c, label: c, remove: () => toggleMulti('course', c) })),
     ...[...difficultyFilters].map(v => ({ key: 'diff-' + v, label: DIFFICULTY_OPTS.find(o => String(o.value) === v)?.label || `Stufe ${v}`, remove: () => toggleMulti('difficulty', v) })),
     ...(maxTimeFilter ? [{ key: 'time', label: `Bis ${maxTimeFilter} Min.`, remove: () => toggleTimeFilter(maxTimeFilter) }] : []),
-    ...[...categoryFilters].map(id => ({ key: 'cat-' + id, label: 'Kategorie', remove: () => toggleMulti('category', id) })),
+    ...[...categoryFilters].map(id => ({ key: 'cat-' + id, label: categoryOpts.find(c => String(c.id) === id)?.name || 'Kategorie', remove: () => toggleMulti('category', id) })),
   ]
   const activeFilterCount = typeFilters.size + dietFilters.size + courseFilters.size + difficultyFilters.size + categoryFilters.size + (maxTimeFilter ? 1 : 0)
 
