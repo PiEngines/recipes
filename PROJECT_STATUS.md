@@ -103,6 +103,7 @@ Verifikations-Trail mit Commits: siehe `DECISIONS.md`.
 - **C2 Rating (erledigt, Migration 0030):** `ratings`-Tabelle + Endpoints + `rating_avg/count` in List/Detail + `sort=rating`.
 - **D1 Recipes + Option-Endpoints (erledigt):** `Recipes.jsx` gegen C1 (Sidebar/Sheet/Chips/Server-Sort, kanonische Card, N+1 raus); `/api/diet-labels|allergens|courses`.
 - **D2 Rating-Sterne FE (erledigt):** `RatingStars.jsx` + Rating-Widget auf Detail; read-only ★ auf Karten.
+- **C3 Facet-Counts (erledigt):** `list_recipes` liefert `facets` (diet/course/difficulty/category) mit faceted-Semantik (Siblings angewandt, eigene Facette weggelassen); `Recipes.jsx` zeigt Counts je Option, dämpft 0-Optionen, neue Schwierigkeits-Gruppe → **Zero-Result-Diagnose freigeschaltet**. `tag`/`allergen_exclude` noch ohne Counts.
 
 ## 🔲 Offen — priorisiert
 

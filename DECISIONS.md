@@ -24,18 +24,22 @@
 | 18 | Recipes-Zeitfilter = nur max_time-Buckets (≤30/≤60). | min_time-Bereiche später. | 🔄 |
 | 19 | Zero-Result-Facet-Diagnose → C3. | Braucht Facet-Counts. | ⏸ |
 | 20 | Rating-Widget (D2): Platzierung Hauptspalte nach Author-/Meta-Block vor „Zubereitung" (Sidebar-Prototyp existiert live nicht → 260px-Zutaten-Sidebar bleibt); 5 SVG-Sterne `--accent`, interaktiv = ganze Sterne, Anzeige = Halbstern-Teilfüllung + „Ø x · n"; `my_stars` NICHT in Detail-Response → separater `GET …/rating` (User-Daten nicht an cachebare Rezept-Response koppeln); Karten read-only ★ avg (count) nur bei `rating_count>0` aus List-Response. | Kein Rating-Widget im Prototyp → gegen C2-Vertrag (`main`) gebaut, nicht gegen Prototyp. | 👤·🔒 gebaut |
+| 21 | C3 Facet-Counts: faceted-Semantik — je zählbarer Facette (diet/course/difficulty/category) alle **anderen** aktiven Facetten angewandt, die **eigene** weggelassen; OR innerhalb / AND über Facetten (konsistent zu C1). 0-Optionen inklusive (Backend liefert nur >0, Frontend füllt fehlende Optionen auf 0 und dämpft/deaktiviert sie). `tag`/`allergen_exclude` bewusst **ohne** Counts (Scope schlank). Response-Feld `facets: {diet:{id:count}, course:{value:count}, difficulty:{level:count}, category:{id:count}}`. | Kern der Zero-Result-Diagnose; ~4 gruppierte Count-Queries/Request akzeptabel. | 🔒 gebaut |
 
 ## Offene technische Punkte
 - ~~`Recipes.jsx` sendet `order_by=created_at` statt `sort`~~ → **erledigt in D1** (`ee20271`): serverseitiges `sort` (newest/oldest/rating/time_asc), Client-Sort entfernt.
 - `recipe_images` Legacy (tote Tabelle + `RecipeResponse.images`) — Cleanup-Ticket.
 - `type`-Param nicht auf `list` migriert (bleibt comma-`str`).
 - `Favorites.jsx` importiert die Legacy-`RecipeCard`/`SkeletonCard` aus `Recipes.jsx` (eigener N+1-Media-Fetch). D1 hat die Legacy-Exports bewusst bewahrt; eigener Slice könnte Favorites auf die kanonische `RecipeCard` + `primary_image` heben.
+- **Facet-Counts für `tag`/`allergen_exclude` fehlen** (C3 bewusst schlank). Nachziehbar analog diet/course, falls in der UI benötigt.
+- Facet-`category`-Counts liefert das Backend, im Recipes-Sidebar aber (noch) keine Kategorie-Gruppe (category ist URL-getrieben aus Kategorie-Links).
 
-## Arbeitsweise
-1. Ein Handover = mehrere geordnete Commits, je Self-Check; User reicht einmal an CC, Lead verifiziert den Stapel einmal.
-2. Lead entscheidet + loggt; Pause nur bei echten Forks.
-3. Docs/Merkliste fließen in denselben Handover.
-4. Verifikation gegen `main` bleibt Pflicht.
+## Arbeitsweise (dauerhaft)
+1. **Lead schreibt CC nur Chat-Anweisungen, keine fertigen Codeblöcke — außer ausdrücklich vereinbart. CC schreibt den Code selbst.**
+2. Ein Handover = mehrere geordnete Commits, je Self-Check; User reicht einmal an CC, Lead verifiziert den Stapel einmal.
+3. Lead entscheidet + loggt; Pause nur bei echten Forks.
+4. Docs/Merkliste fließen in denselben Handover.
+5. Verifikation gegen `main` bleibt Pflicht.
 
 ## Verifikations-Trail (grün)
 | Scheibe | Commit(s) |
@@ -48,4 +52,5 @@
 | C1 Filter-API | `30ddb73`,`d495db5` |
 | C2 Rating (0030) | `7f9dd58`,`0eb599c`,`a71cf9f` |
 | D1 Recipes + Optionen | `abec393`,`ee20271`,`2e0a905` |
-| D2 Rating-Sterne FE | `5e9e6b0`,`743524c` |
+| D2 Rating-Sterne FE | `5e9e6b0`,`743524c`,`acedaa8` |
+| C3 Facet-Counts | `8084f6b`,`301b0b3` (+docs) |

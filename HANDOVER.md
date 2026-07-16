@@ -1,4 +1,10 @@
-# CC-Handover — D2: Rating-Sterne (Frontend) + Docs
+# CC-Handover
+
+> **Arbeitsregel (dauerhaft, gilt immer):** Lead schreibt CC nur Chat-Anweisungen, keine fertigen Codeblöcke — außer ausdrücklich vereinbart. CC schreibt den Code selbst. (Siehe `DECISIONS.md` → Arbeitsweise.)
+
+---
+
+## D2: Rating-Sterne (Frontend) + Docs
 
 Basis: `main` @ `2e0a905` (Alembic-Head 0030). Frontend-only, keine Migration, kein Backend-Change.
 Backend-Vertrag (C2) verifiziert gegen `main` — NICHT gegen Prototyp bauen (Prototypen haben kein Rating-Widget).
