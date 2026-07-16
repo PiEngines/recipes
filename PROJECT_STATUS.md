@@ -154,7 +154,13 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Kräuterschule UI-Seite (Phase 1 Backend deployed; UI wartet auf neues Design) — siehe Roadmap oben
 - AI-Zutaten-Matching Stage 3 (LLM-Fallback) — matching.py:100–102 nur Platzhalter; Stage 1 (exakt) + Stage 2 (rapidfuzz) aktiv, LLM-Matching für paraphrasierte Zutaten offen. Fällt mit Kräuterschule Phase 4 (Recipes-Mapping Fuzzy) zusammen.
 - Toter Code entfernen — recipes/router.py: "# TODO: deprecated, replaced by matching.py" (Cleanup).
-- Sammel-Cleanup (konsolidiert, nach Michaels Wunsch in einem Durchgang): Root-Artefakte `0006,` / `0007,` / `0008,` (0-Byte, git rm); toter Code recipes/router.py (# TODO deprecated).
+- Sammel-Cleanup (konsolidiert, nach Michaels Wunsch in einem Durchgang): Root-Artefakte `0006,` / `0007,` / `0008,` (0-Byte, git rm — **erledigt** in Phase-A-Cleanup); toter Code recipes/router.py (# TODO deprecated).
+
+#### Phase-A-Nachträge (verschoben, aus Redesign Phase A)
+- **serve-with volle Karte:** `GET /api/recipes/{id}/serve-with` liefert nur `{id, title}`. „Passt dazu" rendert vorerst minimal (Titel + Gradient). Volle `RecipeCard` bräuchte angereicherten serve-with-Endpoint (Bild/Zeit) ODER N Nachfrage-Calls → **verschoben (Phase D)**.
+- **Kategorie-`group`-Feld:** Gruppierung/Ordnung der Kategorien noch offen (eigenes Ticket).
+- **Rollen-Enum-Bereinigung:** obsolete `user`-Referenzen in Alt-Notizen entfernen (eigenes Ticket).
+- **`as_module`-Param** in Deploy-/API-Doku ergänzen (in §4-Doku bisher nicht dokumentiert).
 
 ---
 
