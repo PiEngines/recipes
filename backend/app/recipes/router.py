@@ -142,6 +142,41 @@ def _apply_visibility_filter(q, current_user: User | None, db: Session):
 
 # ── List ──────────────────────────────────────────────────────────────────────
 
+def _attach_primary_images(items, db):
+    """Setzt item.primary_image (Thumbnail-URL) aus dem media-System. Batch, kein N+1."""
+    from app.models.media import Media
+    from app.storage import storage
+
+    if not items:
+        return items
+    ids = [r.id for r in items]
+    rows = (
+        db.query(Media)
+        .filter(
+            Media.entity_type == "recipe",
+            Media.entity_id.in_(ids),
+            Media.media_type == "image",
+            Media.deleted_at.is_(None),
+            Media.processing_status == "ready",
+        )
+        .order_by(
+            Media.entity_id,
+            Media.is_primary.desc(),
+            Media.sort_order.asc(),
+            Media.id.asc(),
+        )
+        .all()
+    )
+    best: dict[int, str] = {}
+    for m in rows:
+        if m.entity_id not in best:  # erster pro entity_id = primär / niedrigster sort_order
+            best[m.entity_id] = m.thumbnail_path or m.storage_path
+    for r in items:
+        path = best.get(r.id)
+        r.primary_image = storage.get_url(path) if path else None
+    return items
+
+
 @router.get("", response_model=PaginatedRecipes)
 def list_recipes(
     page: int = Query(1, ge=1),
@@ -286,7 +321,6 @@ def list_recipes(
         q.options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
-            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
         .order_by(sort_columns[sort])
@@ -294,6 +328,8 @@ def list_recipes(
         .limit(page_size)
         .all()
     )
+
+    _attach_primary_images(items, db)
 
     return PaginatedRecipes(
         items=items,
@@ -315,17 +351,18 @@ def get_random_recipes(
     q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
     q = _apply_visibility_filter(q, current_user, db)
 
-    return (
+    items = (
         q.options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
-            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
         .order_by(func.random())
         .limit(count)
         .all()
     )
+    _attach_primary_images(items, db)
+    return items
 
 
 # ── Trash (must be before /{recipe_id}) ───────────────────────────────────────
@@ -337,12 +374,11 @@ def list_trash(
     db: Session = Depends(get_db),
     _: User = Depends(require_chefkoch_or_above),
 ):
-    return (
+    items = (
         db.query(Recipe)
         .options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
-            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
         .filter(Recipe.deleted_at.isnot(None))
@@ -351,6 +387,8 @@ def list_trash(
         .limit(page_size)
         .all()
     )
+    _attach_primary_images(items, db)
+    return items
 
 
 # ── Module resolution ─────────────────────────────────────────────────────────
