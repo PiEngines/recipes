@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2C2C2A; --subtext:#6B6B68;
+    --accent:#C8602A; --accent-hover:#A84E22; --secondary:#6B7C4E;
+    --border:rgba(0,0,0,0.08); --border-input:#D8D4CD; --heart-outline:var(--text);
+    --radius-card:12px; --radius-input:8px; --radius-pill:999px;
+    --shadow:0 2px 8px rgba(0,0,0,0.08); --shadow-hover:0 8px 24px rgba(0,0,0,0.15);
+    --transition:all .2s ease;
+    --font-display:'Playfair Display',serif; --font-body:'Inter',sans-serif;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  }
+  [data-theme="dark"]{
+    --bg:#1C1C1A; --card:#2A2A27; --text:#F0EDE8; --subtext:#9A9A95;
+    --border:rgba(255,255,255,0.08); --border-input:#3A3A37;
+    --shadow:0 2px 8px rgba(0,0,0,0.30); --shadow-hover:0 8px 24px rgba(0,0,0,0.50);
+    --heart-outline:transparent;
+  }
+  *{box-sizing:border-box;}
+  .clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;}
+  .rc-scope{font-family:var(--font-body);color:var(--text);background:var(--bg);transition:var(--transition);}
+  .rc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);}
+  @media(min-width:768px){ .rc-grid{grid-template-columns:repeat(3,1fr);gap:var(--space-5);} }
+</style>
+</helmet>
+<div class="rc-scope" data-theme="{{ theme }}" style="min-height:100vh;padding:0;">
+
+  <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:var(--card);border-bottom:1px solid var(--border);">
+    <div style="display:flex;align-items:baseline;gap:var(--space-3);">
+      <span style="font-family:var(--font-display);font-weight:700;font-size:20px;">RecipeCard</span>
+      <span style="font-size:13px;color:var(--subtext);">Fundament · Spacing- & Typo-System</span>
+    </div>
+    <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 16px;">{{ themeLabel }}</button>
+  </header>
+
+  <main style="max-width:1120px;margin:0 auto;padding:var(--space-6) var(--space-5) var(--space-7);display:flex;flex-direction:column;gap:var(--space-7);">
+
+    <!-- ============ RECIPECARD GRID ============ -->
+    <section>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--space-4);">
+        <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0;">Der Baustein</h2>
+        <span style="font-size:13px;color:var(--subtext);">2-spaltig mobil · 3-spaltig ab 768px</span>
+      </div>
+      <div class="rc-grid">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+          <a href="{{ c.href }}" style="display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);transition:var(--transition);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+            <div style="position:relative;aspect-ratio:4/3;background:{{ c.media }};display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.08em;color:var(--subtext);opacity:.75;">{{ c.mediaLabel }}</span>
+              <sc-if value="{{ c.pending }}" hint-placeholder-val="{{ true }}">
+                <span style="position:absolute;top:var(--space-3);left:var(--space-3);display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);border-radius:var(--radius-pill);padding:5px 10px;">● Wird geprüft</span>
+              </sc-if>
+              <button onClick="{{ c.toggleFav }}" aria-label="Favorit" style="position:absolute;top:var(--space-3);right:var(--space-3);width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);border:none;border-radius:var(--radius-pill);cursor:pointer;box-shadow:var(--shadow);">
+                <svg width="18" height="18" viewBox="0 0 24 24" style="display:block;">
+                  <path d="M12 21s-7.5-4.6-10-9.2C.6 8.9 2 5.5 5.2 5.1 7 4.9 8.7 5.9 12 8.9c3.3-3 5-4 6.8-3.8C22 5.5 23.4 8.9 22 11.8 19.5 16.4 12 21 12 21z" fill="{{ c.heartFill }}" stroke="{{ c.heartStroke }}" stroke-width="1.6"></path>
+                </svg>
+              </button>
+            </div>
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);">
+              <h3 lang="de" style="font-family:var(--font-display);font-weight:600;font-size:17px;line-height:1.25;margin:0;hyphens:auto;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ c.title }}</h3>
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--subtext);">
+                <span>{{ c.author }}</span>
+                <span aria-hidden="true">·</span>
+                <span>{{ c.time }}</span>
+              </div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ============ ANATOMIE ============ -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0 0 var(--space-4);">Anatomie & Regeln</h2>
+      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-4);">
+        <div style="display:grid;gap:var(--space-3);grid-template-columns:1fr;">
+          <div style="display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-4);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);">
+            <div style="flex:0 0 auto;color:var(--secondary);font-weight:700;">Enthält</div>
+            <div style="color:var(--subtext);font-size:14px;line-height:1.5;">Bild/Gradient · Titel (Display) · Autor · Zeit · Favorit-Herz (Overlay) · „Wird geprüft"-Badge (bedingt)</div>
+          </div>
+          <div style="display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-4);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);">
+            <div style="flex:0 0 auto;color:var(--accent);font-weight:700;">Entfernt</div>
+            <div style="color:var(--subtext);font-size:14px;line-height:1.5;">Description · Typ-Pill · Schwierigkeit-Pill — ersetzt FeedCard / MiniCard.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TYPO ============ -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0 0 var(--space-4);">Typo-Skala</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-4);">
+        <div style="display:flex;align-items:baseline;gap:var(--space-4);border-bottom:1px solid var(--border);padding-bottom:var(--space-3);"><span style="flex:0 0 130px;font-size:12px;color:var(--subtext);font-family:ui-monospace,monospace;">Display 26/32</span><span style="font-family:var(--font-display);font-weight:600;font-size:26px;">Seitentitel H2</span></div>
+        <div style="display:flex;align-items:baseline;gap:var(--space-4);border-bottom:1px solid var(--border);padding-bottom:var(--space-3);"><span style="flex:0 0 130px;font-size:12px;color:var(--subtext);font-family:ui-monospace,monospace;">Display 17/21</span><span style="font-family:var(--font-display);font-weight:600;font-size:17px;">Kartentitel</span></div>
+        <div style="display:flex;align-items:baseline;gap:var(--space-4);border-bottom:1px solid var(--border);padding-bottom:var(--space-3);"><span style="flex:0 0 130px;font-size:12px;color:var(--subtext);font-family:ui-monospace,monospace;">Body 15/22</span><span style="font-family:var(--font-body);font-size:15px;">Fließtext / Inter Regular</span></div>
+        <div style="display:flex;align-items:baseline;gap:var(--space-4);"><span style="flex:0 0 130px;font-size:12px;color:var(--subtext);font-family:ui-monospace,monospace;">Meta 13/18</span><span style="font-family:var(--font-body);font-size:13px;color:var(--subtext);">Autor · Zeit · Sekundärtext</span></div>
+      </div>
+    </section>
+
+    <!-- ============ SPACING ============ -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0 0 var(--space-4);">Spacing-Skala</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-3);">
+        <sc-for list="{{ spaces }}" as="s" hint-placeholder-count="7">
+          <div style="display:flex;align-items:center;gap:var(--space-4);">
+            <span style="flex:0 0 96px;font-family:ui-monospace,monospace;font-size:12px;color:var(--subtext);">{{ s.name }}</span>
+            <span style="flex:0 0 48px;font-size:13px;color:var(--text);">{{ s.px }}</span>
+            <span style="height:14px;border-radius:4px;background:var(--accent);width:{{ s.px }};"></span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ============ SPEC ============ -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0 0 var(--space-4);">Spec — RecipeCard</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);font-size:14px;line-height:1.6;color:var(--text);display:flex;flex-direction:column;gap:var(--space-3);">
+        <div><b>Komponente</b> <code style="font-family:ui-monospace,monospace;color:var(--accent);">&lt;RecipeCard recipe={…} /&gt;</code></div>
+        <div><b>Props / Datenbindung:</b> <code style="font-family:ui-monospace,monospace;">image_url|null</code> → Medienfläche (Fallback: Terracotta→Olive-Gradient) · <code style="font-family:ui-monospace,monospace;">title</code> → H3 (line-clamp:2) · <code style="font-family:ui-monospace,monospace;">author.name</code> → Meta · <code style="font-family:ui-monospace,monospace;">total_time</code> → Meta · <code style="font-family:ui-monospace,monospace;">is_favorite</code> → Herz-Zustand · <code style="font-family:ui-monospace,monospace;">status==='pending'</code> → „Wird geprüft"-Badge <i>(Feldname zu prüfen)</i>.</div>
+        <div><b>States:</b> <u>Loading</u> = Skeleton (Medienfläche + 2 Textzeilen als Shimmer). <u>Empty</u> = n/a (Card ist nie leer; leerer Grid wird von der Seite behandelt). <u>Error-Bild</u> = Gradient-Fallback + Alt-Text.</div>
+        <div><b>Responsive:</b> Card selbst fluid (füllt Grid-Spalte); Medien-<code style="font-family:ui-monospace,monospace;">aspect-ratio:4/3</code> fix. Grid-Spalten setzt die Elternseite (2→3 ab 768px).</div>
+        <div><b>Links:</b> ganze Card → <code style="font-family:ui-monospace,monospace;">/recipes/:id</code>. Herz-Button = eigener Klickbereich, <code style="font-family:ui-monospace,monospace;">stopPropagation</code>, kein Navigieren.</div>
+        <div><b>Dark Mode:</b> ausschließlich Tokens. Herz-Umriss <code style="font-family:ui-monospace,monospace;">--heart-outline</code> (dark = transparent → nur Füllung sichtbar).</div>
+        <div><b>a11y:</b> Card = <code style="font-family:ui-monospace,monospace;">&lt;a&gt;</code> mit Titel als Accessible Name; Herz-Button <code style="font-family:ui-monospace,monospace;">aria-pressed</code> + <code style="font-family:ui-monospace,monospace;">aria-label</code>; Badge zusätzlich als Text (nicht nur Farbe); Medien-Alt = Titel.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme: 'light',
+    favs: { r1:false, r2:true, r3:false, r4:false, r5:true, r6:false }
+  };
+  renderVals(){
+    const stripe = 'repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 10px, rgba(120,90,60,.10) 10px 20px), var(--card)';
+    const grad   = 'linear-gradient(135deg, var(--accent), var(--secondary))';
+    const seed = [
+      { id:'r1', title:'Ofengemüse mit Ziegenkäse und Thymianhonig', author:'Lena M.', time:'45 Min', pending:false, hasImage:true },
+      { id:'r2', title:'Vollkornhaferflockenbrötchen', author:'Tobias K.', time:'2 Std', pending:false, hasImage:false },
+      { id:'r3', title:'Kürbissuppe mit gerösteten Kernen', author:'Anja R.', time:'30 Min', pending:true, hasImage:true },
+      { id:'r4', title:'Sauerteig-Focaccia mit Rosmarin und Meersalz', author:'Marco', time:'1 Tag', pending:false, hasImage:true },
+      { id:'r5', title:'Rote-Bete-Risotto', author:'Lena M.', time:'40 Min', pending:false, hasImage:false },
+      { id:'r6', title:'Apfel-Zimt-Galette', author:'Sofia', time:'55 Min', pending:false, hasImage:true }
+    ];
+    const cards = seed.map(r => {
+      const faved = !!this.state.favs[r.id];
+      return {
+        ...r,
+        href:'#/recipes/'+r.id,
+        media: r.hasImage ? stripe : grad,
+        mediaLabel: r.hasImage ? 'foto '+r.id : 'kein bild — gradient',
+        heartFill: faved ? 'var(--accent)' : 'transparent',
+        heartStroke: faved ? 'var(--accent)' : 'var(--heart-outline)',
+        toggleFav: (e)=>{ e.preventDefault(); e.stopPropagation(); this.setState(s=>({favs:{...s.favs,[r.id]:!s.favs[r.id]}})); }
+      };
+    });
+    const spaces = [
+      {name:'--space-1',px:'4px'},{name:'--space-2',px:'8px'},{name:'--space-3',px:'12px'},
+      {name:'--space-4',px:'16px'},{name:'--space-5',px:'24px'},{name:'--space-6',px:'32px'},{name:'--space-7',px:'48px'}
+    ];
+    return {
+      theme: this.state.theme,
+      themeLabel: this.state.theme==='dark' ? '☀ Light' : '☾ Dark',
+      toggleTheme: ()=> this.setState(s=>({theme: s.theme==='dark'?'light':'dark'})),
+      cards, spaces
+    };
+  }
+}
+</script>
+</body>
+</html>

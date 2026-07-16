@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2C2C2A; --subtext:#6B6B68;
+    --accent:#C8602A; --accent-hover:#A84E22; --secondary:#6B7C4E;
+    --border:rgba(0,0,0,0.08); --border-input:#D8D4CD; --heart-outline:var(--text);
+    --radius-card:12px; --radius-input:8px; --radius-pill:999px;
+    --shadow:0 2px 8px rgba(0,0,0,0.08); --shadow-hover:0 8px 24px rgba(0,0,0,0.15);
+    --transition:all .2s ease;
+    --font-display:'Playfair Display',serif; --font-body:'Inter',sans-serif;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  }
+  [data-theme="dark"]{
+    --bg:#1C1C1A; --card:#2A2A27; --text:#F0EDE8; --subtext:#9A9A95;
+    --border:rgba(255,255,255,0.08); --border-input:#3A3A37;
+    --shadow:0 2px 8px rgba(0,0,0,0.30); --shadow-hover:0 8px 24px rgba(0,0,0,0.50);
+    --heart-outline:transparent;
+  }
+  *{box-sizing:border-box;}
+  .pg{font-family:var(--font-body);color:var(--text);background:var(--bg);transition:var(--transition);}
+  .detail-layout{display:block;}
+  .side{margin-top:var(--space-6);}
+  .grid-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);}
+  @media(min-width:768px){
+    .detail-layout{display:grid;grid-template-columns:1fr 340px;gap:var(--space-6);align-items:start;}
+    .side{margin-top:0;position:sticky;top:88px;}
+    .grid-cards{grid-template-columns:repeat(3,1fr);gap:var(--space-5);}
+    .edit-desktop{display:inline-flex !important;}
+  }
+</style>
+</helmet>
+<div class="pg" data-theme="{{ theme }}" style="min-height:100vh;padding-bottom:var(--space-7);">
+
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:var(--card);border-bottom:1px solid var(--border);">
+    <a href="#/recipes" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:14px;font-weight:600;color:var(--accent);background:rgba(200,96,42,.10);border-radius:var(--radius-pill);padding:8px 14px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"></path></svg>Zurück
+    </a>
+    <div style="display:flex;gap:var(--space-3);">
+      <a class="edit-desktop" href="#/recipes/r1/edit" style="display:none;align-items:center;gap:8px;text-decoration:none;font-size:14px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 14px;">Bearbeiten</a>
+      <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 16px;">{{ themeLabel }}</button>
+    </div>
+  </header>
+
+  <main style="max-width:1120px;margin:0 auto;padding:var(--space-5);">
+
+    <!-- ===== HERO-GALERIE (mehrbildrig) ===== -->
+    <div style="margin-bottom:var(--space-5);">
+      <div style="position:relative;aspect-ratio:16/10;border-radius:var(--radius-card);overflow:hidden;background:repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 12px, rgba(120,90,60,.10) 12px 24px), var(--card);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);">
+        <span style="font-family:ui-monospace,monospace;font-size:12px;color:var(--subtext);opacity:.7;">galerie-foto 1/4</span>
+        <span style="position:absolute;top:14px;left:14px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.55);border-radius:var(--radius-pill);padding:5px 10px;">● Wird geprüft</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="4">
+          <div style="flex:1;aspect-ratio:1;border-radius:var(--radius-input);background:repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 8px, rgba(120,90,60,.10) 8px 16px), var(--card);border:2px solid {{ g.border }};display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:10px;color:var(--subtext);">{{ g.n }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <!-- ===== HAUPTSPALTE ===== -->
+      <div>
+        <h1 lang="de" style="font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.15;margin:0 0 var(--space-3);text-wrap:pretty;hyphens:auto;">Geröstete Kürbissuppe mit Salbei-Butter</h1>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-4);color:var(--subtext);font-size:14px;margin-bottom:var(--space-5);">
+          <a href="#/users/u1" style="color:var(--accent);text-decoration:none;font-weight:600;">Anja R.</a>
+          <span>· 30 Min</span><span>· 4 Portionen</span>
+          <span style="color:var(--secondary);">· Passt zu: knuspriges Brot</span>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:var(--space-2);border-bottom:1px solid var(--border);margin-bottom:var(--space-5);">
+          <button onClick="{{ setTabZ }}" style="cursor:pointer;font-size:15px;font-weight:600;padding:12px 4px;background:transparent;border:none;border-bottom:2px solid {{ tabZBorder }};color:{{ tabZColor }};">Zubereitung</button>
+          <button onClick="{{ setTabI }}" style="cursor:pointer;font-size:15px;font-weight:600;padding:12px 4px;margin-left:var(--space-4);background:transparent;border:none;border-bottom:2px solid {{ tabIBorder }};color:{{ tabIColor }};">Zutaten</button>
+        </div>
+
+        <!-- Zubereitung -->
+        <sc-if value="{{ showSteps }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;gap:var(--space-4);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-4);box-shadow:var(--shadow);">
+                <div style="flex:0 0 auto;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;">{{ s.n }}</div>
+                <div style="flex:1;">
+                  <p style="margin:0 0 8px;font-size:15px;line-height:1.55;">{{ s.text }}</p>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <sc-for list="{{ s.tags }}" as="t" hint-placeholder-count="2">
+                      <span style="font-size:12px;color:var(--secondary);background:rgba(107,124,78,.12);border-radius:var(--radius-pill);padding:4px 10px;">{{ t }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- Zutaten -->
+        <sc-if value="{{ showIngredients }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);box-shadow:var(--shadow);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4);">
+              <span style="font-family:var(--font-display);font-weight:600;font-size:18px;">Für {{ portions }} Portionen</span>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <button onClick="{{ dec }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;border:1px solid var(--border-input);background:var(--card);color:var(--text);font-size:18px;">−</button>
+                <span style="min-width:20px;text-align:center;font-weight:600;">{{ portions }}</span>
+                <button onClick="{{ inc }}" style="cursor:pointer;width:34px;height:34px;border-radius:50%;border:1px solid var(--border-input);background:var(--card);color:var(--text);font-size:18px;">+</button>
+              </div>
+            </div>
+            <sc-for list="{{ ingredients }}" as="i" hint-placeholder-count="5">
+              <div style="display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:15px;">
+                <span>{{ i.name }}</span><span style="color:var(--subtext);">{{ i.amount }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ===== PASST DAZU (max 3) ===== -->
+        <section style="margin-top:var(--space-6);">
+          <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">Passt dazu</h2>
+          <div class="grid-cards">
+            <sc-for list="{{ related }}" as="c" hint-placeholder-count="3">
+              <a href="{{ c.href }}" style="display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+                <div style="aspect-ratio:4/3;background:{{ c.media }};display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:11px;color:var(--subtext);opacity:.7;">{{ c.mediaLabel }}</div>
+                <div style="padding:var(--space-4);"><h3 lang="de" style="font-family:var(--font-display);font-weight:600;font-size:16px;margin:0 0 4px;line-height:1.25;hyphens:auto;">{{ c.title }}</h3><div style="font-size:13px;color:var(--subtext);">{{ c.author }} · {{ c.time }}</div></div>
+              </a>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <!-- ===== SEITENSPALTE (Desktop sticky) ===== -->
+      <aside class="side">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:var(--space-4);">
+          <button style="cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:none;border-radius:var(--radius-pill);padding:14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"></path></svg>Kochmodus starten
+          </button>
+          <div style="display:flex;gap:var(--space-3);">
+            <button style="cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-input);padding:11px;"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.6 8.9 2 5.5 5.2 5.1 7 4.9 8.7 5.9 12 8.9c3.3-3 5-4 6.8-3.8C22 5.5 23.4 8.9 22 11.8 19.5 16.4 12 21 12 21z" fill="none" stroke="var(--heart-outline)" stroke-width="1.6"></path></svg>Merken</button>
+            <button style="cursor:pointer;flex:1;font-size:14px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-input);padding:11px;">Teilen</button>
+          </div>
+          <div style="font-size:13px;color:var(--subtext);line-height:1.5;border-top:1px solid var(--border);padding-top:var(--space-4);"><b style="color:var(--text);">Kochmodus:</b> „Erledigt" je Schritt springt zum nächsten; Timer je Schritt; Zutaten-Fenster zeigt nur den aktiven Schritt. Zutat↔Schritt-Cross-Highlight: <i>später</i>.</div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ===== SPEC ===== -->
+    <section style="margin-top:var(--space-7);">
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">Spec — Rezept-Detail</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);font-size:14px;line-height:1.6;display:flex;flex-direction:column;gap:var(--space-3);">
+        <div><b>Route</b> <code style="font-family:ui-monospace,monospace;color:var(--accent);">/recipes/:id</code></div>
+        <div><b>Enthalten:</b> ✅ Hero-Galerie (mehrbildrig, Thumbs) · ✅ Portionen-Stepper (skaliert Mengen) · ✅ Tabs Zubereitung/Zutaten · ✅ Kochmodus-Einstieg (Schritt-„Erledigt", Timer, Schritt-Zutaten-Fenster) · ✅ „Passt dazu" (max 3) · ✅ BackButton (Pill, Terracotta-Tint) · ✅ Bearbeiten (Desktop, nur wenn nicht Preview) · ✅ „Wird geprüft"-Badge · ✅ serve_with.</div>
+        <div><b>Später markiert:</b> ⏳ Zutat↔Schritt-Cross-Highlight (Datenmodell existiert; Discoverability offen) · ⏳ Modul-Rezepte in der Zutaten-Strecke + Zwischen-Headline · ⏳ Pflanzen-Block (separat, eigener Batch).</div>
+        <div><b>States:</b> <u>Loading</u> = Hero-Skeleton + Titel-/Textzeilen-Shimmer. <u>Empty</u> = n/a (Rezept existiert). <u>Error</u> = Fullpage „Rezept nicht gefunden" + Zurück. Bild-Error → Gradient-Fallback.</div>
+        <div><b>Responsive:</b> &lt;768 einspaltig, Seitenspalte wandert unter den Inhalt (Kochmodus-CTA als Sticky-Footer denkbar). ≥768 zweispaltig <code style="font-family:ui-monospace,monospace;">1fr | 340px</code>, Seitenspalte sticky.</div>
+        <div><b>Datenbindung:</b> <code style="font-family:ui-monospace,monospace;">title, images[], author, total_time, servings, ingredients[], steps[], serve_with, status</code> · Skalierung: <code style="font-family:ui-monospace,monospace;">amount × (portions/base_servings)</code> · Panel &amp; Tab MÜSSEN dieselbe Quelle/Portionen zeigen.</div>
+        <div><b>Links:</b> Autor → <code style="font-family:ui-monospace,monospace;">/users/:id</code> · Modul-Rezept → <code style="font-family:ui-monospace,monospace;">/recipes/:id</code> · „Passt dazu" → <code style="font-family:ui-monospace,monospace;">/recipes/:id</code>.</div>
+        <div><b>a11y:</b> Tabs = <code style="font-family:ui-monospace,monospace;">role=tablist/tab/tabpanel</code>, Pfeiltasten; Stepper-Buttons aria-label „Portion +/−", Wert aria-live; Galerie-Thumbs als Buttons mit „Bild n von m".</div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme:'light', tab:'steps', portions:4 };
+  renderVals(){
+    const stripe='repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 10px, rgba(120,90,60,.10) 10px 20px), var(--card)';
+    const grad='linear-gradient(135deg, var(--accent), var(--secondary))';
+    const base=4, p=this.state.portions, f=p/base;
+    const scale=(n,unit)=>{const v=Math.round(n*f*10)/10;return (Number.isInteger(v)?v:v.toString().replace('.',','))+' '+unit;};
+    const ingredients=[
+      {name:'Hokkaido-Kürbis',amount:scale(800,'g')},
+      {name:'Zwiebel',amount:scale(1,'Stk')},
+      {name:'Gemüsebrühe',amount:scale(750,'ml')},
+      {name:'Butter',amount:scale(40,'g')},
+      {name:'Salbeiblätter',amount:scale(8,'')}
+    ];
+    const steps=[
+      {n:1,text:'Kürbis waschen, entkernen und in grobe Stücke schneiden. Zwiebel würfeln.',tags:['Kürbis','Zwiebel']},
+      {n:2,text:'Kürbis mit Öl auf einem Blech 25 Min bei 200 °C rösten.',tags:['Kürbis']},
+      {n:3,text:'Mit Brühe aufgießen und fein pürieren, abschmecken.',tags:['Gemüsebrühe']},
+      {n:4,text:'Butter aufschäumen, Salbei darin knusprig braten, über die Suppe geben.',tags:['Butter','Salbei']}
+    ];
+    const gallery=[1,2,3,4].map(n=>({n,border:n===1?'var(--accent)':'transparent'}));
+    const rel=[
+      {id:'b1',title:'Rustikales Landbrot',author:'Marco',time:'1 Tag',hasImage:true},
+      {id:'b2',title:'Kräuterbutter',author:'Lena M.',time:'10 Min',hasImage:false},
+      {id:'b3',title:'Gerösteter Kürbiskern-Crunch',author:'Sofia',time:'15 Min',hasImage:true}
+    ].map(r=>({...r,href:'#/recipes/'+r.id,media:r.hasImage?stripe:grad,mediaLabel:r.hasImage?'foto':'gradient-fallback'}));
+    const isSteps=this.state.tab==='steps';
+    return {
+      theme:this.state.theme, themeLabel:this.state.theme==='dark'?'☀ Light':'☾ Dark',
+      toggleTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})),
+      gallery, steps, ingredients, related:rel, portions:p,
+      inc:()=>this.setState(s=>({portions:Math.min(20,s.portions+1)})),
+      dec:()=>this.setState(s=>({portions:Math.max(1,s.portions-1)})),
+      showSteps:isSteps, showIngredients:!isSteps,
+      setTabZ:()=>this.setState({tab:'steps'}), setTabI:()=>this.setState({tab:'ing'}),
+      tabZColor:isSteps?'var(--text)':'var(--subtext)', tabZBorder:isSteps?'var(--accent)':'transparent',
+      tabIColor:!isSteps?'var(--text)':'var(--subtext)', tabIBorder:!isSteps?'var(--accent)':'transparent'
+    };
+  }
+}
+</script>
+</body>
+</html>

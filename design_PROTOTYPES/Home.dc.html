@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2C2C2A; --subtext:#6B6B68;
+    --accent:#C8602A; --accent-hover:#A84E22; --secondary:#6B7C4E;
+    --border:rgba(0,0,0,0.08); --border-input:#D8D4CD; --heart-outline:var(--text);
+    --radius-card:12px; --radius-input:8px; --radius-pill:999px;
+    --shadow:0 2px 8px rgba(0,0,0,0.08); --shadow-hover:0 8px 24px rgba(0,0,0,0.15);
+    --transition:all .2s ease;
+    --font-display:'Playfair Display',serif; --font-body:'Inter',sans-serif;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  }
+  [data-theme="dark"]{
+    --bg:#1C1C1A; --card:#2A2A27; --text:#F0EDE8; --subtext:#9A9A95;
+    --border:rgba(255,255,255,0.08); --border-input:#3A3A37;
+    --shadow:0 2px 8px rgba(0,0,0,0.30); --shadow-hover:0 8px 24px rgba(0,0,0,0.50);
+    --heart-outline:transparent;
+  }
+  *{box-sizing:border-box;}
+  .pg{font-family:var(--font-body);color:var(--text);background:var(--bg);transition:var(--transition);}
+  .grid-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);}
+  .topnav{display:none;}
+  .bottomnav{display:flex;}
+  @media(min-width:768px){
+    .grid-cards{grid-template-columns:repeat(3,1fr);gap:var(--space-5);}
+    .topnav{display:flex;}
+    .bottomnav{display:none;}
+    .mobile-only{display:none !important;}
+  }
+</style>
+</helmet>
+<div class="pg" data-theme="{{ theme }}" style="min-height:100vh;padding-bottom:88px;">
+
+  <!-- ===== TOP NAV (Desktop ≥768) ===== -->
+  <header class="topnav" style="position:sticky;top:0;z-index:30;align-items:center;justify-content:space-between;gap:var(--space-5);padding:var(--space-4) var(--space-6);background:var(--card);border-bottom:1px solid var(--border);">
+    <span style="font-family:var(--font-display);font-weight:700;font-size:22px;">PiEngines</span>
+    <nav style="display:flex;gap:var(--space-5);font-size:15px;">
+      <a href="#/" style="color:var(--text);text-decoration:none;font-weight:600;">Entdecken</a>
+      <a href="#/recipes" style="color:var(--subtext);text-decoration:none;">Rezepte</a>
+      <a href="#/fratcher" style="color:var(--subtext);text-decoration:none;">Fratcher</a>
+      <a href="#/kraeuterschule" style="color:var(--subtext);text-decoration:none;">Kräuterschule</a>
+    </nav>
+    <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 16px;">{{ themeLabel }}</button>
+  </header>
+
+  <main style="max-width:1120px;margin:0 auto;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-6);">
+
+    <!-- mobile brand + theme -->
+    <div class="mobile-only" style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:var(--font-display);font-weight:700;font-size:24px;">PiEngines</span>
+      <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 14px;">{{ themeLabel }}</button>
+    </div>
+
+    <!-- ===== SUCHLEISTE (schmal, Fokus-Animation) ===== -->
+    <label style="display:flex;align-items:center;gap:var(--space-3);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:12px 18px;box-shadow:var(--shadow);transition:var(--transition);cursor:text;" style-focus-within="border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,96,42,.15);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--subtext)" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4"></path></svg>
+      <input placeholder="Rezepte, Zutaten, Autoren…" style="flex:1;border:none;outline:none;background:transparent;font-family:var(--font-body);font-size:15px;color:var(--text);" />
+    </label>
+
+    <!-- ===== HERO / KARUSSELL (editorial HeuteCard) ===== -->
+    <section aria-label="Heute" style="position:relative;">
+      <a href="#/recipes/hero" style="display:block;text-decoration:none;color:#fff;position:relative;border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);">
+        <div style="aspect-ratio:16/9;background:linear-gradient(135deg,var(--accent),var(--secondary));display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.08em;color:rgba(255,255,255,.75);">editorial-foto — hero</span>
+        </div>
+        <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.6),transparent 55%);"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:var(--space-5);">
+          <span style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.9;">Heute</span>
+          <h2 style="font-family:var(--font-display);font-weight:700;font-size:28px;line-height:1.15;margin:6px 0 0;max-width:22ch;text-wrap:pretty;">Geröstete Kürbissuppe mit Salbei-Butter</h2>
+        </div>
+      </a>
+      <!-- Karussell-Dots -->
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:var(--space-3);">
+        <span style="width:22px;height:6px;border-radius:var(--radius-pill);background:var(--accent);"></span>
+        <span style="width:6px;height:6px;border-radius:var(--radius-pill);background:var(--border-input);"></span>
+        <span style="width:6px;height:6px;border-radius:var(--radius-pill);background:var(--border-input);"></span>
+      </div>
+    </section>
+
+    <!-- ===== FRATCHER-TEASER ===== -->
+    <a href="#/fratcher" style="display:flex;align-items:center;gap:var(--space-4);text-decoration:none;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-4) var(--space-5);box-shadow:var(--shadow);transition:var(--transition);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+      <div style="flex:0 0 auto;width:52px;height:52px;border-radius:var(--radius-card);background:rgba(107,124,78,.15);display:flex;align-items:center;justify-content:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="1.8"><path d="M4 7h16M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"></path></svg>
+      </div>
+      <div style="flex:1;">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:18px;">Was ist im Kühlschrank?</div>
+        <div style="font-size:14px;color:var(--subtext);">Der Fratcher schlägt Rezepte aus deinen Zutaten vor.</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+
+    <!-- ===== ENTDECKEN-FEED ===== -->
+    <section>
+      <a href="#/recipes" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--text);margin-bottom:var(--space-4);">
+        <h2 style="font-family:var(--font-display);font-weight:600;font-size:26px;margin:0;">Entdecken</h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      <div class="grid-cards">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+          <a href="{{ c.href }}" style="display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);transition:var(--transition);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+            <div style="position:relative;aspect-ratio:4/3;background:{{ c.media }};display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--subtext);opacity:.7;">{{ c.mediaLabel }}</span>
+              <sc-if value="{{ c.pending }}" hint-placeholder-val="{{ true }}">
+                <span style="position:absolute;top:12px;left:12px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.55);border-radius:var(--radius-pill);padding:5px 10px;">● Wird geprüft</span>
+              </sc-if>
+              <button onClick="{{ c.toggleFav }}" aria-label="Favorit" style="position:absolute;top:12px;right:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);border:none;border-radius:var(--radius-pill);cursor:pointer;box-shadow:var(--shadow);">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.6 8.9 2 5.5 5.2 5.1 7 4.9 8.7 5.9 12 8.9c3.3-3 5-4 6.8-3.8C22 5.5 23.4 8.9 22 11.8 19.5 16.4 12 21 12 21z" fill="{{ c.heartFill }}" stroke="{{ c.heartStroke }}" stroke-width="1.6"></path></svg>
+              </button>
+            </div>
+            <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);">
+              <h3 lang="de" style="font-family:var(--font-display);font-weight:600;font-size:17px;line-height:1.25;margin:0;hyphens:auto;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ c.title }}</h3>
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--subtext);"><span>{{ c.author }}</span><span>·</span><span>{{ c.time }}</span></div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+      <!-- Infinite-Scroll Sentinel -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:var(--space-6) 0;color:var(--subtext);font-size:14px;">
+        <span style="width:16px;height:16px;border:2px solid var(--border-input);border-top-color:var(--accent);border-radius:50%;display:inline-block;"></span>
+        Lädt weitere Rezepte…
+      </div>
+    </section>
+
+    <!-- ===== SPEC ===== -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">Spec — Home</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);font-size:14px;line-height:1.6;display:flex;flex-direction:column;gap:var(--space-3);">
+        <div><b>Route</b> <code style="font-family:ui-monospace,monospace;color:var(--accent);">/</code></div>
+        <div><b>Komponenten:</b> TopNav (≥768) / BottomNav (&lt;768) · SearchBar · HeuteCard-Karussell · FratcherTeaser · Section „Entdecken" (klickbare Überschrift) · RecipeCard-Grid · InfiniteScrollSentinel.</div>
+        <div><b>States:</b> <u>Loading</u> = 6 Card-Skeletons + Hero-Skeleton. <u>Empty</u> = Feed nie leer (kuratiert); falls doch → „Noch nichts zu entdecken". <u>Error</u> = Inline-Banner „Konnte nicht laden — Erneut versuchen" über dem Grid; Hero fällt auf statisches HeuteCard zurück.</div>
+        <div><b>Infinite Scroll:</b> IntersectionObserver auf Sentinel (rootMargin 600px) → nächste Seite (page-size 12) via <code style="font-family:ui-monospace,monospace;">GET /api/recipes?page=n</code> <i>(zu prüfen)</i>. Spinner während Fetch, „Alles gesehen" am Ende. Kein Fetch im Error-Zustand.</div>
+        <div><b>Responsive:</b> Grid 2→3 ab 768px, zentrierter Container max 1120px; Hero 16/9; TopNav ersetzt BottomNav ab 768px.</div>
+        <div><b>Datenbindung:</b> Hero ← <code style="font-family:ui-monospace,monospace;">featured[]</code> (Titel, image_url, id) · Feed ← <code style="font-family:ui-monospace,monospace;">recipes[]</code> → RecipeCard.</div>
+        <div><b>Links:</b> „Entdecken" + Chevron → <code style="font-family:ui-monospace,monospace;">/recipes</code> · Fratcher-Teaser → <code style="font-family:ui-monospace,monospace;">/fratcher</code> · Hero/Cards → <code style="font-family:ui-monospace,monospace;">/recipes/:id</code>.</div>
+        <div><b>a11y:</b> SearchBar sichtbarer Fokus-Ring (Token-Accent); Karussell-Dots mit aria-label; Herz aria-pressed; Kontrast Hero-Text über Verlaufsmaske gesichert.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== BOTTOM NAV (Mobil <768) ===== -->
+  <nav class="bottomnav" style="position:fixed;left:0;right:0;bottom:0;z-index:30;align-items:center;justify-content:space-around;padding:10px 0 max(10px,env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--border);">
+    <a href="#/" style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--accent);text-decoration:none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7M5 10v10h14V10"></path></svg>Home</a>
+    <a href="#/recipes" style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--subtext);text-decoration:none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4"></path></svg>Rezepte</a>
+    <a href="#/fratcher" style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--subtext);text-decoration:none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7v14h12V7M9 7V4h6v3"></path></svg>Fratcher</a>
+    <a href="#/profile" style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--subtext);text-decoration:none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Profil</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme:'light', favs:{r1:false,r2:true,r3:false,r4:false,r5:true,r6:false} };
+  renderVals(){
+    const stripe='repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 10px, rgba(120,90,60,.10) 10px 20px), var(--card)';
+    const grad='linear-gradient(135deg, var(--accent), var(--secondary))';
+    const seed=[
+      {id:'r1',title:'Ofengemüse mit Ziegenkäse und Thymianhonig',author:'Lena M.',time:'45 Min',pending:false,hasImage:true},
+      {id:'r2',title:'Vollkornhaferflockenbrötchen',author:'Tobias K.',time:'2 Std',pending:false,hasImage:false},
+      {id:'r3',title:'Kürbissuppe mit gerösteten Kernen',author:'Anja R.',time:'30 Min',pending:true,hasImage:true},
+      {id:'r4',title:'Sauerteig-Focaccia mit Rosmarin',author:'Marco',time:'1 Tag',pending:false,hasImage:true},
+      {id:'r5',title:'Rote-Bete-Risotto',author:'Lena M.',time:'40 Min',pending:false,hasImage:false},
+      {id:'r6',title:'Apfel-Zimt-Galette',author:'Sofia',time:'55 Min',pending:false,hasImage:true}
+    ];
+    const cards=seed.map(r=>{const f=!!this.state.favs[r.id];return{...r,href:'#/recipes/'+r.id,media:r.hasImage?stripe:grad,mediaLabel:r.hasImage?'foto '+r.id:'gradient-fallback',heartFill:f?'var(--accent)':'transparent',heartStroke:f?'var(--accent)':'var(--heart-outline)',toggleFav:(e)=>{e.preventDefault();e.stopPropagation();this.setState(s=>({favs:{...s.favs,[r.id]:!s.favs[r.id]}}));}};});
+    return { theme:this.state.theme, themeLabel:this.state.theme==='dark'?'☀ Light':'☾ Dark', toggleTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})), cards };
+  }
+}
+</script>
+</body>
+</html>

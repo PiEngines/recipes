@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2C2C2A; --subtext:#6B6B68;
+    --accent:#C8602A; --accent-hover:#A84E22; --secondary:#6B7C4E;
+    --border:rgba(0,0,0,0.08); --border-input:#D8D4CD; --heart-outline:var(--text);
+    --radius-card:12px; --radius-input:8px; --radius-pill:999px;
+    --shadow:0 2px 8px rgba(0,0,0,0.08); --shadow-hover:0 8px 24px rgba(0,0,0,0.15);
+    --transition:all .2s ease;
+    --font-display:'Playfair Display',serif; --font-body:'Inter',sans-serif;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  }
+  [data-theme="dark"]{
+    --bg:#1C1C1A; --card:#2A2A27; --text:#F0EDE8; --subtext:#9A9A95;
+    --border:rgba(255,255,255,0.08); --border-input:#3A3A37;
+    --shadow:0 2px 8px rgba(0,0,0,0.30); --shadow-hover:0 8px 24px rgba(0,0,0,0.50);
+    --heart-outline:transparent;
+  }
+  *{box-sizing:border-box;}
+  .pg{font-family:var(--font-body);color:var(--text);background:var(--bg);transition:var(--transition);}
+  .cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-3);}
+  @media(min-width:768px){ .cat-grid{grid-template-columns:repeat(4,1fr);gap:var(--space-4);} }
+</style>
+</helmet>
+<div class="pg" data-theme="{{ theme }}" style="min-height:100vh;padding-bottom:var(--space-7);">
+
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:var(--card);border-bottom:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="#/recipes" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;text-decoration:none;color:var(--accent);background:rgba(200,96,42,.10);border-radius:50%;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"></path></svg></a>
+      <span style="font-family:var(--font-display);font-weight:700;font-size:20px;">Kategorien</span>
+    </div>
+    <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 16px;">{{ themeLabel }}</button>
+  </header>
+
+  <main style="max-width:1120px;margin:0 auto;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-6);">
+
+    <!-- ===== SAISON-HIGHLIGHT ===== -->
+    <a href="#/recipes?category=grill" style="display:block;text-decoration:none;color:#fff;position:relative;border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);">
+      <div style="aspect-ratio:21/9;background:linear-gradient(135deg,var(--accent),var(--secondary));display:flex;align-items:center;justify-content:center;"><span style="font-family:ui-monospace,monospace;font-size:12px;color:rgba(255,255,255,.7);">saison-foto</span></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.55),transparent 60%);"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:var(--space-5);">
+        <span style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.9;">Jetzt</span>
+        <h2 style="font-family:var(--font-display);font-weight:700;font-size:26px;margin:6px 0 0;">Grillsaison</h2>
+      </div>
+    </a>
+
+    <!-- ===== KACHELGRID GRUPPIERT (Variante A) ===== -->
+    <sc-for list="{{ groups }}" as="grp" hint-placeholder-count="3">
+      <section>
+        <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">{{ grp.label }}</h2>
+        <div class="cat-grid">
+          <sc-for list="{{ grp.cats }}" as="c" hint-placeholder-count="4">
+            <a href="{{ c.href }}" style="display:flex;flex-direction:column;justify-content:flex-end;text-decoration:none;color:#fff;position:relative;aspect-ratio:1;border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);transition:var(--transition);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+              <div style="position:absolute;inset:0;background:{{ c.media }};"></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.6),transparent 55%);"></div>
+              <div style="position:relative;padding:var(--space-3) var(--space-4) var(--space-4);">
+                <div style="font-family:var(--font-display);font-weight:600;font-size:16px;line-height:1.2;">{{ c.name }}</div>
+                <div style="font-size:12px;opacity:.85;margin-top:2px;">{{ c.count }} Rezepte</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+    </sc-for>
+
+    <!-- ===== QUER-FILTER HINWEIS ===== -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-4) var(--space-5);font-size:14px;color:var(--subtext);line-height:1.5;">
+      Suchst du <b style="color:var(--text);">Vegetarisch</b>, <b style="color:var(--text);">Vegan</b> oder <b style="color:var(--text);">Schnell</b>? Das sind keine Kategorien, sondern <a href="#/recipes" style="color:var(--accent);text-decoration:none;font-weight:600;">Filter in der Suche →</a>
+    </div>
+
+    <!-- ===== SPEC ===== -->
+    <section>
+      <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">Spec — Kategorieübersicht</h2>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);font-size:14px;line-height:1.6;display:flex;flex-direction:column;gap:var(--space-3);">
+        <div><b>Route</b> <code style="font-family:ui-monospace,monospace;color:var(--accent);">/kategorien</code> (eigenständig). Einstieg zusätzlich über Kategorien-Reihe in <code style="font-family:ui-monospace,monospace;">/recipes</code> („Alle Kategorien →").</div>
+        <div><b>Kategorie-Klick:</b> → <code style="font-family:ui-monospace,monospace;color:var(--accent);">/recipes?category=&lt;id&gt;</code> — trägt die <b>Kategorie-ID</b> (nicht slug); öffnet Ergebnisliste mit vorgesetztem Filter.</div>
+        <div><b>Komponenten:</b> SaisonHighlight (Hero, redaktionell) · gruppierte CategoryTile-Grids · QuerfilterHinweis (verlinkt in Suche).</div>
+        <div><b>Wichtig:</b> Quer-Filter (Vegetarisch/Vegan/Schnell) sind <b>keine</b> Kategorien → nicht in der Übersicht, nur als Chips in <code style="font-family:ui-monospace,monospace;">/recipes</code>.</div>
+        <div><b>States:</b> <u>Loading</u> = Kachel-Skeletons je Gruppe + Hero-Skeleton. <u>Empty</u> = einzelne Gruppe ohne Kategorien wird ausgeblendet; komplett leer → „Kategorien folgen". <u>Error</u> = Inline-Banner „erneut versuchen".</div>
+        <div><b>Responsive:</b> Kachelgrid 2-spaltig mobil → 4-spaltig ab 768px; Saison-Hero 21/9; zentrierter Container max 1120px.</div>
+        <div><b>Datenbindung:</b> <code style="font-family:ui-monospace,monospace;">categories[]{id,name,recipe_count,image_url,group}</code> · Saison ← <code style="font-family:ui-monospace,monospace;">featured_category</code> <i>(zu prüfen)</i> · Fallback ohne Bild = Terracotta→Olive-Gradient.</div>
+        <div><b>a11y:</b> Kacheln = Links mit Name + Anzahl als Accessible Name; Kontrast Text über Verlaufsmaske; Gruppen als <code style="font-family:ui-monospace,monospace;">&lt;section aria-labelledby&gt;</code>.</div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme:'light' };
+  renderVals(){
+    const grad=(a,b)=>`linear-gradient(135deg, ${a}, ${b})`;
+    const stripe='repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 10px, rgba(120,90,60,.10) 10px 20px), var(--card)';
+    const mk=(id,name,count,hasImg)=>({id,name,count,href:'#/recipes?category='+id,media:hasImg?stripe:grad('var(--accent)','var(--secondary)')});
+    const groups=[
+      {label:'Nach Gang', cats:[mk('vorspeise','Vorspeisen',42,true),mk('hauptgang','Hauptgänge',186,true),mk('dessert','Desserts',73,false),mk('backen','Backen',95,true)]},
+      {label:'Nach Küche', cats:[mk('italienisch','Italienisch',54,true),mk('asiatisch','Asiatisch',61,false),mk('orientalisch','Orientalisch',38,true),mk('deutsch','Deutsch',47,true)]},
+      {label:'Anlass', cats:[mk('grill','Grillen',29,true),mk('mealprep','Meal Prep',33,false),mk('festtag','Festtage',22,true),mk('schnell-einfach','Feierabend',88,true)]}
+    ];
+    return { theme:this.state.theme, themeLabel:this.state.theme==='dark'?'☀ Light':'☾ Dark', toggleTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})), groups };
+  }
+}
+</script>
+</body>
+</html>

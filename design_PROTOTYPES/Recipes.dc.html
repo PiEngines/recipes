@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F2; --card:#FFFFFF; --text:#2C2C2A; --subtext:#6B6B68;
+    --accent:#C8602A; --accent-hover:#A84E22; --secondary:#6B7C4E;
+    --border:rgba(0,0,0,0.08); --border-input:#D8D4CD; --heart-outline:var(--text);
+    --radius-card:12px; --radius-input:8px; --radius-pill:999px;
+    --shadow:0 2px 8px rgba(0,0,0,0.08); --shadow-hover:0 8px 24px rgba(0,0,0,0.15);
+    --transition:all .2s ease;
+    --font-display:'Playfair Display',serif; --font-body:'Inter',sans-serif;
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  }
+  [data-theme="dark"]{
+    --bg:#1C1C1A; --card:#2A2A27; --text:#F0EDE8; --subtext:#9A9A95;
+    --border:rgba(255,255,255,0.08); --border-input:#3A3A37;
+    --shadow:0 2px 8px rgba(0,0,0,0.30); --shadow-hover:0 8px 24px rgba(0,0,0,0.50);
+    --heart-outline:transparent;
+  }
+  *{box-sizing:border-box;}
+  .pg{font-family:var(--font-body);color:var(--text);background:var(--bg);transition:var(--transition);}
+  .grid-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);}
+  .layout{display:block;}
+  .sidebar{display:none;}
+  @media(min-width:768px){
+    .grid-cards{grid-template-columns:repeat(3,1fr);gap:var(--space-5);}
+    .layout{display:grid;grid-template-columns:264px 1fr;gap:var(--space-6);align-items:start;}
+    .sidebar{display:block;position:sticky;top:88px;}
+    .filter-btn-mobile{display:none !important;}
+  }
+</style>
+</helmet>
+<div class="pg" data-theme="{{ theme }}" style="min-height:100vh;">
+
+  <header style="position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:var(--card);border-bottom:1px solid var(--border);">
+    <span style="font-family:var(--font-display);font-weight:700;font-size:20px;">Rezepte</span>
+    <button onClick="{{ toggleTheme }}" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:8px 16px;">{{ themeLabel }}</button>
+  </header>
+
+  <main style="max-width:1120px;margin:0 auto;padding:var(--space-5);">
+
+    <!-- Suchleiste -->
+    <label style="display:flex;align-items:center;gap:var(--space-3);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:12px 18px;box-shadow:var(--shadow);margin-bottom:var(--space-5);" style-focus-within="border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,96,42,.15);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--subtext)" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4"></path></svg>
+      <input value="fladenbrot" style="flex:1;border:none;outline:none;background:transparent;font-size:15px;color:var(--text);" />
+    </label>
+
+    <div class="layout">
+      <!-- ===== SIDEBAR (Desktop) ===== -->
+      <aside class="sidebar">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:var(--space-5);">
+          <div style="font-family:var(--font-display);font-weight:600;font-size:18px;">Filter</div>
+          <sc-for list="{{ filterGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--subtext);">{{ g.label }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3">
+                  <button onClick="{{ o.toggle }}" style="cursor:pointer;font-size:13px;font-weight:500;border-radius:var(--radius-pill);padding:7px 13px;border:1px solid {{ o.borderColor }};background:{{ o.bg }};color:{{ o.color }};transition:var(--transition);">{{ o.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </aside>
+
+      <!-- ===== ERGEBNISSPALTE ===== -->
+      <div>
+        <!-- Toolbar: mobile filter btn + count + sort -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap;">
+          <button class="filter-btn-mobile" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-pill);padding:9px 16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"></path></svg>Filter (2)
+          </button>
+          <span style="font-size:14px;color:var(--subtext);">{{ resultCount }} Treffer</span>
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--subtext);">Sortieren
+            <select style="font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--card);border:1px solid var(--border-input);border-radius:var(--radius-input);padding:8px 12px;">
+              <option>Relevanz</option><option>Neueste</option><option>Älteste</option><option>Bewertung</option><option>Kochzeit</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Aktive Filter-Chips -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--space-5);">
+          <sc-for list="{{ activeChips }}" as="c" hint-placeholder-count="2">
+            <button onClick="{{ c.remove }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);background:rgba(200,96,42,.10);border:1px solid rgba(200,96,42,.3);border-radius:var(--radius-pill);padding:7px 12px;">
+              {{ c.label }}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+          </sc-for>
+          <button onClick="{{ clearAll }}" style="cursor:pointer;font-size:13px;color:var(--subtext);background:transparent;border:none;text-decoration:underline;">Alle zurücksetzen</button>
+        </div>
+
+        <!-- Ergebnis-Grid -->
+        <div class="grid-cards">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="6">
+            <a href="{{ c.href }}" style="display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow);transition:var(--transition);" style-hover="box-shadow:var(--shadow-hover);transform:translateY(-2px);">
+              <div style="position:relative;aspect-ratio:4/3;background:{{ c.media }};display:flex;align-items:center;justify-content:center;">
+                <span style="font-family:ui-monospace,monospace;font-size:11px;color:var(--subtext);opacity:.7;">{{ c.mediaLabel }}</span>
+                <sc-if value="{{ c.season }}" hint-placeholder-val="{{ true }}">
+                  <span style="position:absolute;top:12px;left:12px;font-size:11px;font-weight:600;color:#fff;background:var(--secondary);border-radius:var(--radius-pill);padding:5px 10px;">SAISON</span>
+                </sc-if>
+                <button onClick="{{ c.toggleFav }}" aria-label="Favorit" style="position:absolute;top:12px;right:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);border:none;border-radius:var(--radius-pill);cursor:pointer;box-shadow:var(--shadow);">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.6 8.9 2 5.5 5.2 5.1 7 4.9 8.7 5.9 12 8.9c3.3-3 5-4 6.8-3.8C22 5.5 23.4 8.9 22 11.8 19.5 16.4 12 21 12 21z" fill="{{ c.heartFill }}" stroke="{{ c.heartStroke }}" stroke-width="1.6"></path></svg>
+                </button>
+              </div>
+              <div style="padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);">
+                <h3 lang="de" style="font-family:var(--font-display);font-weight:600;font-size:17px;line-height:1.25;margin:0;hyphens:auto;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ c.title }}</h3>
+                <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--subtext);"><span>{{ c.author }}</span><span>·</span><span>{{ c.time }}</span></div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+
+        <!-- ===== ZERO-RESULT DIAGNOSE (Referenz-Zustand) ===== -->
+        <div style="margin-top:var(--space-6);background:var(--card);border:1px dashed var(--border-input);border-radius:var(--radius-card);padding:var(--space-5);">
+          <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--subtext);margin-bottom:var(--space-3);">Zustand: keine Treffer — Filter-Diagnose</div>
+          <div style="font-family:var(--font-display);font-weight:600;font-size:20px;margin-bottom:var(--space-2);">Keine Treffer für diese Kombination</div>
+          <div style="font-size:14px;color:var(--subtext);margin-bottom:var(--space-4);">Tippe einen Filter an, um ihn zu entfernen und die Treffer zu sehen:</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button style="cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 14px;font-size:14px;color:var(--text);">ohne <b style="font-weight:600;">Vegan</b> <span style="color:var(--secondary);font-weight:600;">+14 Treffer</span></button>
+            <button style="cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 14px;font-size:14px;color:var(--text);">ohne <b style="font-weight:600;">unter 30 Min</b> <span style="color:var(--secondary);font-weight:600;">+6 Treffer</span></button>
+          </div>
+          <button style="margin-top:var(--space-4);cursor:pointer;font-size:13px;color:var(--subtext);background:transparent;border:none;text-decoration:underline;">Alle Filter zurücksetzen</button>
+        </div>
+
+        <!-- ===== SPEC ===== -->
+        <section style="margin-top:var(--space-7);">
+          <h2 style="font-family:var(--font-display);font-weight:600;font-size:22px;margin:0 0 var(--space-4);">Spec — Rezepte</h2>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-card);padding:var(--space-5);font-size:14px;line-height:1.6;display:flex;flex-direction:column;gap:var(--space-3);">
+            <div><b>Route</b> <code style="font-family:ui-monospace,monospace;color:var(--accent);">/recipes</code> · Query: <code style="font-family:ui-monospace,monospace;">?q=&sort=&category=&diet=&maxTime=</code></div>
+            <div><b>Komponenten:</b> SearchBar · FilterSidebar (Desktop, persistent) / FilterSheet (Mobil, Overlay) · ActiveFilterChips · SortDropdown (Relevanz/Neueste/Älteste/Bewertung/Kochzeit) · RecipeCard-Grid · ZeroResultDiagnose.</div>
+            <div><b>Filterlogik:</b> UND-verknüpft, beliebig kombinierbar; Chip-✕ entfernt einzeln. Suche + Filter kombinierbar. Saison rein redaktionell → SAISON-Badge auf Treffern (kein Filter).</div>
+            <div><b>States:</b> <u>Loading</u> = 6 Skeleton-Cards, Sidebar bleibt. <u>Empty (0 Treffer)</u> = Filter-Diagnose: pro aktivem Filter „ohne X: +n"; ganze Zeile = Button (entfernt Filter + zeigt Treffer sofort); sekundär „Alle zurücksetzen". <u>Error</u> = Inline-Banner „erneut versuchen", Filter bleiben erhalten.</div>
+            <div><b>Responsive:</b> ≥768 = 2-Spalten-Layout <code style="font-family:ui-monospace,monospace;">264px | 1fr</code>, Sidebar sticky (top 88px). &lt;768 = Sidebar entfällt, „Filter (n)"-Button öffnet Sheet. Grid 2→3.</div>
+            <div><b>Datenbindung:</b> <code style="font-family:ui-monospace,monospace;">results[]</code>→Cards · <code style="font-family:ui-monospace,monospace;">total_count</code>→„n Treffer" · <code style="font-family:ui-monospace,monospace;">facets{}</code>→Filteroptionen &amp; Diagnose-Zahlen <i>(zu prüfen)</i> · <code style="font-family:ui-monospace,monospace;">is_seasonal</code>→SAISON-Badge <i>(zu prüfen)</i>.</div>
+            <div><b>Links:</b> Card → <code style="font-family:ui-monospace,monospace;">/recipes/:id</code>. Filter/Sort schreiben in URL-Query (teilbar, Back-fähig).</div>
+            <div><b>a11y:</b> Sidebar = <code style="font-family:ui-monospace,monospace;">&lt;nav aria-label="Filter"&gt;</code>; aktive Optionen <code style="font-family:ui-monospace,monospace;">aria-pressed</code>; Chip-✕ mit aria-label „Filter X entfernen"; Ergebniszahl in <code style="font-family:ui-monospace,monospace;">aria-live="polite"</code>; Sheet mit Focus-Trap.</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    theme:'light',
+    favs:{r1:false,r2:true,r3:false,r4:false,r5:false,r6:true},
+    active:{ 'Vegetarisch':true, 'unter 30 Min':true },
+  };
+  renderVals(){
+    const stripe='repeating-linear-gradient(45deg, rgba(120,90,60,.05) 0 10px, rgba(120,90,60,.10) 10px 20px), var(--card)';
+    const grad='linear-gradient(135deg, var(--accent), var(--secondary))';
+    const groups=[
+      {label:'Art', opts:['Vegetarisch','Vegan','Fleisch','Fisch']},
+      {label:'Zeit', opts:['unter 30 Min','30–60 Min','über 1 Std']},
+      {label:'Gang', opts:['Vorspeise','Hauptgang','Dessert','Backen']}
+    ];
+    const toggle=(name)=>this.setState(s=>{const a={...s.active};if(a[name])delete a[name];else a[name]=true;return{active:a};});
+    const filterGroups=groups.map(g=>({label:g.label,opts:g.opts.map(o=>{const on=!!this.state.active[o];return{label:o,toggle:()=>toggle(o),bg:on?'rgba(200,96,42,.10)':'transparent',color:on?'var(--accent)':'var(--text)',borderColor:on?'rgba(200,96,42,.35)':'var(--border-input)'};})}));
+    const activeChips=Object.keys(this.state.active).map(name=>({label:name,remove:()=>toggle(name)}));
+    const seed=[
+      {id:'r1',title:'Türkisches Fladenbrot (Pide)',author:'Emre',time:'2 Std',season:false,hasImage:true},
+      {id:'r2',title:'Vollkornhaferflockenbrötchen',author:'Tobias K.',time:'2 Std',season:false,hasImage:false},
+      {id:'r3',title:'Bärlauch-Fladenbrot vom Blech',author:'Anja R.',time:'40 Min',season:true,hasImage:true},
+      {id:'r4',title:'Sauerteig-Focaccia mit Rosmarin',author:'Marco',time:'1 Tag',season:false,hasImage:true},
+      {id:'r5',title:'Naan mit Knoblauchbutter',author:'Priya',time:'50 Min',season:false,hasImage:false},
+      {id:'r6',title:'Kräuter-Focaccia',author:'Sofia',time:'3 Std',season:true,hasImage:true}
+    ];
+    const cards=seed.map(r=>{const f=!!this.state.favs[r.id];return{...r,href:'#/recipes/'+r.id,media:r.hasImage?stripe:grad,mediaLabel:r.hasImage?'foto '+r.id:'gradient-fallback',heartFill:f?'var(--accent)':'transparent',heartStroke:f?'var(--accent)':'var(--heart-outline)',toggleFav:(e)=>{e.preventDefault();e.stopPropagation();this.setState(s=>({favs:{...s.favs,[r.id]:!s.favs[r.id]}}));}};});
+    return {
+      theme:this.state.theme, themeLabel:this.state.theme==='dark'?'☀ Light':'☾ Dark',
+      toggleTheme:()=>this.setState(s=>({theme:s.theme==='dark'?'light':'dark'})),
+      filterGroups, activeChips, clearAll:()=>this.setState({active:{}}),
+      resultCount:cards.length, cards
+    };
+  }
+}
+</script>
+</body>
+</html>
