@@ -56,7 +56,6 @@ class Recipe(Base):
     author = relationship("User", back_populates="recipes", foreign_keys=[created_by])
     steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
     ingredients = relationship("Ingredient", back_populates="recipe", order_by="Ingredient.sort_order", cascade="all, delete-orphan")
-    images = relationship("RecipeImage", back_populates="recipe", cascade="all, delete-orphan")
     videos = relationship("RecipeVideo", back_populates="recipe", cascade="all, delete-orphan")
     versions = relationship(
         "RecipeVersion",
@@ -131,18 +130,6 @@ class Ingredient(Base):
     bls_id = Column(String(50), nullable=True)  # reference into the Bundeslebensmittelschlüssel, for future nutrition data
 
     recipe = relationship("Recipe", back_populates="ingredients")
-
-
-class RecipeImage(Base):
-    __tablename__ = "recipe_images"
-
-    id = Column(Integer, primary_key=True)
-    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
-    file_path = Column(String(500), nullable=False)
-    is_primary = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-    recipe = relationship("Recipe", back_populates="images")
 
 
 class RecipeVideo(Base):

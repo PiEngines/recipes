@@ -38,13 +38,6 @@ class AuthorResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class RecipeImageResponse(BaseModel):
-    id: int
-    file_path: str
-    is_primary: bool
-    model_config = {"from_attributes": True}
-
-
 # ── Ingredients ───────────────────────────────────────────────────────────────
 
 class IngredientCreate(BaseModel):
@@ -251,7 +244,6 @@ class RecipeResponse(BaseModel):
     tags: list[TagResponse]
     diet_labels: list[DietLabelResponse]
     allergens: list[AllergenResponse]
-    images: list[RecipeImageResponse]
     is_pending_review: bool = False
     rating_avg: float | None = None
     rating_count: int = 0

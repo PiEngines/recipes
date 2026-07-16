@@ -137,9 +137,6 @@ async def _cleanup_deleted_recipes() -> None:
                 if m.thumbnail_path:
                     storage.delete_file(m.thumbnail_path)
                 db.delete(m)
-            for img in recipe.images:
-                if img.file_path:
-                    storage.delete_file(img.file_path)
             for vid in recipe.videos:
                 if vid.file_path:
                     storage.delete_file(vid.file_path)

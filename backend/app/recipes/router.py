@@ -67,7 +67,6 @@ def _load_full(recipe_id: int, db: Session) -> Recipe:
             joinedload(Recipe.tags),
             joinedload(Recipe.diet_labels),
             joinedload(Recipe.allergens),
-            joinedload(Recipe.images),
         )
         .filter(Recipe.id == recipe_id)
         .first()
@@ -1123,7 +1122,6 @@ def delete_recipe_permanent(
         db.query(Recipe)
         .options(
             joinedload(Recipe.steps),
-            joinedload(Recipe.images),
             joinedload(Recipe.videos),
         )
         .filter(Recipe.id == recipe_id, Recipe.deleted_at.isnot(None))
@@ -1145,9 +1143,6 @@ def delete_recipe_permanent(
             storage.delete_file(m.thumbnail_path)
         db.delete(m)
 
-    for img in recipe.images:
-        if img.file_path:
-            storage.delete_file(img.file_path)
     for vid in recipe.videos:
         if vid.file_path:
             storage.delete_file(vid.file_path)

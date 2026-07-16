@@ -194,7 +194,6 @@ def _make_recipe(
     r.tags = []
     r.diet_labels = []
     r.allergens = []
-    r.images = []
     r.is_pending_review = False
     r.module_authors = None
     author_mock = MagicMock()
