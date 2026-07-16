@@ -177,6 +177,23 @@ def _attach_primary_images(items, db):
     return items
 
 
+def _attach_ratings(items, db):
+    from app.models.rating import Rating
+    if not items:
+        return items
+    ids = [r.id for r in items]
+    rows = (
+        db.query(Rating.recipe_id, func.avg(Rating.stars), func.count(Rating.id))
+        .filter(Rating.recipe_id.in_(ids)).group_by(Rating.recipe_id).all()
+    )
+    agg = {rid: (round(float(a), 1), c) for rid, a, c in rows}
+    for r in items:
+        avg, cnt = agg.get(r.id, (None, 0))
+        r.rating_avg = avg
+        r.rating_count = cnt
+    return items
+
+
 @router.get("", response_model=PaginatedRecipes)
 def list_recipes(
     page: int = Query(1, ge=1),
@@ -335,11 +352,19 @@ def list_recipes(
         "time_asc": _time.asc(),
         "time_desc": _time.desc(),
     }
-    if sort not in sort_columns:
+    allowed = set(sort_columns) | {"rating"}
+    if sort not in allowed:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Ungültiger sort-Wert '{sort}'. Erlaubt: {', '.join(sort_columns)}",
+            detail=f"Ungültiger sort-Wert '{sort}'. Erlaubt: {', '.join(sorted(allowed))}",
         )
+    if sort == "rating":
+        from app.models.rating import Rating
+        _ravg = db.query(Rating.recipe_id, func.avg(Rating.stars).label("a")).group_by(Rating.recipe_id).subquery()
+        q = q.outerjoin(_ravg, Recipe.id == _ravg.c.recipe_id)
+        _order = func.coalesce(_ravg.c.a, 0).desc()
+    else:
+        _order = sort_columns[sort]
 
     total = q.count()
     items = (
@@ -348,13 +373,14 @@ def list_recipes(
             subqueryload(Recipe.tags),
             joinedload(Recipe.author),
         )
-        .order_by(sort_columns[sort])
+        .order_by(_order)
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
     )
 
     _attach_primary_images(items, db)
+    _attach_ratings(items, db)
 
     return PaginatedRecipes(
         items=items,
@@ -387,6 +413,7 @@ def get_random_recipes(
         .all()
     )
     _attach_primary_images(items, db)
+    _attach_ratings(items, db)
     return items
 
 
@@ -413,6 +440,7 @@ def list_trash(
         .all()
     )
     _attach_primary_images(items, db)
+    _attach_ratings(items, db)
     return items
 
 
@@ -644,6 +672,8 @@ def get_recipe(
         )
         if pending_access:
             is_pending_review = True
+
+    _attach_ratings([recipe], db)
 
     # Resolve flat modules if any — recipes without modules behave exactly as before.
     flat_components = [c for c in recipe.child_components if c.flatten_into_parent]

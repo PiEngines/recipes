@@ -213,6 +213,8 @@ class RecipeListItem(BaseModel):
     review_status: str | None = None
     thumbnail_style: str = "crop"
     primary_image: str | None = None
+    rating_avg: float | None = None
+    rating_count: int = 0
     created_by: int | None = None
     created_at: datetime
     updated_at: datetime | None = None
@@ -251,6 +253,8 @@ class RecipeResponse(BaseModel):
     allergens: list[AllergenResponse]
     images: list[RecipeImageResponse]
     is_pending_review: bool = False
+    rating_avg: float | None = None
+    rating_count: int = 0
     module_authors: list[AuthorResponse] | None = None
     components: list[ComponentEmbedInfo] = []
     model_config = {"from_attributes": True}

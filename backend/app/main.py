@@ -18,6 +18,7 @@ from app.plants.ingredient_map_seed import seed_plant_ingredient_map
 from app.plants.router import router as plants_router
 from app.plants.seed import seed_plant_data
 from app.recipes.access_router import router as access_router
+from app.ratings.router import router as ratings_router
 from app.recipes.router import router as recipes_router
 from app.recipes.versions_router import router as versions_router
 from app.seasonal.matcher import run_seasonal_matching
@@ -261,6 +262,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(recipes_router)
+app.include_router(ratings_router)
 app.include_router(modules_router)
 app.include_router(versions_router)
 app.include_router(access_router)
