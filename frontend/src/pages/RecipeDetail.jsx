@@ -8,6 +8,7 @@ import MediaLightbox from '../components/MediaLightbox'
 import BackButton from '../components/BackButton'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
+import RatingStars from '../components/RatingStars'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
@@ -655,6 +656,38 @@ function LoadingScreen() {
   )
 }
 
+// ── Rating block ──────────────────────────────────────────────────────────────
+
+function RatingBlock({ rating, canRate, onRate, onClear }) {
+  const avg = rating?.avg ?? null
+  const count = rating?.count ?? 0
+  const mine = rating?.my_stars ?? 0
+  const label = { fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {count > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <RatingStars value={avg || 0} size={18} />
+          <span style={label}>Ø {avg} · {count}</span>
+        </div>
+      ) : (
+        <span style={label}>Noch keine Bewertung</span>
+      )}
+      {canRate && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={label}>Deine Bewertung:</span>
+          <RatingStars value={mine} size={22} interactive onRate={onRate} />
+          {mine > 0 && (
+            <button onClick={onClear} style={{ ...label, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              entfernen
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function RecipeDetail() {
@@ -682,6 +715,7 @@ export default function RecipeDetail() {
   const [checkedIngredients, setCheckedIngredients] = useState({})
   const [pillsExpanded, setPillsExpanded] = useState(false)
   const [serveWith, setServeWith] = useState([])
+  const [rating, setRating] = useState(null) // {avg, count, my_stars}
 
   const stepRefs = useRef({})
 
@@ -699,6 +733,9 @@ export default function RecipeDetail() {
           .catch(() => {})
         client.get(`/api/recipes/${id}/serve-with`)
           .then(sw => setServeWith(sw.data))
+          .catch(() => {})
+        client.get(`/api/recipes/${id}/rating`)
+          .then(rr => setRating(rr.data))
           .catch(() => {})
         if (r.steps?.length) {
           Promise.all(
@@ -754,6 +791,16 @@ export default function RecipeDetail() {
     setSelectedIngredient(ing)
     setActiveStepIdx(null)
   }
+
+  const submitRating = (stars) => {
+    client.put(`/api/recipes/${id}/rating`, { stars })
+      .then(rr => setRating(rr.data)).catch(() => {})
+  }
+  const clearRating = () => {
+    client.delete(`/api/recipes/${id}/rating`)
+      .then(rr => setRating(rr.data)).catch(() => {})
+  }
+  const canRate = !!user && !!recipe && recipe.created_by !== user.id
 
   const canEdit = recipe
     ? (isAdmin || (isKochOrAbove(user) && recipe.created_by === user?.id))
@@ -888,6 +935,11 @@ export default function RecipeDetail() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Rating */}
+            <div className="md:px-0" style={{ padding: '0 18px', marginBottom: '1rem' }}>
+              <RatingBlock rating={rating} canRate={canRate} onRate={submitRating} onClear={clearRating} />
             </div>
 
             {/* Steps heading */}
