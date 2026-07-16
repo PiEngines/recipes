@@ -20,7 +20,7 @@
 | 14 | Filter Multi-Select: OR innerhalb Facette, AND über Facetten. | Standard-Facettensuche. | 🔄 |
 | 15 | Allergene = Ausschlussfilter. | „ohne Nüsse" ist der reale Use-Case. | 🔒 |
 | 16 | Facet-Counts vertagt auf C1b. | Komplex; Filter unblocken Phase D auch ohne. | ⏸ |
-| 17 | Rating (C2) Defaults: 5 Sterne, 1/User editier-/löschbar, kein Self-Rating, avg+count. | Standard, missbrauchsarm. | 🔄 Defaults, Veto offen |
+| 17 | Rating (C2) Defaults: 5 Sterne, 1/User editier-/löschbar, kein Self-Rating, avg+count. | Standard, missbrauchsarm. | 👤 bestätigt, gebaut |
 
 ## Offene technische Punkte
 - `Recipes.jsx` sendet `order_by=created_at` statt `sort` → Home-`?sort=newest`-Links greifen nicht durch (Phase-D-Alignment).
