@@ -57,6 +57,15 @@ class Recipe(Base):
     steps = relationship("RecipeStep", back_populates="recipe", order_by="RecipeStep.sort_order", cascade="all, delete-orphan")
     ingredients = relationship("Ingredient", back_populates="recipe", order_by="Ingredient.sort_order", cascade="all, delete-orphan")
     images = relationship("RecipeImage", back_populates="recipe", cascade="all, delete-orphan")
+
+    @property
+    def primary_image(self) -> str | None:
+        """file_path des Primärbilds (is_primary); sonst erstes Bild; sonst None."""
+        if not self.images:
+            return None
+        primary = next((img for img in self.images if img.is_primary), None)
+        return (primary or self.images[0]).file_path
+
     videos = relationship("RecipeVideo", back_populates="recipe", cascade="all, delete-orphan")
     versions = relationship(
         "RecipeVersion",

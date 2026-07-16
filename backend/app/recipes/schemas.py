@@ -212,6 +212,7 @@ class RecipeListItem(BaseModel):
     type: str = "kochen"
     review_status: str | None = None
     thumbnail_style: str = "crop"
+    primary_image: str | None = None
     created_by: int | None = None
     created_at: datetime
     updated_at: datetime | None = None

@@ -153,6 +153,7 @@ def list_recipes(
     author_id: int | None = Query(None),
     author: str | None = Query(None),
     type: str | None = Query(None),
+    sort: str = Query("newest"),
     as_module: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
@@ -270,14 +271,25 @@ def list_recipes(
             User.username.ilike(term) | User.email.ilike(term)
         )
 
+    sort_columns = {
+        "newest": Recipe.created_at.desc(),
+        "oldest": Recipe.created_at.asc(),
+    }
+    if sort not in sort_columns:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Ungültiger sort-Wert '{sort}'. Erlaubt: {', '.join(sort_columns)}",
+        )
+
     total = q.count()
     items = (
         q.options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
+            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
-        .order_by(Recipe.created_at.desc())
+        .order_by(sort_columns[sort])
         .offset((page - 1) * page_size)
         .limit(page_size)
         .all()
@@ -307,6 +319,7 @@ def get_random_recipes(
         q.options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
+            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
         .order_by(func.random())
@@ -329,6 +342,7 @@ def list_trash(
         .options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
+            subqueryload(Recipe.images),
             joinedload(Recipe.author),
         )
         .filter(Recipe.deleted_at.isnot(None))
