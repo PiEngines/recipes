@@ -145,6 +145,13 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,.22) 0%, transparent 35%, rgba(0,0,0,.62) 100%)' }} />
 
+        {/* Pending-Review-Badge */}
+        {recipe.is_pending_review && (
+          <span style={{ position: 'absolute', top: 12, left: 14, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: 'var(--radius-pill)', padding: '5px 10px', fontFamily: 'Inter, sans-serif' }}>
+            ● Wird geprüft
+          </span>
+        )}
+
         {/* Edit button */}
         {canEdit && (
           <div style={{ position: 'absolute', top: 12, right: 14, zIndex: 2 }}>
@@ -208,10 +215,10 @@ function MetaBar({ recipe }) {
   ].filter(Boolean)
 
   return (
-    <div className="md:px-0" style={{ padding: '8px 18px', display: 'flex', borderBottom: '1px solid rgba(0,0,0,.07)' }}>
+    <div className="md:px-0" style={{ padding: '8px 18px', display: 'flex', borderBottom: '1px solid var(--border)' }}>
       {cols.map((col, i) => (
         <Fragment key={i}>
-          {i > 0 && <div style={{ width: 1, background: 'rgba(0,0,0,.08)', margin: '0 4px', flexShrink: 0 }} />}
+          {i > 0 && <div style={{ width: 1, background: 'var(--border)', margin: '0 4px', flexShrink: 0 }} />}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: i > 0 ? 12 : 0 }}>
             <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'Inter, sans-serif' }}>
               {col.icon && <i className={`ti ${col.icon}`} style={{ fontSize: 10 }} />}
@@ -262,7 +269,7 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
           display: 'flex', alignItems: 'center',
           padding: '10px 6px', margin: '0 -6px',
           borderRadius: selected ? 6 : 0,
-          borderBottom: selected ? 'none' : '1px solid rgba(0,0,0,.06)',
+          borderBottom: selected ? 'none' : '1px solid var(--border)',
           background: selected ? 'rgba(200,96,42,.08)' : 'transparent',
           outline: selected ? '1.5px solid rgba(200,96,42,.3)' : 'none',
           cursor: 'pointer', transition: 'all .15s',
@@ -312,13 +319,13 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
       background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)',
     }}>
       {/* Header */}
-      <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0 }}>
+      <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.125rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>Zutaten</h3>
       </div>
 
       {/* Servings */}
       {recipe.servings && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <span style={{ fontSize: 13, color: 'var(--subtext)', flex: 1, fontFamily: 'Inter, sans-serif' }}>Portionen</span>
           <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}><i className="ti ti-minus" /></button>
           <span style={{ fontSize: 16, fontWeight: 600, minWidth: 20, textAlign: 'center', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{servings}</span>
@@ -402,14 +409,14 @@ function MobileIngredientPanel({ recipe, servings, baseServings, onServingsChang
           transition: 'transform .3s cubic-bezier(.4,0,.2,1)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0, gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0, gap: 8 }}>
           <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.125rem', fontWeight: 700, flex: 1, margin: 0, color: 'var(--text)' }}>Zutaten</h3>
           <button onClick={onClose} style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, cursor: 'pointer', flexShrink: 0 }}>
             <i className="ti ti-x" />
           </button>
         </div>
         {recipe.servings && (
-          <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(0,0,0,.07)', flexShrink: 0, gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0, gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--subtext)', flex: 1, fontFamily: 'Inter, sans-serif' }}>Portionen</span>
             <button onClick={() => onServingsChange(s => Math.max(1, s - 1))} disabled={minusDisabled} style={minusDisabled ? adjBtnDisabled : adjBtn}><i className="ti ti-minus" /></button>
             <span style={{ fontSize: 16, fontWeight: 600, minWidth: 20, textAlign: 'center', color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{servings}</span>
@@ -590,7 +597,7 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
         </div>
       ) : (
         <div>
-          <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(0,0,0,.06)' }}>
+          <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
                 Schritt {activeStep?.sort_order ?? 1}
@@ -843,7 +850,7 @@ export default function RecipeDetail() {
 
             {/* Author block */}
             <div className="md:px-0" style={{ padding: '6px 18px 0' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 8, borderBottom: '1px solid rgba(0,0,0,.07)', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   {recipe.author && (
                     <span style={{ fontSize: '1rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
