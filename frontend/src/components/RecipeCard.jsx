@@ -26,6 +26,7 @@ export default function RecipeCard({ recipe, onClick }) {
   const time = formatTime(recipe)
   const author = recipe.author?.name || recipe.author?.username || null
   const isPending = recipe.review_status && recipe.review_status !== 'none'
+  const hasRating = recipe.rating_count > 0
 
   return (
     <div
@@ -70,11 +71,13 @@ export default function RecipeCard({ recipe, onClick }) {
         >
           {recipe.title}
         </h3>
-        {(author || time) && (
+        {(author || time || hasRating) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
             {author && <span>{author}</span>}
             {author && time && <span aria-hidden="true">·</span>}
             {time && <span>{time}</span>}
+            {hasRating && (author || time) && <span aria-hidden="true">·</span>}
+            {hasRating && <span style={{ color: 'var(--accent)', fontWeight: 600 }}>★ {recipe.rating_avg} ({recipe.rating_count})</span>}
           </div>
         )}
       </div>
