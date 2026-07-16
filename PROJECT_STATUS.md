@@ -104,6 +104,7 @@ Verifikations-Trail mit Commits: siehe `DECISIONS.md`.
 - **D1 Recipes + Option-Endpoints (erledigt):** `Recipes.jsx` gegen C1 (Sidebar/Sheet/Chips/Server-Sort, kanonische Card, N+1 raus); `/api/diet-labels|allergens|courses`.
 - **D2 Rating-Sterne FE (erledigt):** `RatingStars.jsx` + Rating-Widget auf Detail; read-only ★ auf Karten.
 - **C3 Facet-Counts (erledigt):** `list_recipes` liefert `facets` (diet/course/difficulty/category) mit faceted-Semantik (Siblings angewandt, eigene Facette weggelassen); `Recipes.jsx` zeigt Counts je Option, dämpft 0-Optionen, neue Schwierigkeits-Gruppe → **Zero-Result-Diagnose freigeschaltet**. `tag`/`allergen_exclude` noch ohne Counts.
+- **K1 Kategorien + Favorites-Cleanup (erledigt):** Übersichtsseite `/categories` (Gradient-Kacheln, `recipe_count`, Klick → `?category=`) + Nav-Einstieg (Home-Teaser, BottomNav-„Mehr"); Kategorie-Filtergruppe in Recipes (`facets.category`); Favorites auf kanonische `RecipeCard` (+ `dimmed`) + serverseitiges `primary_image`/Rating (N+1 raus), Legacy-`RecipeCard` entfernt. **Offen bleibt nur** die tote `recipe_images`-Tabelle.
 
 ## 🔲 Offen — priorisiert
 
@@ -154,7 +155,7 @@ Kanonische Grid-Karte `components/RecipeCard.jsx` gebaut; Home + Recipes-Grid nu
 - Stiller Retry `serve_with` PUT (fire-and-forget; Backend-Feld existiert via 0025)
 - Headline zwischen Modul-Rezepten (Zutaten-Strecke)
 - Autor im Dropdown („Passt dazu"-Suche); Limitierung „Passt dazu" auf max. 3
-- **Kategorie-Übersichtsseite (vertagt, zügig nachziehen).** Flach baubar (Name + recipe_count → Gradient-Kacheln, Klick → /recipes?category=<int-id>), zurückgestellt bis: (1) `group`-Feld je Kategorie, (2) Kategorie-Bild oder Gradient-Entscheid, (3) `Recipes.jsx` liest `category` (2 Zeilen), (4) Nav-Heimat (Navbar ohne Link-Leiste, BottomNav ohne Slot). Dann einmal richtig bauen.
+- ~~Kategorie-Übersichtsseite (vertagt)~~ → **erledigt in K1** (`23cc96a`): flache Seite `/categories` (Gradient-Kacheln, `recipe_count`), Nav-Heimat Home-Teaser + BottomNav-„Mehr". Bewusst kein `group`-/Bild-Feld.
 - **Detail-Interaktions-Redesign (vertagt, betreut).** Prototyp will Tabs „Zubereitung/Zutaten" + Sidebar rechts (340px sticky) + „Kochmodus starten"-CTA. Bewusst NICHT im Reskin gebaut: gibt die dauerhaft sichtbaren Zutaten auf (UX-Regression) und sitzt auf der Skalierungs-/Timer-/Kochmodus-Logik. Falls gewünscht: eigener betreuter Slice mit Verhaltens-Checkliste, ggf. sub-sliced (erst Tabs, dann Sidebar).
 - ~~`Recipes.jsx` sendet `order_by=created_at` statt des realen `sort`-Params~~ → **erledigt in D1** (`ee20271`): serverseitiges `sort`, Client-Sort entfernt.
 
