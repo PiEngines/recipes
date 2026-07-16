@@ -21,11 +21,14 @@
 | 15 | Allergene = Ausschlussfilter. | „ohne Nüsse" ist der reale Use-Case. | 🔒 |
 | 16 | Facet-Counts vertagt auf C1b. | Komplex; Filter unblocken Phase D auch ohne. | ⏸ |
 | 17 | Rating (C2) Defaults: 5 Sterne, 1/User editier-/löschbar, kein Self-Rating, avg+count. | Standard, missbrauchsarm. | 👤 bestätigt, gebaut |
+| 18 | Recipes-Zeitfilter = nur max_time-Buckets (≤30/≤60). | min_time-Bereiche später. | 🔄 |
+| 19 | Zero-Result-Facet-Diagnose → C3. | Braucht Facet-Counts. | ⏸ |
 
 ## Offene technische Punkte
-- `Recipes.jsx` sendet `order_by=created_at` statt `sort` → Home-`?sort=newest`-Links greifen nicht durch (Phase-D-Alignment).
+- ~~`Recipes.jsx` sendet `order_by=created_at` statt `sort`~~ → **erledigt in D1** (`ee20271`): serverseitiges `sort` (newest/oldest/rating/time_asc), Client-Sort entfernt.
 - `recipe_images` Legacy (tote Tabelle + `RecipeResponse.images`) — Cleanup-Ticket.
 - `type`-Param nicht auf `list` migriert (bleibt comma-`str`).
+- `Favorites.jsx` importiert die Legacy-`RecipeCard`/`SkeletonCard` aus `Recipes.jsx` (eigener N+1-Media-Fetch). D1 hat die Legacy-Exports bewusst bewahrt; eigener Slice könnte Favorites auf die kanonische `RecipeCard` + `primary_image` heben.
 
 ## Arbeitsweise
 1. Ein Handover = mehrere geordnete Commits, je Self-Check; User reicht einmal an CC, Lead verifiziert den Stapel einmal.
