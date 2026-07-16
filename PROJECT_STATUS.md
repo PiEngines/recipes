@@ -144,6 +144,9 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Stiller Retry `serve_with` PUT (fire-and-forget; Backend-Feld existiert via 0025)
 - Headline zwischen Modul-Rezepten (Zutaten-Strecke)
 - Autor im Dropdown („Passt dazu"-Suche); Limitierung „Passt dazu" auf max. 3
+- **Kategorie-Übersichtsseite (vertagt, zügig nachziehen).** Flach baubar (Name + recipe_count → Gradient-Kacheln, Klick → /recipes?category=<int-id>), zurückgestellt bis: (1) `group`-Feld je Kategorie, (2) Kategorie-Bild oder Gradient-Entscheid, (3) `Recipes.jsx` liest `category` (2 Zeilen), (4) Nav-Heimat (Navbar ohne Link-Leiste, BottomNav ohne Slot). Dann einmal richtig bauen.
+- **Detail-Interaktions-Redesign (vertagt, betreut).** Prototyp will Tabs „Zubereitung/Zutaten" + Sidebar rechts (340px sticky) + „Kochmodus starten"-CTA. Bewusst NICHT im Reskin gebaut: gibt die dauerhaft sichtbaren Zutaten auf (UX-Regression) und sitzt auf der Skalierungs-/Timer-/Kochmodus-Logik. Falls gewünscht: eigener betreuter Slice mit Verhaltens-Checkliste, ggf. sub-sliced (erst Tabs, dann Sidebar).
+- **`Recipes.jsx` sendet `order_by=created_at` statt des realen `sort`-Params (Phase A #2)** → `?sort=newest`-Links (aus Home „Neue Rezepte") greifen nicht durch. Fix im Phase-D-Alignment von `Recipes.jsx`.
 
 ### 🟢 Größere Tasks / geplant
 - Edit-Session + Versions-Restore (Auto-Save-Warnung, Banner, Restore)
