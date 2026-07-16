@@ -158,7 +158,10 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 
 #### Phase-A.1-Nachträge (aus primary_image-Korrektur)
 - **[Legacy-Cleanup]** `recipe_images`-Tabelle + `RecipeImage`-Model + `RecipeResponse.images` sind tot (nichts schreibt sie; Frontend nutzt `media`). Eigenes Ticket: entweder entfernen (Migration) oder bewusst als Reserve dokumentieren. **Nicht** im Autopilot — berührt die Detail-Response-Form.
-- **Folge fürs Frontend (nächster Batch):** Home kann die per-Rezept `/api/media/entity/recipe/{id}`-Aufrufe + die `*Imgs`-State-Maps fallenlassen und `recipe.primary_image` verwenden → N+1 raus.
+- **Folge fürs Frontend:** Home lässt die per-Rezept `/api/media/entity/recipe/{id}`-Aufrufe + die `*Imgs`-State-Maps fallen und nutzt `recipe.primary_image` → N+1 raus. **Erledigt in B1b** (`e0ae05e`).
+
+#### Phase-B1b-Nachträge (aus Home-Reskin)
+- **Home-Hero-Karussell (vertagt, größerer Workstream):** rotierender Hero mit Dots statt „Heute für dich"-Reihe. Braucht Backend `GET /api/recipes/featured` (Kuratierungs-Kriterien = Produktentscheidung) + Karussell-UI/a11y. B1b hat bewusst die bestehende Hero-Reihe behalten (kein `featured` im Backend). Inline-SearchBar ist bereits separat als „Suchleiste schmal" gelistet.
 
 #### Phase-A-Nachträge (verschoben, aus Redesign Phase A)
 - **serve-with volle Karte:** `GET /api/recipes/{id}/serve-with` liefert nur `{id, title}`. „Passt dazu" rendert vorerst minimal (Titel + Gradient). Volle `RecipeCard` bräuchte angereicherten serve-with-Endpoint (Bild/Zeit) ODER N Nachfrage-Calls → **verschoben (Phase D)**.
