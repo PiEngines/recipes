@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
-> Letzte Aktualisierung: 2026-07-12
+> Letzte Aktualisierung: 2026-07-16
 > Zweck: Session-Starterpaket für neue Claude-Threads. Immer als erstes mitgeben.
-> Stand verifiziert gegen `main` (Phase-2-Reconciliation 2026-07-12).
+> Stand verifiziert gegen `main` (Redesign-Threads A–D, 2026-07-16). Entscheidungs-Log: `DECISIONS.md`.
 
 ---
 
@@ -11,7 +11,7 @@
 - **Infra:** Docker Compose, Caddy, Raspberry Pi 5, Cloudflare Tunnel
 - **Dev:** Lokal Windows (`D:\engines\recipes`), Deploy via GitHub → Pi
 - **Tests:** `docker compose exec backend python -m pytest tests/ -v`
-- **Migrationsstand:** 0001–0027 (höchste: `0027_add_plant_tags_relations.py`)
+- **Migrationsstand:** Alembic-Head **0030** (`0030_add_ratings.py`)
 
 ## Rollen-Modell (korrekt, verifiziert user.py)
 Hierarchie: `kuechenchef > chefkoch > koch > kuechenhilfe` — plus `admin` als Sonderrolle.
@@ -93,21 +93,30 @@ Verdrahtet: `page_view` (main.jsx), `fratcher_search` (Fratcher.jsx).
 
 ---
 
+## ✅ Redesign-Fortschritt (Threads A–D, Stand 2026-07-16)
+Verifikations-Trail mit Commits: siehe `DECISIONS.md`.
+- **Phase A / A.1 — Backend-Prep (erledigt):** `primary_image` (aus `media`, Thumbnail), `sort`-Param (`newest`/`oldest`), `recipe_count` je Kategorie.
+- **B1a RecipeCard (erledigt):** kanonische `components/RecipeCard.jsx` (4:3, Playfair-Titel, Autor/Zeit, Herz, „Wird geprüft").
+- **B1b Home (erledigt):** Home nutzt kanonische `RecipeCard`, N+1-Bildbeschaffung + toter Code raus.
+- **Detail-Politur (erledigt):** Pending-Badge + dark-mode-korrekte Ränder. Struktur-Umbau (Tabs/Sidebar-Flip) bewusst **vertagt**.
+- **C1 Filter-API (erledigt):** Multi-Select `diet/course/difficulty/allergen_exclude/max_time` + `sort=time_asc/desc`.
+- **C2 Rating (erledigt, Migration 0030):** `ratings`-Tabelle + Endpoints + `rating_avg/count` in List/Detail + `sort=rating`.
+- **D1 Recipes + Option-Endpoints (erledigt):** `Recipes.jsx` gegen C1 (Sidebar/Sheet/Chips/Server-Sort, kanonische Card, N+1 raus); `/api/diet-labels|allergens|courses`.
+- **D2 Rating-Sterne FE (erledigt):** `RatingStars.jsx` + Rating-Widget auf Detail; read-only ★ auf Karten.
+
 ## 🔲 Offen — priorisiert
 
-### 🔴 Karten-Redesign (Konzept fertig, Thread 7) — nächster großer Block
-Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCard).
-- Card-Footer: Bild/Gradient + Titel + Autor + Zeit + Favorit-Herz + „Wird geprüft"-Badge. **Raus:** Description, Typ-Pill, Schwierigkeit-Pill.
+### ✅ Karten-Redesign (erledigt — B1a/B1b)
+Kanonische Grid-Karte `components/RecipeCard.jsx` gebaut; Home + Recipes-Grid nutzen sie (liest `recipe.primary_image`, kein Medien-Fetch).
 - HeuteCard bleibt unverändert (Editorial/Hero).
-- **Dark-Mode-Fix:** Card-Footer `rgba(255,255,255,0.88)` → `var(--card)`/`var(--surface)`, Textfarbe explizit `var(--text)`.
-- Umstellen: Home „Entdecken", MiniCard (Horizontal-Scroll), Recipes.jsx, Favorites.jsx; alte RecipeCard-Definition entfernen.
+- **Rest-Offen:** `Favorites.jsx` nutzt weiter die **Legacy-`RecipeCard`** (aus `Recipes.jsx`, eigener N+1) → eigener Slice könnte Favorites auf die kanonische Card + `primary_image` heben; danach Legacy-Definition entfernen.
 
 ### 🟡 Redesign restliche Seiten (Design-Prototypen /design/*.dc.html)
 | Task | Datei | Notiz |
 |---|---|---|
-| Startseite Redesign | Home.jsx | Karussell, Fratcher-Teaser, Entdecken-Feed, Infinite Scroll |
-| Suchergebnisseite | Recipes.jsx | Desktop Left-Sidebar-Filter, aktive Filter als Chips |
-| Detailseite | RecipeDetail.jsx | Hero-Galerie, Schritt↔Zutat-Highlight, Portionen-Skalierung |
+| ✅ Startseite Redesign | Home.jsx | **erledigt (B1b)** — Reskin auf RecipeCard; Hero-Karussell (`featured`) vertagt |
+| ✅ Suchergebnisseite | Recipes.jsx | **erledigt (D1)** — Sidebar/Sheet-Filter, aktive Chips, Server-Sort gegen C1 |
+| 🟡 Detailseite | RecipeDetail.jsx | Politur + Rating **erledigt** (Detail-Politur, D2); Struktur-Umbau (Tabs/Sidebar-Flip) **vertagt** |
 | RecipeForm Wizard Phase 1–3 | RecipeForm.jsx | Grundgerüst / Parser / Autosave+Medien |
 | Fratcher Optik | Fratcher.jsx | Visuelles Polishing |
 
@@ -146,7 +155,7 @@ Einheitliche Grid-Karte `RecipeCard.jsx` (ersetzt FeedCard + RecipeCard + MiniCa
 - Autor im Dropdown („Passt dazu"-Suche); Limitierung „Passt dazu" auf max. 3
 - **Kategorie-Übersichtsseite (vertagt, zügig nachziehen).** Flach baubar (Name + recipe_count → Gradient-Kacheln, Klick → /recipes?category=<int-id>), zurückgestellt bis: (1) `group`-Feld je Kategorie, (2) Kategorie-Bild oder Gradient-Entscheid, (3) `Recipes.jsx` liest `category` (2 Zeilen), (4) Nav-Heimat (Navbar ohne Link-Leiste, BottomNav ohne Slot). Dann einmal richtig bauen.
 - **Detail-Interaktions-Redesign (vertagt, betreut).** Prototyp will Tabs „Zubereitung/Zutaten" + Sidebar rechts (340px sticky) + „Kochmodus starten"-CTA. Bewusst NICHT im Reskin gebaut: gibt die dauerhaft sichtbaren Zutaten auf (UX-Regression) und sitzt auf der Skalierungs-/Timer-/Kochmodus-Logik. Falls gewünscht: eigener betreuter Slice mit Verhaltens-Checkliste, ggf. sub-sliced (erst Tabs, dann Sidebar).
-- **`Recipes.jsx` sendet `order_by=created_at` statt des realen `sort`-Params (Phase A #2)** → `?sort=newest`-Links (aus Home „Neue Rezepte") greifen nicht durch. Fix im Phase-D-Alignment von `Recipes.jsx`.
+- ~~`Recipes.jsx` sendet `order_by=created_at` statt des realen `sort`-Params~~ → **erledigt in D1** (`ee20271`): serverseitiges `sort`, Client-Sort entfernt.
 
 ### 🟢 Größere Tasks / geplant
 - Edit-Session + Versions-Restore (Auto-Save-Warnung, Banner, Restore)

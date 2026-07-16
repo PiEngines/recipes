@@ -23,6 +23,7 @@
 | 17 | Rating (C2) Defaults: 5 Sterne, 1/User editier-/löschbar, kein Self-Rating, avg+count. | Standard, missbrauchsarm. | 👤 bestätigt, gebaut |
 | 18 | Recipes-Zeitfilter = nur max_time-Buckets (≤30/≤60). | min_time-Bereiche später. | 🔄 |
 | 19 | Zero-Result-Facet-Diagnose → C3. | Braucht Facet-Counts. | ⏸ |
+| 20 | Rating-Widget (D2): Platzierung Hauptspalte nach Author-/Meta-Block vor „Zubereitung" (Sidebar-Prototyp existiert live nicht → 260px-Zutaten-Sidebar bleibt); 5 SVG-Sterne `--accent`, interaktiv = ganze Sterne, Anzeige = Halbstern-Teilfüllung + „Ø x · n"; `my_stars` NICHT in Detail-Response → separater `GET …/rating` (User-Daten nicht an cachebare Rezept-Response koppeln); Karten read-only ★ avg (count) nur bei `rating_count>0` aus List-Response. | Kein Rating-Widget im Prototyp → gegen C2-Vertrag (`main`) gebaut, nicht gegen Prototyp. | 👤·🔒 gebaut |
 
 ## Offene technische Punkte
 - ~~`Recipes.jsx` sendet `order_by=created_at` statt `sort`~~ → **erledigt in D1** (`ee20271`): serverseitiges `sort` (newest/oldest/rating/time_asc), Client-Sort entfernt.
@@ -44,3 +45,7 @@
 | B1a RecipeCard | `4ecf428` |
 | B1b Home | `e0ae05e`,`1fe97fb` |
 | Detail-Politur | `299d192`,`3fbd558` |
+| C1 Filter-API | `30ddb73`,`d495db5` |
+| C2 Rating (0030) | `7f9dd58`,`0eb599c`,`a71cf9f` |
+| D1 Recipes + Optionen | `abec393`,`ee20271`,`2e0a905` |
+| D2 Rating-Sterne FE | `5e9e6b0`,`743524c` |
