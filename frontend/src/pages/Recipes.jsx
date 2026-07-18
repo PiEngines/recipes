@@ -14,7 +14,7 @@ const PAGE_SIZE = 12
 
 // Sort-Dropdown → Server-`sort` (Client-Sort entfällt; Reihenfolge kommt vom Server).
 const SORT_OPTIONS = [
-  { value: 'default', label: 'Standard' },   // kein Param
+  { value: 'default', label: 'Relevanz' },   // kein Param (Default)
   { value: 'newest', label: 'Neueste' },
   { value: 'oldest', label: 'Älteste' },
   { value: 'rating', label: 'Bewertung' },
@@ -58,7 +58,7 @@ function EmptyState({ search, hasActiveFilters, onClearFilters }) {
   return (
     <div style={{ textAlign: 'center', padding: '5rem 1rem', color: 'var(--subtext)' }}>
       <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🥘</div>
-      <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>
         {search || hasActiveFilters ? 'Keine Treffer' : 'Noch keine Rezepte vorhanden'}
       </h3>
       <p style={{ margin: 0, fontSize: '0.925rem' }}>
@@ -68,8 +68,8 @@ function EmptyState({ search, hasActiveFilters, onClearFilters }) {
       </p>
       {hasActiveFilters && (
         <p style={{ margin: '1rem 0 0', fontSize: '0.875rem' }}>
-          Einzelne Filter oben per ✕ entfernen — gedämpfte Optionen (0) grenzen zu stark ein.{' '}
-          <button onClick={onClearFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'underline', padding: 0 }}>
+          Einzelne Filter im Filter-Panel lösen — gedämpfte Optionen (0) grenzen zu stark ein.{' '}
+          <button onClick={onClearFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, textDecoration: 'underline', padding: 0 }}>
             Alle Filter zurücksetzen
           </button>
         </p>
@@ -82,7 +82,7 @@ function EmptyFavoritesState() {
   return (
     <div style={{ textAlign: 'center', padding: '5rem 1rem', color: 'var(--subtext)' }}>
       <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🤍</div>
-      <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.4rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>Noch keine Favoriten</h3>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>Noch keine Favoriten</h3>
       <p style={{ margin: 0, fontSize: '0.925rem' }}>Markiere Rezepte mit dem Herz-Symbol, um sie hier wiederzufinden.</p>
     </div>
   )
@@ -93,14 +93,14 @@ function DeletedFavoriteCard({ recipe }) {
   return (
     <div className="recipe-card" style={{ height: '100%', minHeight: '260px', display: 'flex', flexDirection: 'column', opacity: 0.55, filter: 'grayscale(1)' }}>
       <div style={{ background: 'linear-gradient(135deg, #8a8a86 0%, #b6b6b2 100%)', aspectRatio: '4 / 3', flexShrink: 0, display: 'flex', alignItems: 'flex-end', padding: '0.875rem 1rem' }}>
-        <span style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <span style={{ color: 'rgba(255,255,255,0.95)', fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {recipe.title}
         </span>
       </div>
       <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.75rem' }}>
         <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--subtext)', fontStyle: 'italic' }}>Rezept nicht mehr verfügbar</p>
         <button onClick={() => removeFavorite(recipe.id)}
-          style={{ alignSelf: 'flex-start', padding: '0.4rem 0.85rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'transparent', color: 'var(--subtext)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', transition: 'var(--transition)' }}>
+          style={{ alignSelf: 'flex-start', padding: '0.4rem 0.85rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'transparent', color: 'var(--subtext)', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-body)', transition: 'var(--transition)' }}>
           Aus Favoriten entfernen
         </button>
       </div>
@@ -116,8 +116,8 @@ function FilterButton({ active, onClick, children }) {
       border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
       borderRadius: 'var(--radius-pill)',
       background: active ? 'var(--accent)' : 'var(--card)',
-      color: active ? '#fff' : 'var(--text)',
-      cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500, transition: 'var(--transition)',
+      color: active ? 'var(--on-accent)' : 'var(--text)',
+      cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: 500, transition: 'var(--transition)',
     }}>
       {children}
     </button>
@@ -126,7 +126,7 @@ function FilterButton({ active, onClick, children }) {
 
 function AuthorFilterChip({ author, onClear }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem 0.5rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem 0.5rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'var(--font-body)', fontSize: '0.875rem' }}>
       Autor: <strong>{author}</strong>
       <button onClick={onClear} title="Filter entfernen" aria-label="Filter entfernen"
         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', lineHeight: 1, padding: '0 0.25rem' }}>
@@ -147,16 +147,16 @@ function FilterPill({ active, count, onClick, children }) {
       aria-pressed={active}
       disabled={disabled}
       style={{
-        cursor: disabled ? 'default' : 'pointer', fontSize: 13, fontWeight: 500, fontFamily: 'Inter, sans-serif',
-        borderRadius: 'var(--radius-pill)', padding: '7px 13px',
-        border: `1px solid ${active ? 'rgba(200,96,42,.35)' : 'var(--border-input)'}`,
-        background: active ? 'rgba(200,96,42,.10)' : 'transparent',
+        cursor: disabled ? 'default' : 'pointer', fontSize: 10, fontWeight: 400, fontFamily: 'var(--font-mono)',
+        borderRadius: 2, padding: '5px 12px', whiteSpace: 'nowrap',
+        border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
+        background: active ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
         color: active ? 'var(--accent)' : 'var(--text)',
         opacity: disabled ? 0.4 : 1,
         transition: 'var(--transition)',
       }}
     >
-      {children}{count !== undefined && <span style={{ opacity: 0.65, marginLeft: 5 }}>({count})</span>}
+      {children}{count !== undefined && <span style={{ opacity: 0.6, marginLeft: 5 }}>({count})</span>}
     </button>
   )
 }
@@ -167,7 +167,7 @@ function FilterPanel({ groups }) {
       {groups.map(g => (
         g.opts.length === 0 ? null : (
           <div key={g.label} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+            <div style={{ fontSize: 9, fontWeight: 400, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               {g.label}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -224,6 +224,7 @@ export default function Recipes() {
   const [courseOpts, setCourseOpts] = useState([])   // [string]
   const [categoryOpts, setCategoryOpts] = useState([]) // [{ id, name, slug, recipe_count }]
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [sortOpen, setSortOpen] = useState(false)
   const [reloadNonce, setReloadNonce] = useState(0)
 
   // Option-Listen (einmalig)
@@ -393,16 +394,10 @@ export default function Recipes() {
     },
   ]
 
-  // Aktive Filter-Chips
-  const chips = [
-    ...[...typeFilters].map(t => ({ key: 'type-' + t, label: t === 'kochen' ? 'Kochen' : 'Backen', remove: () => toggleTypeFilter(t) })),
-    ...[...dietFilters].map(id => ({ key: 'diet-' + id, label: dietOpts.find(d => String(d.id) === id)?.name || 'Ernährung', remove: () => toggleMulti('diet', id) })),
-    ...[...courseFilters].map(c => ({ key: 'course-' + c, label: c, remove: () => toggleMulti('course', c) })),
-    ...[...difficultyFilters].map(v => ({ key: 'diff-' + v, label: DIFFICULTY_OPTS.find(o => String(o.value) === v)?.label || `Stufe ${v}`, remove: () => toggleMulti('difficulty', v) })),
-    ...(maxTimeFilter ? [{ key: 'time', label: `Bis ${maxTimeFilter} Min.`, remove: () => toggleTimeFilter(maxTimeFilter) }] : []),
-    ...[...categoryFilters].map(id => ({ key: 'cat-' + id, label: categoryOpts.find(c => String(c.id) === id)?.name || 'Kategorie', remove: () => toggleMulti('category', id) })),
-  ]
   const activeFilterCount = typeFilters.size + dietFilters.size + courseFilters.size + difficultyFilters.size + categoryFilters.size + (maxTimeFilter ? 1 : 0)
+
+  // Browse-Zustand (①): keine Suche/Filter/Autor/Favoriten, Seite 1 → Featured-Kachel oben.
+  const isBrowse = !search && !effectiveAuthor && !authorIdFilter && !showFavorites && activeFilterCount === 0 && page === 1
 
   const openDetail = (r) => {
     sessionStorage.setItem('recipes_scroll_y', window.scrollY)
@@ -410,18 +405,30 @@ export default function Recipes() {
     navigate(`/recipes/${r.id}`)
   }
 
-  const renderGrid = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 20, alignItems: 'stretch' }}>
-      {recipes.map(r => r.deleted_at
-        ? <DeletedFavoriteCard key={r.id} recipe={r} />
-        : (
-          <div key={r.id} style={{ opacity: showFavorites && !favoriteIds.has(r.id) ? 0.4 : 1, pointerEvents: showFavorites && !favoriteIds.has(r.id) ? 'none' : 'auto' }}>
-            <RecipeCard recipe={r} onClick={() => openDetail(r)} />
+  const renderGrid = () => {
+    const showFeatured = isBrowse && recipes.length > 0 && !recipes[0].deleted_at
+    const featured = showFeatured ? recipes[0] : null
+    const rest = showFeatured ? recipes.slice(1) : recipes
+    return (
+      <>
+        {featured && (
+          <div style={{ marginBottom: 20 }}>
+            <RecipeCard recipe={featured} variant="featured" onClick={() => openDetail(featured)} />
           </div>
-        )
-      )}
-    </div>
-  )
+        )}
+        <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 20, alignItems: 'stretch' }}>
+          {rest.map(r => r.deleted_at
+            ? <DeletedFavoriteCard key={r.id} recipe={r} />
+            : (
+              <div key={r.id} style={{ opacity: showFavorites && !favoriteIds.has(r.id) ? 0.4 : 1, pointerEvents: showFavorites && !favoriteIds.has(r.id) ? 'none' : 'auto' }}>
+                <RecipeCard recipe={r} onClick={() => openDetail(r)} />
+              </div>
+            )
+          )}
+        </div>
+      </>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -436,9 +443,9 @@ export default function Recipes() {
           <aside className="hidden md:block" style={{ position: 'sticky', top: 88, maxHeight: 'calc(100vh - 104px)', overflowY: 'auto' }}>
             <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, fontSize: 18, color: 'var(--text)' }}>Filter</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, color: 'var(--text)' }}>Filter</div>
                 {activeFilterCount > 0 && (
-                  <button onClick={clearAllFilters} style={{ fontSize: 12, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                  <button onClick={clearAllFilters} style={{ fontSize: 12, color: 'var(--accent)', fontFamily: 'var(--font-body)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     Zurücksetzen
                   </button>
                 )}
@@ -456,7 +463,7 @@ export default function Recipes() {
                 className="md:hidden"
                 onClick={() => setSheetOpen(true)}
                 data-track-id="recipes-filter-sheet-open"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--text)', background: 'var(--card)', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', padding: '9px 16px', fontFamily: 'Inter, sans-serif' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--text)', background: 'var(--card)', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', padding: '9px 16px', fontFamily: 'var(--font-body)' }}
               >
                 <i className="ti ti-adjustments-horizontal" style={{ fontSize: 16 }} />
                 Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
@@ -464,7 +471,7 @@ export default function Recipes() {
 
               {isKochOrAbove(user) && (
                 <FilterButton active={showFavorites} onClick={toggleFavoritesFilter}>
-                  <Heart size={16} fill={showFavorites ? '#fff' : 'none'} strokeWidth={2} />
+                  <Heart size={16} fill={showFavorites ? 'var(--on-accent)' : 'none'} strokeWidth={2} />
                   Favoriten
                 </FilterButton>
               )}
@@ -473,48 +480,42 @@ export default function Recipes() {
               <div style={{ flex: 1 }} />
 
               {!loading && total > 0 && (
-                <span aria-live="polite" style={{ fontSize: 14, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                  {total} Treffer
+                <span aria-live="polite" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.04em', color: 'var(--text-muted)' }}>
+                  {total} Treffer{search ? ` für »${search}«` : ''}
                 </span>
               )}
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                Sortieren
-                <select
-                  value={sort}
-                  onChange={e => setSort(e.target.value)}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setSortOpen(o => !o)}
                   data-track-id="recipes-sort-select"
-                  style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)', background: 'var(--card)', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-input)', padding: '8px 12px', cursor: 'pointer' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--text)', letterSpacing: '.02em' }}
                 >
-                  {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </label>
+                  {SORT_OPTIONS.find(o => o.value === sort)?.label ?? 'Relevanz'}
+                  <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
+                </button>
+                {sortOpen && (
+                  <>
+                    <div onClick={() => setSortOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-hover)', padding: 4, minWidth: 150 }}>
+                      {SORT_OPTIONS.map(o => (
+                        <button key={o.value} onClick={() => { setSort(o.value); setSortOpen(false) }}
+                          style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', background: o.value === sort ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'none', color: o.value === sort ? 'var(--accent)' : 'var(--text)', fontFamily: 'var(--font-body)', fontSize: 13 }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* Active filter chips */}
-            {chips.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-                {chips.map(c => (
-                  <button
-                    key={c.key}
-                    onClick={c.remove}
-                    aria-label={`Filter ${c.label} entfernen`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'Inter, sans-serif', color: 'var(--accent)', background: 'rgba(200,96,42,.10)', border: '1px solid rgba(200,96,42,.3)', borderRadius: 'var(--radius-pill)', padding: '7px 12px' }}
-                  >
-                    {c.label}
-                    <span aria-hidden="true" style={{ fontSize: 14, lineHeight: 1 }}>✕</span>
-                  </button>
-                ))}
-                <button onClick={clearAllFilters} style={{ cursor: 'pointer', fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', background: 'transparent', border: 'none', textDecoration: 'underline' }}>
-                  Alle zurücksetzen
-                </button>
-              </div>
-            )}
+            {/* Aktive Filter-Chips: entfernt in C1 — wandern in C2 als schwebende Pills (§2.10) */}
 
             {/* Error banner (Filter bleiben erhalten) */}
             {error && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(200,96,42,.08)', border: '1px solid rgba(200,96,42,.3)', borderRadius: 'var(--radius-card)', padding: '12px 16px', marginBottom: 20, fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: 'var(--radius-card)', padding: '12px 16px', marginBottom: 20, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text)' }}>
                 <span>Rezepte konnten nicht geladen werden.</span>
-                <button onClick={() => setReloadNonce(n => n + 1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline', padding: 0, fontFamily: 'Inter, sans-serif', fontSize: 14 }}>
+                <button onClick={() => setReloadNonce(n => n + 1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline', padding: 0, fontFamily: 'var(--font-body)', fontSize: 14 }}>
                   Erneut versuchen
                 </button>
               </div>
@@ -535,12 +536,12 @@ export default function Recipes() {
             {!loading && totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2.5rem' }}>
                 <button onClick={() => setPage(page - 1)} disabled={page === 1}
-                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === 1 ? 'transparent' : 'var(--card)', color: page === 1 ? 'var(--subtext)' : 'var(--text)', cursor: page === 1 ? 'default' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', transition: 'var(--transition)' }}>
+                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === 1 ? 'transparent' : 'var(--card)', color: page === 1 ? 'var(--subtext)' : 'var(--text)', cursor: page === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'var(--transition)' }}>
                   ← Zurück
                 </button>
                 <span style={{ color: 'var(--subtext)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Seite {page} / {totalPages}</span>
                 <button onClick={() => setPage(page + 1)} disabled={page === totalPages}
-                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === totalPages ? 'transparent' : 'var(--card)', color: page === totalPages ? 'var(--subtext)' : 'var(--text)', cursor: page === totalPages ? 'default' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', transition: 'var(--transition)' }}>
+                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === totalPages ? 'transparent' : 'var(--card)', color: page === totalPages ? 'var(--subtext)' : 'var(--text)', cursor: page === totalPages ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'var(--transition)' }}>
                   Weiter →
                 </button>
               </div>
@@ -549,24 +550,27 @@ export default function Recipes() {
         </div>
       </div>
 
-      {/* Mobile filter sheet */}
+      {/* Filter-Bottom-Sheet (§2.11) */}
       {sheetOpen && (
         <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
-          <div onClick={() => setSheetOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)' }} />
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '84%', maxWidth: 340, background: 'var(--bg)', boxShadow: '4px 0 24px rgba(0,0,0,.2)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontWeight: 600, fontSize: 18, color: 'var(--text)' }}>Filter</div>
-              <button onClick={() => setSheetOpen(false)} aria-label="Schließen" style={{ background: 'none', border: 'none', color: 'var(--subtext)', fontSize: 22, lineHeight: 1, cursor: 'pointer', padding: 0 }}>✕</button>
+          <div onClick={() => setSheetOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(42,34,24,.4)' }} />
+          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '85vh', background: 'var(--bg)', borderRadius: '12px 12px 0 0', boxShadow: '0 -8px 32px rgba(0,0,0,.2)', display: 'flex', flexDirection: 'column' }}>
+            {/* Griff */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 4, background: 'var(--wood-shadow)', borderRadius: 2 }} />
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px 12px', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: 'var(--text)' }}>Filter</span>
+              {activeFilterCount > 0 && (
+                <button onClick={clearAllFilters} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.04em' }}>Zurücksetzen</button>
+              )}
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 12px' }}>
               <FilterPanel groups={groups} />
             </div>
-            <div style={{ display: 'flex', gap: 12, padding: '16px 20px', borderTop: '1px solid var(--border)' }}>
-              <button onClick={clearAllFilters} style={{ flex: 1, padding: '11px', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'transparent', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500 }}>
-                Zurücksetzen
-              </button>
-              <button onClick={() => setSheetOpen(false)} style={{ flex: 1, padding: '11px', border: 'none', borderRadius: 'var(--radius-pill)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600 }}>
-                {total} Treffer zeigen
+            <div style={{ padding: '12px 20px 24px', borderTop: '1px solid var(--hairline)', flexShrink: 0 }}>
+              <button onClick={() => setSheetOpen(false)} style={{ width: '100%', padding: 14, borderRadius: 4, background: 'var(--ink-braun)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 13, color: 'var(--on-dark)', boxShadow: '0 3px 0 rgba(0,0,0,.25)' }}>
+                {total} Rezepte anzeigen
               </button>
             </div>
           </div>
