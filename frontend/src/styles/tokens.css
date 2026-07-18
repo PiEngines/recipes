@@ -25,6 +25,10 @@
   --nav-top-shadow: #c4a870;         /* Bottom-Nav Oberkanten-Schatten */
   --hairline:       rgba(0, 0, 0, .07); /* Trennlinien auf Creme */
 
+  /* ── Text auf Farbflächen (kein Brand-Hex in Komponenten) ───────────── */
+  --on-accent:      #ffffff;         /* Text/Icon auf Terrakotta (Buttons, Badges) */
+  --on-dark:        #f0e8d0;         /* Creme-Text auf --ink-braun/--ink-gruen (Nav, Chips) */
+
   /* ── Farbwelten (SPEC §1.1) ─────────────────────────────────────────── */
   --ink-braun:      #2e2618;         /* Header/Nav Rezepte-Welt, primäre Buttons */
   --ink-gruen:      #2b4524;         /* Header Garten-Welt */

@@ -1,0 +1,130 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Basis-Primitive (Wahl 2.0) — kanonische, wiederverwendbare Bausteine.
+   Referenz: design_handoff_piengines_v2/SPEC.md §1.6 / §2 · screens/home.html,
+   screens/rezepte.html. NUR Tokens (styles/tokens.css) — keine Hex-Literale.
+   Interaktive Zustände (:hover/:active/:focus-visible) hier, weil Inline-Styles
+   keine Pseudo-Klassen können; die JSX-Komponenten setzen nur die Klassen.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Button (SPEC §1.6: Terrakotta + gedruckte Unterkante) ──────────────── */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: 1;
+  border: none;
+  border-radius: var(--radius-tag);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.ui-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ui-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ui-btn--sm { font-size: 10px; padding: 7px 12px; }
+.ui-btn--md { font-size: 13px; padding: 10px 16px; }
+.ui-btn--full { width: 100%; }
+
+.ui-btn--primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--btn-edge); }
+.ui-btn--primary:hover:not(:disabled) { background: var(--accent-hover); }
+.ui-btn--primary:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 var(--accent-edge); }
+
+.ui-btn--secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-input); }
+.ui-btn--secondary:hover:not(:disabled) { background: var(--bg-alt); }
+.ui-btn--secondary:active:not(:disabled) { transform: translateY(1px); }
+
+.ui-btn--ghost { background: transparent; color: var(--text); border: 1.5px solid var(--border-input); }
+.ui-btn--ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+/* ── Input / Suchfeld ───────────────────────────────────────────────────── */
+.ui-field { display: flex; flex-direction: column; gap: 6px; }
+.ui-field__label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ui-input-wrap { position: relative; display: flex; align-items: center; }
+.ui-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1.5px solid var(--border-input);
+  border-radius: var(--radius-input);
+  padding: 11px 13px;
+  outline: none;
+  transition: var(--transition);
+}
+.ui-input::placeholder { color: var(--text-muted); }
+.ui-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.ui-input--with-icon { padding-left: 38px; }
+.ui-input__icon { position: absolute; left: 12px; display: inline-flex; color: var(--text-muted); pointer-events: none; }
+.ui-input--error { border-color: var(--accent); }
+.ui-field__error { font-family: var(--font-body); font-size: 12px; color: var(--accent); }
+
+/* ── Card / weiße Akzent-Karte (SPEC §2.4, Holzkante §1.6) ──────────────── */
+.ui-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.ui-card--flat { box-shadow: var(--shadow); }
+.ui-card--pad { padding: 16px; }
+.ui-card--interactive { cursor: pointer; transition: var(--transition); }
+.ui-card--interactive:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+
+/* ── Chip / Pill (SPEC §2.10: Farbpunkt-Slot + ✕-Variante) ──────────────── */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: .05em;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 6px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.ui-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ui-chip--default  { background: var(--surface); color: var(--text); border-color: var(--border-input); }
+.ui-chip--floating { background: var(--surface); color: var(--text); box-shadow: 0 3px 10px rgba(0, 0, 0, .18); }
+.ui-chip--dark     { background: var(--ink-braun); color: var(--on-dark); }
+.ui-chip--accent   { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border-color: var(--accent); }
+.ui-chip__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.ui-chip__x { display: inline-flex; align-items: center; margin-left: 1px; opacity: .55; transition: var(--transition); }
+.ui-chip__x:hover { opacity: 1; }
+
+/* ── SectionHeading (SPEC §1.5: Lora italic 700 + DM-Mono-Overline) ─────── */
+.ui-heading { display: flex; flex-direction: column; gap: 4px; }
+.ui-heading__label {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.ui-heading__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.15;
+  color: var(--text);
+}
+.ui-heading--rule { flex-direction: row; align-items: center; gap: 10px; }
+.ui-heading__rule-line { flex: 1; height: 1px; background: var(--hairline); }
