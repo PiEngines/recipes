@@ -29,6 +29,7 @@ import Recipes from './pages/Recipes.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import Fratcher from './pages/Fratcher.jsx'
+import Garten from './pages/Garten.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import MobileSearchBar from './components/MobileSearchBar.jsx'
@@ -94,6 +95,7 @@ const router = createBrowserRouter([
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
+      { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },

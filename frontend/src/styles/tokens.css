@@ -24,6 +24,7 @@
   --wood-shadow:    #d4b88a;         /* Karten-Unterkante (Holzkante) */
   --nav-top:        #d4b88a;         /* Bottom-Nav Oberkante */
   --nav-top-shadow: #c4a870;         /* Bottom-Nav Oberkanten-Schatten */
+  --nav-muted:      #b0a090;         /* Bottom-Nav inaktiver Slot (SPEC §2.7) */
   --hairline:       rgba(0, 0, 0, .07); /* Trennlinien auf Creme */
 
   /* ── Text auf Farbflächen (kein Brand-Hex in Komponenten) ───────────── */
@@ -60,6 +61,7 @@
   --shadow-tile:    0 4px 14px rgba(0, 0, 0, .12);                            /* Foto-Kachel */
   --shadow-hover:   0 8px 24px rgba(0, 0, 0, .15);
   --btn-edge:       0 2px 0 var(--accent-edge);                               /* Primär-Button */
+  --nav-fab-shadow: 0 4px 12px rgba(0, 0, 0, .3), 0 2px 0 #1a1408;            /* erhöhter Neu-+ (SPEC §2.7) */
 
   --transition:     all .2s ease;
 }
