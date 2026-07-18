@@ -7,7 +7,7 @@ function fmtTimer(s) {
   return `${m}:${String(sec).padStart(2, '0')}`
 }
 
-export default function NotificationsModal() {
+export default function NotificationsModal({ open = false, onClose }) {
   const navigate = useNavigate()
   const { pendingNotifications, clearPendingNotifications } = useAuth()
   const { expiredTimers, confirmAllExpired } = useTimerContext()
@@ -15,11 +15,15 @@ export default function NotificationsModal() {
   const hasNotifications = (pendingNotifications?.length ?? 0) > 0
   const hasExpired = expiredTimers.length > 0
 
-  if (!hasNotifications && !hasExpired) return null
+  // Sichtbar wenn per Glocke geöffnet ODER automatisch bei neuen Neuigkeiten.
+  if (!open && !hasNotifications && !hasExpired) return null
+
+  const isEmpty = !hasNotifications && !hasExpired
 
   const handleDismiss = () => {
     if (hasExpired) confirmAllExpired()
     if (hasNotifications) clearPendingNotifications()
+    onClose?.()
   }
 
   const handleTimerClick = (timer) => {
@@ -33,11 +37,17 @@ export default function NotificationsModal() {
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'var(--card)', borderRadius: '12px', padding: '2rem', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', maxHeight: '80vh', overflowY: 'auto' }}>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text)', margin: '0 0 1.25rem' }}>
+    <div onClick={() => onClose?.()} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--card)', borderRadius: '12px', padding: '2rem', maxWidth: '420px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', maxHeight: '80vh', overflowY: 'auto' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text)', margin: '0 0 1.25rem' }}>
           📬 Neuigkeiten
         </h2>
+
+        {isEmpty && (
+          <p style={{ margin: '0.5rem 0 0', fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--subtext)', lineHeight: 1.5 }}>
+            Keine neuen Neuigkeiten.
+          </p>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {/* Expired timers */}
@@ -102,9 +112,10 @@ export default function NotificationsModal() {
 
         <button
           onClick={handleDismiss}
-          style={{ marginTop: '1.5rem', width: '100%', padding: '0.85rem', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '1rem', fontFamily: 'Inter, sans-serif', fontWeight: 600, cursor: 'pointer' }}
+          data-track-id="notifications-dismiss-click"
+          style={{ marginTop: '1.5rem', width: '100%', padding: '0.85rem', background: 'var(--accent)', border: 'none', borderRadius: '8px', color: 'var(--on-accent)', fontSize: '1rem', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer' }}
         >
-          Verstanden
+          {isEmpty ? 'Schließen' : 'Verstanden'}
         </button>
       </div>
     </div>

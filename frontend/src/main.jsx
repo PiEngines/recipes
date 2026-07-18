@@ -1,8 +1,8 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
 import './index.css'
-import { AuthProvider } from './context/AuthContext.jsx'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { FavoritesProvider } from './context/FavoritesContext.jsx'
 import { TimerProvider } from './context/TimerContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
@@ -28,6 +28,7 @@ import RecipeForm from './pages/RecipeForm.jsx'
 import Recipes from './pages/Recipes.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import Feed from './pages/Feed.jsx'
 import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
 import Seasonal from './pages/Seasonal.jsx'
@@ -38,6 +39,8 @@ const NO_NAVBAR_PATHS = ['/login', '/register', '/forgot-password', '/reset-pass
 
 function Layout() {
   const { pathname } = useLocation()
+  const { pendingNotifications } = useAuth()
+  const [notifOpen, setNotifOpen] = useState(false)
 
   useEffect(() => {
     window.dataLayer = window.dataLayer || []
@@ -56,12 +59,12 @@ function Layout() {
         if (location.pathname === '/') return 'no-restore'
         return location.key
       }} />
-      {showNavbar && <Navbar />}
+      {showNavbar && <Navbar onBellClick={() => setNotifOpen(true)} notificationCount={pendingNotifications?.length ?? 0} />}
       <Outlet />
       {showNavbar && <MobileSearchBar />}
       {showNavbar && <BottomNav />}
       <TimerWidgetGlobal />
-      <NotificationsModal />
+      <NotificationsModal open={notifOpen} onClose={() => setNotifOpen(false)} />
       <UsernameOnboardingModal />
     </>
   )
@@ -94,6 +97,7 @@ const router = createBrowserRouter([
       { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
+      { path: '/feed', element: <ProtectedRoute><Feed /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
