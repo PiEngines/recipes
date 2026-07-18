@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiEngines — 02 · Rezepte — Stöbern & Entdecken</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e2a1a;padding:32px;font-family:'DM Sans',system-ui,sans-serif;}
+h1.doc{font:italic 700 22px 'Lora',serif;color:#e8f0d8;margin:0 0 4px;}
+.sub{font:400 11px 'DM Mono',monospace;color:rgba(255,255,255,.42);letter-spacing:.06em;margin:0 0 26px;}
+a{color:inherit;text-decoration:none;}
+.screen-group{display:flex;flex-direction:column;gap:10px;flex:none;}
+.screen-label{font:500 10px 'DM Mono',monospace;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+.phone{width:390px;height:760px;border-radius:40px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 0 0 1.5px rgba(255,255,255,.07);}
+.canvas-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.canvas-section{padding:0;}
+.section-title{display:none;}
+</style>
+</head>
+<body>
+<h1 class="doc">PiEngines — 02 · Rezepte — Stöbern &amp; Entdecken</h1>
+<p class="sub">Design-Referenz (HTML-Prototyp · Wahl 2.0) · extrahiert aus »PiEngines FINAL« · Stand 18.07.2026 · rendert offline</p>
+<div class="canvas-section" id="rezepte" data-screen-label="Rezepte">
+  <p class="section-title">Rezepte — Stöbern &amp; Entdecken <span style="font:600 10px 'DM Mono',monospace;color:#7aa060;background:rgba(122,160,96,.22);border:1px solid rgba(122,160,96,.5);border-radius:2px;padding:2px 8px;margin-left:10px;letter-spacing:.1em;">● WAHL2.0</span></p>
+  <div class="canvas-row">
+<div class="screen-group">
+      <span class="screen-label">① Browse · Grid (Foto-Kacheln)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;position:relative;">
+
+          <!-- Header -->
+          <div style="background:#2e2618;padding:14px 20px 10px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font:600 13px;color:#f0e8d0;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;">
+                <svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg>
+                <svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:4px;padding:9px 12px;border:1px solid rgba(255,255,255,.08);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.4)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <span style="font:400 12px 'DM Sans';color:rgba(240,232,208,.38);">Rezepte durchsuchen…</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 16px 16px;">
+
+            <!-- Featured (volle Breite, Foto-Kachel) -->
+            <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:16/9;box-shadow:0 2px 8px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;margin-bottom:14px;cursor:pointer;">
+              <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+              <span style="position:absolute;top:46%;left:50%;transform:translate(-50%,-50%);font:500 9px 'DM Mono',monospace;color:rgba(60,50,35,.45);letter-spacing:.16em;">◭ FOTO 16:9</span>
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.92),rgba(16,12,6,.45) 44%,rgba(16,12,6,.08) 68%,transparent 82%);"></div>
+              <span style="position:absolute;top:11px;left:11px;font:400 8px 'DM Mono',monospace;color:#fff;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.4);padding:3px 8px;border-radius:2px;">✦ Tipp der Woche</span>
+              <span style="position:absolute;top:11px;right:11px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+              <div style="position:absolute;left:13px;right:13px;bottom:11px;">
+                <p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);letter-spacing:.1em;text-transform:uppercase;">Backen · 35 Min.</p>
+                <p style="margin:0 0 3px;font:italic 700 20px 'Lora',serif;color:#fff;line-height:1.02;text-shadow:0 1px 4px rgba(0,0,0,.4);">Haferflockenbrötchen</p>
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 9px 'DM Sans';color:rgba(255,255,255,.85);">von Meltem</span><span style="flex:none;font:600 9px 'DM Mono',monospace;color:#ffd27a;">★ 4,8</span></div>
+              </div>
+            </div>
+
+            <!-- Abschnittstrenner -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px;">
+              <div style="flex:1;height:1px;background:rgba(0,0,0,.08);"></div>
+              <span style="font:italic 600 15px 'Lora',serif;color:#2a2218;">Gerade Saison</span>
+              <div style="flex:1;height:1px;background:rgba(0,0,0,.08);"></div>
+            </div>
+
+            <!-- 2-Spalten Foto-Grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px;">
+
+              <!-- Kachel MIT Foto -->
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Kräuter · 20 Min.</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Bärlauch-Pesto</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Anna</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,6</span></div>
+                </div>
+              </div>
+
+              <!-- Kachel OHNE Foto (Fallback = Kategorie-Farbblock, gleiche Struktur) -->
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c07838,#7a4820);"></div>
+                <svg style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);opacity:.25;" width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M3 11h18v2a7 7 0 01-7 7h-4a7 7 0 01-7-7v-2zm2-6h2v3H5V5zm5-1h2v4h-2V4zm5 1h2v3h-2V5z"></path></svg>
+                <span style="position:absolute;top:calc(40% + 20px);left:50%;transform:translateX(-50%);font:500 6px 'DM Mono',monospace;color:rgba(255,255,255,.55);letter-spacing:.16em;">OHNE FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.82),rgba(16,12,6,.32) 44%,transparent 70%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.32);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Suppe · 40 Min.</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.4);">Kürbissuppe</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Michael</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,4</span></div>
+                </div>
+              </div>
+
+              <!-- Kachel MIT Foto -->
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Salat · 15 Min.</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#c85030" stroke="#c85030" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Wildkräutersalat</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Greta-Maximiliane von Sonnenwald</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,9</span></div>
+                </div>
+              </div>
+
+              <!-- Kachel MIT Foto -->
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Aufstrich · 10 Min.</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Kräuterbutter</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Lisa</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,2</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- Schwebende Filter-Ebene (über der Nav) -->
+          <div style="position:absolute;left:0;right:0;bottom:88px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;pointer-events:none;">
+            <!-- aktive Pills, schwebend (leer = nichts sichtbar, nur FAB) -->
+            <div style="display:flex;gap:7px;align-items:center;min-width:0;overflow:hidden;pointer-events:auto;">
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:7px 9px 7px 11px;background:#fffef8;color:#3f5233;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.18);letter-spacing:.04em;cursor:pointer;"><span style="width:6px;height:6px;border-radius:50%;background:#5a7048;"></span>Vegetarisch <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:7px 9px 7px 11px;background:#fffef8;color:#2a2218;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.18);letter-spacing:.04em;cursor:pointer;"><span style="width:6px;height:6px;border-radius:50%;background:#b87820;"></span>Schnell <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+              <span style="flex:none;display:inline-flex;align-items:center;font:600 9px 'DM Mono',monospace;padding:7px 11px;background:#2e2618;color:#f0e8d0;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.2);letter-spacing:.04em;cursor:pointer;">+2</span>
+            </div>
+            <!-- schwebender Filter-Button (FAB) -->
+            <button style="pointer-events:auto;flex-shrink:0;position:relative;width:52px;height:52px;border-radius:50%;background:#b05a2c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(80,35,12,.28);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="1.9" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="18" x2="14" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;">
+              <div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              </div>
+              <span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span>
+            </button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">② Suchfeld fokussiert (Overlay)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;position:relative;">
+
+          <!-- Header — Suchfeld im Fokus + Abbrechen -->
+          <div style="background:#2e2618;padding:14px 20px 12px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font:600 13px;color:#f0e8d0;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;">
+                <svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg>
+                <svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;background:#fffef8;border-radius:4px;padding:9px 12px;box-shadow:0 0 0 2px rgba(122,160,96,.55);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a7a60" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <span style="flex:1;display:flex;align-items:center;font:400 12px 'DM Sans';color:#2a2218;">Rezepte durchsuchen…<span style="display:inline-block;width:1.5px;height:14px;background:#5a7048;margin-left:1px;"></span></span>
+              </div>
+              <button style="flex:none;background:none;border:none;cursor:pointer;font:500 12px 'DM Sans';color:#f0e8d0;">Abbrechen</button>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:16px 16px 84px;">
+
+            <!-- Kategorien -->
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 11px;">
+              <span style="font:400 10px 'DM Mono',monospace;color:#6a5c48;letter-spacing:.14em;text-transform:uppercase;">Kategorien</span>
+              <a href="#kategorien" style="display:inline-flex;align-items:center;gap:4px;font:600 10px 'DM Mono',monospace;color:#a85830;letter-spacing:.02em;">Alle Kategorien <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;">
+              <!-- Kachel -->
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c89848,#8a6420);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.28;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M18 3a3 3 0 013 3v2a3 3 0 01-3 3h-1v9a1 1 0 01-2 0v-9a3 3 0 01-3-3V4a1 1 0 012 0v3h1V4a1 1 0 012 0v3h1V6a1 1 0 00-1-1 1 1 0 010-2zM7 3a1 1 0 011 1v5a2 2 0 01-1 1.7V20a1 1 0 01-2 0v-9.3A2 2 0 014 9V4a1 1 0 012 0v5h1V4a1 1 0 010-1z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Frühstück</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">124 Rezepte</p></div>
+              </div>
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c07838,#7a4820);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.28;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M3 11h18v2a7 7 0 01-7 7h-4a7 7 0 01-7-7v-2zm2-6h2v3H5V5zm5-1h2v4h-2V4zm5 1h2v3h-2V5z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Hauptgerichte</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">312 Rezepte</p></div>
+              </div>
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#6a8a3a,#3f5820);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.3;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8 6 6 9 6 13a6 6 0 0012 0c0-4-2-7-6-11zm0 17a1 1 0 01-1-1c0-2 1-3 1-3s1 1 1 3a1 1 0 01-1 1z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Salate</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">96 Rezepte</p></div>
+              </div>
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#b05878,#6a2f48);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.3;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M12 3c-1 0-3 1-3 4 0 2 3 3 3 3s3-1 3-3c0-3-2-4-3-4zM5 12h14l-1.5 7a2 2 0 01-2 1.6H8.5a2 2 0 01-2-1.6L5 12z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Desserts</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">158 Rezepte</p></div>
+              </div>
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#a86838,#6a3c18);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.28;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M6 3h12l-1 6a5 5 0 01-10 0L6 3zm-1 15h14v2a1 1 0 01-1 1H6a1 1 0 01-1-1v-2z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Backen</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">203 Rezepte</p></div>
+              </div>
+              <div style="position:relative;border-radius:6px;overflow:hidden;height:64px;box-shadow:0 2px 6px rgba(0,0,0,.1),0 3px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,#4a8a8a,#265252);"></div>
+                <svg style="position:absolute;right:8px;bottom:6px;opacity:.28;" width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M6 2h9l-1 4H7L6 2zm0 6h9l-1.2 11.5a2 2 0 01-2 1.5H9.2a2 2 0 01-2-1.5L6 8z"></path></svg>
+                <div style="position:absolute;left:10px;bottom:8px;"><p style="margin:0;font:italic 700 15px 'Lora',serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);">Getränke</p><p style="margin:0;font:500 8px 'DM Mono',monospace;color:rgba(255,255,255,.75);">71 Rezepte</p></div>
+              </div>
+            </div>
+
+            <!-- Beliebt -->
+            <p style="margin:0 2px 10px;font:400 10px 'DM Mono',monospace;color:#6a5c48;letter-spacing:.14em;text-transform:uppercase;">Beliebt</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Bärlauch</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Ofengemüse</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Rhabarber</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Spargel</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Focaccia</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font:500 12px 'DM Sans';color:#2a2218;background:#fffef8;border:1px solid rgba(0,0,0,.1);border-radius:16px;padding:7px 13px;cursor:pointer;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a85830" stroke-width="2" stroke-linecap="round"><path d="M12 20c5-3 8-6.5 8-11a4 4 0 00-8-1 4 4 0 00-8 1c0 4.5 3 8 8 11z"></path></svg>Ofenkürbis</span>
+            </div>
+
+            <!-- Zuletzt gesucht -->
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 8px;">
+              <span style="font:400 10px 'DM Mono',monospace;color:#6a5c48;letter-spacing:.14em;text-transform:uppercase;">Zuletzt gesucht</span>
+              <button style="background:none;border:none;cursor:pointer;font:500 10px 'DM Mono',monospace;color:#9a8870;">Löschen</button>
+            </div>
+            <div style="display:flex;flex-direction:column;">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                <span style="flex:1;font:400 13px 'DM Sans';color:#2a2218;">kräuterbutter</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c0b4a0" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                <span style="flex:1;font:400 13px 'DM Sans';color:#2a2218;">schnelle suppe</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c0b4a0" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 2px;cursor:pointer;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                <span style="flex:1;font:400 13px 'DM Sans';color:#2a2218;">vegan backen</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c0b4a0" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Nav (kein FAB im Such-Fokus) -->
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;">
+              <div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              </div>
+              <span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span>
+            </button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="screen-group">
+      <span class="screen-label">③ Filter-Panel (Sheet)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+
+          <!-- Header (gleich) -->
+          <div style="background:#2e2618;padding:14px 20px 10px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font:600 13px;color:#f0e8d0;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;">
+                <svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg>
+                <svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:4px;padding:9px 12px;border:1px solid rgba(255,255,255,.08);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.4)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <span style="font:400 12px 'DM Sans';color:rgba(240,232,208,.38);">Rezepte durchsuchen…</span>
+              </div>
+              <button style="flex-shrink:0;width:38px;height:38px;background:#c85030;border:none;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="18" x2="14" y2="18"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Gedimmter Hintergrund -->
+          <div style="flex:1;background:rgba(42,34,24,.4);position:relative;">
+
+            <!-- Filter-Panel (Bottom Sheet) -->
+            <div style="position:absolute;bottom:0;left:0;right:0;background:#f6f0e4;border-radius:12px 12px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.2);">
+              <!-- Griff -->
+              <div style="display:flex;justify-content:center;padding:10px 0 4px;">
+                <div style="width:36px;height:4px;background:#d4c8b0;border-radius:2px;"></div>
+              </div>
+              <div style="padding:4px 20px 16px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font:italic 700 20px 'Lora',serif;color:#2a2218;">Filter</span>
+                <button style="font:400 11px 'DM Mono',monospace;color:#c85030;background:none;border:none;cursor:pointer;letter-spacing:.04em;">Zurücksetzen</button>
+              </div>
+
+              <!-- Diät -->
+              <div style="padding:0 20px 14px;border-bottom:1px solid #e8dcc8;">
+                <p style="margin:0 0 9px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.16em;text-transform:uppercase;">Ernährung</p>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #5a7048;color:#5a7048;cursor:pointer;background:rgba(90,112,72,.08);">🌿 Vegetarisch</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Vegan</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Pescetarisch</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Glutenfrei</span>
+                </div>
+              </div>
+
+              <!-- Zeit -->
+              <div style="padding:12px 20px 14px;border-bottom:1px solid #e8dcc8;">
+                <p style="margin:0 0 9px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.16em;text-transform:uppercase;">Zeitaufwand</p>
+                <div style="display:flex;gap:7px;">
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c85030;color:#c85030;cursor:pointer;background:rgba(200,80,48,.06);">⚡ &lt; 20 Min.</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">20–60 Min.</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">&gt; 60 Min.</span>
+                </div>
+              </div>
+
+              <!-- Kategorie -->
+              <div style="padding:12px 20px 14px;border-bottom:1px solid #e8dcc8;">
+                <p style="margin:0 0 9px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.16em;text-transform:uppercase;">Kategorie</p>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Backen</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Suppen</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Garten</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Grillen</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Salate</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Aufstriche</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Desserts</span>
+                </div>
+              </div>
+
+              <!-- Saison -->
+              <div style="padding:12px 20px 16px;">
+                <p style="margin:0 0 9px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.16em;text-transform:uppercase;">Saison</p>
+                <div style="display:flex;gap:7px;">
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Frühling</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #b87820;color:#b87820;cursor:pointer;background:rgba(184,120,32,.06);">Sommer</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Herbst</span>
+                  <span style="font:400 10px 'DM Mono',monospace;padding:5px 12px;border-radius:2px;border:1px solid #c4b898;color:#4a3c28;cursor:pointer;">Winter</span>
+                </div>
+              </div>
+
+              <!-- Apply -->
+              <div style="padding:0 20px 28px;">
+                <button style="width:100%;padding:14px;border-radius:4px;background:#2e2618;border:none;cursor:pointer;font:700 13px 'DM Sans';color:#f0e8d0;box-shadow:0 3px 0 rgba(0,0,0,.25);">12 Rezepte anzeigen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="screen-group">
+      <span class="screen-label">④ Ergebnis · gefiltertes Grid</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;position:relative;">
+
+          <!-- Header -->
+          <div style="background:#2e2618;padding:14px 20px 10px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font:600 13px;color:#f0e8d0;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;">
+                <svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg>
+                <svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:4px;padding:9px 12px;border:1px solid rgba(255,255,255,.08);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.4)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <span style="flex:1;font:500 12px 'DM Sans';color:#f0e8d0;">kräuter</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.5)" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 16px 60px;">
+
+            <!-- Ergebnis-Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px 12px;">
+              <span style="font:400 10px 'DM Mono',monospace;color:#6a5c48;letter-spacing:.04em;">8 Treffer für »kräuter«</span>
+              <button style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font:600 10px 'DM Mono',monospace;color:#2a2218;letter-spacing:.02em;">Relevanz <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+            </div>
+
+            <!-- Treffer-Grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;">
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Kräuter · 20 Min.</span>
+                <span style="position:absolute;top:7px;right:39px;font:700 7px 'DM Mono',monospace;color:#fff;background:#b87820;padding:3px 6px;border-radius:2px;letter-spacing:.06em;">SAISON</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Bärlauch-Pesto</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Anna</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,6</span></div>
+                </div>
+              </div>
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Aufstrich · 10 Min.</span>
+                <span style="position:absolute;top:7px;right:39px;font:700 7px 'DM Mono',monospace;color:#fff;background:#b87820;padding:3px 6px;border-radius:2px;letter-spacing:.06em;">SAISON</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#c85030" stroke="#c85030" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Kräuterbutter</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Lisa</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,8</span></div>
+                </div>
+              </div>
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Salat · 15 Min.</span>
+                
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Wildkräutersalat</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Greta</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,9</span></div>
+                </div>
+              </div>
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Dip · 15 Min.</span>
+                
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Kräuterquark</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Michael</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,4</span></div>
+                </div>
+              </div>
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Backen · 35 Min.</span>
+                
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Kräuter-Focaccia</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Meltem</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,7</span></div>
+                </div>
+              </div>
+
+              <div style="position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;box-shadow:0 2px 6px rgba(0,0,0,.1),0 4px 0 0 #d4b88a;cursor:pointer;">
+                <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#c8bda4 0 8px,#bfb397 8px 16px);"></div>
+                <span style="position:absolute;top:44%;left:50%;transform:translate(-50%,-50%);font:500 8px 'DM Mono',monospace;color:rgba(60,50,35,.42);letter-spacing:.14em;">◭ FOTO</span>
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(16,12,6,.95),rgba(16,12,6,.6) 38%,rgba(16,12,6,.12) 66%,transparent 80%);"></div>
+                <span style="position:absolute;top:7px;left:7px;font:600 7px 'DM Mono',monospace;color:#fff;background:rgba(0,0,0,.4);padding:3px 6px;border-radius:2px;letter-spacing:.08em;text-transform:uppercase;">Suppe · 25 Min.</span>
+                <span style="position:absolute;top:7px;right:39px;font:700 7px 'DM Mono',monospace;color:#fff;background:#b87820;padding:3px 6px;border-radius:2px;letter-spacing:.06em;">SAISON</span>
+                <span style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></span>
+                <div style="position:absolute;left:9px;right:9px;bottom:8px;">
+                  <p style="margin:0 0 2px;font:italic 700 14px 'Lora',serif;color:#fff;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.45);">Wildkräutersuppe</p>
+                  <div style="display:flex;align-items:center;gap:6px;min-width:0;"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 8px 'DM Sans';color:rgba(255,255,255,.85);">von Petra</span><span style="flex:none;font:600 8px 'DM Mono',monospace;color:#ffd27a;">★ 4,3</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:8px;"></div>
+          </div>
+
+          <!-- Schwebende Filter-Ebene (über der Nav) -->
+          <div style="position:absolute;left:0;right:0;bottom:88px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;pointer-events:none;">
+            <!-- aktive Pills, schwebend (leer = nichts sichtbar, nur FAB) -->
+            <div style="display:flex;gap:7px;align-items:center;min-width:0;overflow:hidden;pointer-events:auto;">
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:7px 9px 7px 11px;background:#fffef8;color:#3f5233;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.18);letter-spacing:.04em;cursor:pointer;"><span style="width:6px;height:6px;border-radius:50%;background:#5a7048;"></span>Vegetarisch <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:7px 9px 7px 11px;background:#fffef8;color:#2a2218;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.18);letter-spacing:.04em;cursor:pointer;"><span style="width:6px;height:6px;border-radius:50%;background:#b87820;"></span>Schnell <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+              <span style="flex:none;display:inline-flex;align-items:center;font:600 9px 'DM Mono',monospace;padding:7px 11px;background:#2e2618;color:#f0e8d0;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,.2);letter-spacing:.04em;cursor:pointer;">+2</span>
+            </div>
+            <!-- schwebender Filter-Button (FAB) -->
+            <button style="pointer-events:auto;flex-shrink:0;position:relative;width:52px;height:52px;border-radius:50%;background:#b05a2c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(80,35,12,.28);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="1.9" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="18" x2="14" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;">
+              <div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              </div>
+              <span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span>
+            </button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="screen-group">
+      <span class="screen-label">⑤ Keine Treffer · Filter-Diagnose</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;padding:14px 20px 10px;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font:600 13px;color:#f0e8d0;">9:41</span>
+              <div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;">
+                <svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg>
+                <svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:4px;padding:9px 12px;border:1px solid rgba(255,255,255,.14);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.5)" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                <span style="flex:1;font:400 12px 'DM Sans';color:#f0e8d0;">risotto</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.5)" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+              </div>
+              <button style="flex-shrink:0;width:38px;height:38px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.08);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.6)" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="18" x2="14" y2="18"></line></svg>
+                <span style="position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;background:#c85030;color:#fff;font:700 9px 'DM Sans';display:flex;align-items:center;justify-content:center;padding:0 3px;">3</span>
+              </button>
+            </div>
+          </div>
+          <div style="background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;padding:8px 0 7px;">
+            <div style="display:flex;gap:6px;padding:0 16px;overflow-x:auto;scrollbar-width:none;">
+              <span style="flex:none;display:inline-flex;align-items:center;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.12em;padding:5px 0;">FILTER</span>
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:5px 11px;background:#2e2618;color:#f0e8d0;border-radius:2px;letter-spacing:.05em;cursor:pointer;">Vegan <span style="opacity:.55;">✕</span></span>
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:5px 11px;background:#2e2618;color:#f0e8d0;border-radius:2px;letter-spacing:.05em;cursor:pointer;">⚡ Schnell <span style="opacity:.55;">✕</span></span>
+              <span style="flex:none;display:inline-flex;align-items:center;gap:6px;font:600 9px 'DM Mono',monospace;padding:5px 11px;background:#2e2618;color:#f0e8d0;border-radius:2px;letter-spacing:.05em;cursor:pointer;">Winter <span style="opacity:.55;">✕</span></span>
+            </div>
+          </div>
+          <div style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:11px 16px 9px;border-bottom:1px solid rgba(0,0,0,.06);">
+            <span style="font:400 10px 'DM Mono',monospace;color:#6a5c48;letter-spacing:.04em;">0 Treffer für »risotto«</span>
+          </div>
+          <!-- Empty State mit Filter-Diagnose -->
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:36px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#ede5d4;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path><path d="M8 11h6"></path></svg>
+            </div>
+            <p style="margin:0 0 6px;font:italic 700 20px 'Lora',serif;color:#2a2218;">Keine Treffer</p>
+            <p style="margin:0 0 20px;font:400 12px 'DM Sans';color:#6a5c48;line-height:1.5;max-width:270px;">Die Kombination deiner Filter passt auf kein Rezept. Der Filter <strong>»Vegan«</strong> blockiert die meisten Ergebnisse:</p>
+            <!-- Diagnose-Karte -->
+            <div style="width:100%;background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;padding:14px 16px;margin-bottom:14px;text-align:left;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <button style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:#5a7048;border:none;border-radius:3px;padding:9px 12px;cursor:pointer;text-align:left;">
+                  <span style="font:400 10px 'DM Mono',monospace;color:#f0e8d0;">ohne <strong>Vegan</strong> zeigen</span>
+                  <span style="font:700 10px 'DM Mono',monospace;color:#f0e8d0;letter-spacing:.04em;white-space:nowrap;">+14 Treffer →</span>
+                </button>
+                <button style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:#ede5d4;border:none;border-radius:3px;padding:9px 12px;cursor:pointer;text-align:left;">
+                  <span style="font:400 10px 'DM Mono',monospace;color:#4a3c28;">ohne <strong>Winter</strong> zeigen</span>
+                  <span style="font:700 10px 'DM Mono',monospace;color:#4a3c28;letter-spacing:.04em;white-space:nowrap;">+3 Treffer →</span>
+                </button>
+                <button style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;background:#ede5d4;border:none;border-radius:3px;padding:9px 12px;cursor:pointer;text-align:left;">
+                  <span style="font:400 10px 'DM Mono',monospace;color:#4a3c28;">ohne <strong>⚡ Schnell</strong> zeigen</span>
+                  <span style="font:700 10px 'DM Mono',monospace;color:#4a3c28;letter-spacing:.04em;white-space:nowrap;">+1 Treffer →</span>
+                </button>
+              </div>
+            </div>
+            <button style="font:400 10px 'DM Mono',monospace;color:#c85030;background:none;border:none;cursor:pointer;letter-spacing:.04em;">Alle Filter zurücksetzen</button>
+          </div>
+          <!-- Bottom Nav -->
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;">
+              <div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              </div>
+              <span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span>
+            </button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ REZEPT-DETAIL ═══════ -->
+</body>
+</html>

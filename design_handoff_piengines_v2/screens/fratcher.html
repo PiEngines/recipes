@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiEngines — 09 · Fratcher — Fridge Matcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e2a1a;padding:32px;font-family:'DM Sans',system-ui,sans-serif;}
+h1.doc{font:italic 700 22px 'Lora',serif;color:#e8f0d8;margin:0 0 4px;}
+.sub{font:400 11px 'DM Mono',monospace;color:rgba(255,255,255,.42);letter-spacing:.06em;margin:0 0 26px;}
+a{color:inherit;text-decoration:none;}
+.screen-group{display:flex;flex-direction:column;gap:10px;flex:none;}
+.screen-label{font:500 10px 'DM Mono',monospace;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+.phone{width:390px;height:760px;border-radius:40px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 0 0 1.5px rgba(255,255,255,.07);}
+.canvas-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.canvas-section{padding:0;}
+.section-title{display:none;}
+</style>
+</head>
+<body>
+<h1 class="doc">PiEngines — 09 · Fratcher — Fridge Matcher</h1>
+<p class="sub">Design-Referenz (HTML-Prototyp · Wahl 2.0) · extrahiert aus »PiEngines FINAL« · Stand 18.07.2026 · rendert offline</p>
+<div class="canvas-section" id="fratcher" data-screen-label="Fratcher">
+  <p class="section-title">Fratcher — Fridge Matcher <span style="font:600 10px 'DM Mono',monospace;color:#7aa060;background:rgba(122,160,96,.22);border:1px solid rgba(122,160,96,.5);border-radius:2px;padding:2px 8px;margin-left:10px;letter-spacing:.1em;">● WAHL2.0</span> <span style="font:400 11px 'DM Sans';color:#9a8870;">Eigene Seite (über »Mehr«) · Beet+Kühlschrank → Rezepte, Basics ignoriert.</span></p>
+  <div class="canvas-row">
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Zutaten eingeben</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;"><span style="font:600 13px;color:#f0e8d0;">9:41</span><div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;"><svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg><svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg></div></div>
+            <div style="padding:8px 20px 16px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a7048" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M5 10h14M10 6v2"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:rgba(240,232,208,.4);letter-spacing:.14em;text-transform:uppercase;">Fratcher</span></div>
+              <h1 style="margin:0;font:italic 700 24px 'Lora',serif;color:#f0e8d0;line-height:1;">Was hast du im Kühlschrank?</h1>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:16px;">
+            <div style="background:#fff;border:1.5px solid #d4b88a;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:16px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg><span style="font:400 12px 'DM Sans';color:#b0a090;">Zutat hinzufügen…</span></div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="display:inline-flex;align-items:center;gap:5px;font:400 9px 'DM Mono',monospace;color:#5a7048;letter-spacing:.1em;text-transform:uppercase;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5a7048" stroke-width="1.8" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg>Aus deinem Beet · 3</span><button style="background:none;border:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#b09a70;letter-spacing:.04em;padding:0;">Beet verwalten →</button></div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;">
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#e8f0e0;color:#3a5228;font:600 10px 'DM Sans';padding:6px 10px;border-radius:3px;">Tomaten <span style="opacity:.45;cursor:pointer;">×</span></span>
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#e8f0e0;color:#3a5228;font:600 10px 'DM Sans';padding:6px 10px;border-radius:3px;">Zucchini <span style="opacity:.45;cursor:pointer;">×</span></span>
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#e8f0e0;color:#3a5228;font:600 10px 'DM Sans';padding:6px 10px;border-radius:3px;">Basilikum <span style="opacity:.45;cursor:pointer;">×</span></span>
+            </div>
+
+            <p style="margin:0 0 8px;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">◱ Im Kühlschrank</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#2e2618;color:#f0e8d0;font:600 10px 'DM Sans';padding:6px 10px;border-radius:3px;">Eier <span style="opacity:.5;cursor:pointer;">×</span></span>
+              <span style="display:inline-flex;align-items:center;gap:5px;background:#2e2618;color:#f0e8d0;font:600 10px 'DM Sans';padding:6px 10px;border-radius:3px;">Mozzarella <span style="opacity:.5;cursor:pointer;">×</span></span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;">
+              <span style="background:transparent;border:1px solid #c4b898;color:#4a3c28;font:400 10px 'DM Sans';padding:5px 10px;border-radius:3px;cursor:pointer;">+ Knoblauch</span>
+              <span style="background:transparent;border:1px solid #c4b898;color:#4a3c28;font:400 10px 'DM Sans';padding:5px 10px;border-radius:3px;cursor:pointer;">+ Sahne</span>
+              <span style="background:transparent;border:1px solid #c4b898;color:#4a3c28;font:400 10px 'DM Sans';padding:5px 10px;border-radius:3px;cursor:pointer;">+ Feta</span>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="display:inline-flex;align-items:center;gap:5px;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">Basics <span style="font:400 8px 'DM Sans';text-transform:none;letter-spacing:0;color:#b0a090;">· zählen nicht als fehlend</span></span><button style="background:none;border:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#b09a70;letter-spacing:.04em;padding:0;">Bearbeiten</button></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;">
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Salz</span>
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Pfeffer</span>
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Olivenöl</span>
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Mehl</span>
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Zwiebeln</span>
+              <span style="background:#ece2ce;color:#9a8870;font:400 10px 'DM Sans';padding:5px 9px;border-radius:3px;">Butter</span>
+            </div>
+            <button style="width:100%;padding:14px 15px;border-radius:4px;background:#2e2618;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 0 rgba(0,0,0,.25);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M21 21l-4.35-4.35"></path><circle cx="11" cy="11" r="8"></circle></svg><span style="font:700 14px 'DM Sans';color:#f0e8d0;">23 passende Rezepte</span><span style="font:400 11px 'DM Sans';color:rgba(240,232,208,.55);">anzeigen →</span></button>
+            <p style="margin:8px 0 0;text-align:center;font:400 9px 'DM Sans';color:#9a8870;">aktualisiert sich live mit deiner Auswahl</p>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#2a2218;line-height:1;">···</span><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Ergebnisse</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;"><span style="font:600 13px;color:#f0e8d0;">9:41</span><div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;"><svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg><svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg></div></div>
+            <div style="padding:8px 16px 12px;display:flex;align-items:center;gap:8px;">
+              <button style="background:none;border:none;cursor:pointer;padding:2px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.7)" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg></button>
+              <div style="flex:1;background:rgba(255,255,255,.1);border-radius:4px;padding:8px 12px;border:1px solid rgba(255,255,255,.08);"><p style="margin:0;font:400 11px 'DM Sans';color:rgba(240,232,208,.6);">Tomaten, Zucchini, Basilikum <span style="color:rgba(240,232,208,.35);">+2</span></p></div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:14px 16px;">
+            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;"><p style="margin:0;font:italic 700 22px 'Lora',serif;color:#2a2218;">5 Rezepte</p><p style="margin:0;font:400 11px 'DM Sans';color:#9a8870;">gefunden</p></div>
+            <p style="margin:0 0 14px;font:400 9px 'DM Sans';color:#9a8870;">Basics (Salz, Öl, Mehl…) werden ignoriert.</p>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:stretch;"><div style="width:5px;background:#5a7048;flex-shrink:0;"></div><div style="width:64px;background:linear-gradient(135deg,#5a8040,#365028);flex-shrink:0;"></div><div style="flex:1;padding:11px 12px;"><p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:#5a7048;letter-spacing:.12em;text-transform:uppercase;">Kräuter · 20 Min.</p><p style="margin:0 0 3px;font:italic 700 15px 'Lora',serif;color:#2a2218;line-height:1.1;">Zucchini-Tomaten-Pfanne</p><div style="display:flex;align-items:center;gap:4px;"><div style="width:40px;height:3px;background:#5a7048;border-radius:2px;"></div><span style="font:600 8px 'DM Mono',monospace;color:#5a7048;">100%</span></div></div></div></div>
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:stretch;"><div style="width:5px;background:#5a7048;flex-shrink:0;"></div><div style="width:64px;background:linear-gradient(135deg,#c07838,#7a4820);flex-shrink:0;"></div><div style="flex:1;padding:11px 12px;"><p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:#5a7048;letter-spacing:.12em;text-transform:uppercase;">Vegetarisch · 15 Min.</p><p style="margin:0 0 3px;font:italic 700 15px 'Lora',serif;color:#2a2218;line-height:1.1;">Tomaten-Mozzarella-Salat</p><div style="display:flex;align-items:center;gap:4px;"><div style="width:40px;height:3px;background:#5a7048;border-radius:2px;"></div><span style="font:600 8px 'DM Mono',monospace;color:#5a7048;">100%</span></div></div></div></div>
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;"><div style="display:flex;align-items:stretch;"><div style="width:5px;background:#b87820;flex-shrink:0;"></div><div style="width:64px;background:linear-gradient(135deg,#809050,#505c30);flex-shrink:0;"></div><div style="flex:1;padding:11px 12px;"><p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:#b87820;letter-spacing:.12em;text-transform:uppercase;">Pasta · 30 Min.</p><p style="margin:0 0 3px;font:italic 700 15px 'Lora',serif;color:#2a2218;line-height:1.1;">Spaghetti al Pomodoro</p><div style="display:flex;align-items:center;gap:4px;"><div style="width:32px;height:3px;background:#b87820;border-radius:2px;"></div><div style="width:8px;height:3px;background:#e8dcc8;border-radius:2px;"></div><span style="font:600 8px 'DM Mono',monospace;color:#b87820;">80%</span></div></div></div></div>
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;opacity:.75;"><div style="display:flex;align-items:stretch;"><div style="width:5px;background:#c4b898;flex-shrink:0;"></div><div style="width:64px;background:linear-gradient(135deg,#a07838,#604818);flex-shrink:0;"></div><div style="flex:1;padding:11px 12px;"><p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.12em;text-transform:uppercase;">Aufstrich · 10 Min.</p><p style="margin:0 0 3px;font:italic 700 15px 'Lora',serif;color:#2a2218;line-height:1.1;">Basilikum-Pesto</p><div style="display:flex;align-items:center;gap:4px;"><div style="width:24px;height:3px;background:#c4b898;border-radius:2px;"></div><div style="width:16px;height:3px;background:#e8dcc8;border-radius:2px;"></div><span style="font:600 8px 'DM Mono',monospace;color:#9a8870;">60%</span><span style="font:400 8px 'DM Sans';color:#b0a090;">– fehlt: Pinienkerne</span></div><button style="margin-top:7px;display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid #5a7048;color:#5a7048;font:600 8px 'DM Mono',monospace;padding:4px 9px;border-radius:2px;cursor:pointer;letter-spacing:.04em;">+ Pinienkerne auf die Einkaufsliste</button></div></div></div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#2a2218;line-height:1;">···</span><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SHOPPINGLISTE ═══════ -->
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiEngines — 10 · Shoppingliste</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e2a1a;padding:32px;font-family:'DM Sans',system-ui,sans-serif;}
+h1.doc{font:italic 700 22px 'Lora',serif;color:#e8f0d8;margin:0 0 4px;}
+.sub{font:400 11px 'DM Mono',monospace;color:rgba(255,255,255,.42);letter-spacing:.06em;margin:0 0 26px;}
+a{color:inherit;text-decoration:none;}
+.screen-group{display:flex;flex-direction:column;gap:10px;flex:none;}
+.screen-label{font:500 10px 'DM Mono',monospace;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+.phone{width:390px;height:760px;border-radius:40px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 0 0 1.5px rgba(255,255,255,.07);}
+.canvas-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.canvas-section{padding:0;}
+.section-title{display:none;}
+</style>
+</head>
+<body>
+<h1 class="doc">PiEngines — 10 · Shoppingliste</h1>
+<p class="sub">Design-Referenz (HTML-Prototyp · Wahl 2.0) · extrahiert aus »PiEngines FINAL« · Stand 18.07.2026 · rendert offline</p>
+<div class="canvas-section" id="shoppingliste" data-screen-label="Shoppingliste">
+  <p class="section-title">Shoppingliste <span style="font:600 10px 'DM Mono',monospace;color:#7aa060;background:rgba(122,160,96,.22);border:1px solid rgba(122,160,96,.5);border-radius:2px;padding:2px 8px;margin-left:10px;letter-spacing:.1em;">● WAHL2.0</span> <span style="font:400 11px 'DM Sans';color:#9a8870;">Warengruppe↔Rezept · Pantry-Hinweise · Teilen in Stufen · Mic-Schnelleingabe.</span></p>
+  <div class="canvas-row">
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Aus Rezept übernehmen</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;"><span style="font:600 13px;color:#f0e8d0;">9:41</span><div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;"><svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg><svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg></div></div>
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 20px 14px;"><button style="background:none;border:none;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(240,232,208,.7)" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg></button><h1 style="margin:0;font:italic 700 20px 'Lora',serif;color:#f0e8d0;">Zur Liste hinzufügen</h1></div>
+          </div>
+          <div style="background:#e8e0cc;border-bottom:1px solid #d4c8b0;padding:10px 16px;flex-shrink:0;"><p style="margin:0 0 1px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.12em;text-transform:uppercase;">Rezept</p><p style="margin:0;font:italic 600 15px 'Lora',serif;color:#2a2218;">Kürbissuppe mit Ingwer</p></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:#fff;border-bottom:1px solid #eee;flex-shrink:0;">
+            <div style="display:flex;align-items:center;gap:7px;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:600 11px 'DM Sans';color:#2a2218;">Alle auswählen</span></div>
+            <span style="font:400 10px 'DM Mono',monospace;color:#9a8870;">6 von 7</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;">
+            <div style="padding:8px 16px;display:flex;flex-direction:column;gap:2px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">800 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Hokkaido-Kürbis</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">400 ml</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Kokosmilch</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">30 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Ingwer, frisch</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">2 Stk</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Zwiebeln</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">500 ml</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Gemüsebrühe</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#c4b898;min-width:40px;">2 EL</span><span style="font:400 12px 'DM Sans';color:#b0a090;flex:1;">Olivenöl</span><span style="font:400 8px 'DM Sans';color:#9a8870;">vorhanden</span></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 0;"><div style="width:18px;height:18px;border-radius:3px;background:#2e2618;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#f0e8d0" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:40px;">1 TL</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Kurkuma</span></div>
+            </div>
+          </div>
+          <div style="padding:12px 16px 16px;background:#fff;border-top:1px solid #e8dcc8;flex-shrink:0;">
+            <button style="width:100%;padding:14px;border-radius:4px;background:#5a7048;border:none;cursor:pointer;font:700 13px 'DM Sans';color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.2);">6 Zutaten zur Einkaufsliste →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Einkaufsliste</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;"><span style="font:600 13px;color:#f0e8d0;">9:41</span><div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;"><svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg><svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg></div></div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:8px 20px 14px;"><div><p style="margin:0 0 2px;font:400 8px 'DM Mono',monospace;color:rgba(240,232,208,.35);letter-spacing:.14em;text-transform:uppercase;">Einkauf · Samstag</p><h1 style="margin:0;font:italic 700 22px 'Lora',serif;color:#f0e8d0;">Einkaufsliste</h1></div><div style="display:flex;gap:6px;"><button style="background:none;border:1px solid rgba(240,232,208,.2);color:rgba(240,232,208,.6);font:400 9px 'DM Mono',monospace;padding:5px 10px;border-radius:3px;cursor:pointer;letter-spacing:.06em;">Teilen</button><button style="background:none;border:1px solid rgba(240,232,208,.2);color:rgba(240,232,208,.6);font:600 11px 'DM Mono',monospace;padding:5px 9px;border-radius:3px;cursor:pointer;line-height:1;">⋯</button></div></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;">
+            <div style="padding:10px 16px 0;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font:400 9px 'DM Mono',monospace;color:#9a8870;">3 von 9 erledigt</span><span style="font:400 9px 'DM Mono',monospace;color:#5a7048;">33%</span></div><div style="height:3px;background:#e0d8c8;border-radius:2px;"><div style="width:33%;height:100%;background:#5a7048;border-radius:2px;"></div></div></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:12px 16px 2px;"><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">Gruppieren</span><div style="display:flex;gap:2px;background:#ece2ce;border-radius:4px;padding:2px;"><button style="padding:5px 11px;border-radius:3px;background:#2e2618;border:none;font:600 9px 'DM Mono',monospace;color:#f6f0e4;cursor:pointer;letter-spacing:.03em;">Warengruppe</button><button style="padding:5px 11px;border-radius:3px;background:none;border:none;font:400 9px 'DM Mono',monospace;color:#7a6850;cursor:pointer;letter-spacing:.03em;">Nach Rezept</button></div></div>
+            <div style="padding:14px 16px 0;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Gemüse &amp; Kräuter</p>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b0a890;min-width:44px;text-decoration:line-through;">800 g</span><span style="font:400 12px 'DM Sans';color:#b0a890;flex:1;text-decoration:line-through;">Hokkaido-Kürbis</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">30 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Ingwer, frisch</span></div>
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;margin-top:1px;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;margin-top:1px;">3 Stk</span><div style="flex:1;"><span style="font:400 12px 'DM Sans';color:#2a2218;">Zwiebeln</span><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;"><span style="font:400 8px 'DM Mono',monospace;color:#5a7048;background:#e8f0e0;padding:2px 6px;border-radius:2px;">⊕ 2 Rezepte · summiert</span><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;background:#ece2ce;padding:2px 6px;border-radius:2px;">in deinen Basics</span></div></div></div>
+              </div>
+            </div>
+            <div style="padding:12px 16px 0;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Konserven &amp; Flüssiges</p>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b0a890;min-width:44px;text-decoration:line-through;">400 ml</span><span style="font:400 12px 'DM Sans';color:#b0a890;flex:1;text-decoration:line-through;">Kokosmilch</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b0a890;min-width:44px;text-decoration:line-through;">500 ml</span><span style="font:400 12px 'DM Sans';color:#b0a890;flex:1;text-decoration:line-through;">Gemüsebrühe</span></div>
+              </div>
+            </div>
+            <div style="padding:12px 16px 16px;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Gewürze</p>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">1 TL</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Kurkuma</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">½ TL</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Chili, gemahlen</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;padding:10px 16px;background:#f6f0e4;border-top:1px solid #e0d4c0;display:flex;gap:8px;">
+            <button style="flex:1;padding:12px;border-radius:3px;background:#2e2618;border:none;font:600 12px 'DM Sans';color:#f0e8d0;cursor:pointer;">+ Zutat hinzufügen</button>
+            <button style="width:46px;flex-shrink:0;border-radius:3px;background:#e8e0cc;border:1px solid #d4c4a8;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Sprach-Eingabe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a7048" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0014 0M12 17v4"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Gruppiert nach Rezept</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="background:#2e2618;flex-shrink:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 6px;"><span style="font:600 13px;color:#f0e8d0;">9:41</span><div style="display:flex;gap:6px;align-items:center;color:#f0e8d0;"><svg width="15" height="10" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx=".5"></rect><rect x="4.5" y="4" width="3" height="8" rx=".5"></rect><rect x="9" y="2" width="3" height="10" rx=".5"></rect><rect x="13.5" y="0" width="3" height="12" rx=".5"></rect></svg><svg width="22" height="10" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity=".4" fill="none"></rect><rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"></rect></svg></div></div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:8px 20px 14px;"><div><p style="margin:0 0 2px;font:400 8px 'DM Mono',monospace;color:rgba(240,232,208,.35);letter-spacing:.14em;text-transform:uppercase;">Einkauf · Samstag</p><h1 style="margin:0;font:italic 700 22px 'Lora',serif;color:#f0e8d0;">Einkaufsliste</h1></div><div style="display:flex;gap:6px;"><button style="background:none;border:1px solid rgba(240,232,208,.2);color:rgba(240,232,208,.6);font:400 9px 'DM Mono',monospace;padding:5px 10px;border-radius:3px;cursor:pointer;letter-spacing:.06em;">Teilen</button><button style="background:none;border:1px solid rgba(240,232,208,.2);color:rgba(240,232,208,.6);font:600 11px 'DM Mono',monospace;padding:5px 9px;border-radius:3px;cursor:pointer;line-height:1;">⋯</button></div></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;">
+            <div style="padding:10px 16px 0;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font:400 9px 'DM Mono',monospace;color:#9a8870;">3 von 9 erledigt</span><span style="font:400 9px 'DM Mono',monospace;color:#5a7048;">33%</span></div><div style="height:3px;background:#e0d8c8;border-radius:2px;"><div style="width:33%;height:100%;background:#5a7048;border-radius:2px;"></div></div></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:12px 16px 2px;"><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">Gruppieren</span><div style="display:flex;gap:2px;background:#ece2ce;border-radius:4px;padding:2px;"><button style="padding:5px 11px;border-radius:3px;background:none;border:none;font:400 9px 'DM Mono',monospace;color:#7a6850;cursor:pointer;letter-spacing:.03em;">Warengruppe</button><button style="padding:5px 11px;border-radius:3px;background:#2e2618;border:none;font:600 9px 'DM Mono',monospace;color:#f6f0e4;cursor:pointer;letter-spacing:.03em;">Nach Rezept</button></div></div>
+            <div style="padding:14px 16px 0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div style="width:26px;height:26px;border-radius:4px;background:repeating-linear-gradient(45deg,#c8bda4 0 4px,#bfb397 4px 8px);flex-shrink:0;"></div><p style="margin:0;font:italic 600 13px 'Lora',serif;color:#2a2218;flex:1;">Kürbissuppe mit Ingwer</p><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;">5 Pos.</span></div>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b0a890;min-width:44px;text-decoration:line-through;">800 g</span><span style="font:400 12px 'DM Sans';color:#b0a890;flex:1;text-decoration:line-through;">Hokkaido-Kürbis</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">400 ml</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Kokosmilch</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">30 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Ingwer, frisch</span></div>
+              </div>
+            </div>
+            <div style="padding:14px 16px 0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div style="width:26px;height:26px;border-radius:4px;background:repeating-linear-gradient(45deg,#c8bda4 0 4px,#bfb397 4px 8px);flex-shrink:0;"></div><p style="margin:0;font:italic 600 13px 'Lora',serif;color:#2a2218;flex:1;">Caprese-Salat</p><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;">2 Pos.</span></div>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;margin-top:1px;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;margin-top:1px;">4 Stk</span><div style="flex:1;"><span style="font:400 12px 'DM Sans';color:#2a2218;">Tomaten</span><div style="margin-top:4px;"><span style="font:400 8px 'DM Mono',monospace;color:#5a7048;background:#e8f0e0;padding:2px 6px;border-radius:2px;">evtl. in deinem Beet</span></div></div></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">250 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Mozzarella</span></div>
+              </div>
+            </div>
+            <div style="padding:14px 16px 16px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div style="width:26px;height:26px;border-radius:4px;background:#ece2ce;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><p style="margin:0;font:italic 600 13px 'Lora',serif;color:#7a6850;flex:1;">Ohne Rezept · manuell</p><span style="font:400 8px 'DM Mono',monospace;color:#9a8870;">2 Pos.</span></div>
+              <div style="background:#fff;border-radius:4px;box-shadow:0 1px 0 #d4b88a,0 1px 3px rgba(0,0,0,.05);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #f0e8d8;"><div style="width:18px;height:18px;border-radius:3px;border:1.5px solid #d4c4a8;flex-shrink:0;"></div><span style="font:400 10px 'DM Mono',monospace;color:#b87820;min-width:44px;">1</span><span style="font:400 12px 'DM Sans';color:#2a2218;flex:1;">Spülmittel</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 13px;"><div style="width:18px;height:18px;border-radius:3px;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="9" viewBox="0 0 12 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M1 4l3 4L11 1"></path></svg></div><span style="font:400 10px 'DM Mono',monospace;color:#b0a890;min-width:44px;text-decoration:line-through;">6</span><span style="font:400 12px 'DM Sans';color:#b0a890;flex:1;text-decoration:line-through;">Eier</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;padding:10px 16px;background:#f6f0e4;border-top:1px solid #e0d4c0;display:flex;gap:8px;">
+            <button style="flex:1;padding:12px;border-radius:3px;background:#2e2618;border:none;font:600 12px 'DM Sans';color:#f0e8d0;cursor:pointer;">+ Zutat hinzufügen</button>
+            <button style="width:46px;flex-shrink:0;border-radius:3px;background:#e8e0cc;border:1px solid #d4c4a8;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Sprach-Eingabe"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a7048" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0014 0M12 17v4"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">Teilen (Stufen)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:rgba(20,16,10,.55);font-family:'DM Sans',system-ui,sans-serif;justify-content:flex-end;">
+          <div style="background:#f6f0e4;border-radius:16px 16px 0 0;padding:8px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.3);">
+            <div style="width:36px;height:4px;border-radius:2px;background:#d4c4a8;margin:0 auto 14px;"></div>
+            <div style="padding:0 20px 12px;"><h2 style="margin:0 0 2px;font:italic 700 19px 'Lora',serif;color:#2a2218;">Liste teilen</h2><p style="margin:0;font:400 10px 'DM Sans';color:#9a8870;">Einkaufsliste · 9 Positionen</p></div>
+            <div style="padding:0 20px 14px;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Schnell senden</p>
+              <div style="display:flex;gap:10px;">
+                <button style="flex:1;background:#fff;border:1px solid #e0d4c0;border-radius:8px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;"><div style="width:34px;height:34px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 00-8.5 15.3L2 22l4.8-1.5A10 10 0 1012 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2s-1.2.3-3.9-.9-4.3-4-4.4-4.2-1-1.4-1-2.6.6-1.8.9-2 .5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.5-.3.4c-.2.1-.3.3-.1.6l1 1.6c.7.9 1.3 1.2 1.6 1.4l.5.2c.2 0 .3 0 .5-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.2.1.4.2.4.3.1.1.1.6-.1 1.2z"></path></svg></div><span style="font:600 9px 'DM Sans';color:#2a2218;">WhatsApp</span></button>
+                <button style="flex:1;background:#fff;border:1px solid #e0d4c0;border-radius:8px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;"><div style="width:34px;height:34px;border-radius:50%;background:#2e2618;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 012-2h10"></path></svg></div><span style="font:600 9px 'DM Sans';color:#2a2218;">Als Text</span></button>
+                <button style="flex:1;background:#fff;border:1px solid #e0d4c0;border-radius:8px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;"><div style="width:34px;height:34px;border-radius:50%;background:#b87820;display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></div><span style="font:600 9px 'DM Sans';color:#2a2218;">E-Mail</span></button>
+              </div>
+            </div>
+            <div style="padding:0 20px 14px;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Mit App synchronisieren</p>
+              <button style="width:100%;background:#fff;border:1px solid #e0d4c0;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;"><div style="width:34px;height:34px;border-radius:8px;background:#e6332a;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font:800 15px 'DM Sans';color:#fff;">B</span></div><div style="flex:1;text-align:left;"><p style="margin:0;font:600 12px 'DM Sans';color:#2a2218;">An Bring! senden</p><p style="margin:1px 0 0;font:400 9px 'DM Sans';color:#9a8870;">Verbunden · aktualisiert die Bring!-Liste</p></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8b898" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg></button>
+            </div>
+            <div style="padding:0 20px 20px;">
+              <p style="margin:0 0 8px;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Gemeinsam nutzen</p>
+              <div style="background:#fff;border:1px solid #e0d4c0;border-radius:8px;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f0e8d8;">
+                  <div style="display:flex;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#c85030;border:2px solid #fff;display:flex;align-items:center;justify-content:center;"><span style="font:700 11px 'DM Sans';color:#fff;">M</span></div>
+                    <div style="width:28px;height:28px;border-radius:50%;background:#5a7048;border:2px solid #fff;margin-left:-9px;display:flex;align-items:center;justify-content:center;"><span style="font:700 11px 'DM Sans';color:#fff;">J</span></div>
+                  </div>
+                  <div style="flex:1;"><p style="margin:0;font:600 11px 'DM Sans';color:#2a2218;">Maria &amp; Jonas</p><p style="margin:1px 0 0;font:400 9px 'DM Sans';color:#9a8870;">bearbeiten live mit</p></div>
+                  <button style="background:#5a7048;border:none;color:#fff;font:600 9px 'DM Mono',monospace;padding:6px 10px;border-radius:4px;cursor:pointer;">+ Einladen</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="1.8" stroke-linecap="round"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"></path><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"></path></svg><div style="flex:1;"><p style="margin:0;font:600 11px 'DM Sans';color:#2a2218;">Öffentlicher Link</p><p style="margin:1px 0 0;font:400 9px 'DM Sans';color:#9a8870;">Jeder mit Link kann ansehen</p></div><span style="font:600 9px 'DM Mono',monospace;color:#5a7048;">Kopieren</span></div>
+              </div>
+            </div>
+            <div style="padding:0 20px 26px;"><button style="width:100%;padding:13px;border-radius:5px;background:#2e2618;border:none;font:600 13px 'DM Sans';color:#f0e8d0;cursor:pointer;">Fertig</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ KALENDER ═══════ -->
+</body>
+</html>

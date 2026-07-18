@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PiEngines — 03 · Rezept-Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e2a1a;padding:32px;font-family:'DM Sans',system-ui,sans-serif;}
+h1.doc{font:italic 700 22px 'Lora',serif;color:#e8f0d8;margin:0 0 4px;}
+.sub{font:400 11px 'DM Mono',monospace;color:rgba(255,255,255,.42);letter-spacing:.06em;margin:0 0 26px;}
+a{color:inherit;text-decoration:none;}
+.screen-group{display:flex;flex-direction:column;gap:10px;flex:none;}
+.screen-label{font:500 10px 'DM Mono',monospace;color:rgba(255,255,255,.55);text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+.phone{width:390px;height:760px;border-radius:40px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 0 0 1.5px rgba(255,255,255,.07);}
+.canvas-row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.canvas-section{padding:0;}
+.section-title{display:none;}
+</style>
+</head>
+<body>
+<h1 class="doc">PiEngines — 03 · Rezept-Detail</h1>
+<p class="sub">Design-Referenz (HTML-Prototyp · Wahl 2.0) · extrahiert aus »PiEngines FINAL« · Stand 18.07.2026 · rendert offline</p>
+<div class="canvas-section" id="rezept-detail" data-screen-label="Rezept-Detail">
+  <p class="section-title">Rezept-Detail <span style="font:600 10px 'DM Mono',monospace;color:#7aa060;background:rgba(122,160,96,.22);border:1px solid rgba(122,160,96,.5);border-radius:2px;padding:2px 8px;margin-left:10px;letter-spacing:.1em;">● WAHL2.0</span> <span style="font:400 11px 'DM Sans';color:#9a8870;">Kochmodus-Zutaten = helles Panel, 3 Snap-Zustände.</span></p>
+  <div class="canvas-row">
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">① Detail · Zutaten (Tab)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="position:relative;height:198px;flex-shrink:0;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#b8a880 0px,#b8a880 2px,#cbb898 2px,#cbb898 30px);"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,14,6,.45) 0%,transparent 38%,transparent 52%,rgba(20,14,6,.72) 100%);"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:44px;">
+              <span style="font:400 8px 'DM Mono',monospace;color:rgba(255,255,255,.22);letter-spacing:.18em;text-transform:uppercase;background:rgba(0,0,0,.14);padding:5px 12px;border-radius:2px;border:1px solid rgba(255,255,255,.1);">Rezeptfoto</span>
+            </div>
+            <div style="position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;">
+              <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px 5px 8px;color:#fff;font:500 11px 'DM Sans';cursor:pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Zurück
+              </button>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 11px 5px 9px;color:#fff;font:600 10px 'DM Sans';cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path></svg>Privat</button>
+                <button style="background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px;color:rgba(255,255,255,.85);font:500 11px 'DM Mono',monospace;cursor:pointer;letter-spacing:.04em;">Bearbeiten</button>
+              </div>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 16px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;">
+              <div style="flex:1;">
+                <h1 style="margin:0 0 3px;font:italic 700 22px 'Lora',serif;color:#fff;line-height:1.0;letter-spacing:-.2px;">Haferflockenbrötchen</h1>
+                <p style="margin:0;font:400 10px 'DM Sans';color:rgba(255,255,255,.6);">Dinkelmehl, Joghurt &amp; Haferflocken</p>
+              </div>
+              <button style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(200,80,48,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;">
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 -2px 0 #c85030;">Zutaten</button><button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zubereitung</button><button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Passt dazu</button>
+          </div>
+          <div style="display:flex;background:#ede5d4;flex-shrink:0;border-bottom:1px solid #e0d4bc;">
+            <div style="flex:1;text-align:center;padding:7px 0;border-right:1px solid #d4c8b0;"><p style="margin:0;font:400 7px 'DM Mono',monospace;color:#c85030;letter-spacing:.1em;text-transform:uppercase;">Vorbereitung</p><p style="margin:2px 0 0;font:700 12px 'DM Sans';color:#2a2218;">15 Min.</p></div>
+            <div style="flex:1;text-align:center;padding:7px 0;border-right:1px solid #d4c8b0;"><p style="margin:0;font:400 7px 'DM Mono',monospace;color:#c85030;letter-spacing:.1em;text-transform:uppercase;">Kochen</p><p style="margin:2px 0 0;font:700 12px 'DM Sans';color:#2a2218;">20 Min.</p></div>
+            <div style="flex:1;text-align:center;padding:7px 0;border-right:1px solid #d4c8b0;"><p style="margin:0;font:400 7px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">Art</p><p style="margin:2px 0 0;font:700 12px 'DM Sans';color:#2a2218;">Backen</p></div>
+            <div style="flex:1;text-align:center;padding:7px 0;"><p style="margin:0;font:400 7px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;text-transform:uppercase;">Schwierigk.</p><p style="margin:2px 0 0;font:700 12px 'DM Sans';color:#2a2218;">Mittel</p></div>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;">
+            <!-- Autor -->
+            <div style="padding:9px 16px;border-bottom:1px solid #e8dcc8;display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+              <div style="width:22px;height:22px;border-radius:50%;background:#b87820;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font:700 10px 'DM Sans';color:#fff;">M</span></div>
+              <span style="font:600 12px 'DM Sans';color:#c85030;">Meltem</span>
+              <span style="font:400 11px 'DM Sans';color:#9a8870;">· 19. Mai 2026</span>
+              <span style="font:400 9px 'DM Mono',monospace;color:#9a8870;margin-left:2px;">inkl. Rezept von <span style="color:#5a7048;">Anna</span></span>
+            </div>
+            <!-- Portionen -->
+            <div style="padding:9px 16px;border-bottom:1px solid #e8dcc8;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font:400 10px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;">Portionen</span>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <button style="width:26px;height:26px;border-radius:50%;border:1.5px solid #5a7048;background:none;color:#5a7048;cursor:pointer;font:700 14px system-ui;display:flex;align-items:center;justify-content:center;">−</button>
+                <span style="font:700 16px 'DM Sans';color:#2a2218;min-width:18px;text-align:center;">8</span>
+                <button style="width:26px;height:26px;border-radius:50%;border:none;background:#5a7048;color:#fff;cursor:pointer;font:700 14px system-ui;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <!-- Hauptrezept -->
+            <div style="margin:12px 16px 0;background:#fff;border-radius:6px;box-shadow:0 2px 0 #d4b88a,0 1px 6px rgba(0,0,0,.07);">
+              <div style="padding:9px 14px 7px;border-bottom:1px dashed #ede5d4;"><p style="margin:0;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.14em;text-transform:uppercase;">Hauptrezept</p></div>
+              <div style="padding:0 14px;">
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f4ede0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">300 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Dinkelmehl Type 630</span></div>
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f4ede0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">150 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Haferflocken</span></div>
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f4ede0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">200 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Joghurt</span></div>
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f4ede0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">1 Pkt.</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Backpulver</span></div>
+                <div style="display:flex;gap:10px;padding:8px 0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">10 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Salz</span></div>
+              </div>
+            </div>
+            <!-- Modul-Rezept -->
+            <div style="margin:10px 16px 0;background:#fff;border-radius:6px;box-shadow:0 2px 0 #d4b88a,0 1px 6px rgba(0,0,0,.07);border-left:3px solid #5a7048;">
+              <div style="padding:9px 14px 7px;border-bottom:1px dashed #ede5d4;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <p style="margin:0 0 1px;font:400 7px 'DM Mono',monospace;color:#5a7048;letter-spacing:.14em;text-transform:uppercase;">Modul-Rezept</p>
+                  <p style="margin:0;font:italic 600 13px 'Lora',serif;color:#2a2218;">Kräuterbutter <span style="font:400 10px 'DM Sans';color:#9a8870;">von Anna</span></p>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5a7048" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg>
+              </div>
+              <div style="padding:0 14px;">
+                <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f4ede0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">100 g</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Butter</span></div>
+                <div style="display:flex;gap:10px;padding:8px 0;"><span style="font:400 10px 'DM Mono',monospace;color:#b87820;flex-shrink:0;min-width:46px;">1 Bd.</span><span style="font:400 12px 'DM Sans';color:#2a2218;">Gemischte Kräuter</span></div>
+              </div>
+            </div>
+            <!-- Aktionen -->
+            <div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px;">
+              <button style="width:100%;padding:11px;border-radius:4px;background:#2e2618;border:none;cursor:pointer;font:600 12px 'DM Sans';color:#f0e8d0;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 0 rgba(0,0,0,.3);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 01-8 0"></path></svg>
+                Zur Shoppingliste
+              </button>
+              <button style="width:100%;padding:11px;border-radius:4px;background:#c85030;border:none;cursor:pointer;font:700 12px 'DM Sans';color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.2);">Zubereitung starten →</button>
+            </div>
+            <div style="height:8px;"></div>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">② Detail · Passt dazu (Tab)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <!-- Kompaktes Hero -->
+          <div style="position:relative;height:108px;flex-shrink:0;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#b8a880 0px,#b8a880 2px,#cbb898 2px,#cbb898 30px);"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,14,6,.5) 0%,transparent 40%,rgba(20,14,6,.65) 100%);"></div>
+            <div style="position:absolute;top:14px;left:16px;">
+              <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px 5px 8px;color:#fff;font:500 11px 'DM Sans';cursor:pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Zurück
+              </button>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 16px 11px;">
+              <h1 style="margin:0;font:italic 700 18px 'Lora',serif;color:#fff;letter-spacing:-.2px;">Haferflockenbrötchen</h1>
+            </div>
+          </div>
+          <div style="display:flex;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;">
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zutaten</button><button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zubereitung</button><button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 -2px 0 #c85030;">Passt dazu</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:14px 16px;">
+            <!-- Kräuter im Rezept -->
+            <p style="margin:0 0 10px;font:italic 700 16px 'Lora',serif;color:#2a2218;">Kräuter im Rezept</p>
+            <div style="display:flex;gap:9px;margin-bottom:18px;">
+              <div style="flex:1;background:#fff;border-radius:6px;box-shadow:0 2px 0 #d4b88a,0 1px 5px rgba(0,0,0,.07);padding:11px 12px;cursor:pointer;overflow:hidden;position:relative;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#5a7048;"></div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#5a7048" style="opacity:.55;margin-bottom:5px;display:block;"><path d="M12 2C6 2 2 8 2 14c0 4 3 7 7 8 1-3 2-5 4-6-2 0-4-1-4-3s2-5 3-5 5 1 5 3-1 3-3 4c2 1 3 4 4 7 4-1 6-5 6-8 0-6-4-12-10-12z"></path></svg>
+                <p style="margin:0 0 2px;font:italic 600 13px 'Lora',serif;color:#2a2218;">Bärlauch</p>
+                <p style="margin:0;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.06em;">Apr–Mai</p>
+              </div>
+              <div style="flex:1;background:#fff;border-radius:6px;box-shadow:0 2px 0 #d4b88a,0 1px 5px rgba(0,0,0,.07);padding:11px 12px;cursor:pointer;overflow:hidden;position:relative;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#5a7048;"></div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#5a7048" style="opacity:.55;margin-bottom:5px;display:block;"><path d="M12 2C6 2 2 8 2 14c0 4 3 7 7 8 1-3 2-5 4-6-2 0-4-1-4-3s2-5 3-5 5 1 5 3-1 3-3 4c2 1 3 4 4 7 4-1 6-5 6-8 0-6-4-12-10-12z"></path></svg>
+                <p style="margin:0 0 2px;font:italic 600 13px 'Lora',serif;color:#2a2218;">Schnittlauch</p>
+                <p style="margin:0;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.06em;">Ganzjährig</p>
+              </div>
+              <div style="flex:1;background:#fff;border-radius:6px;box-shadow:0 2px 0 #d4b88a,0 1px 5px rgba(0,0,0,.07);padding:11px 12px;cursor:pointer;overflow:hidden;position:relative;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#5a7048;"></div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#5a7048" style="opacity:.55;margin-bottom:5px;display:block;"><path d="M12 2C6 2 2 8 2 14c0 4 3 7 7 8 1-3 2-5 4-6-2 0-4-1-4-3s2-5 3-5 5 1 5 3-1 3-3 4c2 1 3 4 4 7 4-1 6-5 6-8 0-6-4-12-10-12z"></path></svg>
+                <p style="margin:0 0 2px;font:italic 600 13px 'Lora',serif;color:#2a2218;">Kerbel</p>
+                <p style="margin:0;font:400 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.06em;">Frühling</p>
+              </div>
+            </div>
+            <!-- Passt dazu -->
+            <p style="margin:0 0 10px;font:italic 700 16px 'Lora',serif;color:#2a2218;">Passt dazu</p>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;">
+                <div style="display:flex;align-items:stretch;">
+                  <div style="width:72px;background:linear-gradient(135deg,#809050,#505c30);flex-shrink:0;"></div>
+                  <div style="flex:1;padding:12px 14px;"><p style="margin:0 0 2px;font:400 8px 'DM Mono',monospace;color:#5a7048;letter-spacing:.12em;text-transform:uppercase;">Aufstrich · 10 Min.</p><p style="margin:0 0 3px;font:italic 700 16px 'Lora',serif;color:#2a2218;line-height:1.1;">Kräuterbutter</p><p style="margin:0;font:400 10px 'DM Sans';color:#9a8870;">von Lisa</p></div>
+                  <div style="display:flex;align-items:center;padding-right:12px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c8b898" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></div>
+                </div>
+              </div>
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;">
+                <div style="display:flex;align-items:stretch;">
+                  <div style="width:72px;background:linear-gradient(135deg,#5a8040,#365028);flex-shrink:0;"></div>
+                  <div style="flex:1;padding:12px 14px;"><p style="margin:0 0 2px;font:400 8px 'DM Mono',monospace;color:#5a7048;letter-spacing:.12em;text-transform:uppercase;">Kräuter · 20 Min.</p><p style="margin:0 0 3px;font:italic 700 16px 'Lora',serif;color:#2a2218;line-height:1.1;">Bärlauch-Pesto</p><p style="margin:0;font:400 10px 'DM Sans';color:#9a8870;">von Anna</p></div>
+                  <div style="display:flex;align-items:center;padding-right:12px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c8b898" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></div>
+                </div>
+              </div>
+              <div style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 4px 0 0 #d4b88a;overflow:hidden;cursor:pointer;">
+                <div style="display:flex;align-items:stretch;">
+                  <div style="width:72px;background:linear-gradient(135deg,#c07838,#7a4820);flex-shrink:0;"></div>
+                  <div style="flex:1;padding:12px 14px;"><p style="margin:0 0 2px;font:400 8px 'DM Mono',monospace;color:#c85030;letter-spacing:.12em;text-transform:uppercase;">Suppe · 40 Min.</p><p style="margin:0 0 3px;font:italic 700 16px 'Lora',serif;color:#2a2218;line-height:1.1;">Kürbissuppe</p><p style="margin:0;font:400 10px 'DM Sans';color:#9a8870;">von Michael</p></div>
+                  <div style="display:flex;align-items:center;padding-right:12px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c8b898" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg></div>
+                </div>
+              </div>
+            </div>
+            <div style="height:8px;"></div>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">③ Kochmodus · Panel Peek (Schritt lesen)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="position:relative;height:118px;flex-shrink:0;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#b8a880 0px,#b8a880 2px,#cbb898 2px,#cbb898 30px);"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,14,6,.5) 0%,transparent 45%,rgba(20,14,6,.68) 100%);"></div>
+            <div style="position:absolute;top:14px;left:16px;">
+              <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px 5px 8px;color:#fff;font:500 11px 'DM Sans';cursor:pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Zurück
+              </button>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 16px 12px;">
+              <h1 style="margin:0;font:italic 700 19px 'Lora',serif;color:#fff;line-height:1.0;letter-spacing:-.2px;">Haferflockenbrötchen</h1>
+            </div>
+          </div>
+          <div style="display:flex;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;">
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zutaten</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 -2px 0 #c85030;">Zubereitung</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Passt dazu</button>
+          </div>
+          <div style="padding:9px 16px;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;display:flex;align-items:center;gap:12px;">
+            <div style="flex:1;height:3px;background:#d4c8b0;border-radius:2px;overflow:hidden;"><div style="width:75%;height:100%;background:#c85030;border-radius:2px;"></div></div>
+            <span style="font:500 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;flex-shrink:0;">Schritt 3 / 4</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,.6);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #ede5d4;">
+              <div style="width:24px;height:24px;border-radius:50%;background:rgba(200,80,48,.1);border:1.5px solid #c85030;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c85030" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <div style="flex:1;"><p style="margin:0 0 2px;font:600 11px 'DM Sans';color:#b0a090;text-decoration:line-through;">Teig anrühren</p><p style="margin:0;font:400 10px 'DM Sans';color:#c4b8a8;line-height:1.4;text-decoration:line-through;">Alle Zutaten in einer Schüssel vermischen bis ein klebriger Teig entsteht.</p></div>
+            </div>
+            <div style="background:#fff;border-radius:6px;border-left:5px solid #c85030;border-right:5px solid #c85030;padding:12px 14px;box-shadow:0 2px 12px rgba(200,80,48,.14);">
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#c85030;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 3px rgba(200,80,48,.18);"><span style="font:700 11px 'DM Mono',monospace;color:#fff;">3</span></div>
+                <div style="flex:1;">
+                  <p style="margin:0 0 4px;font:700 12px 'DM Sans';color:#c85030;">Backen</p>
+                  <p style="margin:0 0 10px;font:400 11px 'DM Sans';color:#2a2218;line-height:1.5;">Die Teiglinge auf das Backblech setzen und in der mittleren Schiene ca. 20 Minuten goldbraun backen.</p>
+                  <button style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,80,48,.08);border:1.5px solid rgba(200,80,48,.4);border-radius:20px;padding:6px 14px;color:#c85030;font:600 10px 'DM Mono',monospace;cursor:pointer;letter-spacing:.04em;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>20:00 starten</button>
+                </div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.45);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #ede5d4;opacity:.65;">
+              <div style="width:24px;height:24px;border-radius:50%;border:1.5px solid #d4c8b0;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font:700 11px 'DM Mono',monospace;color:#b0a090;">4</span></div>
+              <div style="flex:1;"><p style="margin:0 0 2px;font:600 11px 'DM Sans';color:#9a8870;">Abkühlen lassen</p><p style="margin:0;font:400 10px 'DM Sans';color:#b0a090;line-height:1.4;">Brötchen auf einem Gitter vollständig auskühlen lassen.</p></div>
+            </div>
+          </div>
+          <!-- Sheet: Peek (ersetzt Sticky-Footer) -->
+          <div style="flex-shrink:0;background:#fdf8ee;border-radius:14px 14px 0 0;box-shadow:0 -6px 20px rgba(42,34,24,.14);border-top:1px solid #e2d6bc;">
+            <div style="display:flex;justify-content:center;padding:7px 0 2px;"><div style="width:36px;height:4px;border-radius:2px;background:#d4c8b0;"></div></div>
+            <div style="display:flex;align-items:center;gap:9px;padding:4px 16px 11px;cursor:pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c85030" stroke-width="2" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1"></rect></svg>
+              <span style="font:600 12px 'DM Sans';color:#2a2218;">Zutaten</span>
+              <span style="font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.05em;">Schritt 3: Haferflocken · Körnermischung</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9a8870" stroke-width="2" stroke-linecap="round" style="margin-left:auto;flex-shrink:0;"><path d="M18 15l-6-6-6 6"></path></svg>
+            </div>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">④ Kochmodus · Panel Schritt-Zutaten (Standard)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;">
+          <div style="position:relative;height:118px;flex-shrink:0;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#b8a880 0px,#b8a880 2px,#cbb898 2px,#cbb898 30px);"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,14,6,.5) 0%,transparent 45%,rgba(20,14,6,.68) 100%);"></div>
+            <div style="position:absolute;top:14px;left:16px;">
+              <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px 5px 8px;color:#fff;font:500 11px 'DM Sans';cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Zurück</button>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 16px 12px;">
+              <h1 style="margin:0;font:italic 700 19px 'Lora',serif;color:#fff;line-height:1.0;letter-spacing:-.2px;">Haferflockenbrötchen</h1>
+            </div>
+          </div>
+          <div style="display:flex;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;">
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zutaten</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 -2px 0 #c85030;">Zubereitung</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Passt dazu</button>
+          </div>
+          <div style="padding:9px 16px;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;display:flex;align-items:center;gap:12px;">
+            <div style="flex:1;height:3px;background:#d4c8b0;border-radius:2px;overflow:hidden;"><div style="width:75%;height:100%;background:#c85030;border-radius:2px;"></div></div>
+            <span style="font:500 8px 'DM Mono',monospace;color:#9a8870;letter-spacing:.1em;flex-shrink:0;">Schritt 3 / 4</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,.6);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #ede5d4;">
+              <div style="width:24px;height:24px;border-radius:50%;background:rgba(200,80,48,.1);border:1.5px solid #c85030;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c85030" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <div style="flex:1;"><p style="margin:0 0 2px;font:600 11px 'DM Sans';color:#b0a090;text-decoration:line-through;">Teig anrühren</p><p style="margin:0;font:400 10px 'DM Sans';color:#c4b8a8;line-height:1.4;text-decoration:line-through;">Alle Zutaten in einer Schüssel vermischen bis ein klebriger Teig entsteht.</p></div>
+            </div>
+            <!-- aktiver Schritt — OHNE Zutaten im Schritt -->
+            <div style="background:#fff;border-radius:6px;border-left:5px solid #c85030;border-right:5px solid #c85030;padding:12px 14px;box-shadow:0 2px 12px rgba(200,80,48,.14);">
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#c85030;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 3px rgba(200,80,48,.18);"><span style="font:700 11px 'DM Mono',monospace;color:#fff;">3</span></div>
+                <div style="flex:1;">
+                  <p style="margin:0 0 4px;font:700 12px 'DM Sans';color:#c85030;">Backen</p>
+                  <p style="margin:0 0 10px;font:400 11px 'DM Sans';color:#2a2218;line-height:1.5;">Die Teiglinge auf das Backblech setzen und in der mittleren Schiene ca. 20 Minuten goldbraun backen.</p>
+                  <button style="display:inline-flex;align-items:center;gap:6px;background:rgba(200,80,48,.08);border:1.5px solid rgba(200,80,48,.4);border-radius:20px;padding:6px 14px;color:#c85030;font:600 10px 'DM Mono',monospace;cursor:pointer;letter-spacing:.04em;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>20:00 starten</button>
+                </div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.45);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #ede5d4;opacity:.65;">
+              <div style="width:24px;height:24px;border-radius:50%;border:1.5px solid #d4c8b0;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font:700 11px 'DM Mono',monospace;color:#b0a090;">4</span></div>
+              <div style="flex:1;"><p style="margin:0 0 2px;font:600 11px 'DM Sans';color:#9a8870;">Abkühlen lassen</p><p style="margin:0;font:400 10px 'DM Sans';color:#b0a090;line-height:1.4;">Brötchen auf einem Gitter vollständig auskühlen lassen.</p></div>
+            </div>
+          </div>
+          <!-- Schritt-Zutaten-Fenster: feste Max-Höhe, scrollt intern -->
+          <div style="flex-shrink:0;background:#fdf8ee;border-radius:14px 14px 0 0;box-shadow:0 -6px 20px rgba(42,34,24,.14);border-top:1px solid #e2d6bc;display:flex;flex-direction:column;max-height:172px;">
+            <div style="display:flex;justify-content:center;padding:7px 0 2px;flex-shrink:0;"><div style="width:36px;height:4px;border-radius:2px;background:#d4c8b0;"></div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px 6px;flex-shrink:0;">
+              <span style="font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.14em;text-transform:uppercase;">Für Schritt 3</span>
+              <span style="font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.05em;">antippen zum Abhaken</span>
+            </div>
+            <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:0 0 10px;">
+              <div style="display:flex;align-items:center;gap:9px;padding:6px 16px;border-top:1px solid #f0e8d6;cursor:pointer;"><span style="width:16px;height:16px;border-radius:50%;background:#5a7048;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span style="flex:1;font:400 12px 'DM Sans';color:#b0a090;text-decoration:line-through;">Haferflocken (Topping)</span><span style="font:400 11px 'DM Mono',monospace;color:#c4b8a0;text-decoration:line-through;">2 EL</span></div>
+              <div style="display:flex;align-items:center;gap:9px;padding:6px 16px;border-top:1px solid #f0e8d6;cursor:pointer;"><span style="width:16px;height:16px;border-radius:50%;border:1.5px solid #c4b8a0;flex-shrink:0;"></span><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Körnermischung</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">3 EL</span></div>
+              <div style="display:flex;align-items:center;gap:9px;padding:6px 16px;border-top:1px solid #f0e8d6;cursor:pointer;"><span style="width:16px;height:16px;border-radius:50%;border:1.5px solid #c4b8a0;flex-shrink:0;"></span><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Wasser (zum Bestreichen)</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">etwas</span></div>
+            </div>
+          </div>
+          <div style="flex-shrink:0;height:78px;background:#f6f0e4;border-top:2px solid #d4b88a;box-shadow:0 -2px 0 #c4a870;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 4px 0;">
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Home</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a2218" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 6.5 5 4.5 6v12c2-1 5.5-1 7.5.5 2-1.5 5.5-1.5 7.5-.5V6c-2-1-5.5-1-7.5.5z"></path><path d="M12 6.5V19"></path></svg><span style="font:600 9px 'DM Mono',monospace;color:#2a2218;letter-spacing:.04em;">Rezepte</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:0;"><div style="width:44px;height:44px;border-radius:6px;background:#2e2618;display:flex;align-items:center;justify-content:center;margin-top:-16px;box-shadow:0 4px 12px rgba(0,0,0,.3),0 2px 0 #1a1408;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0e8d0" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;margin-top:2px;letter-spacing:.03em;">Neu</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="1.5" stroke-linecap="round"><path d="M12 22V14M12 14C12 9 15 5 20 4c0 4-2 8-8 10z"></path><path d="M12 14C12 9 9 5 4 4c0 4 2 8 8 10z"></path></svg><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Garten</span></button>
+            <button style="display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;flex:1;padding:2px 0;"><span style="font:700 18px;color:#b0a090;line-height:1;">···</span><span style="font:400 9px 'DM Mono',monospace;color:#b0a090;letter-spacing:.03em;">Mehr</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-group">
+      <span class="screen-label" style="color:#7aa060;">⑤ Kochmodus · Panel volle Liste (alle Zutaten)</span>
+      <div class="phone">
+        <div style="display:flex;flex-direction:column;height:100%;background:#f6f0e4;font-family:'DM Sans',system-ui,sans-serif;position:relative;overflow:hidden;">
+          <div style="position:relative;height:118px;flex-shrink:0;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#b8a880 0px,#b8a880 2px,#cbb898 2px,#cbb898 30px);"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,14,6,.5) 0%,transparent 45%,rgba(20,14,6,.68) 100%);"></div>
+            <div style="position:absolute;top:14px;left:16px;">
+              <button style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.38);border:none;border-radius:20px;padding:5px 12px 5px 8px;color:#fff;font:500 11px 'DM Sans';cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Zurück</button>
+            </div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 16px 12px;">
+              <h1 style="margin:0;font:italic 700 19px 'Lora',serif;color:#fff;line-height:1.0;letter-spacing:-.2px;">Haferflockenbrötchen</h1>
+            </div>
+          </div>
+          <div style="display:flex;background:#ede5d4;border-bottom:1px solid #d4c8b0;flex-shrink:0;">
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Zutaten</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 -2px 0 #c85030;">Zubereitung</button>
+            <button style="flex:1;padding:9px 0 7px;border:none;background:none;cursor:pointer;font:400 9px 'DM Mono',monospace;color:#9a8870;letter-spacing:.07em;text-transform:uppercase;">Passt dazu</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="background:#fff;border-radius:6px;border-left:5px solid #c85030;border-right:5px solid #c85030;padding:12px 14px;box-shadow:0 2px 12px rgba(200,80,48,.14);">
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#c85030;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 3px rgba(200,80,48,.18);"><span style="font:700 11px 'DM Mono',monospace;color:#fff;">3</span></div>
+                <div style="flex:1;">
+                  <p style="margin:0 0 4px;font:700 12px 'DM Sans';color:#c85030;">Backen</p>
+                  <p style="margin:0;font:400 11px 'DM Sans';color:#2a2218;line-height:1.5;">Die Teiglinge auf das Backblech setzen und in der mittleren Schiene ca. 20 Minuten goldbraun backen.</p>
+                </div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.45);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #ede5d4;opacity:.65;">
+              <div style="width:24px;height:24px;border-radius:50%;border:1.5px solid #d4c8b0;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font:700 11px 'DM Mono',monospace;color:#b0a090;">4</span></div>
+              <div style="flex:1;"><p style="margin:0 0 2px;font:600 11px 'DM Sans';color:#9a8870;">Abkühlen lassen</p><p style="margin:0;font:400 10px 'DM Sans';color:#b0a090;line-height:1.4;">Brötchen auf einem Gitter vollständig auskühlen lassen.</p></div>
+            </div>
+          </div>
+          <!-- Sheet: halb offen, überlagert Nav -->
+          <div style="position:absolute;bottom:0;left:0;right:0;height:54%;background:#fdf8ee;border-radius:14px 14px 0 0;box-shadow:0 -10px 32px rgba(42,34,24,.22);display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:center;padding:7px 0 2px;flex-shrink:0;"><div style="width:36px;height:4px;border-radius:2px;background:#d4c8b0;"></div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 16px 8px;border-bottom:1px solid #ede5d4;flex-shrink:0;">
+              <span style="font:italic 700 17px 'Lora',serif;color:#2a2218;">Zutaten</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <button style="width:22px;height:22px;border-radius:50%;border:1.5px solid #5a7048;background:none;color:#5a7048;cursor:pointer;font:700 13px system-ui;display:flex;align-items:center;justify-content:center;">−</button>
+                <span style="font:700 13px 'DM Sans';color:#2a2218;">8</span>
+                <button style="width:22px;height:22px;border-radius:50%;border:none;background:#5a7048;color:#fff;cursor:pointer;font:700 13px system-ui;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:8px 0 12px;">
+              <p style="margin:0 12px 8px;padding:6px 10px;font:400 9px 'DM Sans';color:#9a8870;background:#f3ecdc;border-radius:4px;line-height:1.45;">Zutat antippen — zeigt oben die Schritte, in denen sie gebraucht wird.</p>
+              <p style="margin:0 0 4px;padding:0 16px;font:600 9px 'DM Mono',monospace;color:#c85030;letter-spacing:.14em;text-transform:uppercase;">Hauptrezept</p>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Dinkelmehl Type 630</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">300 g</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Haferflocken</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">150 g</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Joghurt</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">200 g</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Backpulver</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">1 Pkt.</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Salz</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">10 g</span></div>
+              <p style="margin:10px 0 4px;padding:0 16px;font:600 9px 'DM Mono',monospace;color:#5a7048;letter-spacing:.14em;text-transform:uppercase;">Modul · Kräuterbutter</p>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid #f0e8d6;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Butter</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">100 g</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 16px;cursor:pointer;"><span style="flex:1;font:400 12px 'DM Sans';color:#2a2218;">Gemischte Kräuter</span><span style="font:400 11px 'DM Mono',monospace;color:#9a8870;">1 Bd.</span></div>
+            </div>
+            <div style="padding:10px 16px 14px;border-top:1px solid #ede5d4;flex-shrink:0;">
+              <button style="width:100%;padding:10px;background:#c85030;border:none;border-radius:4px;color:#fff;font:600 12px 'DM Sans';cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.2);">Zur Shoppingliste</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+  </div>
+</div>
+
+<!-- ═══════ KATEGORIEÜBERSICHT ═══════ -->
+</body>
+</html>
