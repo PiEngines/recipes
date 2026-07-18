@@ -55,25 +55,48 @@ export function SkeletonCard() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function EmptyState({ search, hasActiveFilters, onClearFilters }) {
+function EmptyState({ search, hasActiveFilters, diagnosis, onClearFilters }) {
+  const hasDiagnosis = hasActiveFilters && diagnosis.length > 0
+  const topBlocker = diagnosis[0]?.label
   return (
-    <div style={{ textAlign: 'center', padding: '5rem 1rem', color: 'var(--subtext)' }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🥘</div>
-      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text)', margin: '0 0 0.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '3rem 1rem', color: 'var(--subtext)' }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+        <i className="ti ti-search-off" style={{ fontSize: 26, color: 'var(--text-muted)' }} />
+      </div>
+      <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: 'var(--text)', margin: '0 0 6px' }}>
         {search || hasActiveFilters ? 'Keine Treffer' : 'Noch keine Rezepte vorhanden'}
       </h3>
-      <p style={{ margin: 0, fontSize: '0.925rem' }}>
-        {search || hasActiveFilters
-          ? 'Keine Rezepte für diese Kombination.'
-          : 'Hier erscheinen demnächst leckere Rezepte.'}
-      </p>
-      {hasActiveFilters && (
-        <p style={{ margin: '1rem 0 0', fontSize: '0.875rem' }}>
-          Einzelne Filter im Filter-Panel lösen — gedämpfte Optionen (0) grenzen zu stark ein.{' '}
-          <button onClick={onClearFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'var(--font-body)', fontWeight: 500, textDecoration: 'underline', padding: 0 }}>
+      {hasDiagnosis ? (
+        <>
+          <p style={{ margin: '0 0 20px', fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.5, color: 'var(--text-muted)', maxWidth: 300 }}>
+            Die Kombination deiner Filter passt auf kein Rezept.{topBlocker ? <> Der Filter <strong>»{topBlocker}«</strong> blockiert die meisten Ergebnisse:</> : ''}
+          </p>
+          <div style={{ width: '100%', maxWidth: 360, background: 'var(--surface)', borderRadius: 6, boxShadow: '0 2px 8px rgba(0,0,0,.08), 0 4px 0 0 var(--wood-shadow)', padding: '14px 16px', marginBottom: 14, textAlign: 'left' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              {diagnosis.map((d, i) => (
+                <button key={d.label} onClick={d.remove} data-track-id="recipes-diagnosis-remove"
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, width: '100%', border: 'none', borderRadius: 3, padding: '9px 12px', cursor: 'pointer', textAlign: 'left', background: i === 0 ? 'var(--green)' : 'var(--bg-alt)', color: i === 0 ? 'var(--on-dark)' : 'var(--text)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>ohne <strong>{d.label}</strong> zeigen</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '.04em', whiteSpace: 'nowrap' }}>+{d.plus} Treffer →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onClick={onClearFilters} data-track-id="recipes-diagnosis-reset" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.04em', color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}>
             Alle Filter zurücksetzen
           </button>
-        </p>
+        </>
+      ) : (
+        <>
+          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
+            {search || hasActiveFilters ? 'Keine Rezepte für diese Kombination.' : 'Hier erscheinen demnächst leckere Rezepte.'}
+          </p>
+          {hasActiveFilters && (
+            <button onClick={onClearFilters} style={{ marginTop: 14, fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+              Alle Filter zurücksetzen
+            </button>
+          )}
+        </>
       )}
     </div>
   )
@@ -216,6 +239,26 @@ export default function Recipes() {
 
   const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
 
+  // Baut die /api/recipes-Query aus expliziten Filter-Sets — eine Quelle für Haupt-Fetch + Diagnose (⑤).
+  const buildRecipeParams = (t, di, co, df, ca, mt, pg = 1) => {
+    const scopeParts = ['title']
+    if (scopeDesc) scopeParts.push('description', 'steps')
+    if (scopeIng) scopeParts.push('ingredients')
+    const p = { page: pg, page_size: PAGE_SIZE, search_scope: scopeParts.join(',') }
+    if (authorIdFilter) p.author_id = authorIdFilter
+    else if (effectiveAuthor) p.author = effectiveAuthor
+    else if (search) p.search = search
+    if (t.size === 1) p.type = [...t][0]
+    else if (t.size > 1) p.type = [...t].sort().join(',')
+    if (di.size) p.diet = [...di]
+    if (co.size) p.course = [...co]
+    if (df.size) p.difficulty = [...df]
+    if (ca.size) p.category = [...ca]
+    if (mt) p.max_time = mt
+    if (SERVER_SORTS.has(sort)) p.sort = sort
+    return p
+  }
+
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -226,6 +269,7 @@ export default function Recipes() {
   const [categoryOpts, setCategoryOpts] = useState([]) // [{ id, name, slug, recipe_count }]
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sortOpen, setSortOpen] = useState(false)
+  const [diagnosis, setDiagnosis] = useState([])
   const [reloadNonce, setReloadNonce] = useState(0)
 
   // Option-Listen (einmalig)
@@ -257,21 +301,7 @@ export default function Recipes() {
       return
     }
 
-    const scopeParts = ['title']
-    if (scopeDesc) scopeParts.push('description', 'steps')
-    if (scopeIng) scopeParts.push('ingredients')
-    const params = { page, page_size: PAGE_SIZE, search_scope: scopeParts.join(',') }
-    if (authorIdFilter) params.author_id = authorIdFilter
-    else if (effectiveAuthor) params.author = effectiveAuthor
-    else if (search) params.search = search
-    if (typeFilters.size === 1) params.type = [...typeFilters][0]
-    else if (typeFilters.size > 1) params.type = [...typeFilters].sort().join(',')
-    if (dietFilters.size) params.diet = [...dietFilters]
-    if (courseFilters.size) params.course = [...courseFilters]
-    if (difficultyFilters.size) params.difficulty = [...difficultyFilters]
-    if (categoryFilters.size) params.category = [...categoryFilters]
-    if (maxTimeFilter) params.max_time = maxTimeFilter
-    if (SERVER_SORTS.has(sort)) params.sort = sort
+    const params = buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, categoryFilters, maxTimeFilter, page)
 
     client.get('/api/recipes', { params, paramsSerializer: { indexes: null } })
       .then(res => {
@@ -413,6 +443,35 @@ export default function Recipes() {
     }),
   ]
 
+  // Filter-Diagnose (⑤): je aktivem Filter „ohne X" — total via Zusatz-Request → +n.
+  const setMinus = (s, v) => new Set([...s].filter(x => x !== v))
+  const diagFilters = [
+    ...[...typeFilters].map(t => ({ key: 'type-' + t, label: t === 'kochen' ? 'Kochen' : 'Backen', remove: () => toggleTypeFilter(t), params: buildRecipeParams(setMinus(typeFilters, t), dietFilters, courseFilters, difficultyFilters, categoryFilters, maxTimeFilter) })),
+    ...[...dietFilters].map(id => ({ key: 'diet-' + id, label: dietOpts.find(d => String(d.id) === id)?.name || 'Ernährung', remove: () => toggleMulti('diet', id), params: buildRecipeParams(typeFilters, setMinus(dietFilters, id), courseFilters, difficultyFilters, categoryFilters, maxTimeFilter) })),
+    ...[...courseFilters].map(c => ({ key: 'course-' + c, label: c, remove: () => toggleMulti('course', c), params: buildRecipeParams(typeFilters, dietFilters, setMinus(courseFilters, c), difficultyFilters, categoryFilters, maxTimeFilter) })),
+    ...[...difficultyFilters].map(v => ({ key: 'diff-' + v, label: DIFFICULTY_OPTS.find(o => String(o.value) === v)?.label || `Stufe ${v}`, remove: () => toggleMulti('difficulty', v), params: buildRecipeParams(typeFilters, dietFilters, courseFilters, setMinus(difficultyFilters, v), categoryFilters, maxTimeFilter) })),
+    ...[...categoryFilters].map(id => ({ key: 'cat-' + id, label: categoryOpts.find(c => String(c.id) === id)?.name || 'Kategorie', remove: () => toggleMulti('category', id), params: buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, setMinus(categoryFilters, id), maxTimeFilter) })),
+    ...(maxTimeFilter ? [{ key: 'time', label: `Bis ${maxTimeFilter} Min.`, remove: () => toggleTimeFilter(maxTimeFilter), params: buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, categoryFilters, 0) }] : []),
+  ]
+
+  useEffect(() => {
+    if (loading || error || showFavorites || recipes.length > 0 || activeFilterCount === 0) {
+      setDiagnosis([])
+      return
+    }
+    let cancelled = false
+    Promise.all(diagFilters.map(f =>
+      client.get('/api/recipes', { params: f.params, paramsSerializer: { indexes: null } })
+        .then(res => ({ label: f.label, plus: res.data.total || 0, remove: f.remove }))
+        .catch(() => null)
+    )).then(rows => {
+      if (cancelled) return
+      setDiagnosis(rows.filter(r => r && r.plus > 0).sort((a, b) => b.plus - a.plus))
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipes.length, loading, error, showFavorites, activeFilterCount, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, search, scopeDesc, scopeIng, scopeAuthor, authorFilter, authorIdFilter, sort, reloadNonce])
+
   const openDetail = (r) => {
     sessionStorage.setItem('recipes_scroll_y', window.scrollY)
     sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
@@ -518,7 +577,7 @@ export default function Recipes() {
             ) : recipes.length === 0 ? (
               showFavorites
                 ? <EmptyFavoritesState />
-                : <EmptyState search={search} hasActiveFilters={activeFilterCount > 0} onClearFilters={clearAllFilters} />
+                : <EmptyState search={search} hasActiveFilters={activeFilterCount > 0} diagnosis={diagnosis} onClearFilters={clearAllFilters} />
             ) : renderGrid()}
 
             {/* Pagination */}
