@@ -46,10 +46,10 @@ function HeuteCard({ recipe, label, labelIcon, onClick, trackId, height, fullWid
       {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px)' }} />
       <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
-        <span style={{ fontSize: 11, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{labelIcon}&nbsp;{label}</span>
+        <span style={{ fontSize: 11, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{labelIcon}&nbsp;{label}</span>
       </div>
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.58))' }}>
-        <p style={{ fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', lineHeight: 1.3, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {recipe?.title ?? '—'}
         </p>
       </div>
@@ -66,11 +66,11 @@ function KrauterCard({ height, onClick, fullWidth }) {
       <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 9px)' }} />
       <div style={{ position: 'absolute', right: -8, top: -8, fontSize: height > 180 ? 100 : 80, opacity: .14, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>🌿</div>
       <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
-        <span style={{ fontSize: 11, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>🌱&nbsp;Kräuterschule</span>
+        <span style={{ fontSize: 11, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>🌱&nbsp;Kräuterschule</span>
       </div>
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.6))' }}>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontFamily: 'Inter, sans-serif', margin: '0 0 3px' }}>Kraut der Woche</p>
-        <p style={{ fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: 'Inter, sans-serif', lineHeight: 1.3, margin: 0 }}>Liebstöckel</p>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontFamily: 'var(--font-body)', margin: '0 0 3px' }}>Kraut der Woche</p>
+        <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', lineHeight: 1.3, margin: 0 }}>Liebstöckel</p>
       </div>
     </div>
   )
@@ -140,17 +140,17 @@ export default function Home() {
 
       {/* Greeting */}
       <div style={{ padding: '24px 0 28px' }}>
-        <p style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', margin: '0 0 4px' }}>
+        <p style={{ fontSize: 11, color: 'var(--subtext)', fontFamily: 'var(--font-mono)', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 5px' }}>
           {getGreeting()}
         </p>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(30px, 5vw, 42px)', fontWeight: 700, fontStyle: 'italic', color: 'var(--text)', letterSpacing: '-.5px', lineHeight: 1.15, margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(30px, 5vw, 42px)', fontWeight: 700, fontStyle: 'italic', color: 'var(--text)', letterSpacing: '-.5px', lineHeight: 1.15, margin: 0 }}>
           {user?.username ? `${user.username}!` : 'Willkommen!'}
         </h1>
       </div>
 
       {/* Heute für dich */}
       <section style={{ paddingBottom: 32 }} aria-label="Heute für dich">
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.65px', margin: '0 0 12px' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.12em', margin: '0 0 12px' }}>
           Heute für dich
         </p>
         <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
@@ -179,15 +179,15 @@ export default function Home() {
           <div className="md:hidden" style={{ padding: '20px 20px 18px' }}>
             <div style={{ position: 'absolute', right: -18, top: -24, width: 120, height: 120, borderRadius: 999, background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
             <i className="ti ti-fridge" style={{ fontSize: 26, color: 'rgba(255,255,255,.65)', display: 'block', marginBottom: 9, position: 'relative' }} />
-            <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 17, fontWeight: 600, color: '#fff', margin: '0 0 6px', lineHeight: 1.35, position: 'relative' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--on-accent)', margin: '0 0 6px', lineHeight: 1.35, position: 'relative' }}>
               Was kannst du heute kochen?
             </h3>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.72)', fontFamily: 'Inter, sans-serif', margin: '0 0 16px', lineHeight: 1.5, position: 'relative' }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.72)', fontFamily: 'var(--font-body)', margin: '0 0 16px', lineHeight: 1.5, position: 'relative' }}>
               Entdecke Rezepte mit deinen Zutaten.
             </p>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '9px 16px', position: 'relative' }}>
-              <span style={{ fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Kühlschrank prüfen</span>
-              <i className="ti ti-arrow-right" style={{ fontSize: 14, color: '#fff' }} />
+              <span style={{ fontSize: 13, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>Kühlschrank prüfen</span>
+              <i className="ti ti-arrow-right" style={{ fontSize: 14, color: 'var(--on-accent)' }} />
             </div>
           </div>
           <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 24, padding: '22px 28px' }}>
@@ -195,17 +195,17 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'relative', zIndex: 1 }}>
               <i className="ti ti-fridge" style={{ fontSize: 34, color: 'rgba(255,255,255,.65)', flexShrink: 0 }} />
               <div>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 19, fontWeight: 600, color: '#fff', margin: '0 0 5px', lineHeight: 1.3 }}>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 600, color: 'var(--on-accent)', margin: '0 0 5px', lineHeight: 1.3 }}>
                   Was kannst du heute kochen?
                 </h3>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.72)', fontFamily: 'Inter, sans-serif', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.72)', fontFamily: 'var(--font-body)', margin: 0, lineHeight: 1.5 }}>
                   Entdecke Rezepte mit deinen Zutaten.
                 </p>
               </div>
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '12px 22px', position: 'relative', zIndex: 1, flexShrink: 0 }}>
-              <span style={{ fontSize: 14, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>Kühlschrank prüfen</span>
-              <i className="ti ti-arrow-right" style={{ fontSize: 15, color: '#fff' }} />
+              <span style={{ fontSize: 14, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>Kühlschrank prüfen</span>
+              <i className="ti ti-arrow-right" style={{ fontSize: 15, color: 'var(--on-accent)' }} />
             </div>
           </div>
         </div>
@@ -220,8 +220,8 @@ export default function Home() {
         >
           <i className="ti ti-category" style={{ fontSize: 22, color: 'var(--accent)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Nach Kategorie stöbern</div>
-            <div style={{ fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>Alle Kategorien auf einen Blick</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Nach Kategorie stöbern</div>
+            <div style={{ fontSize: 13, color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Alle Kategorien auf einen Blick</div>
           </div>
           <i className="ti ti-arrow-right" style={{ fontSize: 16, color: 'var(--subtext)', flexShrink: 0 }} />
         </div>
@@ -230,13 +230,13 @@ export default function Home() {
       {/* Neue Rezepte */}
       <section style={{ paddingBottom: 28 }} aria-label="Neue Rezepte">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
             <span onClick={() => navigate('/recipes?sort=newest')} style={{ cursor: 'pointer', color: 'var(--text)', textDecoration: 'none' }}>
               Neue Rezepte
             </span>
           </h2>
           <button onClick={() => navigate('/recipes?sort=newest')} data-track-id="home-neue-mehr-click"
-            style={{ fontSize: 13, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
+            style={{ fontSize: 13, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
             Mehr →
           </button>
         </div>
@@ -249,7 +249,7 @@ export default function Home() {
 
       {/* Entdecken Feed */}
       <section id="home-feed" aria-label="Entdecken" style={{ paddingBottom: 20 }}>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 14px' }}>
           Entdecken
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
@@ -258,7 +258,7 @@ export default function Home() {
           ))}
         </div>
         {feedLoading && (
-          <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: 13 }}>
             Lädt …
           </div>
         )}
