@@ -7,6 +7,7 @@ import { useFavorites } from '../context/FavoritesContext'
 import { isKochOrAbove } from '../utils/roles'
 import RecipeCard from '../components/RecipeCard'
 import BackButton from '../components/BackButton'
+import { getCategoryColor } from '../theme/categoryColors'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -399,6 +400,19 @@ export default function Recipes() {
   // Browse-Zustand (①): keine Suche/Filter/Autor/Favoriten, Seite 1 → Featured-Kachel oben.
   const isBrowse = !search && !effectiveAuthor && !authorIdFilter && !showFavorites && activeFilterCount === 0 && page === 1
 
+  // Aktive Filter → schwebende Pills (§2.10). dot = Kategorie-Farbe für Kategorie-Filter, sonst neutral.
+  const chips = [
+    ...[...typeFilters].map(t => ({ key: 'type-' + t, label: t === 'kochen' ? 'Kochen' : 'Backen', dot: null, remove: () => toggleTypeFilter(t) })),
+    ...[...dietFilters].map(id => ({ key: 'diet-' + id, label: dietOpts.find(d => String(d.id) === id)?.name || 'Ernährung', dot: null, remove: () => toggleMulti('diet', id) })),
+    ...[...courseFilters].map(c => ({ key: 'course-' + c, label: c, dot: null, remove: () => toggleMulti('course', c) })),
+    ...[...difficultyFilters].map(v => ({ key: 'diff-' + v, label: DIFFICULTY_OPTS.find(o => String(o.value) === v)?.label || `Stufe ${v}`, dot: null, remove: () => toggleMulti('difficulty', v) })),
+    ...(maxTimeFilter ? [{ key: 'time', label: `Bis ${maxTimeFilter} Min.`, dot: null, remove: () => toggleTimeFilter(maxTimeFilter) }] : []),
+    ...[...categoryFilters].map(id => {
+      const name = categoryOpts.find(c => String(c.id) === id)?.name
+      return { key: 'cat-' + id, label: name || 'Kategorie', dot: name ? getCategoryColor(name).base : null, remove: () => toggleMulti('category', id) }
+    }),
+  ]
+
   const openDetail = (r) => {
     sessionStorage.setItem('recipes_scroll_y', window.scrollY)
     sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
@@ -437,37 +451,12 @@ export default function Recipes() {
           <BackButton fallback="/" />
         </div>
 
-        <div className="md:grid md:items-start" style={{ gridTemplateColumns: '264px 1fr', gap: 32 }}>
-
-          {/* Sidebar (Desktop) */}
-          <aside className="hidden md:block" style={{ position: 'sticky', top: 88, maxHeight: 'calc(100vh - 104px)', overflowY: 'auto' }}>
-            <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, color: 'var(--text)' }}>Filter</div>
-                {activeFilterCount > 0 && (
-                  <button onClick={clearAllFilters} style={{ fontSize: 12, color: 'var(--accent)', fontFamily: 'var(--font-body)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                    Zurücksetzen
-                  </button>
-                )}
-              </div>
-              <FilterPanel groups={groups} />
-            </div>
-          </aside>
-
-          {/* Results column */}
+        <div>
+          {/* Results (Sidebar entfällt — Filter via FAB/Sheet §2.10) */}
           <div style={{ minWidth: 0 }}>
 
-            {/* Toolbar: mobile filter btn + favorites/author + count + sort */}
+            {/* Toolbar: favorites/author + count + sort (Filter → FAB §2.10) */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-              <button
-                className="md:hidden"
-                onClick={() => setSheetOpen(true)}
-                data-track-id="recipes-filter-sheet-open"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--text)', background: 'var(--card)', border: '1px solid var(--border-input)', borderRadius: 'var(--radius-pill)', padding: '9px 16px', fontFamily: 'var(--font-body)' }}
-              >
-                <i className="ti ti-adjustments-horizontal" style={{ fontSize: 16 }} />
-                Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-              </button>
 
               {isKochOrAbove(user) && (
                 <FilterButton active={showFavorites} onClick={toggleFavoritesFilter}>
@@ -550,9 +539,48 @@ export default function Recipes() {
         </div>
       </div>
 
+      {/* Schwebende Filter-Ebene (§2.10): Pills links, FAB rechts */}
+      <div className="rezepte-fab-layer">
+        <div className="rezepte-fab-inner">
+          <div style={{ display: 'flex', gap: 7, alignItems: 'center', minWidth: 0, overflow: 'hidden', pointerEvents: 'auto' }}>
+            {chips.slice(0, 2).map(c => (
+              <button
+                key={c.key}
+                onClick={c.remove}
+                data-track-id="recipes-filter-pill-remove"
+                aria-label={`Filter ${c.label} entfernen`}
+                style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '.04em', padding: '7px 9px 7px 11px', background: 'var(--surface)', color: 'var(--text)', border: 'none', borderRadius: 16, boxShadow: '0 3px 10px rgba(0,0,0,.18)' }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.dot || 'var(--text-muted)', flexShrink: 0 }} />
+                {c.label}
+                <i className="ti ti-x" style={{ fontSize: 11, color: 'var(--text-muted)' }} />
+              </button>
+            ))}
+            {chips.length > 2 && (
+              <button
+                onClick={() => setSheetOpen(true)}
+                data-track-id="recipes-filter-overflow-open"
+                aria-label={`${chips.length - 2} weitere Filter`}
+                style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '.04em', padding: '7px 11px', background: 'var(--ink-braun)', color: 'var(--on-dark)', border: 'none', borderRadius: 16, boxShadow: '0 3px 10px rgba(0,0,0,.2)' }}
+              >
+                +{chips.length - 2}
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setSheetOpen(true)}
+            data-track-id="recipes-filter-fab-open"
+            aria-label="Filter"
+            style={{ pointerEvents: 'auto', flexShrink: 0, width: 52, height: 52, borderRadius: '50%', background: 'var(--accent)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(80,35,12,.28)' }}
+          >
+            <i className="ti ti-adjustments-horizontal" style={{ fontSize: 22, color: 'var(--on-accent)' }} />
+          </button>
+        </div>
+      </div>
+
       {/* Filter-Bottom-Sheet (§2.11) */}
       {sheetOpen && (
-        <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
           <div onClick={() => setSheetOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(42,34,24,.4)' }} />
           <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '85vh', background: 'var(--bg)', borderRadius: '12px 12px 0 0', boxShadow: '0 -8px 32px rgba(0,0,0,.2)', display: 'flex', flexDirection: 'column' }}>
             {/* Griff */}

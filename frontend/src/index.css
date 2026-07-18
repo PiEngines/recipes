@@ -191,3 +191,27 @@ input[type="date"] {
     padding-bottom: 52px;
   }
 }
+
+/* ── Rezepte: schwebende Filter-Ebene (§2.10) ────────────────────────────── */
+.rezepte-fab-layer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 132px; /* mobil: über MobileSearchBar + Bottom-Nav */
+  z-index: 45;
+  padding: 0 14px;
+  pointer-events: none;
+}
+.rezepte-fab-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .rezepte-fab-layer {
+    bottom: 64px; /* desktop: Nav aus, über der Suchleiste */
+  }
+}
