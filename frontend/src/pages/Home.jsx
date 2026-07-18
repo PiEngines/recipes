@@ -57,18 +57,31 @@ function ZettelCard({ recipe, label, onClick, trackId, fullWidth }) {
   )
 }
 
-function KrauterCard({ height, onClick, fullWidth }) {
+// ── KrautHero (Wahl 2.0 · §2.5 Kreidetafel, home.html) ────────────────────────
+// Eigener Hero-Block: Kreidetafel-Look (var(--chalkboard), Linien-Textur, inset-
+// Rahmen), „Kraut der Woche" + Pflanzenname (Lora italic 700, Creme).
+// Ziel Pflanzen-Detail folgt mit F1 → bis dahin Klick auf /seasonal (kein toter Klick).
+
+function KrautHero({ onClick }) {
   return (
-    <div onClick={onClick} data-track-id="home-carousel-kraeuter-click"
-      style={{ width: fullWidth ? '100%' : 'calc(100vw - 48px)', maxWidth: fullWidth ? 'none' : 320, flexShrink: 0, borderRadius: 18, overflow: 'hidden', cursor: 'pointer', position: 'relative', height, background: 'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)', userSelect: 'none' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 9px)' }} />
-      <div style={{ position: 'absolute', right: -8, top: -8, fontSize: height > 180 ? 100 : 80, opacity: .14, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>🌿</div>
-      <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
-        <span style={{ fontSize: 11, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>🌱&nbsp;Kräuterschule</span>
-      </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.6))' }}>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', fontFamily: 'var(--font-body)', margin: '0 0 3px' }}>Kraut der Woche</p>
-        <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', lineHeight: 1.3, margin: 0 }}>Liebstöckel</p>
+    <div
+      onClick={onClick}
+      data-track-id="home-carousel-kraeuter-click"
+      style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', background: 'var(--chalkboard)', padding: '20px 18px 18px', cursor: 'pointer', userSelect: 'none' }}
+    >
+      {/* Kreidelinien-Textur */}
+      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,.015) 28px, rgba(255,255,255,.015) 29px)', pointerEvents: 'none' }} />
+      {/* Inset-Rahmen */}
+      <div style={{ position: 'absolute', inset: 3, borderRadius: 6, border: '1.5px solid rgba(255,255,255,.06)', pointerEvents: 'none' }} />
+      {/* Kräuter-Glyph */}
+      <svg style={{ position: 'absolute', right: 14, top: 14, opacity: 0.1, pointerEvents: 'none' }} width="56" height="56" viewBox="0 0 24 24" fill="var(--on-dark)" aria-hidden="true">
+        <path d="M12 2C6 2 2 8 2 14c0 4 3 7 7 8 1-3 2-5 4-6-2 0-4-1-4-3s2-5 3-5 5 1 5 3-1 3-3 4c2 1 3 4 4 7 4-1 6-5 6-8 0-6-4-12-10-12z" />
+      </svg>
+      <div style={{ position: 'relative' }}>
+        <p style={{ margin: '0 0 4px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)' }}>✦ Kraut der Woche</p>
+        <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 32, lineHeight: 1, letterSpacing: '-.3px', color: 'var(--on-dark)' }}>Liebstöckel</h2>
+        <p style={{ margin: '8px 0 14px', fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.45, color: 'rgba(240,232,208,.55)' }}>Intensives Aroma — für Suppen, Saucen und herzhafte Gerichte.</p>
+        <span style={{ display: 'inline-block', border: '1.5px solid rgba(240,232,208,.35)', color: 'var(--on-dark)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.08em', padding: '6px 14px', borderRadius: 3 }}>Mehr erfahren →</span>
       </div>
     </div>
   )
@@ -146,6 +159,11 @@ export default function Home() {
         </h1>
       </div>
 
+      {/* Kraut der Woche — Hero (§2.5 Kreidetafel) */}
+      <div style={{ paddingBottom: 32 }}>
+        <KrautHero onClick={() => navigate('/seasonal')} />
+      </div>
+
       {/* Heute für dich */}
       <section style={{ paddingBottom: 32 }} aria-label="Heute für dich">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' }}>
@@ -156,14 +174,12 @@ export default function Home() {
         <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           <ZettelCard recipe={seasonal} label="Saisonal"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
           <ZettelCard recipe={newest} label="Neu diese Woche"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
         <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
           <ZettelCard fullWidth recipe={seasonal} label="Saisonal"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <KrauterCard fullWidth height={204} onClick={() => navigate('/seasonal')} />
           <ZettelCard fullWidth recipe={newest} label="Neu diese Woche"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>

@@ -34,6 +34,7 @@
   /* ── Farbwelten (SPEC §1.1) ─────────────────────────────────────────── */
   --ink-braun:      #2e2618;         /* Header/Nav Rezepte-Welt, primäre Buttons */
   --ink-gruen:      #2b4524;         /* Header Garten-Welt */
+  --chalkboard:     #32302a;         /* Kreidetafel-Hero „Kraut der Woche" (SPEC §2.5) */
   /* Default-Welt = Braun; Seiten überschreiben via [data-world] (siehe unten) */
   --header-bg:      var(--ink-braun);
   --accent-dot:     #7aa060;
