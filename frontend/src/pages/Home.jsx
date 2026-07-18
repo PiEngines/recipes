@@ -23,9 +23,9 @@ function formatTime(recipe) {
   return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
 }
 
-function ZettelCard({ recipe, label, onClick, trackId, fullWidth }) {
+function ZettelCard({ recipe, label, color, onClick, trackId }) {
   const category = recipe?.categories?.[0]?.name || null
-  const catColor = getCategoryColor(category).base
+  const catColor = color || getCategoryColor(category).base
   const author = recipe?.author?.name || recipe?.author?.username || null
   const time = formatTime(recipe)
   const meta = [author, time].filter(Boolean).join(' · ')
@@ -34,9 +34,8 @@ function ZettelCard({ recipe, label, onClick, trackId, fullWidth }) {
       onClick={onClick}
       data-track-id={trackId}
       style={{
-        width: fullWidth ? '100%' : 'calc(100vw - 48px)',
-        maxWidth: fullWidth ? 'none' : 320,
-        flexShrink: 0,
+        flex: '1 1 0',
+        minWidth: 0,
         background: 'var(--surface)',
         borderRadius: 4,
         overflow: 'hidden',
@@ -46,12 +45,12 @@ function ZettelCard({ recipe, label, onClick, trackId, fullWidth }) {
       }}
     >
       <div style={{ height: 3, background: catColor }} />
-      <div style={{ padding: '10px 12px 12px' }}>
-        <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor }}>{label}</p>
-        <p style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 15, lineHeight: 1.12, color: 'var(--text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <div style={{ padding: '9px 11px 11px' }}>
+        <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '.1em', textTransform: 'uppercase', color: catColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</p>
+        <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 14, lineHeight: 1.1, color: 'var(--text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {recipe?.title ?? '—'}
         </p>
-        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-muted)' }}>{meta || '—'}</p>
+        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{meta || '—'}</p>
       </div>
     </div>
   )
@@ -94,6 +93,7 @@ export default function Home() {
   const { user } = useAuth()
 
   const [carouselRecipes, setCarouselRecipes] = useState([null, null])
+  const [beliebt, setBeliebt] = useState(null)
   const [neue, setNeue] = useState([])
   const [feed, setFeed] = useState([])
   const [feedLoading, setFeedLoading] = useState(false)
@@ -106,12 +106,13 @@ export default function Home() {
       client.get('/api/recipes/random', { params: { count: 2 } }).catch(() => ({ data: [] })),
       client.get('/api/recipes', { params: { page_size: 1 } }).catch(() => ({ data: { items: [] } })),
       client.get('/api/recipes/random', { params: { count: 3 } }).catch(() => ({ data: [] })),
-    ]).then(([carRes, newestRes, neueRes]) => {
+      client.get('/api/recipes', { params: { page_size: 1, sort: 'rating' } }).catch(() => ({ data: { items: [] } })),
+    ]).then(([carRes, newestRes, neueRes, beliebtRes]) => {
       const [seasonal] = carRes.data
       const newestItem = newestRes.data.items?.[0] ?? null
       setCarouselRecipes([seasonal ?? null, newestItem])
-      const neueItems = neueRes.data || []
-      setNeue(neueItems)
+      setNeue(neueRes.data || [])
+      setBeliebt(beliebtRes.data.items?.[0] ?? null)
     })
   }, [])
 
@@ -171,59 +172,31 @@ export default function Home() {
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Heute für dich</span>
           <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
         </div>
-        <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
           <ZettelCard recipe={seasonal} label="Saisonal"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <ZettelCard recipe={newest} label="Neu diese Woche"
+          <ZettelCard recipe={newest} label="Neu"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
-        </div>
-        <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
-          <ZettelCard fullWidth recipe={seasonal} label="Saisonal"
-            onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <ZettelCard fullWidth recipe={newest} label="Neu diese Woche"
-            onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
+          <ZettelCard recipe={beliebt} label="Beliebt" color="var(--gold)"
+            onClick={() => beliebt && navigate(`/recipes/${beliebt.id}`)} trackId="home-carousel-beliebt-click" />
         </div>
       </section>
 
-      {/* Fratcher Teaser */}
+      {/* Kühlschrank-Banner (Fratcher) — §01, home.html */}
       <div style={{ paddingBottom: 32 }}>
         <div
           onClick={() => navigate('/fratcher')}
           data-track-id="home-fratcher-teaser-click"
-          style={{ background: 'linear-gradient(135deg, #3E5228 0%, #5E7840 100%)', borderRadius: 18, cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: 'var(--bg-alt)', borderLeft: '3px solid var(--green)', borderRadius: 4, padding: '12px 14px', cursor: 'pointer' }}
         >
-          <div className="md:hidden" style={{ padding: '20px 20px 18px' }}>
-            <div style={{ position: 'absolute', right: -18, top: -24, width: 120, height: 120, borderRadius: 999, background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
-            <i className="ti ti-fridge" style={{ fontSize: 26, color: 'rgba(255,255,255,.65)', display: 'block', marginBottom: 9, position: 'relative' }} />
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 600, color: 'var(--on-accent)', margin: '0 0 6px', lineHeight: 1.35, position: 'relative' }}>
-              Was kannst du heute kochen?
-            </h3>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.72)', fontFamily: 'var(--font-body)', margin: '0 0 16px', lineHeight: 1.5, position: 'relative' }}>
-              Entdecke Rezepte mit deinen Zutaten.
-            </p>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '9px 16px', position: 'relative' }}>
-              <span style={{ fontSize: 13, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>Kühlschrank prüfen</span>
-              <i className="ti ti-arrow-right" style={{ fontSize: 14, color: 'var(--on-accent)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <i className="ti ti-fridge" style={{ fontSize: 20, color: 'var(--green)', flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>Was kannst du heute kochen?</p>
+              <p style={{ margin: '1px 0 0', fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-muted)' }}>Schau, was im Kühlschrank ist.</p>
             </div>
           </div>
-          <div className="hidden md:flex" style={{ alignItems: 'center', justifyContent: 'space-between', gap: 24, padding: '22px 28px' }}>
-            <div style={{ position: 'absolute', right: -18, top: -30, width: 200, height: 200, borderRadius: 999, background: 'rgba(255,255,255,.05)', pointerEvents: 'none' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, position: 'relative', zIndex: 1 }}>
-              <i className="ti ti-fridge" style={{ fontSize: 34, color: 'rgba(255,255,255,.65)', flexShrink: 0 }} />
-              <div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 600, color: 'var(--on-accent)', margin: '0 0 5px', lineHeight: 1.3 }}>
-                  Was kannst du heute kochen?
-                </h3>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,.72)', fontFamily: 'var(--font-body)', margin: 0, lineHeight: 1.5 }}>
-                  Entdecke Rezepte mit deinen Zutaten.
-                </p>
-              </div>
-            </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.14)', border: '1px solid rgba(255,255,255,.22)', borderRadius: 999, padding: '12px 22px', position: 'relative', zIndex: 1, flexShrink: 0 }}>
-              <span style={{ fontSize: 14, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>Kühlschrank prüfen</span>
-              <i className="ti ti-arrow-right" style={{ fontSize: 15, color: 'var(--on-accent)' }} />
-            </div>
-          </div>
+          <span style={{ flexShrink: 0, background: 'var(--green)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, padding: '7px 12px', borderRadius: 3, whiteSpace: 'nowrap' }}>Prüfen →</span>
         </div>
       </div>
 
@@ -232,7 +205,7 @@ export default function Home() {
         <div
           onClick={() => navigate('/categories')}
           data-track-id="home-categories-teaser-click"
-          style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px', cursor: 'pointer', boxShadow: 'var(--shadow)' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius-card)', padding: '15px 16px', cursor: 'pointer', boxShadow: 'var(--shadow-card)' }}
         >
           <i className="ti ti-category" style={{ fontSize: 22, color: 'var(--accent)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
