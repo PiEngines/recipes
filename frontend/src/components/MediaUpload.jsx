@@ -34,7 +34,7 @@ function MediaCard({ media, index, total, onSetPrimary, onRequestDelete, onMoveL
       position: 'relative',
       borderRadius: 'var(--radius-input)',
       overflow: 'hidden',
-      border: isPrimary ? '2.5px solid #C8602A' : '1.5px solid var(--border-input)',
+      border: isPrimary ? '2.5px solid var(--accent)' : '1.5px solid var(--border-input)',
       background: 'var(--bg)',
       aspectRatio: '1',
       display: 'flex',
@@ -488,7 +488,7 @@ export default function MediaUpload({ entityType, entityId, existingMedia = [], 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               onClick={() => { handleDelete(confirmDeleteId); setConfirmDeleteId(null) }}
-              style={{ padding: '0.3rem 0.875rem', background: '#C8602A', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
+              style={{ padding: '0.3rem 0.875rem', background: 'var(--accent)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
             >Löschen</button>
             <button
               onClick={() => setConfirmDeleteId(null)}

@@ -48,10 +48,10 @@ function FilterPill({ active, onClick, children, trackId }) {
       data-track-id={trackId}
       style={{
         borderRadius: '999px',
-        border: `1px solid ${active ? '#C8602A' : 'var(--border-input)'}`,
+        border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
         padding: '5px 12px',
         fontSize: '13px',
-        background: active ? '#C8602A' : 'transparent',
+        background: active ? 'var(--accent)' : 'transparent',
         color: active ? '#fff' : 'var(--text)',
         cursor: 'pointer',
         fontFamily: 'Inter, sans-serif',
@@ -226,7 +226,7 @@ export default function Seasonal() {
                           padding: '0.4rem 0.2rem',
                           fontSize: '0.75rem',
                           fontWeight: isCurrent ? 700 : 500,
-                          color: isCurrent ? '#C8602A' : 'var(--subtext)',
+                          color: isCurrent ? 'var(--accent)' : 'var(--subtext)',
                           background: isCurrent ? 'rgba(200,96,42,0.05)' : 'var(--bg)',
                           textAlign: 'center',
                           position: 'sticky',

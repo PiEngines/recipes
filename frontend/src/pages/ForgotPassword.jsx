@@ -76,7 +76,7 @@ const pageStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   padding: '1.5rem',
-  background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
+  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
 }
 
 const cardStyle = {
@@ -108,7 +108,7 @@ function SubmitButton({ loading }) {
       style={{
         width: '100%',
         padding: '0.9rem',
-        background: loading ? '#D49070' : hovered ? '#A84E22' : '#C8602A',
+        background: loading ? '#D49070' : hovered ? 'var(--accent-hover)' : 'var(--accent)',
         color: '#fff',
         border: 'none',
         borderRadius: 'var(--radius-input)',

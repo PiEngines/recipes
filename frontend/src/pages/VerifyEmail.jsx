@@ -84,7 +84,7 @@ const pageStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   padding: '1.5rem',
-  background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
+  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
 }
 
 const cardStyle = {
@@ -108,7 +108,7 @@ const headingStyle = {
 const btnStyle = {
   display: 'inline-block',
   padding: '0.75rem 2rem',
-  background: '#C8602A',
+  background: 'var(--accent)',
   color: '#fff',
   borderRadius: '10px',
   textDecoration: 'none',

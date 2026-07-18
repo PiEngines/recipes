@@ -32,7 +32,7 @@ function fmtTime(d) {
 function diffColor(d) {
   if (d <= 3) return '#6B7C4E'
   if (d <= 6) return '#C8A020'
-  return '#C8602A'
+  return 'var(--accent)'
 }
 
 const IS_INTEGER_WORDS = new Set(['ei', 'eier', 'eigelb', 'eigelbe', 'eidotter', 'eiklar', 'eiweiß', 'eiweiss', 'eiweiße', 'eiweisse', 'dotter', 'wachtelei', 'wachteleier'])
@@ -527,7 +527,7 @@ function MediaGallery({ media, onReload, showSetPrimary = true }) {
       {images.map((m, idx) => (
         <div key={m.id} style={{
           position: 'relative',
-          border: `2px solid ${m.is_primary ? '#C8602A' : 'transparent'}`,
+          border: `2px solid ${m.is_primary ? 'var(--accent)' : 'transparent'}`,
           borderRadius: '10px',
           overflow: 'hidden',
           flexShrink: 0,

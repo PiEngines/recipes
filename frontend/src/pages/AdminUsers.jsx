@@ -421,7 +421,7 @@ function UsernameCell({ username, onSave }) {
         <div style={{
           color: check.status === 'available' ? '#3F7D4D'
             : check.status === 'checking' ? 'var(--subtext)'
-            : '#C8602A',
+            : 'var(--accent)',
           fontSize: '0.7rem',
           marginTop: '0.25rem',
           fontFamily: 'Inter, sans-serif',

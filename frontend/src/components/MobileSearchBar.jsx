@@ -15,9 +15,9 @@ function ScopePill({ active, onClick, icon, children }) {
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-        borderRadius: 999, border: `1px solid ${active ? '#C8602A' : 'var(--border-input)'}`,
+        borderRadius: 999, border: `1px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
         padding: '5px 12px', fontSize: 12,
-        background: active ? '#C8602A' : 'transparent',
+        background: active ? 'var(--accent)' : 'transparent',
         color: active ? '#fff' : 'var(--subtext)',
         cursor: 'pointer', fontFamily: 'Inter, sans-serif', userSelect: 'none',
         transition: 'all .15s',

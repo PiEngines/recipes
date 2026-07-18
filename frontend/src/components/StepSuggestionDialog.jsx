@@ -20,7 +20,7 @@ const btnPrimary = {
   padding: '0.6rem',
   borderRadius: '8px',
   border: 'none',
-  background: '#C8602A',
+  background: 'var(--accent)',
   color: '#fff',
   fontSize: '0.9rem',
   fontWeight: 600,
@@ -111,7 +111,7 @@ export default function StepSuggestionDialog({ suggestion, saving, onAccept, onD
         </div>
 
         {error && (
-          <p style={{ margin: '0.6rem 0 0', fontSize: '0.8rem', color: '#C8602A', fontFamily: 'Inter, sans-serif' }}>
+          <p style={{ margin: '0.6rem 0 0', fontSize: '0.8rem', color: 'var(--accent)', fontFamily: 'Inter, sans-serif' }}>
             {error}
           </p>
         )}

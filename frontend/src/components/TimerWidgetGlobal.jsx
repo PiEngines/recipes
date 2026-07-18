@@ -70,7 +70,7 @@ function TimerRow({ timer, expanded, onNavigate, onAddTime, onRemove, onPause, o
           {[1, 3, 5].map(m => (
             <button key={m} style={BTN} onClick={() => onAddTime(timer.id, m * 60)}>+{m}m</button>
           ))}
-          <button onClick={() => onRemove(timer.id)} style={{ ...BTN, marginLeft: 'auto', color: '#C8602A' }}>✕</button>
+          <button onClick={() => onRemove(timer.id)} style={{ ...BTN, marginLeft: 'auto', color: 'var(--accent)' }}>✕</button>
         </div>
       )}
     </div>

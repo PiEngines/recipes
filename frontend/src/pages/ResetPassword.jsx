@@ -65,7 +65,7 @@ export default function ResetPassword() {
           </div>
         ) : expired ? (
           <div style={{ textAlign: 'center' }}>
-            <p style={{ color: '#C8602A', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 1.5rem', background: 'rgba(200,96,42,0.08)', padding: '1rem', borderRadius: '10px' }}>
+            <p style={{ color: 'var(--accent)', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 1.5rem', background: 'rgba(200,96,42,0.08)', padding: '1rem', borderRadius: '10px' }}>
               Dieser Link ist abgelaufen.
             </p>
             <Link to="/forgot-password" style={{ color: 'var(--accent)', fontSize: '0.9rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
@@ -102,7 +102,7 @@ export default function ResetPassword() {
             </div>
 
             {error && (
-              <p style={{ color: '#C8602A', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
+              <p style={{ color: 'var(--accent)', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
                 {error}
               </p>
             )}
@@ -127,7 +127,7 @@ const pageStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   padding: '1.5rem',
-  background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
+  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
 }
 
 const cardStyle = {
@@ -159,7 +159,7 @@ function ResetButton({ loading }) {
       style={{
         width: '100%',
         padding: '0.9rem',
-        background: loading ? '#D49070' : hovered ? '#A84E22' : '#C8602A',
+        background: loading ? '#D49070' : hovered ? 'var(--accent-hover)' : 'var(--accent)',
         color: '#fff',
         border: 'none',
         borderRadius: 'var(--radius-input)',

@@ -92,7 +92,7 @@ export default function UsernameOnboardingModal() {
             <p style={{
               color: check.status === 'available' ? '#3F7D4D'
                 : check.status === 'checking' ? 'var(--subtext)'
-                : '#C8602A',
+                : 'var(--accent)',
               fontSize: '0.8rem',
               margin: '-0.65rem 0 0.85rem',
               fontFamily: 'Inter, sans-serif',
@@ -102,7 +102,7 @@ export default function UsernameOnboardingModal() {
           )}
 
           {error && (
-            <p style={{ color: '#C8602A', fontSize: '0.875rem', margin: '0 0 1rem', fontWeight: 500 }}>
+            <p style={{ color: 'var(--accent)', fontSize: '0.875rem', margin: '0 0 1rem', fontWeight: 500 }}>
               {error}
             </p>
           )}
@@ -113,7 +113,7 @@ export default function UsernameOnboardingModal() {
             style={{
               width: '100%',
               padding: '0.9rem',
-              background: loading ? '#D49070' : '#C8602A',
+              background: loading ? '#D49070' : 'var(--accent)',
               color: '#fff',
               border: 'none',
               borderRadius: 'var(--radius-input)',

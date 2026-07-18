@@ -6,7 +6,7 @@ const ASPECT = 16 / 9
 
 const BTN_PRIMARY = {
   padding: '0.55rem 1.25rem',
-  background: '#C8602A',
+  background: 'var(--accent)',
   border: 'none',
   borderRadius: '8px',
   color: '#fff',
@@ -94,7 +94,7 @@ export default function ImageCropModal({ imageUrl, onConfirm, onCancel }) {
             type="checkbox"
             checked={forceAspect}
             onChange={e => setForceAspect(e.target.checked)}
-            style={{ accentColor: '#C8602A' }}
+            style={{ accentColor: 'var(--accent)' }}
           />
           Kachelformat
         </label>

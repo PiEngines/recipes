@@ -200,7 +200,7 @@ export default function Register() {
             <p style={{
               color: usernameCheck.status === 'available' ? '#3F7D4D'
                 : usernameCheck.status === 'checking' ? '#6B6B68'
-                : '#C8602A',
+                : 'var(--accent)',
               fontSize: '0.8rem',
               margin: '-0.65rem 0 0.85rem',
               fontFamily: 'Inter, sans-serif',
@@ -236,7 +236,7 @@ export default function Register() {
           </div>
 
           {error && (
-            <p style={{ color: '#C8602A', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
+            <p style={{ color: 'var(--accent)', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
               {error}
             </p>
           )}
@@ -260,7 +260,7 @@ const pageStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   padding: '1.5rem',
-  background: 'linear-gradient(135deg, #C8602A 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
+  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
 }
 
 const cardStyle = {
@@ -292,7 +292,7 @@ function RegisterButton({ loading }) {
       style={{
         width: '100%',
         padding: '0.9rem',
-        background: loading ? '#D49070' : hovered ? '#A84E22' : '#C8602A',
+        background: loading ? '#D49070' : hovered ? 'var(--accent-hover)' : 'var(--accent)',
         color: '#fff',
         border: 'none',
         borderRadius: 'var(--radius-input)',

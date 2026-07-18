@@ -139,7 +139,7 @@ export default function IngredientReview() {
             key={i}
             onClick={() => setDialogSuggestion(entry.suggestion)}
             title="Mögliche Zutat gefunden"
-            style={{ textDecoration: 'underline dashed #C8602A', textDecorationThickness: '2px', cursor: 'pointer' }}
+            style={{ textDecoration: 'underline dashed var(--accent)', textDecorationThickness: '2px', cursor: 'pointer' }}
           >
             {part}
           </span>
@@ -149,7 +149,7 @@ export default function IngredientReview() {
         <span
           key={i}
           title="Zutat nicht in Liste"
-          style={{ textDecoration: 'underline wavy #C8602A', textDecorationThickness: '2px', cursor: 'help' }}
+          style={{ textDecoration: 'underline wavy var(--accent)', textDecorationThickness: '2px', cursor: 'help' }}
         >
           {part}
         </span>
@@ -262,7 +262,7 @@ export default function IngredientReview() {
                   flex: 1,
                   height: '4px',
                   borderRadius: '2px',
-                  background: i <= stepIdx ? '#C8602A' : 'var(--border-input)',
+                  background: i <= stepIdx ? 'var(--accent)' : 'var(--border-input)',
                   transition: 'background 0.2s',
                 }}
               />
@@ -277,7 +277,7 @@ export default function IngredientReview() {
           )}
           <div style={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{renderInstruction()}</div>
           {feedback && (
-            <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', fontWeight: 600, color: '#C8602A', fontFamily: 'Inter, sans-serif' }}>
+            <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent)', fontFamily: 'Inter, sans-serif' }}>
               ✓ {feedback}
             </div>
           )}
@@ -298,8 +298,8 @@ export default function IngredientReview() {
                   style={{
                     padding: '0.4rem 0.9rem',
                     borderRadius: 'var(--radius-pill)',
-                    border: `1.5px solid ${active ? '#C8602A' : 'var(--border-input)'}`,
-                    background: active ? '#C8602A' : 'transparent',
+                    border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
+                    background: active ? 'var(--accent)' : 'transparent',
                     color: active ? '#fff' : 'var(--text)',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
@@ -324,7 +324,7 @@ export default function IngredientReview() {
             padding: '0.75rem',
             borderRadius: 'var(--radius-pill)',
             border: 'none',
-            background: '#C8602A',
+            background: 'var(--accent)',
             color: '#fff',
             cursor: saving ? 'default' : 'pointer',
             fontSize: '0.95rem',

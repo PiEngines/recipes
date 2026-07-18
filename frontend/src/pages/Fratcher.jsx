@@ -140,7 +140,7 @@ export default function Fratcher() {
       borderRadius: 999, cursor: 'pointer',
       fontSize: isMobile ? 13 : 12,
       fontFamily: 'Inter, sans-serif',
-      border: isActive ? 'none' : isSugg ? '1.5px solid #C8602A' : '1px solid rgba(107,124,78,.25)',
+      border: isActive ? 'none' : isSugg ? '1.5px solid var(--accent)' : '1px solid rgba(107,124,78,.25)',
       background: isActive ? '#6B7C4E' : isSugg ? '#FDF0EA' : '#EEF3E8',
       color: isActive ? '#fff' : isSugg ? '#A04E22' : '#4A6B30',
       fontWeight: isActive || isSugg ? 600 : 400,
@@ -347,8 +347,8 @@ export default function Fratcher() {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {recipe.missing.map(chip => (
             <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#FDF0EA', borderRadius: 999, padding: '2px 7px' }}>
-              <i className="ti ti-plus" style={{ fontSize: 9, color: '#C8602A' }} />
-              <span style={{ fontSize: isMobile ? 10 : 11, color: '#C8602A', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{chip}</span>
+              <i className="ti ti-plus" style={{ fontSize: 9, color: 'var(--accent)' }} />
+              <span style={{ fontSize: isMobile ? 10 : 11, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{chip}</span>
             </div>
           ))}
         </div>
@@ -402,7 +402,7 @@ export default function Fratcher() {
       {!loading && results.fast.length > 0 && (
         <div style={{ marginBottom: isMobile ? 24 : 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 12 : 14, padding: isMobile ? '0 4px' : 0 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: '#C8602A', flexShrink: 0 }} />
+            <div style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--accent)', flexShrink: 0 }} />
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 13 : 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: isMobile ? '.5px' : '.6px', flex: 1 }}>Fast komplett</h3>
             <span style={{ fontSize: isMobile ? 12 : 13, color: '#9A958C', fontFamily: 'Inter, sans-serif' }}>{results.fast.length}</span>
           </div>
