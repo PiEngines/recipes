@@ -2,21 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import FavoriteHeart from '../components/FavoriteHeart'
 import RecipeCard from '../components/RecipeCard'
-
-const CARD_GRADIENTS = [
-  'linear-gradient(148deg, #A85A28 0%, #6B3510 100%)',
-  'linear-gradient(148deg, #5C3A1E 0%, #8B6540 100%)',
-  'linear-gradient(148deg, #B09A3E 0%, #7A6A1A 100%)',
-  'linear-gradient(148deg, #3D4F25 0%, #6B7C4E 100%)',
-  'linear-gradient(148deg, #6B5A3E 0%, #3E3020 100%)',
-  'linear-gradient(148deg, #8A3E18 0%, #C47040 100%)',
-  'linear-gradient(148deg, #2E4A1E 0%, #4A7032 100%)',
-  'linear-gradient(148deg, #7A4A2A 0%, #B07050 100%)',
-]
-
-const cardGradient = r => CARD_GRADIENTS[(r?.id ?? 0) % CARD_GRADIENTS.length]
+import { getCategoryColor } from '../theme/categoryColors'
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -26,10 +13,22 @@ function getGreeting() {
   return 'Hallo'
 }
 
-// ── HeuteCard ────────────────────────────────────────────────────────────────
+// ── ZettelCard (Wahl 2.0 · „Heute für dich", home.html) ───────────────────────
+// Weiße Papier-Karte: Kategorie-Farbstreifen oben, Mono-Label (Kategorie-Farbe),
+// Lora-Titel, Autor·Zeit. Kein Foto, kein Herz, kein Rating.
 
-function HeuteCard({ recipe, label, labelIcon, onClick, trackId, height, fullWidth }) {
-  const src = recipe?.primary_image || null
+function formatTime(recipe) {
+  const t = (recipe?.prep_time || 0) + (recipe?.cook_time || 0)
+  if (!t) return null
+  return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
+}
+
+function ZettelCard({ recipe, label, onClick, trackId, fullWidth }) {
+  const category = recipe?.categories?.[0]?.name || null
+  const catColor = getCategoryColor(category).base
+  const author = recipe?.author?.name || recipe?.author?.username || null
+  const time = formatTime(recipe)
+  const meta = [author, time].filter(Boolean).join(' · ')
   return (
     <div
       onClick={onClick}
@@ -38,23 +37,22 @@ function HeuteCard({ recipe, label, labelIcon, onClick, trackId, height, fullWid
         width: fullWidth ? '100%' : 'calc(100vw - 48px)',
         maxWidth: fullWidth ? 'none' : 320,
         flexShrink: 0,
-        borderRadius: 18, overflow: 'hidden', cursor: recipe ? 'pointer' : 'default',
-        position: 'relative', height, userSelect: 'none',
-        background: src ? undefined : cardGradient(recipe),
+        background: 'var(--surface)',
+        borderRadius: 4,
+        overflow: 'hidden',
+        boxShadow: '2px 3px 0 rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.08)',
+        cursor: recipe ? 'pointer' : 'default',
+        userSelect: 'none',
       }}
     >
-      {src && <div className="card-image-bg" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
-      <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0, rgba(0,0,0,.03) 1px, transparent 1px, transparent 9px)' }} />
-      <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', borderRadius: 999, padding: '4px 12px' }}>
-        <span style={{ fontSize: 11, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{labelIcon}&nbsp;{label}</span>
-      </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,.58))' }}>
-        <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', lineHeight: 1.3, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <div style={{ height: 3, background: catColor }} />
+      <div style={{ padding: '10px 12px 12px' }}>
+        <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor }}>{label}</p>
+        <p style={{ margin: '0 0 4px', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 600, fontSize: 15, lineHeight: 1.12, color: 'var(--text)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {recipe?.title ?? '—'}
         </p>
+        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-muted)' }}>{meta || '—'}</p>
       </div>
-      {recipe && <FavoriteHeart recipeId={recipe?.id} recipe={recipe} size={13} outline={false}
-        style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(255,255,255,.9)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }} />}
     </div>
   )
 }
@@ -150,21 +148,23 @@ export default function Home() {
 
       {/* Heute für dich */}
       <section style={{ paddingBottom: 32 }} aria-label="Heute für dich">
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--subtext)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.12em', margin: '0 0 12px' }}>
-          Heute für dich
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Heute für dich</span>
+          <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
+        </div>
         <div className="flex md:hidden" style={{ gap: 12, overflowX: 'auto', flexWrap: 'nowrap', padding: '0 0 4px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
-          <HeuteCard recipe={seasonal} label="Saisonal" labelIcon="🌿" height={178}
+          <ZettelCard recipe={seasonal} label="Saisonal"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard height={178} onClick={() => navigate('/seasonal')} />
-          <HeuteCard recipe={newest} label="Neu diese Woche" labelIcon="✦" height={178}
+          <ZettelCard recipe={newest} label="Neu diese Woche"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
         <div className="hidden md:grid md:grid-cols-3" style={{ gap: 14 }}>
-          <HeuteCard fullWidth recipe={seasonal} label="Saisonal" labelIcon="🌿" height={204}
+          <ZettelCard fullWidth recipe={seasonal} label="Saisonal"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
           <KrauterCard fullWidth height={204} onClick={() => navigate('/seasonal')} />
-          <HeuteCard fullWidth recipe={newest} label="Neu diese Woche" labelIcon="✦" height={204}
+          <ZettelCard fullWidth recipe={newest} label="Neu diese Woche"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
         </div>
       </section>
