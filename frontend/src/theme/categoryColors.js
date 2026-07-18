@@ -66,3 +66,36 @@ export function categoryGradient(nameOrSlug) {
   const c = getCategoryColor(nameOrSlug)
   return `linear-gradient(135deg, ${c.base}, ${c.dark})`
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Kategorie-Gruppen (SPEC §1.3) — kuratiert, gleiche Herkunft wie CATEGORY_COLORS.
+ * Für die Kategorien-Übersicht (Wahl 2.0): Reihenfolge + Mono-Labels je Gruppe.
+ * Nicht zugeordnete Kategorien → „Weitere" (kein Weglassen, kein Crash).
+ * ───────────────────────────────────────────────────────────────────────── */
+
+export const CATEGORY_GROUP_ORDER = [
+  { key: 'zubereitung', label: 'Zubereitung' },
+  { key: 'gaenge',      label: 'Gänge & Gerichte' },
+  { key: 'garten',      label: 'Garten & Vorrat' },
+  { key: 'basis',       label: 'Basis' },
+  { key: 'pflanzen',    label: 'Pflanzen' },
+  { key: 'weitere',     label: 'Weitere' },
+]
+
+const GROUP_BY_SLUG = {
+  // Zubereitung
+  backen: 'zubereitung', grillen: 'zubereitung', einkochen: 'zubereitung', fermentieren: 'zubereitung',
+  // Gänge & Gerichte
+  suppen: 'gaenge', salate: 'gaenge', pasta: 'gaenge', desserts: 'gaenge',
+  // Garten & Vorrat
+  kraeuter: 'garten', aufstriche: 'garten',
+  // Basis
+  fruehstueck: 'basis', hauptgerichte: 'basis', getraenke: 'basis',
+  // Pflanzen
+  kuechenkraeuter: 'pflanzen', gemuese: 'pflanzen', obst: 'pflanzen', heilkraeuter: 'pflanzen', wildkraeuter: 'pflanzen',
+}
+
+/** Gruppen-Schlüssel für eine Kategorie; „weitere" wenn nicht zugeordnet. */
+export function getCategoryGroup(nameOrSlug) {
+  return GROUP_BY_SLUG[categorySlug(nameOrSlug)] || 'weitere'
+}

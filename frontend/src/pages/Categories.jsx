@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import BackButton from '../components/BackButton'
-import { getCategoryColor } from '../theme/categoryColors'
+import { getCategoryColor, getCategoryGroup, CATEGORY_GROUP_ORDER } from '../theme/categoryColors'
 
 // Kategorie-Farb-Overlay (§1.3): unten Kategorie-Farbe (base→dark), oben transparent
 // (Foto-Platzhalter-Streifen scheint durch). Fallback = Neutralton (getCategoryColor).
@@ -62,6 +62,10 @@ export default function Categories() {
   const total = cats.reduce((s, c) => s + (c.recipe_count || 0), 0)
   const season = SEASONS[currentSeason()]
 
+  // Kategorien nach §1.3-Gruppen bündeln (unbekannt → „Weitere").
+  const byGroup = {}
+  cats.forEach(c => { (byGroup[getCategoryGroup(c.name)] ||= []).push(c) })
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '1.5rem 1.25rem 6rem' }}>
@@ -102,11 +106,20 @@ export default function Categories() {
           <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Noch keine Kategorien vorhanden.</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 11 }}>
-              {cats.map(c => <CategoryTile key={c.id} cat={c} navigate={navigate} />)}
-            </div>
+            {CATEGORY_GROUP_ORDER.map(g => {
+              const items = byGroup[g.key]
+              if (!items || items.length === 0) return null
+              return (
+                <div key={g.key} style={{ marginBottom: 22 }}>
+                  <p style={{ margin: '0 0 10px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{g.label}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 11 }}>
+                    {items.map(c => <CategoryTile key={c.id} cat={c} navigate={navigate} />)}
+                  </div>
+                </div>
+              )
+            })}
             {/* Hinweiszeile: Quer-Filter ≠ Kategorien (§04 Copy) */}
-            <p style={{ margin: '18px 2px 0', fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)' }}>
+            <p style={{ margin: '4px 2px 0', fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)' }}>
               Vegetarisch, Vegan &amp; Schnell findest du als Filter in der Suche.
             </p>
           </>
