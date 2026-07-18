@@ -51,7 +51,7 @@ export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 
         aspectRatio: featured ? '16 / 9' : '4 / 3',
         borderRadius: 'var(--radius-tile)',
         overflow: 'hidden',
-        boxShadow: 'var(--shadow-card)',
+        boxShadow: 'var(--shadow-tile)',
         transition: 'var(--transition)',
         cursor: onClick && !blockClick ? 'pointer' : 'default',
         opacity: dimmed ? 0.4 : 1,
