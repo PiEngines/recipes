@@ -2,26 +2,32 @@
 @import "./styles/tokens.css";
 
 @theme {
-  /* Farben */
-  --color-app-bg: #FAF7F2;
-  --color-body-bg: #E0DDD8;
-  --color-card: #ffffff;
-  --color-terracotta: #C8602A;
-  --color-olive: #6B7C4E;
-  --color-text-primary: #2C2C2A;
-  --color-text-secondary: #6B6B68;
-  --color-text-hint: #9A958C;
-  --color-border: rgba(0, 0, 0, 0.07);
-  --color-border-input: #D8D4CD;
+  /* Farb-Utilities referenzieren die Tokens in styles/tokens.css — EINE Quelle
+     der Wahrheit; Dark-Mode folgt automatisch, da die Tokens dort umschalten. */
+  --color-app-bg:         var(--bg);
+  --color-body-bg:        var(--bg-alt);
+  --color-surface:        var(--surface);
+  --color-card:           var(--surface);
+  --color-terracotta:     var(--accent);
+  --color-green:          var(--green);
+  --color-gold:           var(--gold);
+  --color-blue:           var(--blue);
+  --color-olive:          var(--green);      /* Legacy-Aliasname (olive → green) */
+  --color-text-primary:   var(--text);
+  --color-text-secondary: var(--text-muted);
+  --color-text-hint:      var(--text-muted);
+  --color-border:         var(--hairline);
+  --color-border-input:   var(--border-input);
 
-  /* Border Radius */
-  --radius-card: 14px;
-  --radius-input: 14px;
-  --radius-pill: 9999px;
+  /* Radien (SPEC §1.6) — hier einmalig registriert; global als var(--radius-*) */
+  --radius-card:  6px;
+  --radius-input: 8px;
+  --radius-pill:  9999px;
 
-  /* Typografie */
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
+  /* Typo-Rollen (SPEC §1.5) — hier einmalig registriert; global als var(--font-*) */
+  --font-display: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
@@ -33,13 +39,16 @@ html {
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   margin: 0;
   width: 100%;
   min-height: 100vh;
   transition: background-color 0.3s ease;
+  /* Deutsche Komposita sauber umbrechen (SPEC §1.5; lang="de" in index.html) */
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 #root {
@@ -60,7 +69,7 @@ body {
   border-radius: var(--radius-input);
   background: transparent;
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   outline: none;
   transition: var(--transition);
@@ -68,7 +77,7 @@ body {
 
 .float-group input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(200, 96, 42, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .float-group input:-webkit-autofill,

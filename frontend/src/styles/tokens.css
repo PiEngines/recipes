@@ -1,32 +1,79 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Design Tokens — „Oma Hildes Dorfladen" · Wahl 2.0
+   EINZIGE Quelle der Wahrheit für Farben, Typo-Rollen, Radien, Schatten.
+   Referenz: design_handoff_piengines_v2/SPEC.md §1
+   Tailwind-Utilities (index.css @theme) referenzieren ausschließlich diese Tokens;
+   --radius-* / --font-* sind dort registriert und per :root global verfügbar.
+   ───────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --heart-outline: var(--text);
-  --bg:           #FAF7F2;
-  --card:         #FFFFFF;
-  --text:         #2C2C2A;
-  --subtext:      #6B6B68;
-  --accent:       #C8602A;
-  --accent-hover: #A84E22;
-  --secondary:    #6B7C4E;
-  --border:       rgba(0, 0, 0, 0.08);
-  --border-input: #D8D4CD;
+  /* ── Farben · Light (SPEC §1.2) ─────────────────────────────────────── */
+  --bg:             #f6f0e4;         /* App-Hintergrund (Creme) */
+  --bg-alt:         #ede5d4;         /* Filter-/Meta-Leisten, gedämpfte Flächen */
+  --surface:        #fffef8;         /* Karten, Zettel, weiße Akzent-Karte */
+  --text:           #2a2218;         /* Haupttext */
+  --text-muted:     #9a8870;         /* Sekundärtext, Autoren, Timestamps */
+  --accent:         #c85030;         /* Terrakotta — CTA, aktiv, Badges, Herz-Fill */
+  --accent-edge:    #9a3820;         /* gedruckte Unterkante Primär-Button (SPEC §1.6) */
+  --accent-hover:   color-mix(in srgb, var(--accent) 86%, #000);
+  --green:          #5a7048;         /* Kräuter/Garten, vegetarisch */
+  --green-strong:   #256d3a;         /* „Ernte", kräftiges Grün */
+  --gold:           #b87820;         /* Mengen, Backen, „endet bald" */
+  --blue:           #3f72b0;         /* Aussaat (Kalender), Hauptgerichte */
+  --wood-shadow:    #d4b88a;         /* Karten-Unterkante (Holzkante) */
+  --nav-top:        #d4b88a;         /* Bottom-Nav Oberkante */
+  --nav-top-shadow: #c4a870;         /* Bottom-Nav Oberkanten-Schatten */
+  --hairline:       rgba(0, 0, 0, .07); /* Trennlinien auf Creme */
 
-  --radius-card:  12px;
-  --radius-input: 8px;
-  --radius-pill:  999px;
+  /* ── Farbwelten (SPEC §1.1) ─────────────────────────────────────────── */
+  --ink-braun:      #2e2618;         /* Header/Nav Rezepte-Welt, primäre Buttons */
+  --ink-gruen:      #2b4524;         /* Header Garten-Welt */
+  /* Default-Welt = Braun; Seiten überschreiben via [data-world] (siehe unten) */
+  --header-bg:      var(--ink-braun);
+  --accent-dot:     #7aa060;
 
-  --shadow:       0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
-  --transition:   all 0.2s ease;
+  /* ── Backward-Compat-Aliasse (Bestandscode; Phase G ersetzt schrittweise) */
+  --card:           var(--surface);
+  --subtext:        var(--text-muted);
+  --secondary:      var(--green);
+  --border:         var(--hairline);
+  --border-input:   #d8d4cd;
+  --heart-outline:  var(--text);
+
+  /* ── Radien (SPEC §1.6) ─────────────────────────────────────────────── */
+  --radius-tag:     3px;             /* Tags, Chips */
+  --radius-tile:    8px;             /* Foto-Kacheln */
+  /* --radius-card (6px) / --radius-input (8px) / --radius-pill (9999px):
+     in index.css @theme registriert, global als var(--radius-*) verfügbar. */
+
+  /* ── Typo-Rollen (SPEC §1.5) — Familien in index.css @theme registriert:
+     --font-display (Lora) · --font-body (DM Sans) · --font-mono (DM Mono) ── */
+
+  /* ── Schatten (SPEC §1.6) ───────────────────────────────────────────── */
+  --shadow:         0 2px 8px rgba(0, 0, 0, .08);                              /* weich, Basis */
+  --shadow-card:    0 2px 8px rgba(0, 0, 0, .08), 0 4px 0 0 var(--wood-shadow); /* Holzkante */
+  --shadow-tile:    0 4px 14px rgba(0, 0, 0, .12);                            /* Foto-Kachel */
+  --shadow-hover:   0 8px 24px rgba(0, 0, 0, .15);
+  --btn-edge:       0 2px 0 var(--accent-edge);                               /* Primär-Button */
+
+  --transition:     all .2s ease;
 }
 
+/* ── Farbwelten-Umschaltung — Seiten-Wrapper deklariert data-world ──────── */
+[data-world="braun"] { --header-bg: var(--ink-braun); --accent-dot: #7aa060; }
+[data-world="gruen"] { --header-bg: var(--ink-gruen); --accent-dot: #5a7d3f; }
+
+/* ── Dark (SPEC §1.4) — nur Werte; Mechanik (data-theme) unverändert ────── */
 [data-theme="dark"] {
+  --bg:            #2a2418;
+  --bg-alt:        #32302a;
+  --surface:       #3a352b;
+  --text:          #f0e8d0;
+  --text-muted:    rgba(240, 232, 208, .5);
+  /* Akzente / Kategorie-Farben unverändert (SPEC §1.4) */
+  --hairline:      rgba(255, 255, 255, .08); /* Trennlinien auf Dunkel sichtbar */
+  --border-input:  #4a4436;
   --heart-outline: transparent;
-  --bg:           #1C1C1A;
-  --card:         #2A2A27;
-  --text:         #F0EDE8;
-  --subtext:      #9A9A95;
-  --border:       rgba(255, 255, 255, 0.08);
-  --border-input: #3A3A37;
-  --shadow:       0 2px 8px rgba(0, 0, 0, 0.30);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow:        0 2px 8px rgba(0, 0, 0, .30);
+  --shadow-hover:  0 8px 24px rgba(0, 0, 0, .50);
 }
