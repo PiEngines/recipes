@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import BottomNav from '../components/BottomNav'
+import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 
 const STAPLES = new Set([
   'salz','pfeffer','zucker','olivenöl','öl','wasser','essig','brühe',
@@ -72,9 +73,9 @@ export default function Fratcher() {
     allRecipes.forEach(recipe => {
       const { missing, pct, skip } = matchRecipe(recipe, ingredients)
       if (skip) return
-      if (missing.length === 0) sofort.push({ ...recipe, missing })
-      else if (missing.length <= 2) fast.push({ ...recipe, missing })
-      else if (mode === 'inspiration' && pct >= 0.5) insp.push({ ...recipe, missing })
+      if (missing.length === 0) sofort.push({ ...recipe, missing, pct })
+      else if (missing.length <= 2) fast.push({ ...recipe, missing, pct })
+      else if (mode === 'inspiration' && pct >= 0.5) insp.push({ ...recipe, missing, pct })
     })
     const byIdDesc = (a, b) => b.id - a.id
     sofort.sort(byIdDesc); fast.sort(byIdDesc); insp.sort(byIdDesc)
@@ -137,24 +138,25 @@ export default function Fratcher() {
     return {
       flexShrink: 0,
       padding: isMobile ? '5px 13px' : '4px 11px',
-      borderRadius: 999, cursor: 'pointer',
+      borderRadius: 'var(--radius-pill)', cursor: 'pointer',
       fontSize: isMobile ? 13 : 12,
-      fontFamily: 'Inter, sans-serif',
-      border: isActive ? 'none' : isSugg ? '1.5px solid var(--accent)' : '1px solid rgba(107,124,78,.25)',
-      background: isActive ? '#6B7C4E' : isSugg ? '#FDF0EA' : '#EEF3E8',
-      color: isActive ? '#fff' : isSugg ? '#A04E22' : '#4A6B30',
+      fontFamily: 'var(--font-body)',
+      border: isActive ? '1px solid transparent' : isSugg ? '1.5px solid var(--accent)' : '1px solid var(--hairline)',
+      background: isActive ? 'var(--green)' : isSugg ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'color-mix(in srgb, var(--green) 10%, transparent)',
+      color: isActive ? 'var(--on-accent)' : isSugg ? 'var(--accent)' : 'var(--green)',
       fontWeight: isActive || isSugg ? 600 : 400,
-      boxShadow: isSugg ? '0 0 0 3px rgba(200,96,42,.1)' : 'none',
+      boxShadow: isSugg ? '0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent)' : 'none',
     }
   }
 
   const fmtTime = t => !t ? '–' : t < 60 ? `${t} Min.` : `${Math.floor(t / 60)} Std.`
   const missingLabel = n => n === 1 ? '1 fehlt' : `${n} fehlen`
+  const catOf = recipe => getCategoryColor(recipe.categories?.[0]?.name)
   const cardImgStyle = recipe => {
     const url = recipeImgs[recipe.id]
     return url
       ? { backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-      : { background: 'linear-gradient(148deg, #8A7A6A, #5A4A3A)' }
+      : { background: categoryGradient(recipe.categories?.[0]?.name) }
   }
 
   const modeHint = mode === 'kochen'
@@ -171,8 +173,44 @@ export default function Fratcher() {
 
   // ── Render helpers (functions, not components, to avoid unmount issues) ──
 
+  // Kategorie·Zeit-Overline (DM Mono, Kategorie-Farbe) — SPEC §09
+  const renderCardOverline = recipe => {
+    const c = catOf(recipe)
+    const label = [c.label || recipe.categories?.[0]?.name, fmtTime(recipe.cook_time)].filter(Boolean).join(' · ')
+    if (!label) return null
+    return (
+      <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontWeight: 400, fontSize: 8, letterSpacing: '.12em', textTransform: 'uppercase', color: c.base }}>
+        {label}
+      </p>
+    )
+  }
+
+  // Match-%-Bar + %-Label (Kategorie-Farbe) — der schon berechnete pct, sichtbar (SPEC §09)
+  const renderMatchBar = recipe => {
+    const c = catOf(recipe)
+    const p = Math.round((recipe.pct ?? 0) * 100)
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 7 }}>
+        <div style={{ flex: 'none', width: 44, height: 3, borderRadius: 2, background: 'var(--hairline)', overflow: 'hidden' }}>
+          <div style={{ width: `${p}%`, height: '100%', background: c.base, borderRadius: 2 }} />
+        </div>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '.02em', color: c.base }}>{p}%</span>
+      </div>
+    )
+  }
+
+  const cardTitleStyle = {
+    margin: '0 0 2px', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700,
+    fontSize: 15, lineHeight: 1.12, color: 'var(--text)',
+    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+  }
+  const cardShell = {
+    background: 'var(--card)', borderRadius: 'var(--radius-card)', overflow: 'hidden',
+    boxShadow: 'var(--shadow-card)', cursor: 'pointer',
+  }
+
   const renderModeToggle = isMobile => (
-    <div style={{ background: '#EEEBE5', borderRadius: isMobile ? 13 : 12, padding: 4, display: 'flex', gap: isMobile ? 4 : 3, marginBottom: 24 }}>
+    <div style={{ background: 'var(--bg-alt)', borderRadius: isMobile ? 13 : 12, padding: 4, display: 'flex', gap: isMobile ? 4 : 3, marginBottom: 24 }}>
       {[
         { m: 'kochen',      icon: 'ti-clock',    label: 'Jetzt kochen', trackId: 'fratcher-mode-kochen-toggle' },
         { m: 'inspiration', icon: 'ti-sparkles', label: 'Inspiration',  trackId: 'fratcher-mode-inspiration-toggle' },
@@ -184,11 +222,11 @@ export default function Fratcher() {
           style={{
             flex: 1, height: isMobile ? 40 : 36, borderRadius: isMobile ? 9 : 8, border: 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            fontSize: isMobile ? 14 : 13, fontFamily: 'Inter, sans-serif', fontWeight: 500,
-            cursor: 'pointer', transition: 'all .15s',
-            background: mode === m ? '#fff' : 'transparent',
-            color: mode === m ? '#2C2C2A' : '#9A958C',
-            boxShadow: mode === m ? '0 1px 5px rgba(0,0,0,.12)' : 'none',
+            fontSize: isMobile ? 14 : 13, fontFamily: 'var(--font-body)', fontWeight: 500,
+            cursor: 'pointer', transition: 'var(--transition)',
+            background: mode === m ? 'var(--surface)' : 'transparent',
+            color: mode === m ? 'var(--text)' : 'var(--text-muted)',
+            boxShadow: mode === m ? 'var(--shadow)' : 'none',
           }}
         >
           <i className={`ti ${icon}`} style={{ fontSize: isMobile ? 15 : 14 }} />
@@ -202,12 +240,12 @@ export default function Fratcher() {
     <div style={{ position: 'relative', marginBottom: 22 }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)',
-        border: `1.5px solid ${showAutocomplete && acItems.length > 0 ? '#6B7C4E' : '#D8D4CD'}`,
+        border: `1.5px solid ${showAutocomplete && acItems.length > 0 ? 'var(--green)' : 'var(--border-input)'}`,
         borderRadius: isMobile ? 13 : 12,
         padding: isMobile ? '11px 14px' : '10px 13px',
-        boxShadow: '0 2px 8px rgba(0,0,0,.06)', transition: 'border-color .15s',
+        boxShadow: 'var(--shadow)', transition: 'border-color .15s',
       }}>
-        <i className="ti ti-search" style={{ fontSize: 16, color: '#6B7C4E', flexShrink: 0 }} />
+        <i className="ti ti-search" style={{ fontSize: 16, color: 'var(--green)', flexShrink: 0 }} />
         <input
           type="text"
           value={searchText}
@@ -224,27 +262,27 @@ export default function Fratcher() {
           }}
           placeholder={isMobile ? 'Zutat eingeben …' : 'Zutat suchen …'}
           data-track-id="fratcher-search-input"
-          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 15 : 14, color: 'var(--text)' }}
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'var(--font-body)', fontSize: isMobile ? 15 : 14, color: 'var(--text)' }}
         />
         {searchText && (
           <button
             onClick={() => { setSearchText(''); setShowAutocomplete(false) }}
-            style={{ width: 18, height: 18, borderRadius: 999, background: '#E0DDD8', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0, cursor: 'pointer' }}
+            style={{ width: 18, height: 18, borderRadius: 'var(--radius-pill)', background: 'var(--bg-alt)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0, cursor: 'pointer' }}
           >
-            <i className="ti ti-x" style={{ fontSize: 10, color: '#6B6B68' }} />
+            <i className="ti ti-x" style={{ fontSize: 10, color: 'var(--text-muted)' }} />
           </button>
         )}
       </div>
       {showAutocomplete && acItems.length > 0 && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card)', border: '1px solid rgba(0,0,0,.09)', borderRadius: 13, boxShadow: '0 8px 24px rgba(0,0,0,.12)', zIndex: 50, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--card)', border: '1px solid var(--hairline)', borderRadius: 13, boxShadow: 'var(--shadow-hover)', zIndex: 50, overflow: 'hidden' }}>
           {acItems.map((item, idx) => (
             <button
               key={item}
               onMouseDown={() => addIngredient(item)}
-              style={{ width: '100%', padding: isMobile ? '12px 16px' : '10px 14px', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 9, background: idx === activeIndex ? 'var(--bg)' : 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,.05)', textAlign: 'left', cursor: 'pointer' }}
+              style={{ width: '100%', padding: isMobile ? '12px 16px' : '10px 14px', display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 9, background: idx === activeIndex ? 'var(--bg)' : 'transparent', border: 'none', borderBottom: '1px solid var(--hairline)', textAlign: 'left', cursor: 'pointer' }}
             >
-              <i className="ti ti-leaf" style={{ fontSize: isMobile ? 14 : 13, color: '#6B7C4E', flexShrink: 0 }} />
-              <span style={{ fontSize: isMobile ? 14 : 13, color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>{item}</span>
+              <i className="ti ti-leaf" style={{ fontSize: isMobile ? 14 : 13, color: 'var(--green)', flexShrink: 0 }} />
+              <span style={{ fontSize: isMobile ? 14 : 13, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>{item}</span>
             </button>
           ))}
         </div>
@@ -254,7 +292,7 @@ export default function Fratcher() {
 
   const renderCategories = isMobile => CATEGORIES.map(cat => (
     <div key={cat.label} style={{ marginBottom: isMobile ? 18 : 16 }}>
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#6B7C4E', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.6px', marginBottom: isMobile ? 8 : 7 }}>{cat.label}</p>
+      <p style={{ fontSize: 10, fontWeight: 400, color: 'var(--green)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: isMobile ? 8 : 7 }}>{cat.label}</p>
       <div style={{ display: 'flex', gap: isMobile ? 7 : 6, flexWrap: 'wrap' }}>
         {cat.items.map(item => (
           <button
@@ -271,35 +309,35 @@ export default function Fratcher() {
   ))
 
   const renderIngredientTags = isMobile => hasIng && (
-    <div style={{ marginTop: 8, paddingTop: isMobile ? 20 : 18, borderTop: '1px solid rgba(0,0,0,.07)' }}>
+    <div style={{ marginTop: 8, paddingTop: isMobile ? 20 : 18, borderTop: '1px solid var(--hairline)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? 12 : 10 }}>
-        <p style={{ fontSize: isMobile ? 12 : 11, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase', letterSpacing: '.4px' }}>Deine Zutaten</p>
+        <p style={{ fontSize: isMobile ? 10 : 9, fontWeight: 400, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.1em' }}>Im Kühlschrank</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {!isMobile && (
-            <button data-track-id="fratcher-clear-all" onClick={clearAll} style={{ fontSize: 12, color: '#9A958C', fontFamily: 'Inter, sans-serif', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
+            <button data-track-id="fratcher-clear-all" onClick={clearAll} style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}>
               Alle löschen
             </button>
           )}
-          <div style={{ background: '#6B7C4E', borderRadius: 999, padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', fontFamily: 'Inter, sans-serif' }}>{ingredients.length}</span>
+          <div style={{ background: 'var(--green)', borderRadius: 'var(--radius-pill)', padding: '2px 9px', minWidth: 22, textAlign: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--on-accent)', fontFamily: 'var(--font-mono)' }}>{ingredients.length}</span>
           </div>
         </div>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 7 : 6 }}>
         {ingredients.map(item => (
-          <div key={item} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 5, background: '#EEF3E8', border: '1px solid rgba(107,124,78,.25)', borderRadius: 999, padding: isMobile ? '6px 12px' : '5px 10px' }}>
-            <span style={{ fontSize: isMobile ? 13 : 12, color: '#3A5228', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{item}</span>
+          <div key={item} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 5, background: 'var(--green)', borderRadius: 'var(--radius-pill)', padding: isMobile ? '6px 12px' : '5px 10px' }}>
+            <span style={{ fontSize: isMobile ? 13 : 12, color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600 }}>{item}</span>
             <button
               data-track-id="fratcher-ingredient-remove"
               onClick={() => removeIngredient(item)}
-              style={{ width: isMobile ? 16 : 14, height: isMobile ? 16 : 14, borderRadius: 999, background: 'rgba(107,124,78,.2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0, cursor: 'pointer' }}
+              style={{ width: isMobile ? 16 : 14, height: isMobile ? 16 : 14, borderRadius: 'var(--radius-pill)', background: 'color-mix(in srgb, var(--on-accent) 22%, transparent)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0, cursor: 'pointer' }}
             >
-              <i className="ti ti-x" style={{ fontSize: isMobile ? 9 : 8, color: '#4A6B30' }} />
+              <i className="ti ti-x" style={{ fontSize: isMobile ? 9 : 8, color: 'var(--on-accent)' }} />
             </button>
           </div>
         ))}
         {isMobile && (
-          <button data-track-id="fratcher-clear-all" onClick={clearAll} style={{ padding: '6px 12px', borderRadius: 999, background: 'transparent', border: '1px dashed rgba(0,0,0,.15)', fontSize: 12, color: '#9A958C', fontFamily: 'Inter, sans-serif', cursor: 'pointer' }}>
+          <button data-track-id="fratcher-clear-all" onClick={clearAll} style={{ padding: '6px 12px', borderRadius: 'var(--radius-pill)', background: 'transparent', border: '1px dashed var(--border-input)', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', cursor: 'pointer' }}>
             Alle löschen
           </button>
         )}
@@ -312,20 +350,18 @@ export default function Fratcher() {
       key={recipe.id}
       data-track-id="fratcher-result-card-click"
       onClick={() => navigate(`/recipes/${recipe.id}`)}
-      style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
+      style={cardShell}
     >
       <div style={{ height: isMobile ? 120 : 128, position: 'relative', ...cardImgStyle(recipe) }}>
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(74,138,64,.9)', borderRadius: 999, padding: '3px 9px', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <i className="ti ti-check" style={{ fontSize: 10, color: '#fff' }} />
-          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>Sofort</span>
+        <div style={{ position: 'absolute', top: 8, left: 8, background: 'color-mix(in srgb, var(--green-strong) 90%, transparent)', borderRadius: 'var(--radius-pill)', padding: '3px 9px', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <i className="ti ti-check" style={{ fontSize: 10, color: 'var(--on-accent)' }} />
+          <span style={{ fontSize: 10, color: 'var(--on-accent)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Sofort</span>
         </div>
       </div>
-      <div style={{ padding: isMobile ? '8px 10px 10px' : '9px 11px 11px' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', marginBottom: 4, lineHeight: 1.3 }}>{recipe.title}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 3 : 4 }}>
-          <i className="ti ti-clock" style={{ fontSize: isMobile ? 10 : 11, color: '#9A958C' }} />
-          <span style={{ fontSize: isMobile ? 11 : 12, color: '#6B6B68', fontFamily: 'Inter, sans-serif' }}>{fmtTime(recipe.cook_time)}</span>
-        </div>
+      <div style={{ padding: isMobile ? '9px 11px 11px' : '10px 12px 12px' }}>
+        {renderCardOverline(recipe)}
+        <p style={cardTitleStyle}>{recipe.title}</p>
+        {renderMatchBar(recipe)}
       </div>
     </div>
   )
@@ -335,23 +371,25 @@ export default function Fratcher() {
       key={recipe.id}
       data-track-id="fratcher-result-card-click"
       onClick={() => navigate(`/recipes/${recipe.id}`)}
-      style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}
+      style={cardShell}
     >
       <div style={{ height: isMobile ? 120 : 128, position: 'relative', ...cardImgStyle(recipe) }}>
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(180,80,30,.88)', borderRadius: 999, padding: '3px 9px' }}>
-          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{missingLabel(recipe.missing.length)}</span>
+        <div style={{ position: 'absolute', top: 8, left: 8, background: 'color-mix(in srgb, var(--accent) 90%, transparent)', borderRadius: 'var(--radius-pill)', padding: '3px 9px' }}>
+          <span style={{ fontSize: 10, color: 'var(--on-accent)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{missingLabel(recipe.missing.length)}</span>
         </div>
       </div>
-      <div style={{ padding: isMobile ? '8px 10px 10px' : '9px 11px 11px' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', marginBottom: 5, lineHeight: 1.35 }}>{recipe.title}</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      <div style={{ padding: isMobile ? '9px 11px 11px' : '10px 12px 12px' }}>
+        {renderCardOverline(recipe)}
+        <p style={cardTitleStyle}>{recipe.title}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
           {recipe.missing.map(chip => (
-            <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#FDF0EA', borderRadius: 999, padding: '2px 7px' }}>
+            <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'color-mix(in srgb, var(--accent) 10%, transparent)', borderRadius: 'var(--radius-pill)', padding: '2px 7px' }}>
               <i className="ti ti-plus" style={{ fontSize: 9, color: 'var(--accent)' }} />
-              <span style={{ fontSize: isMobile ? 10 : 11, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{chip}</span>
+              <span style={{ fontSize: isMobile ? 10 : 11, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{chip}</span>
             </div>
           ))}
         </div>
+        {renderMatchBar(recipe)}
       </div>
     </div>
   )
@@ -361,23 +399,25 @@ export default function Fratcher() {
       key={recipe.id}
       data-track-id="fratcher-result-card-click"
       onClick={() => navigate(`/recipes/${recipe.id}`)}
-      style={{ background: 'var(--card)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(0,0,0,.07)', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,.04)', opacity: .85 }}
+      style={{ ...cardShell, opacity: .85 }}
     >
       <div style={{ height: isMobile ? 120 : 128, position: 'relative', ...cardImgStyle(recipe) }}>
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(80,60,120,.8)', borderRadius: 999, padding: '3px 9px' }}>
-          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>{missingLabel(recipe.missing.length)}</span>
+        <div style={{ position: 'absolute', top: 8, left: 8, background: 'color-mix(in srgb, var(--blue) 85%, transparent)', borderRadius: 'var(--radius-pill)', padding: '3px 9px' }}>
+          <span style={{ fontSize: 10, color: 'var(--on-accent)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{missingLabel(recipe.missing.length)}</span>
         </div>
       </div>
-      <div style={{ padding: isMobile ? '8px 10px 10px' : '9px 11px 11px' }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif', marginBottom: 5, lineHeight: 1.35 }}>{recipe.title}</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      <div style={{ padding: isMobile ? '9px 11px 11px' : '10px 12px 12px' }}>
+        {renderCardOverline(recipe)}
+        <p style={cardTitleStyle}>{recipe.title}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
           {recipe.missing.map(chip => (
-            <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#F0EDE8', borderRadius: 999, padding: '2px 7px' }}>
-              <i className="ti ti-plus" style={{ fontSize: 9, color: '#9A958C' }} />
-              <span style={{ fontSize: isMobile ? 10 : 11, color: '#6B6B68', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>{chip}</span>
+            <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'var(--bg-alt)', borderRadius: 'var(--radius-pill)', padding: '2px 7px' }}>
+              <i className="ti ti-plus" style={{ fontSize: 9, color: 'var(--text-muted)' }} />
+              <span style={{ fontSize: isMobile ? 10 : 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontWeight: 500 }}>{chip}</span>
             </div>
           ))}
         </div>
+        {renderMatchBar(recipe)}
       </div>
     </div>
   )
@@ -385,14 +425,14 @@ export default function Fratcher() {
   const renderResults = isMobile => (
     <>
       {loading && (
-        <div style={{ textAlign: 'center', padding: 48, color: '#9A958C', fontFamily: 'Inter, sans-serif', fontSize: 14 }}>Laden …</div>
+        <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: 14 }}>Laden …</div>
       )}
       {!loading && results.sofort.length > 0 && (
         <div style={{ marginBottom: isMobile ? 24 : 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 12 : 14, padding: isMobile ? '0 4px' : 0 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: '#4A8A40', flexShrink: 0 }} />
-            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 13 : 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: isMobile ? '.5px' : '.6px', flex: 1 }}>Sofort kochbar</h3>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#9A958C', fontFamily: 'Inter, sans-serif' }}>{results.sofort.length}</span>
+            <div style={{ width: 8, height: 8, borderRadius: 'var(--radius-pill)', background: 'var(--green-strong)', flexShrink: 0 }} />
+            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 12 : 11, fontWeight: 500, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '.1em', flex: 1 }}>Sofort kochbar</h3>
+            <span style={{ fontSize: isMobile ? 12 : 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{results.sofort.length}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: isMobile ? 10 : 11 }}>
             {results.sofort.map(r => renderSofortCard(r, isMobile))}
@@ -402,9 +442,9 @@ export default function Fratcher() {
       {!loading && results.fast.length > 0 && (
         <div style={{ marginBottom: isMobile ? 24 : 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 12 : 14, padding: isMobile ? '0 4px' : 0 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--accent)', flexShrink: 0 }} />
-            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 13 : 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: isMobile ? '.5px' : '.6px', flex: 1 }}>Fast komplett</h3>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#9A958C', fontFamily: 'Inter, sans-serif' }}>{results.fast.length}</span>
+            <div style={{ width: 8, height: 8, borderRadius: 'var(--radius-pill)', background: 'var(--accent)', flexShrink: 0 }} />
+            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 12 : 11, fontWeight: 500, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '.1em', flex: 1 }}>Fast komplett</h3>
+            <span style={{ fontSize: isMobile ? 12 : 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{results.fast.length}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: isMobile ? 10 : 11 }}>
             {results.fast.map(r => renderFastCard(r, isMobile))}
@@ -414,9 +454,9 @@ export default function Fratcher() {
       {!loading && results.inspiration.length > 0 && (
         <div style={{ marginBottom: isMobile ? 24 : 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: isMobile ? 12 : 14, padding: isMobile ? '0 4px' : 0 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: '#9A7AB8', flexShrink: 0 }} />
-            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 13 : 12, fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: isMobile ? '.5px' : '.6px', flex: 1 }}>Inspiration</h3>
-            <span style={{ fontSize: isMobile ? 12 : 13, color: '#9A958C', fontFamily: 'Inter, sans-serif' }}>{results.inspiration.length}</span>
+            <div style={{ width: 8, height: 8, borderRadius: 'var(--radius-pill)', background: 'var(--blue)', flexShrink: 0 }} />
+            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 12 : 11, fontWeight: 500, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '.1em', flex: 1 }}>Inspiration</h3>
+            <span style={{ fontSize: isMobile ? 12 : 13, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{results.inspiration.length}</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: isMobile ? 10 : 11 }}>
             {results.inspiration.map(r => renderInspirationCard(r, isMobile))}
@@ -425,16 +465,16 @@ export default function Fratcher() {
       )}
       {!loading && hasIng && totalCount === 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: isMobile ? '48px 24px' : '80px 32px', textAlign: 'center' }}>
-          <div style={{ width: isMobile ? 72 : 80, height: isMobile ? 72 : 80, borderRadius: 999, background: '#F0EDE8', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: isMobile ? 20 : 22 }}>
-            <i className="ti ti-fridge-off" style={{ fontSize: isMobile ? 32 : 36, color: '#C8C4BC' }} />
+          <div style={{ width: isMobile ? 72 : 80, height: isMobile ? 72 : 80, borderRadius: 'var(--radius-pill)', background: 'var(--bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: isMobile ? 20 : 22 }}>
+            <i className="ti ti-fridge-off" style={{ fontSize: isMobile ? 32 : 36, color: 'var(--text-muted)' }} />
           </div>
-          <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: isMobile ? 20 : 22, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Keine Treffer</h3>
-          <p style={{ fontSize: 14, color: '#9A958C', fontFamily: 'Inter, sans-serif', lineHeight: 1.6, maxWidth: isMobile ? 240 : 280 }}>{emptyHint}</p>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: isMobile ? 20 : 22, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Keine Treffer</h3>
+          <p style={{ fontSize: 14, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', lineHeight: 1.6, maxWidth: isMobile ? 240 : 280 }}>{emptyHint}</p>
           {showInspirationCta && (
             <button
               data-track-id="fratcher-inspiration-cta-click"
               onClick={() => setMode('inspiration')}
-              style={{ marginTop: isMobile ? 22 : 24, background: '#6B7C4E', color: '#fff', border: 'none', borderRadius: 999, padding: isMobile ? '12px 24px' : '13px 26px', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: isMobile ? 7 : 8, cursor: 'pointer' }}
+              style={{ marginTop: isMobile ? 22 : 24, background: 'var(--green)', color: 'var(--on-accent)', border: 'none', borderRadius: 'var(--radius-pill)', padding: isMobile ? '12px 24px' : '13px 26px', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: isMobile ? 7 : 8, cursor: 'pointer' }}
             >
               <i className="ti ti-sparkles" style={{ fontSize: 15 }} />
               Inspiration-Modus probieren
@@ -454,21 +494,21 @@ export default function Fratcher() {
       <div className="flex flex-col md:hidden" style={{ height: '100dvh', position: 'relative', overflow: 'hidden', background: 'var(--bg)' }}>
 
         {/* Header */}
-        <div style={{ flexShrink: 0, background: 'var(--bg)', borderBottom: '1px solid rgba(0,0,0,.05)', padding: '12px 16px 11px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ flexShrink: 0, background: 'var(--bg)', borderBottom: '1px solid var(--hairline)', padding: '12px 16px 11px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={() => view === 'results' ? setView('input') : navigate(-1)}
-            style={{ width: 34, height: 34, borderRadius: 999, background: 'var(--card)', border: '1px solid rgba(0,0,0,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}
+            style={{ width: 34, height: 34, borderRadius: 'var(--radius-pill)', background: 'var(--card)', border: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}
           >
             <i className="ti ti-arrow-left" style={{ fontSize: 17, color: 'var(--text)' }} />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #3E5228, #6B7C4E)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <i className="ti ti-fridge" style={{ fontSize: 15, color: '#fff' }} />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, var(--ink-gruen), var(--green))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ti ti-fridge" style={{ fontSize: 15, color: 'var(--on-dark)' }} />
             </div>
-            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 19, fontWeight: 600, color: 'var(--text)', letterSpacing: '-.3px' }}>Fratcher</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 19, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.3px' }}>Fratcher</span>
           </div>
           {view === 'results' && (
-            <button onClick={() => setView('input')} style={{ fontSize: 13, color: '#6B7C4E', fontFamily: 'Inter, sans-serif', fontWeight: 500, background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer' }}>
+            <button onClick={() => setView('input')} style={{ fontSize: 13, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 500, background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer' }}>
               Zutaten ändern
             </button>
           )}
@@ -478,8 +518,8 @@ export default function Fratcher() {
         {view === 'input' && (
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 16px 180px' }}>
             {renderModeToggle(true)}
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 600, color: 'var(--text)', letterSpacing: '-.4px', lineHeight: 1.3, marginBottom: 6 }}>Was hast du im Kühlschrank?</h2>
-            <p style={{ fontSize: 13, color: '#9A958C', fontFamily: 'Inter, sans-serif', marginBottom: 20, lineHeight: 1.5 }}>{modeHint}</p>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.4px', lineHeight: 1.3, marginBottom: 6 }}>Was hast du im Kühlschrank?</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: 20, lineHeight: 1.5 }}>{modeHint}</p>
             {renderSearchField(true)}
             {renderCategories(true)}
             {renderIngredientTags(true)}
@@ -490,12 +530,12 @@ export default function Fratcher() {
         {view === 'results' && (
           <>
             {/* Ingredient summary bar */}
-            <div style={{ flexShrink: 0, padding: '10px 16px', background: '#EEF3E8', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <i className="ti ti-fridge" style={{ fontSize: 15, color: '#4A6B30', flexShrink: 0 }} />
+            <div style={{ flexShrink: 0, padding: '10px 16px', background: 'color-mix(in srgb, var(--green) 10%, transparent)', display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <i className="ti ti-fridge" style={{ fontSize: 15, color: 'var(--green)', flexShrink: 0 }} />
               <div style={{ display: 'flex', gap: 6 }}>
                 {ingredients.map(item => (
-                  <div key={item} style={{ flexShrink: 0, background: 'rgba(107,124,78,.15)', borderRadius: 999, padding: '3px 10px' }}>
-                    <span style={{ fontSize: 12, color: '#3A5228', fontFamily: 'Inter, sans-serif', fontWeight: 500, whiteSpace: 'nowrap' }}>{item}</span>
+                  <div key={item} style={{ flexShrink: 0, background: 'color-mix(in srgb, var(--green) 16%, transparent)', borderRadius: 'var(--radius-pill)', padding: '3px 10px' }}>
+                    <span style={{ fontSize: 12, color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item}</span>
                   </div>
                 ))}
               </div>
@@ -508,16 +548,16 @@ export default function Fratcher() {
 
         {/* CTA (only in input view, above BottomNav) */}
         {view === 'input' && (
-          <div style={{ position: 'absolute', bottom: 60, left: 0, right: 0, padding: '10px 16px 12px', background: 'var(--bg)', borderTop: '1px solid rgba(0,0,0,.06)', zIndex: 20 }}>
+          <div style={{ position: 'absolute', bottom: 60, left: 0, right: 0, padding: '10px 16px 12px', background: 'var(--bg)', borderTop: '1px solid var(--hairline)', zIndex: 20 }}>
             <button
               data-track-id="fratcher-search-submit"
               onClick={handleSearch}
               disabled={ctaDisabled}
               style={{
-                width: '100%', padding: 15, borderRadius: 14, border: 'none',
-                background: ctaDisabled ? '#D0CCC6' : '#6B7C4E',
-                color: ctaDisabled ? '#9A958C' : '#fff',
-                fontSize: 15, fontFamily: 'Inter, sans-serif', fontWeight: 600,
+                width: '100%', padding: 15, borderRadius: 'var(--radius-input)', border: 'none',
+                background: ctaDisabled ? 'var(--border-input)' : 'var(--green)',
+                color: ctaDisabled ? 'var(--text-muted)' : 'var(--on-accent)',
+                fontSize: 15, fontFamily: 'var(--font-body)', fontWeight: 600,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 cursor: ctaDisabled ? 'default' : 'pointer',
               }}
@@ -533,15 +573,15 @@ export default function Fratcher() {
       <div className="hidden md:block" style={{ maxWidth: 960, margin: '0 auto', minHeight: '100vh', background: 'var(--bg)', paddingBottom: 80 }}>
 
         {/* Sticky Header */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg)', borderBottom: '1px solid rgba(0,0,0,.06)', padding: '14px 32px 13px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={() => navigate(-1)} style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--card)', border: '1px solid rgba(0,0,0,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg)', borderBottom: '1px solid var(--hairline)', padding: '14px 32px 13px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={() => navigate(-1)} style={{ width: 36, height: 36, borderRadius: 'var(--radius-pill)', background: 'var(--card)', border: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
             <i className="ti ti-arrow-left" style={{ fontSize: 17, color: 'var(--text)' }} />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, #3E5228, #6B7C4E)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <i className="ti ti-fridge" style={{ fontSize: 16, color: '#fff' }} />
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--ink-gruen), var(--green))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ti ti-fridge" style={{ fontSize: 16, color: 'var(--on-dark)' }} />
             </div>
-            <span style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 600, color: 'var(--text)', letterSpacing: '-.3px' }}>Fratcher</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '-.3px' }}>Fratcher</span>
           </div>
         </div>
 
@@ -549,9 +589,9 @@ export default function Fratcher() {
         <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
           {/* Sidebar */}
-          <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 65, maxHeight: 'calc(100vh - 65px)', overflowY: 'auto', padding: '24px 20px 32px 32px', borderRight: '1px solid rgba(0,0,0,.06)' }}>
+          <div style={{ width: 300, flexShrink: 0, position: 'sticky', top: 65, maxHeight: 'calc(100vh - 65px)', overflowY: 'auto', padding: '24px 20px 32px 32px', borderRight: '1px solid var(--hairline)' }}>
             {renderModeToggle(false)}
-            <p style={{ fontSize: 13, color: '#9A958C', fontFamily: 'Inter, sans-serif', marginBottom: 18, lineHeight: 1.5 }}>{modeHint}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: 18, lineHeight: 1.5 }}>{modeHint}</p>
             {renderSearchField(false)}
             {renderCategories(false)}
             {renderIngredientTags(false)}
@@ -561,11 +601,11 @@ export default function Fratcher() {
           <div style={{ flex: 1, minWidth: 0, padding: '24px 32px 0 28px' }}>
             {!hasIng ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 32px', textAlign: 'center' }}>
-                <div style={{ width: 88, height: 88, borderRadius: 999, background: 'linear-gradient(135deg, #EEF3E8, #E0EAD4)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-                  <i className="ti ti-fridge" style={{ fontSize: 38, color: '#6B7C4E' }} />
+                <div style={{ width: 88, height: 88, borderRadius: 'var(--radius-pill)', background: 'linear-gradient(135deg, color-mix(in srgb, var(--green) 16%, var(--surface)), color-mix(in srgb, var(--green) 7%, var(--surface)))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+                  <i className="ti ti-fridge" style={{ fontSize: 38, color: 'var(--green)' }} />
                 </div>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, fontWeight: 600, color: 'var(--text)', marginBottom: 10, letterSpacing: '-.3px' }}>Was hast du im Kühlschrank?</h3>
-                <p style={{ fontSize: 15, color: '#9A958C', fontFamily: 'Inter, sans-serif', lineHeight: 1.6, maxWidth: 300 }}>Wähle Zutaten aus der Liste links — die passenden Rezepte erscheinen sofort hier.</p>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 24, fontWeight: 700, color: 'var(--text)', marginBottom: 10, letterSpacing: '-.3px' }}>Was hast du im Kühlschrank?</h3>
+                <p style={{ fontSize: 15, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', lineHeight: 1.6, maxWidth: 300 }}>Wähle Zutaten aus der Liste links — die passenden Rezepte erscheinen sofort hier.</p>
               </div>
             ) : renderResults(false)}
           </div>
