@@ -4,12 +4,16 @@ import client from '../api/client'
 import BottomNav from '../components/BottomNav'
 import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 
-const STAPLES = new Set([
+// Standard-Basics (Gewürze/Grundzutaten) — Startwert. Ab Commit 2 nutzer-editierbar
+// und in localStorage persistiert; werden beim Matching ignoriert (zählen nicht als
+// „fehlend"). matchRecipe liest die dynamische Liste, nicht mehr diesen fixen Set.
+const DEFAULT_BASICS = [
   'salz','pfeffer','zucker','olivenöl','öl','wasser','essig','brühe',
   'oregano','basilikum','thymian','rosmarin','petersilie','schnittlauch',
   'kreuzkümmel','paprikapulver','kurkuma','zimt','muskat','koriander',
   'lorbeer','chili','curry','cayennepfeffer','backpulver','hefe','natron','vanille',
-])
+]
+const BASICS_STORAGE_KEY = 'fratcher_basics'
 
 const CATEGORIES = [
   { label: 'Gemüse',          items: ['Tomate','Zwiebel','Knoblauch','Kartoffel','Möhre','Zucchini','Spinat','Paprika','Brokkoli','Champignon','Kürbis','Sellerie','Avocado','Bärlauch'] },
@@ -19,10 +23,10 @@ const CATEGORIES = [
   { label: 'Frisches',        items: ['Zitrone','Ingwer','Apfel','Birne','Banane','Beeren','Knoblauchzehe'] },
 ]
 
-function matchRecipe(recipe, userIngredients) {
+function matchRecipe(recipe, userIngredients, basicsSet) {
   const ui = userIngredients.map(i => i.toLowerCase())
   const recipeIngredients = recipe.ingredients?.map(i => i.name) || []
-  const relevant = recipeIngredients.filter(ing => !STAPLES.has(ing.toLowerCase()))
+  const relevant = recipeIngredients.filter(ing => !basicsSet.has(ing.toLowerCase()))
   if (relevant.length === 0) return { missing: [], pct: 0, skip: true }
   const missing = relevant.filter(ing => !ui.includes(ing.toLowerCase()))
   const pct = (relevant.length - missing.length) / relevant.length
@@ -42,6 +46,22 @@ export default function Fratcher() {
   const [recipeImgs, setRecipeImgs] = useState({})
   const [activeIndex, setActiveIndex] = useState(-1)
   const imgFetchedRef = useRef(new Set())
+
+  // Nutzer-editierbare Basics (Commit 2) — Start aus DEFAULT_BASICS, persistiert in localStorage
+  const [basics, setBasics] = useState(() => {
+    try {
+      const raw = localStorage.getItem(BASICS_STORAGE_KEY)
+      const arr = raw ? JSON.parse(raw) : null
+      if (Array.isArray(arr)) return arr
+    } catch { /* ignore — Default nutzen */ }
+    return DEFAULT_BASICS
+  })
+  const [editingBasics, setEditingBasics] = useState(false)
+  const [basicText, setBasicText] = useState('')
+
+  useEffect(() => {
+    try { localStorage.setItem(BASICS_STORAGE_KEY, JSON.stringify(basics)) } catch { /* ignore */ }
+  }, [basics])
 
   // Fetch recipe list, then all individual details (needed for ingredients)
   useEffect(() => {
@@ -70,8 +90,9 @@ export default function Fratcher() {
       return
     }
     const sofort = [], fast = [], insp = []
+    const basicsSet = new Set(basics.map(b => b.toLowerCase()))
     allRecipes.forEach(recipe => {
-      const { missing, pct, skip } = matchRecipe(recipe, ingredients)
+      const { missing, pct, skip } = matchRecipe(recipe, ingredients, basicsSet)
       if (skip) return
       if (missing.length === 0) sofort.push({ ...recipe, missing, pct })
       else if (missing.length <= 2) fast.push({ ...recipe, missing, pct })
@@ -93,7 +114,7 @@ export default function Fratcher() {
         })
         .catch(() => {})
     })
-  }, [ingredients, mode, allRecipes])
+  }, [ingredients, mode, allRecipes, basics])
 
   // Autocomplete: client-side from CATEGORIES only
   const allCategoryItems = CATEGORIES.flatMap(c => c.items)
@@ -118,6 +139,15 @@ export default function Fratcher() {
   }
 
   const clearAll = () => { setIngredients([]); setView('input') }
+
+  const addBasic = raw => {
+    const item = raw.trim()
+    setBasicText('')
+    if (!item) return
+    if (basics.some(b => b.toLowerCase() === item.toLowerCase())) return
+    setBasics([...basics, item])
+  }
+  const removeBasic = item => setBasics(basics.filter(b => b !== item))
 
   const handleSearch = () => {
     if (!hasIng) return
@@ -345,6 +375,62 @@ export default function Fratcher() {
     </div>
   )
 
+  // Editierbare Basics (SPEC §09) — muted Chips, „werden ignoriert", Bearbeiten-Toggle
+  const renderBasics = isMobile => (
+    <div style={{ marginTop: 8, paddingTop: isMobile ? 20 : 18, borderTop: '1px solid var(--hairline)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? 12 : 10 }}>
+        <p style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, margin: 0, fontFamily: 'var(--font-mono)', fontWeight: 400, fontSize: isMobile ? 10 : 9, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+          Basics
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, textTransform: 'none', letterSpacing: 0, color: 'var(--text-muted)' }}>· zählen nicht als fehlend</span>
+        </p>
+        <button
+          data-track-id="fratcher-basics-edit-toggle"
+          onClick={() => setEditingBasics(v => !v)}
+          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: isMobile ? 10 : 9, letterSpacing: '.04em', color: 'var(--accent)' }}
+        >
+          {editingBasics ? 'Fertig' : 'Bearbeiten'}
+        </button>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {basics.map(item => (
+          <span key={item} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--bg-alt)', color: 'var(--text-muted)', borderRadius: 'var(--radius-pill)', padding: isMobile ? '5px 10px' : '5px 9px', fontFamily: 'var(--font-body)', fontSize: 10 }}>
+            {item}
+            {editingBasics && (
+              <button
+                data-track-id="fratcher-basic-remove"
+                onClick={() => removeBasic(item)}
+                aria-label={`${item} entfernen`}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', color: 'var(--text-muted)' }}
+              >
+                <i className="ti ti-x" style={{ fontSize: 9 }} />
+              </button>
+            )}
+          </span>
+        ))}
+      </div>
+      {editingBasics && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+          <input
+            type="text"
+            value={basicText}
+            onChange={e => setBasicText(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addBasic(basicText) } }}
+            placeholder="Basic hinzufügen …"
+            data-track-id="fratcher-basic-input"
+            style={{ flex: 1, minWidth: 0, background: 'var(--card)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', padding: '8px 11px', outline: 'none', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)' }}
+          />
+          <button
+            data-track-id="fratcher-basic-add"
+            onClick={() => addBasic(basicText)}
+            style={{ flexShrink: 0, background: 'var(--green)', color: 'var(--on-accent)', border: 'none', borderRadius: 'var(--radius-input)', padding: '0 14px', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Hinzufügen
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   const renderSofortCard = (recipe, isMobile) => (
     <div
       key={recipe.id}
@@ -426,6 +512,11 @@ export default function Fratcher() {
     <>
       {loading && (
         <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: 14 }}>Laden …</div>
+      )}
+      {!loading && totalCount > 0 && (
+        <p style={{ margin: isMobile ? '0 4px 14px' : '0 0 16px', fontFamily: 'var(--font-body)', fontSize: isMobile ? 11 : 12, color: 'var(--text-muted)' }}>
+          Basics (Salz, Öl, Mehl …) werden ignoriert.
+        </p>
       )}
       {!loading && results.sofort.length > 0 && (
         <div style={{ marginBottom: isMobile ? 24 : 32 }}>
@@ -523,6 +614,7 @@ export default function Fratcher() {
             {renderSearchField(true)}
             {renderCategories(true)}
             {renderIngredientTags(true)}
+            {renderBasics(true)}
           </div>
         )}
 
@@ -595,6 +687,7 @@ export default function Fratcher() {
             {renderSearchField(false)}
             {renderCategories(false)}
             {renderIngredientTags(false)}
+            {renderBasics(false)}
           </div>
 
           {/* Results Panel */}
