@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import AuthShell from '../components/auth/AuthShell'
+import { Button, Input } from '../components/ui'
 
 export default function Register() {
   const [searchParams] = useSearchParams()
@@ -121,191 +123,123 @@ export default function Register() {
 
   if (emailSent) {
     return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>✉️</div>
-            <h1 style={headingStyle}>
-              {successStatus === 'pending' ? 'Anfrage gesendet' : 'Bestätigungs-Email gesendet'}
-            </h1>
-            <p style={{ color: '#6B6B68', margin: '0 0 1.5rem', fontSize: '0.925rem', lineHeight: 1.6 }}>
-              {successStatus === 'pending'
-                ? 'Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und dich dann kontaktieren.'
-                : 'Wir haben dir eine Bestätigungs-Email gesendet. Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.'}
-            </p>
-            <Link to="/login" style={{ color: 'var(--accent)', fontSize: '0.9rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-              ← Zurück zur Anmeldung
-            </Link>
-          </div>
+      <AuthShell
+        icon="✉️"
+        title={successStatus === 'pending' ? 'Anfrage gesendet' : 'Bestätigungs-Email gesendet'}
+        subtitle={successStatus === 'pending'
+          ? 'Deine Anfrage wurde gesendet. Der Admin wird dein Konto prüfen und dich dann kontaktieren.'
+          : 'Wir haben dir eine Bestätigungs-Email gesendet. Bitte klicke auf den Link in der Email um dein Konto zu aktivieren.'}
+      >
+        <div className="auth-links">
+          <Link to="/login" className="auth-link auth-link--accent" data-track-id="register-back-login-link">
+            ← Zurück zur Anmeldung
+          </Link>
         </div>
-      </div>
+      </AuthShell>
     )
   }
 
+  const usernameHintClass =
+    usernameCheck.status === 'available' ? 'auth-hint auth-hint--available'
+    : usernameCheck.status === 'checking' ? 'auth-hint auth-hint--checking'
+    : 'auth-hint auth-hint--error'
+
   return (
-    <div style={pageStyle}>
-      <div className={shake ? 'shake' : ''} style={cardStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>🍽️</div>
-          <h1 style={headingStyle}>Konto erstellen</h1>
-          <p style={{ color: '#6B6B68', margin: 0, fontSize: '0.925rem' }}>
-            {token ? 'Du wurdest eingeladen. Fülle das Formular aus.' : 'Registriere dich für PiEngines Recipes'}
-          </p>
-        </div>
+    <AuthShell
+      icon="🍽️"
+      title="Konto erstellen"
+      subtitle={token ? 'Du wurdest eingeladen. Fülle das Formular aus.' : 'Registriere dich für PiEngines Recipes'}
+      shake={shake}
+    >
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <Input
+          id="reg-name"
+          label="Vollständiger Name"
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+          autoComplete="name"
+          autoFocus
+          trackId="register-name-input"
+        />
 
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="float-group">
-            <input
-              id="reg-name"
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="name"
-              autoFocus
-            />
-            <label htmlFor="reg-name">Vollständiger Name</label>
-          </div>
+        <Input
+          id="reg-email"
+          label="E-Mail-Adresse"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="du@beispiel.de"
+          required
+          autoComplete="email"
+          trackId="register-email-input"
+        />
 
-          <div className="float-group">
-            <input
-              id="reg-email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="email"
-            />
-            <label htmlFor="reg-email">E-Mail-Adresse</label>
-          </div>
-
-          <div className="float-group">
-            <input
-              id="reg-username"
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="username"
-            />
-            <label htmlFor="reg-username">Username</label>
-          </div>
-          <p style={{ color: 'var(--subtext)', fontSize: '0.775rem', margin: '-0.65rem 0 0.5rem', lineHeight: 1.5, fontFamily: 'Inter, sans-serif' }}>
+        <div>
+          <Input
+            id="reg-username"
+            label="Username"
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            required
+            autoComplete="username"
+            trackId="register-username-input"
+          />
+          <p className="auth-hint auth-hint--rule" style={{ marginTop: '0.5rem' }}>
             Erlaubte Zeichen: a-z, A-Z, 0-9, _ und -. 3-30 Zeichen, keine Leerzeichen, keine Umlaute.
           </p>
           {usernameCheck.message && (
-            <p style={{
-              color: usernameCheck.status === 'available' ? '#3F7D4D'
-                : usernameCheck.status === 'checking' ? '#6B6B68'
-                : 'var(--accent)',
-              fontSize: '0.8rem',
-              margin: '-0.65rem 0 0.85rem',
-              fontFamily: 'Inter, sans-serif',
-            }}>
+            <p className={usernameHintClass} style={{ marginTop: '0.35rem' }}>
               {usernameCheck.message}
             </p>
           )}
-
-          <div className="float-group">
-            <input
-              id="reg-password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="new-password"
-            />
-            <label htmlFor="reg-password">Passwort (min. 8 Zeichen, 1 Zahl)</label>
-          </div>
-
-          <div className="float-group">
-            <input
-              id="reg-password-confirm"
-              type="password"
-              value={passwordConfirm}
-              onChange={e => setPasswordConfirm(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="new-password"
-            />
-            <label htmlFor="reg-password-confirm">Passwort bestätigen</label>
-          </div>
-
-          {error && (
-            <p style={{ color: 'var(--accent)', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
-              {error}
-            </p>
-          )}
-
-          <RegisterButton loading={loading} />
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-          <Link to="/login" style={{ color: 'var(--subtext)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
-            Bereits registriert? <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Zum Login</span>
-          </Link>
         </div>
+
+        <Input
+          id="reg-password"
+          label="Passwort (min. 8 Zeichen, 1 Zahl)"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+          autoComplete="new-password"
+          trackId="register-password-input"
+        />
+
+        <Input
+          id="reg-password-confirm"
+          label="Passwort bestätigen"
+          type="password"
+          value={passwordConfirm}
+          onChange={e => setPasswordConfirm(e.target.value)}
+          placeholder="••••••••"
+          required
+          autoComplete="new-password"
+          trackId="register-password-confirm-input"
+        />
+
+        {error && <p className="auth-msg auth-msg--error">{error}</p>}
+
+        <Button
+          type="submit"
+          variant="primary"
+          full
+          className="auth-submit"
+          disabled={loading}
+          trackId="register-form-submit"
+        >
+          {loading ? 'Wird registriert …' : 'Registrieren'}
+        </Button>
+      </form>
+
+      <div className="auth-links">
+        <Link to="/login" className="auth-link" data-track-id="register-login-link">
+          Bereits registriert? <strong>Zum Login</strong>
+        </Link>
       </div>
-    </div>
-  )
-}
-
-const pageStyle = {
-  minHeight: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '1.5rem',
-  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
-}
-
-const cardStyle = {
-  background: '#ffffff',
-  borderRadius: '20px',
-  boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
-  padding: '2.75rem 2.25rem',
-  width: '100%',
-  maxWidth: '420px',
-}
-
-const headingStyle = {
-  fontFamily: 'Playfair Display, serif',
-  fontSize: '1.8rem',
-  fontWeight: 600,
-  color: '#2C2C2A',
-  margin: '0 0 0.35rem',
-  letterSpacing: '-0.01em',
-}
-
-function RegisterButton({ loading }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%',
-        padding: '0.9rem',
-        background: loading ? '#D49070' : hovered ? 'var(--accent-hover)' : 'var(--accent)',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 'var(--radius-input)',
-        fontSize: '1rem',
-        fontWeight: 600,
-        fontFamily: 'Inter, sans-serif',
-        cursor: loading ? 'not-allowed' : 'pointer',
-        transition: 'background 0.2s ease',
-        letterSpacing: '0.01em',
-        marginTop: '0.25rem',
-      }}
-    >
-      {loading ? 'Wird registriert …' : 'Registrieren'}
-    </button>
+    </AuthShell>
   )
 }

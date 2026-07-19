@@ -1,0 +1,156 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Auth-Seiten (Phase G) — aus dem Design-System abgeleitet (kein Mockup).
+   Wahl 2.0: weiße Akzent-Karte mit Holzkante (SPEC §2.4) auf Creme-Grund,
+   Lora-italic-Heading, DM-Mono-Labels via ui/Input, Terrakotta-CTA via
+   ui/Button. NUR Tokens (styles/tokens.css) — keine Hex-Literale, Dark-Mode
+   folgt automatisch.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg);
+}
+
+.auth-shell__card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);            /* weich + Holzkante (§1.6) */
+  padding: 2.75rem 2.25rem;
+}
+
+.auth-shell__head {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-shell__icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.auth-shell__title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.8rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.auth-shell__subtitle {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ── Formular ────────────────────────────────────────────────────────────── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* Autofill: Chrome-Gelb vermeiden, Token-Farben behalten (Dark-Mode-fest) —
+   ui/Input bringt keinen Autofill-Override mit; hier ergänzt statt am Vertrag. */
+.auth-form .ui-input:-webkit-autofill,
+.auth-form .ui-input:-webkit-autofill:hover,
+.auth-form .ui-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--text);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ui/Button als voll­breite Auth-CTA — größer als die Standard-md-Größe.
+   Compound-Selektor überschreibt .ui-btn unabhängig von der CSS-Ladereihenfolge. */
+.ui-btn.auth-submit {
+  font-size: 1rem;
+  padding: 0.9rem;
+  border-radius: var(--radius-input);
+  margin-top: 0.15rem;
+}
+
+/* ── Meldungen ───────────────────────────────────────────────────────────── */
+.auth-msg {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+}
+.auth-msg--error   { color: var(--danger); }
+.auth-msg--success { color: var(--green); }
+
+/* Größere Flächen-Note (Erfolg/Fehler) für State-Screens */
+.auth-note {
+  margin: 0 0 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+}
+.auth-note--success {
+  color: var(--text);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+}
+.auth-note--error {
+  color: var(--danger);
+  background: var(--danger-tint);
+}
+
+/* ── Feld-Hinweise (Register: Username-Regeln + Verfügbarkeit) ───────────── */
+.auth-hint {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.auth-hint--rule       { font-size: 0.775rem; }
+.auth-hint--available  { color: var(--green-strong); }
+.auth-hint--checking   { color: var(--text-muted); }
+.auth-hint--error      { color: var(--danger); }
+
+/* ── Sekundär-Links ──────────────────────────────────────────────────────── */
+.auth-links {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+.auth-link {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--text-muted);
+}
+.auth-link--accent { color: var(--accent); font-weight: 500; }
+.auth-link strong  { color: var(--accent); font-weight: 600; }
+
+/* Inline-Aktion (z. B. „Neuen Bestätigungs-Link anfordern") */
+.auth-inline-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: underline;
+}
+.auth-inline-btn:disabled { opacity: 0.6; cursor: not-allowed; }

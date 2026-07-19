@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import AuthShell from '../components/auth/AuthShell'
+import { Button, Input } from '../components/ui'
 
 export default function Login() {
   const { login } = useAuth()
@@ -55,147 +57,78 @@ export default function Login() {
   }
 
   return (
-    <div style={pageStyle}>
-      <div
-        className={shake ? 'shake' : ''}
-        style={cardStyle}
-      >
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2.25rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '0.5rem', lineHeight: 1 }}>🍽️</div>
-          <h1 style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: '1.8rem',
-            fontWeight: 600,
-            color: '#2C2C2A',
-            margin: '0 0 0.35rem',
-            letterSpacing: '-0.01em',
-          }}>
-            PiEngines Recipes
-          </h1>
-          <p style={{ color: '#6B6B68', margin: 0, fontSize: '0.925rem' }}>
-            Melde dich an, um fortzufahren
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="float-group">
-            <input
-              id="email"
-              type="text"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="username"
-              autoFocus
-            />
-            <label htmlFor="email">Email oder Username</label>
-          </div>
-
-          <div className="float-group">
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder=" "
-              required
-              autoComplete="current-password"
-            />
-            <label htmlFor="password">Passwort</label>
-          </div>
-
-          {error && (
-            <p style={{
-              color: 'var(--accent)',
-              fontSize: '0.875rem',
-              textAlign: 'center',
-              margin: '0 0 0.75rem',
-              fontWeight: 500,
-            }}>
-              {error}
-            </p>
-          )}
-
-          {emailNotVerified && !resendSent && (
-            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendLoading}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '0.875rem', fontFamily: 'Inter, sans-serif', fontWeight: 500, textDecoration: 'underline', padding: 0 }}
-              >
-                {resendLoading ? 'Wird gesendet …' : 'Neuen Bestätigungs-Link anfordern'}
-              </button>
-            </div>
-          )}
-
-          {resendSent && (
-            <p style={{ color: '#4A7040', fontSize: '0.875rem', textAlign: 'center', margin: '0 0 1rem', fontWeight: 500 }}>
-              Neuer Link wurde gesendet.
-            </p>
-          )}
-
-          <LoginButton loading={loading} />
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <Link to="/forgot-password" style={{ color: 'var(--accent)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
-            Passwort vergessen?
-          </Link>
-          <Link to="/register" style={{ color: 'var(--subtext)', fontSize: '0.875rem', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
-            Noch kein Konto? <span style={{ color: 'var(--accent)', fontWeight: 600 }}>Registrieren</span>
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const pageStyle = {
-  minHeight: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '1.5rem',
-  background: 'linear-gradient(135deg, var(--accent) 0%, #D9845A 25%, #EEC89A 55%, #FAF7F2 80%, #F0EDE8 100%)',
-}
-
-const cardStyle = {
-  background: '#ffffff',
-  borderRadius: '20px',
-  boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
-  padding: '2.75rem 2.25rem',
-  width: '100%',
-  maxWidth: '420px',
-}
-
-function LoginButton({ loading }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%',
-        padding: '0.9rem',
-        background: loading ? '#D49070' : hovered ? 'var(--accent-hover)' : 'var(--accent)',
-        color: '#fff',
-        border: 'none',
-        borderRadius: 'var(--radius-input)',
-        fontSize: '1rem',
-        fontWeight: 600,
-        fontFamily: 'Inter, sans-serif',
-        cursor: loading ? 'not-allowed' : 'pointer',
-        transition: 'background 0.2s ease',
-        letterSpacing: '0.01em',
-        marginTop: '0.25rem',
-      }}
+    <AuthShell
+      icon="🍽️"
+      title="PiEngines Recipes"
+      subtitle="Melde dich an, um fortzufahren"
+      shake={shake}
     >
-      {loading ? 'Wird angemeldet …' : 'Anmelden'}
-    </button>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <Input
+          id="email"
+          label="Email oder Username"
+          type="text"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="du@beispiel.de"
+          required
+          autoComplete="username"
+          autoFocus
+          trackId="login-email-input"
+        />
+
+        <Input
+          id="password"
+          label="Passwort"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+          autoComplete="current-password"
+          trackId="login-password-input"
+        />
+
+        {error && <p className="auth-msg auth-msg--error">{error}</p>}
+
+        {emailNotVerified && !resendSent && (
+          <div style={{ textAlign: 'center' }}>
+            <button
+              type="button"
+              className="auth-inline-btn"
+              onClick={handleResend}
+              disabled={resendLoading}
+              data-track-id="login-resend-verification"
+            >
+              {resendLoading ? 'Wird gesendet …' : 'Neuen Bestätigungs-Link anfordern'}
+            </button>
+          </div>
+        )}
+
+        {resendSent && (
+          <p className="auth-msg auth-msg--success">Neuer Link wurde gesendet.</p>
+        )}
+
+        <Button
+          type="submit"
+          variant="primary"
+          full
+          className="auth-submit"
+          disabled={loading}
+          trackId="login-form-submit"
+        >
+          {loading ? 'Wird angemeldet …' : 'Anmelden'}
+        </Button>
+      </form>
+
+      <div className="auth-links">
+        <Link to="/forgot-password" className="auth-link auth-link--accent" data-track-id="login-forgot-link">
+          Passwort vergessen?
+        </Link>
+        <Link to="/register" className="auth-link" data-track-id="login-register-link">
+          Noch kein Konto? <strong>Registrieren</strong>
+        </Link>
+      </div>
+    </AuthShell>
   )
 }
