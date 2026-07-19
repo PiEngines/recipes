@@ -21,6 +21,8 @@
   --gold:           #b87820;         /* Mengen, Backen, „endet bald" */
   --gold-bright:    #ffd27a;         /* ★-Bewertung auf dunklem Foto-Overlay (Kachel) */
   --blue:           #3f72b0;         /* Aussaat (Kalender), Hauptgerichte */
+  --danger:         #c84444;         /* Lösch-/Fehler-Aktionen */
+  --danger-tint:    color-mix(in srgb, var(--danger) 10%, transparent); /* Danger-Flächen */
   --wood-shadow:    #d4b88a;         /* Karten-Unterkante (Holzkante) */
   --nav-top:        #d4b88a;         /* Bottom-Nav Oberkante */
   --nav-top-shadow: #c4a870;         /* Bottom-Nav Oberkanten-Schatten */
@@ -78,6 +80,7 @@
   --surface:       #3a352b;
   --text:          #f0e8d0;
   --text-muted:    rgba(240, 232, 208, .5);
+  --danger:        #e06a6a;         /* Danger auf Dunkel etwas heller (--danger-tint erbt) */
   /* Akzente / Kategorie-Farben unverändert (SPEC §1.4) */
   --hairline:      rgba(255, 255, 255, .08); /* Trennlinien auf Dunkel sichtbar */
   --border-input:  #4a4436;

@@ -356,7 +356,7 @@ export default function Profile() {
                         <Link to={`/recipes/${r.id}/edit`} style={{ padding: '0.3rem 0.75rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: '6px', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
                           ✏️
                         </Link>
-                        <button onClick={() => handleDeleteRecipe(r.id)} style={{ padding: '0.3rem 0.75rem', background: 'rgba(200,68,68,0.08)', border: '1px solid rgba(200,68,68,0.3)', borderRadius: '6px', color: '#C84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                        <button onClick={() => handleDeleteRecipe(r.id)} style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
                           Löschen
                         </button>
                       </div>
@@ -401,7 +401,7 @@ export default function Profile() {
                   <RecipeCard recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Link to={`/recipes/${r.id}/edit`} style={{ flex: 1, textAlign: 'center', padding: '0.35rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: 6, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>Bearbeiten</Link>
-                    <button onClick={() => handleDeleteRecipe(r.id)} style={{ flex: 1, padding: '0.35rem', background: 'rgba(200,68,68,0.08)', border: '1px solid rgba(200,68,68,0.3)', borderRadius: 6, color: '#c84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Löschen</button>
+                    <button onClick={() => handleDeleteRecipe(r.id)} style={{ flex: 1, padding: '0.35rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: 6, color: '#c84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Löschen</button>
                   </div>
                 </div>
               ))}
@@ -450,7 +450,7 @@ export default function Profile() {
                     {unfollowMode && (
                       <button
                         onClick={() => setPendingDecline({ recipeId: r.id, accessId: r.access_id, title: r.title })}
-                        style={{ padding: '0.3rem 0.75rem', background: 'rgba(200,68,68,0.08)', border: '1px solid rgba(200,68,68,0.3)', borderRadius: '6px', color: '#C84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
+                        style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
                       >
                         Nicht mehr folgen
                       </button>
@@ -478,7 +478,7 @@ export default function Profile() {
           </p>
           <button
             onClick={() => setShowDeleteModal(true)}
-            style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid #C84444', borderRadius: 'var(--radius-input)', color: '#C84444', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}
+            style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--danger)', borderRadius: 'var(--radius-input)', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}
           >
             Konto löschen
           </button>
@@ -508,7 +508,7 @@ export default function Profile() {
               <button onClick={() => setPendingDecline(null)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontSize: '0.875rem' }}>
                 Abbrechen
               </button>
-              <button onClick={() => handleDecline(pendingDecline.recipeId, pendingDecline.accessId)} style={{ padding: '0.6rem 1.25rem', background: '#C84444', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
+              <button onClick={() => handleDecline(pendingDecline.recipeId, pendingDecline.accessId)} style={{ padding: '0.6rem 1.25rem', background: 'var(--danger)', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
                 Ja, entfernen
               </button>
             </div>
@@ -520,7 +520,7 @@ export default function Profile() {
       {showDeleteModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.25rem', fontWeight: 700, color: '#C84444', margin: '0 0 1rem' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.25rem', fontWeight: 700, color: 'var(--danger)', margin: '0 0 1rem' }}>
               Konto wirklich löschen?
             </h2>
             <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', lineHeight: 1.6, margin: '0 0 1.25rem' }}>
@@ -558,7 +558,7 @@ export default function Profile() {
               <button onClick={() => setShowDeleteModal(false)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontSize: '0.875rem' }}>
                 Abbrechen
               </button>
-              <button onClick={handleDeleteAccount} disabled={deleting} style={{ padding: '0.6rem 1.25rem', background: '#C84444', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: deleting ? 0.7 : 1 }}>
+              <button onClick={handleDeleteAccount} disabled={deleting} style={{ padding: '0.6rem 1.25rem', background: 'var(--danger)', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: deleting ? 0.7 : 1 }}>
                 {deleting ? 'Wird gelöscht …' : 'Konto löschen'}
               </button>
             </div>
@@ -586,7 +586,7 @@ function SectionCard({ title, children }) {
 }
 
 function Msg({ type, children }) {
-  const colors = { success: { bg: 'color-mix(in srgb, var(--green) 12%, transparent)', color: 'var(--green)' }, error: { bg: 'rgba(200,68,68,0.1)', color: '#C84444' } }
+  const colors = { success: { bg: 'color-mix(in srgb, var(--green) 12%, transparent)', color: 'var(--green)' }, error: { bg: 'var(--danger-tint)', color: 'var(--danger)' } }
   const c = colors[type] || colors.error
   return (
     <p style={{ margin: '0 0 1rem', padding: '0.625rem 0.875rem', background: c.bg, color: c.color, borderRadius: 'var(--radius-input)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: 500 }}>
@@ -836,7 +836,7 @@ function IndividualAccessModal({ recipeId, title, items, onClose, onRefresh, onT
                 />
               )}
             </div>
-            {error && <p style={{ color: '#C84444', fontFamily: 'var(--font-body)', fontSize: '0.825rem', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.825rem', margin: 0 }}>{error}</p>}
             <button
               type="submit"
               disabled={adding}
@@ -881,7 +881,7 @@ function AccessEntryRow({ entry, onRemove, onUpdate }) {
           <button onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '0.8rem', padding: 0, fontFamily: 'var(--font-body)' }}>
             {editing ? 'Abbrechen' : entry.expires_at ? new Date(entry.expires_at).toLocaleDateString('de-DE') : 'Ohne Limit'}
           </button>
-          <button onClick={onRemove} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C84444', fontSize: '1rem', padding: 0, lineHeight: 1 }}>×</button>
+          <button onClick={onRemove} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: '1rem', padding: 0, lineHeight: 1 }}>×</button>
         </div>
       </div>
       {editing && (
