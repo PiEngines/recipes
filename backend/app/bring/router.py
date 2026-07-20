@@ -15,9 +15,11 @@ nichts wird gespeichert oder zwischengehalten.
 """
 import html
 import json
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
@@ -25,12 +27,41 @@ from app.bring.tokens import create_share_token, read_share_token
 from app.config import settings
 from app.database import get_db
 from app.models import Ingredient, Recipe, User
+from app.models.access import RecipeAccess
 from app.models.media import Media
 from app.models.recipe import RecipeStatus
-from app.recipes.router import _get_or_404, _require_author_or_chef
+from app.models.user import UserRole
+from app.recipes.router import _get_or_404
 from app.storage import storage
 
 router = APIRouter(prefix="/api", tags=["bring"])
+
+
+def _is_editor(recipe: Recipe, user: User) -> bool:
+    """Autor oder Redaktionsrolle — gleiche Bedingung wie
+    `recipes.router._require_author_or_chef`, nur ohne zu werfen."""
+    ist_autor = recipe.author_id == user.id or recipe.created_by == user.id
+    return ist_autor or user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
+
+
+def _is_free_for_all(recipe_id: int, db: Session) -> bool:
+    """Rezept ist öffentlich freigegeben.
+
+    Gleiches Prädikat wie die unauthentifizierte Sichtbarkeit in
+    `recipes.router._apply_visibility_filter`: aktiver `free_for_all`-Eintrag,
+    nicht abgelehnt, nicht abgelaufen.
+    """
+    now = datetime.now(timezone.utc)
+    return db.query(
+        db.query(RecipeAccess)
+        .filter(
+            RecipeAccess.recipe_id == recipe_id,
+            RecipeAccess.access_type == "free_for_all",
+            RecipeAccess.declined_at.is_(None),
+            or_(RecipeAccess.expires_at.is_(None), RecipeAccess.expires_at > now),
+        )
+        .exists()
+    ).scalar()
 
 
 @router.post("/recipes/{recipe_id}/bring-link")
@@ -39,10 +70,19 @@ def create_bring_link(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Signierten Klon-Link erzeugen. Nur wer das Rezept bearbeiten darf, darf es
-    auch an Bring! geben — Autor oder Redaktionsrolle."""
+    """Signierten Klon-Link erzeugen.
+
+    Erlaubt für Autor/Redaktion — und für jeden eingeloggten User, wenn das
+    Rezept öffentlich (`free_for_all`) ist: ein entdecktes Rezept in die eigene
+    Bring!-Liste zu übernehmen ist der Kern-Use-Case.
+
+    Bewusst NICHT „darf sehen" pauschal: wer ein nicht-öffentliches Rezept nur
+    individuell freigegeben bekommen hat, soll es nicht öffentlich
+    weiter-teilbar machen können (kein Re-Share).
+    """
     recipe = _get_or_404(recipe_id, db)
-    _require_author_or_chef(recipe, current_user)
+    if not _is_editor(recipe, current_user) and not _is_free_for_all(recipe.id, db):
+        raise HTTPException(status_code=403, detail="Zugriff verweigert")
 
     token = create_share_token(recipe.id)
     return {"url": f"{settings.app_url}/api/share/recipe/{token}"}
