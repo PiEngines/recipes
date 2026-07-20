@@ -3,7 +3,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_kuechenchef, require_chefkoch_or_above
@@ -60,6 +60,7 @@ class UserListItem(BaseModel):
     status: str
     is_active: bool
     created_at: datetime
+    bio: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -69,6 +70,8 @@ class PatchMeBody(BaseModel):
     email: str | None = None
     email_notifications: bool | None = None
     dark_mode_preference: str | None = None
+    # Leerstring löscht die Bio (setzt sie auf NULL).
+    bio: str | None = Field(default=None, max_length=500)
 
 
 class DeleteMeBody(BaseModel):
@@ -147,6 +150,9 @@ def patch_me(
         current_user.email_notifications = body.email_notifications
     if body.dark_mode_preference is not None:
         current_user.dark_mode_preference = body.dark_mode_preference
+    if body.bio is not None:
+        bio = body.bio.strip()
+        current_user.bio = bio or None
     db.commit()
     db.refresh(current_user)
     return current_user
