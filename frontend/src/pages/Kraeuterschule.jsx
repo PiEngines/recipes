@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
 import { getCategoryColor } from '../theme/categoryColors'
+import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
 import {
   MONTH_NAMES,
   PLANT_CATEGORY_ORDER,
@@ -231,7 +232,7 @@ export default function Kraeuterschule() {
     }
     return {
       // „Säen" fasst Aussaat/Direktsaat/Vorkultur zusammen, „Ernten" kommt aus Nutzung.
-      saeen: uniq(eintraege.filter(e => ['Aussaat', 'Direktsaat', 'Vorkultur'].includes(e.aktivitaet))).slice(0, 8),
+      saeen: uniq(eintraege.filter(e => SAAT_ACTIVITIES.includes(e.aktivitaet))).slice(0, 8),
       ernten: uniq(eintraege.filter(e => e.aktivitaet === 'Ernte')).slice(0, 8),
     }
   }, [calendar])
