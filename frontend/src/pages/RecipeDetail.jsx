@@ -271,16 +271,16 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
           padding: '10px 6px', margin: '0 -6px',
           borderRadius: selected ? 6 : 0,
           borderBottom: selected ? 'none' : '1px solid var(--border)',
-          background: selected ? 'rgba(200,96,42,.08)' : 'transparent',
-          outline: selected ? '1.5px solid rgba(200,96,42,.3)' : 'none',
+          background: selected ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
+          outline: selected ? '1.5px solid color-mix(in srgb, var(--accent) 30%, transparent)' : 'none',
           cursor: 'pointer', transition: 'all .15s',
         }}
       >
-        <span style={{ fontSize: 14, flex: 1, color: highlighted ? 'var(--accent)' : 'var(--text)', fontWeight: highlighted ? 600 : 400, fontFamily: 'Inter, sans-serif', transition: 'color .15s' }}>
+        <span style={{ fontSize: 14, flex: 1, color: highlighted ? 'var(--accent)' : 'var(--text)', fontWeight: highlighted ? 600 : 400, fontFamily: 'var(--font-body)', transition: 'color .15s' }}>
           {ing.name}
         </span>
         {(scaled || ing.unit) && (
-          <span style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, paddingLeft: 8, color: highlighted ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'Inter, sans-serif', transition: 'color .15s' }}>
+          <span style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, paddingLeft: 8, color: highlighted ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'var(--font-body)', transition: 'color .15s' }}>
             {scaled}{ing.unit ? ` ${ing.unit}` : ''}
           </span>
         )}
@@ -468,7 +468,7 @@ function StepImageRow({ images, onImageClick }) {
       {images.length > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 4 }}>
           {images.map((_, i) => (
-            <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i === activeIdx ? '#C8602A' : 'rgba(0,0,0,.18)', flexShrink: 0 }} />
+            <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i === activeIdx ? 'var(--accent)' : 'rgba(0,0,0,.18)', flexShrink: 0 }} />
           ))}
         </div>
       )}
@@ -486,7 +486,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
     : false
   const dimmed = selectedIngredient && !matches
   const highlighted = selectedIngredient ? matches : isActive
-  const borderColor = highlighted ? '#C8602A' : 'transparent'
+  const borderColor = highlighted ? 'var(--accent)' : 'transparent'
 
   const highlightedHtml = selectedIngredient && matches
     ? buildHighlightedHtml(step.instruction, selectedIngredient.name)
@@ -499,7 +499,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
       style={{
         borderRadius: 12, marginBottom: 8, padding: '14px 14px 14px 12px',
         background: highlighted ? 'color-mix(in srgb, var(--accent) 6%, var(--card))' : 'var(--card)',
-        boxShadow: highlighted ? '0 2px 10px rgba(200,96,42,.1)' : '0 1px 4px rgba(0,0,0,.06)',
+        boxShadow: highlighted ? '0 2px 10px color-mix(in srgb, var(--accent) 10%, transparent)' : '0 1px 4px rgba(0,0,0,.06)',
         cursor: 'pointer', transition: 'all 0.2s ease',
         borderLeft: `4px solid ${borderColor}`,
         borderRight: `2px solid ${borderColor}`,
@@ -509,7 +509,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <div style={{
           width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-          background: highlighted ? '#C8602A' : '#E8E4DE',
+          background: highlighted ? 'var(--accent)' : '#E8E4DE',
           color: highlighted ? '#fff' : '#6B6B68',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 14, fontWeight: 700, marginTop: 1,
@@ -519,7 +519,7 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {step.title && (
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 15, fontWeight: 600, color: 'var(--accent)', marginBottom: 4, lineHeight: 1.3 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 600, color: 'var(--accent)', marginBottom: 4, lineHeight: 1.3 }}>
               {step.title}
             </div>
           )}
@@ -544,11 +544,11 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
               data-track-id="detail-timer-start"
               style={{
                 marginTop: 10, padding: '5px 14px',
-                background: hasActiveTimer ? 'rgba(200,96,42,.1)' : 'transparent',
-                border: `1.5px solid ${hasActiveTimer ? '#C8602A' : '#D8D4CD'}`,
+                background: hasActiveTimer ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+                border: `1.5px solid ${hasActiveTimer ? 'var(--accent)' : '#D8D4CD'}`,
                 borderRadius: 999,
-                color: hasActiveTimer ? '#C8602A' : '#6B6B68',
-                fontSize: 13, fontFamily: 'Inter, sans-serif',
+                color: hasActiveTimer ? 'var(--accent)' : '#6B6B68',
+                fontSize: 13, fontFamily: 'var(--font-body)',
                 cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5,
                 transition: 'all 0.2s',
               }}
@@ -588,8 +588,8 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
             {[...items].sort((a, b) => (checkedIngredients[a.id] ? 1 : 0) - (checkedIngredients[b.id] ? 1 : 0)).map(ing => (
               <div key={ing.id} style={{
                 width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
-                border: '2px solid #C8602A',
-                background: checkedIngredients[ing.id] ? '#C8602A' : 'transparent',
+                border: '2px solid var(--accent)',
+                background: checkedIngredients[ing.id] ? 'var(--accent)' : 'transparent',
                 transition: 'background .2s ease',
               }} />
             ))}
@@ -626,7 +626,7 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
                   style={{
                     padding: '7px 14px', borderRadius: 999,
                     fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                    background: checked ? 'rgba(0,0,0,.07)' : '#C8602A',
+                    background: checked ? 'rgba(0,0,0,.07)' : 'var(--accent)',
                     color: checked ? '#9A958C' : '#fff',
                     textDecoration: checked ? 'line-through' : 'none',
                     transition: 'all .2s ease', userSelect: 'none',
@@ -849,7 +849,7 @@ export default function RecipeDetail() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-      <style>{`.ingredient-highlight { background: rgba(200,96,42,0.18); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: rgba(200,96,42,0.30); }`}</style>
+      <style>{`.ingredient-highlight { background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 3px; padding: 0 2px; } [data-theme="dark"] .ingredient-highlight { background: color-mix(in srgb, var(--accent) 30%, transparent); }`}</style>
 
       {/* Preview banner */}
       {isPreview && (
