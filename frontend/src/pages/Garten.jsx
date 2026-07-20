@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getGardenTasks, getMyBeet } from '../api/plants'
 import { phaseBadge, plantedLabel, primaryTaskFor, taskLabel } from '../theme/gardenTasks'
 import { plantImageStyle } from '../theme/plants'
+import GartenKalender from './GartenKalender'
 
 const SEGMENTS = [
   { key: 'beet', label: 'BEET' },
@@ -207,9 +208,11 @@ export default function Garten() {
         )}
 
         {segment === 'kalender' && (
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
-            Der Kalender kommt als Nächstes.
-          </p>
+          <GartenKalender
+            tasks={tasks}
+            tasksLoading={loading}
+            onTasksChange={setTasks}
+          />
         )}
       </div>
     </div>
