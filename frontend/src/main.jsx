@@ -34,6 +34,7 @@ import Garten from './pages/Garten.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
 import ShoppingList from './pages/ShoppingList.jsx'
+import ZurListe from './pages/ZurListe.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import MobileSearchBar from './components/MobileSearchBar.jsx'
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
       { path: '/recipes/new', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/review', element: <ProtectedRoute><IngredientReview /></ProtectedRoute> },
+      { path: '/recipes/:id/zur-liste', element: <ProtectedRoute><ZurListe /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
       { path: '/feed', element: <ProtectedRoute><Feed /></ProtectedRoute> },

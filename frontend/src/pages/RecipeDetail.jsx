@@ -942,6 +942,23 @@ export default function RecipeDetail() {
               <RatingBlock rating={rating} canRate={canRate} onRate={submitRating} onClear={clearRating} />
             </div>
 
+            {/* Einkaufen — additiv, übernimmt die aktuell gewählten Portionen */}
+            <div className="md:px-0" style={{ padding: '0 18px', marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button
+                onClick={() => navigate(`/recipes/${recipe.id}/zur-liste`, { state: { servings } })}
+                data-track-id="recipe-detail-zur-shoppingliste"
+                style={{
+                  flex: '1 1 auto', minWidth: 180, padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', border: 'none', cursor: 'pointer',
+                  background: 'var(--accent)', color: 'var(--on-accent)', boxShadow: 'var(--btn-edge)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <i className="ti ti-basket" style={{ fontSize: 15 }} /> Zur Shoppingliste
+              </button>
+            </div>
+
             {/* Steps heading */}
             <div className="px-[12px] md:px-0" style={{ paddingTop: 10 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 4, padding: '0 4px', color: 'var(--text)' }}>
