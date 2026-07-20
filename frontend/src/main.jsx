@@ -31,6 +31,7 @@ import ResetPassword from './pages/ResetPassword.jsx'
 import Feed from './pages/Feed.jsx'
 import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
+import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import MobileSearchBar from './components/MobileSearchBar.jsx'
@@ -100,6 +101,7 @@ const router = createBrowserRouter([
       { path: '/feed', element: <ProtectedRoute><Feed /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
+      { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },

@@ -150,7 +150,9 @@ export default function Navbar({ onBellClick, notificationCount = 0 }) {
   const { pathname } = useLocation()
 
   const isHome = pathname === '/'
-  const world = pathname.startsWith('/garten') ? 'gruen' : 'braun'
+  // Garten-Welt (grün) umfasst Beet, Kräuterschule und Pflanzen-Detail (SPEC §1.1).
+  const GRUEN = ['/garten', '/kraeuterschule', '/pflanzen']
+  const world = GRUEN.some(p => pathname.startsWith(p)) ? 'gruen' : 'braun'
 
   const themeBtn = (
     <IconBtn onClick={toggle} trackId="header-theme-toggle" title={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}>

@@ -34,7 +34,7 @@ export const CATEGORY_COLORS = {
   gemuese:       { label: 'Gemüse',        base: '#B06A34', dark: '#6E3E18' },
   obst:          { label: 'Obst',          base: '#9E4E6E', dark: '#5E2942' },
   heilkraeuter:  { label: 'Heilkräuter',   base: '#8A7BA8', dark: '#52466A' },
-  wildkraeuter:  { label: 'Wildkräuter',   base: '#6E7A3A', dark: '#414A20' },
+  wildkraeuter:  { label: 'Wildkräuter',   base: '#3E5B2A', dark: '#243619' },
 }
 
 /**
