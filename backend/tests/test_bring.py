@@ -149,8 +149,10 @@ def test_abgelaufener_token():
     assert read_share_token(abgelaufen) is None
 
 
-def test_ttl_default_1800():
-    assert settings.bring_link_ttl_seconds == 1800
+def test_ttl_default_7200():
+    """Der Link wird beim Seitenaufruf gemintet, nicht erst beim Tippen —
+    die Laufzeit muss eine länger offene Rezeptseite überdauern."""
+    assert settings.bring_link_ttl_seconds == 7200
 
 
 # ── Klon-Endpoint ────────────────────────────────────────────────────────────

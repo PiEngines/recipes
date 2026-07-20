@@ -717,7 +717,11 @@ export default function RecipeDetail() {
   const [pillsExpanded, setPillsExpanded] = useState(false)
   const [serveWith, setServeWith] = useState([])
   const [rating, setRating] = useState(null) // {avg, count, my_stars}
-  const [bringBusy, setBringBusy] = useState(false)
+  // Bring!-Deeplink wird vorab gemintet, nicht erst beim Tippen: Android öffnet
+  // die installierte App nur, wenn die Navigation direkt aus der User-Geste
+  // kommt. Läge ein await im Klickpfad, gilt der Absprung als nicht
+  // gestengetrieben und Bring! landet über den AppsFlyer-Fallback im Play Store.
+  const [bringLink, setBringLink] = useState('')
   const [bringError, setBringError] = useState('')
 
   const stepRefs = useRef({})
@@ -776,6 +780,37 @@ export default function RecipeDetail() {
     window.dispatchEvent(new CustomEvent('scroll-to-step', { detail: { stepIdx: parseInt(match[1]) } }))
   }, [loading, recipe, stepMedia])
 
+  // Bring!-Link vorab minten und beim Zurückkehren in den Tab erneuern, damit
+  // er bei lange offener Seite nicht abläuft.
+  useEffect(() => {
+    if (!recipe?.id) return
+    const controller = new AbortController()
+
+    const mint = () => {
+      createBringLink(recipe.id, { signal: controller.signal })
+        .then(({ url }) => { setBringLink(bringDeeplinkFor(url)); setBringError('') })
+        .catch(err => {
+          if (err.name === 'CanceledError') return
+          setBringLink('')
+          setBringError(
+            err?.response?.status === 403
+              ? 'Dieses Rezept darfst du nicht an Bring! senden.'
+              : 'Der Bring!-Link konnte nicht erstellt werden. Bitte lade die Seite neu.',
+          )
+        })
+    }
+
+    mint()
+    const onVisible = () => { if (document.visibilityState === 'visible') mint() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      controller.abort()
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+  }, [recipe?.id])
+
   // Listen for cross-page scroll-to-step events from TimerWidgetGlobal
   useEffect(() => {
     const handler = e => {
@@ -803,31 +838,6 @@ export default function RecipeDetail() {
     client.delete(`/api/recipes/${id}/rating`)
       .then(rr => setRating(rr.data)).catch(() => {})
   }
-  // Bring!: Klon-Link minten, dann auf den Deeplink navigieren. Der Tab wird
-  // synchron im Klick geöffnet — sonst hält ihn der Popup-Blocker auf, weil
-  // zwischen Klick und Navigation ein Request liegt.
-  const sendToBring = async () => {
-    if (bringBusy || !recipe) return
-    setBringBusy(true)
-    setBringError('')
-    const tab = window.open('', '_blank', 'noopener,noreferrer')
-    try {
-      const { url } = await createBringLink(recipe.id)
-      const deeplink = bringDeeplinkFor(url)
-      if (tab) tab.location.href = deeplink
-      else window.location.href = deeplink
-    } catch (err) {
-      tab?.close()
-      setBringError(
-        err?.response?.status === 403
-          ? 'Dieses Rezept darfst du nicht an Bring! senden.'
-          : 'Der Bring!-Link konnte nicht erstellt werden. Bitte versuch es noch einmal.',
-      )
-    } finally {
-      setBringBusy(false)
-    }
-  }
-
   const canRate = !!user && !!recipe && recipe.created_by !== user.id
 
   const canEdit = recipe
@@ -985,22 +995,29 @@ export default function RecipeDetail() {
               >
                 <i className="ti ti-basket" style={{ fontSize: 15 }} /> Zur Shoppingliste
               </button>
-              <button
-                onClick={sendToBring}
-                disabled={bringBusy}
+              {/* Echter Anchor mit vorab gemintetem Ziel: der Tap navigiert
+                  unmittelbar, ohne Request dazwischen — nur so öffnet Android
+                  die installierte Bring!-App statt des Play Store. */}
+              <a
+                href={bringLink || undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-disabled={!bringLink}
                 data-track-id="recipe-detail-bring-handoff"
+                onClick={e => { if (!bringLink) e.preventDefault() }}
                 style={{
                   flex: '1 1 auto', minWidth: 180, padding: '11px 16px',
                   borderRadius: 'var(--radius-input)', border: 'none',
-                  cursor: bringBusy ? 'default' : 'pointer', opacity: bringBusy ? 0.6 : 1,
+                  cursor: bringLink ? 'pointer' : 'default', opacity: bringLink ? 1 : 0.6,
                   background: 'var(--bring)', color: 'var(--on-accent)',
                   fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  textDecoration: 'none',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                 }}
               >
                 <span aria-hidden="true" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, lineHeight: 1 }}>B</span>
-                {bringBusy ? 'Wird geöffnet …' : 'An Bring! senden'}
-              </button>
+                An Bring! senden
+              </a>
             </div>
             {bringError && (
               <p role="status" className="md:px-0" style={{ margin: '-0.75rem 0 1rem', padding: '0 18px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--danger)' }}>
