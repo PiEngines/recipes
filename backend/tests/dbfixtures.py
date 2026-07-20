@@ -18,7 +18,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base
-from app.models import Ingredient, Recipe, ShoppingListItem, User
+from app.models import Ingredient, Recipe, ShoppingListItem, User, UserFollow
 from app.models.access import RecipeAccess
 from app.models.media import Media
 
@@ -29,6 +29,7 @@ _TABLES = [
     ShoppingListItem.__table__,
     RecipeAccess.__table__,
     Media.__table__,
+    UserFollow.__table__,
 ]
 
 

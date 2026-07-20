@@ -12,6 +12,7 @@ from app.bring.router import router as bring_router
 from app.categories.router import router as categories_router
 from app.config import settings
 from app.favorites.router import router as favorites_router
+from app.follows.router import router as follows_router
 from app.garden.router import router as garden_router
 from app.media.router import router as media_router
 from app.modules.router import router as modules_router
@@ -280,6 +281,7 @@ app.include_router(plant_ingredient_map_router)
 app.include_router(garden_router)
 app.include_router(shopping_router)
 app.include_router(bring_router)
+app.include_router(follows_router)
 
 
 @app.get("/api/health")
