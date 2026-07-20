@@ -27,6 +27,7 @@ from app.models.plant import (
     Schwierigkeitsgrad,
 )
 from app.models.plant_spotlight import PlantSpotlightHistory
+from app.models.shopping import ShoppingListItem
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
@@ -65,6 +66,7 @@ __all__ = [
     "UserFavorite",
     "UserPlant",
     "UserPlantTaskDone",
+    "ShoppingListItem",
     "StepUnmatchedSuggestion",
     "Rating",
     "Plant",
