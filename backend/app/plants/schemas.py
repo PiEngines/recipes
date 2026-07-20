@@ -7,6 +7,9 @@ class PlantListItem(BaseModel):
     deutscher_name: str
     botanischer_name: str | None = None
     hauptkategorie: str | None = None
+    # Nebenetikett — die Übersicht füllt darüber das Heilkräuter-Regal
+    # querschnittlich (z. B. Salbei: Küchenkraut + Heilpflanze).
+    weitere_kategorien: str | None = None
     bild_dateiname: str | None = None
     essbarkeit: str
     warnung: str | None = None
@@ -57,7 +60,8 @@ class PlantCalendarGrouped(BaseModel):
 
 class PlantDetail(PlantListItem):
     botanische_familie: str | None = None
-    weitere_kategorien: str | None = None
+    # weitere_kategorien wird von PlantListItem geerbt (vormals hier redundant
+    # redeklariert) — Response-Vertrag unverändert.
     synonyme: str | None = None
     quelle_botanik: str | None = None
     typische_verwendung: str | None = None
