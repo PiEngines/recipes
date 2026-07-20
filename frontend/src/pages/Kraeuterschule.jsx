@@ -6,17 +6,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
 import { getCategoryColor } from '../theme/categoryColors'
 import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
-import {
-  MONTH_NAMES,
-  PLANT_CATEGORY_ORDER,
-  plantImageStyle,
-  shortBotanical,
-} from '../theme/plants'
+import { PLANT_SHELVES, shelvesForPlant } from '../theme/plantShelves'
+import { MONTH_NAMES, plantImageStyle, shortBotanical } from '../theme/plants'
 
 // ── Pflanzen-Kachel ──────────────────────────────────────────────────────────
 
-function PlantTile({ plant }) {
-  const { base } = getCategoryColor(plant.hauptkategorie)
+// `dotColor` ist die Farbe des Regals, in dem die Kachel gerade steht — dieselbe
+// Pflanze kann in zwei Regalen mit unterschiedlichem Punkt erscheinen.
+function PlantTile({ plant, dotColor }) {
   return (
     <Link
       to={`/pflanzen/${plant.slug}`}
@@ -32,7 +29,7 @@ function PlantTile({ plant }) {
           aria-hidden="true"
           style={{
             position: 'absolute', bottom: 6, left: 7, width: 9, height: 9, borderRadius: '50%',
-            background: base, boxShadow: '0 0 0 1.5px var(--surface)',
+            background: dotColor, boxShadow: '0 0 0 1.5px var(--surface)',
           }}
         />
       </div>
@@ -211,17 +208,18 @@ export default function Kraeuterschule() {
     )
   }, [plants, trimmed])
 
-  // Nach hauptkategorie gruppieren; SPEC-Reihenfolge zuerst, Unbekanntes hinten.
-  const groups = useMemo(() => {
-    const byCat = new Map()
+  // In Regale einsortieren (feste Reihenfolge). Eine Pflanze kann in mehreren
+  // Regalen stehen (Heilkräuter querschnittlich); leere Regale entfallen.
+  const shelves = useMemo(() => {
+    const byShelf = new Map(PLANT_SHELVES.map(s => [s.key, []]))
     for (const p of filtered) {
-      const key = p.hauptkategorie || 'Weitere'
-      if (!byCat.has(key)) byCat.set(key, [])
-      byCat.get(key).push(p)
+      for (const key of shelvesForPlant(p)) {
+        byShelf.get(key)?.push(p)
+      }
     }
-    const known = PLANT_CATEGORY_ORDER.filter(c => byCat.has(c))
-    const rest = [...byCat.keys()].filter(c => !PLANT_CATEGORY_ORDER.includes(c)).sort()
-    return [...known, ...rest].map(cat => [cat, byCat.get(cat)])
+    return PLANT_SHELVES
+      .map(s => ({ ...s, items: byShelf.get(s.key) || [], color: getCategoryColor(s.key).base }))
+      .filter(s => s.items.length > 0)
   }, [filtered])
 
   const { saeen, ernten } = useMemo(() => {
@@ -317,22 +315,24 @@ export default function Kraeuterschule() {
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
             Die Pflanzen konnten nicht geladen werden. Bitte lade die Seite neu.
           </p>
-        ) : groups.length === 0 ? (
+        ) : shelves.length === 0 ? (
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
             {trimmed ? `Keine Pflanze gefunden für „${query.trim()}".` : 'Noch keine Pflanzen vorhanden.'}
           </p>
         ) : (
-          groups.map(([cat, items]) => (
-            <section key={cat} aria-label={cat} style={{ marginBottom: 20 }}>
+          shelves.map(shelf => (
+            <section key={shelf.key} aria-label={shelf.label} style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: getCategoryColor(cat).base, flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>{cat}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)' }}>{items.length}</span>
+                  <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: shelf.color, flexShrink: 0 }} />
+                  <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>{shelf.label}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)' }}>{shelf.items.length}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}>
-                {items.map(p => <PlantTile key={p.slug} plant={p} />)}
+                {shelf.items.map(p => (
+                  <PlantTile key={`${shelf.key}-${p.slug}`} plant={p} dotColor={shelf.color} />
+                ))}
               </div>
             </section>
           ))

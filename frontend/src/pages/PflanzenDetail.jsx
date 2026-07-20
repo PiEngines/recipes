@@ -16,6 +16,7 @@ import {
 import BackButton from '../components/BackButton'
 import { getCategoryColor } from '../theme/categoryColors'
 import { buildPhaseMap, monthsForEntry, TIMELINE_ROWS } from '../theme/plantCalendar'
+import { shelfForHauptkategorie } from '../theme/plantShelves'
 import { LOREM_BESCHREIBUNG, MONTH_NAMES, plantImageStyle } from '../theme/plants'
 
 const TABS = [
@@ -137,7 +138,9 @@ function RelationChips({ items, color, tint }) {
 }
 
 function SteckbriefTab({ plant, inBeet, beetBusy, onToggleBeet }) {
-  const catColor = getCategoryColor(plant.hauptkategorie)
+  // Chip-Farbe = Farbe des Regals, in das die hauptkategorie fällt
+  // (die DB-Werte selbst stehen nicht in CATEGORY_COLORS).
+  const catColor = getCategoryColor(shelfForHauptkategorie(plant.hauptkategorie))
   const chips = [
     plant.hauptkategorie && { text: plant.hauptkategorie, color: catColor.base },
     plant.lebensdauer && { text: plant.lebensdauer, color: 'var(--green)' },
