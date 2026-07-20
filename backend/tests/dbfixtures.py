@@ -18,7 +18,14 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base
-from app.models import Ingredient, Recipe, ShoppingListItem, User, UserFollow
+from app.models import (
+    ExternalPost,
+    Ingredient,
+    Recipe,
+    ShoppingListItem,
+    User,
+    UserFollow,
+)
 from app.models.access import RecipeAccess
 from app.models.media import Media
 
@@ -30,6 +37,15 @@ _TABLES = [
     RecipeAccess.__table__,
     Media.__table__,
     UserFollow.__table__,
+    ExternalPost.__table__,
+]
+
+# Postgres-eigene Spaltentypen, die SQLite nicht anlegen kann. Sie werden nur
+# für das CREATE TABLE herabgesetzt und danach zurückgesetzt — die ORM-Modelle
+# bleiben in Produktion unverändert (gegen echtes Postgres verifiziert).
+_PG_ONLY_COLUMNS = [
+    Recipe.__table__.c.seasonal_tags,          # ARRAY
+    ExternalPost.__table__.c.extracted_ingredients,  # JSONB
 ]
 
 
@@ -41,17 +57,14 @@ def make_session_factory():
         poolclass=StaticPool,
     )
 
-    # `seasonal_tags` ist in Produktion ein Postgres-ARRAY, das SQLite nicht
-    # anlegen kann. Der Typ wird nur für das CREATE TABLE herabgesetzt und
-    # sofort wieder zurückgesetzt — die ORM-Metadaten bleiben damit über den
-    # Testlauf hinweg unverändert ARRAY.
-    spalte = Recipe.__table__.c.seasonal_tags
-    original = spalte.type
-    spalte.type = Text()
+    originale = [(spalte, spalte.type) for spalte in _PG_ONLY_COLUMNS]
+    for spalte, _ in originale:
+        spalte.type = Text()
     try:
         Base.metadata.create_all(bind=engine, tables=_TABLES)
     finally:
-        spalte.type = original
+        for spalte, typ in originale:
+            spalte.type = typ
 
     return sessionmaker(bind=engine, autoflush=False, autocommit=False)
 

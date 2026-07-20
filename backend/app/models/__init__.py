@@ -13,6 +13,7 @@ from app.models.recipe import (
     RecipeVersion,
     RecipeVideo,
 )
+from app.models.external_post import ExternalPlatform, ExternalPost
 from app.models.media import Media
 from app.models.phaenophase import Phaenophase
 from app.models.rating import Rating
@@ -59,6 +60,8 @@ __all__ = [
     "recipe_diet_labels",
     "recipe_allergens",
     "Media",
+    "ExternalPost",
+    "ExternalPlatform",
     "InvitationToken",
     "PasswordResetToken",
     "EmailVerificationToken",
