@@ -17,6 +17,8 @@ BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOWNGRADE_NOOP_OK = {
     # Guard gegen Doppel-Anwendung; der Spaltenlebenszyklus gehört 0015.
     "0017",
+    # ALTER TYPE ... ADD VALUE ist in PostgreSQL nicht umkehrbar — forward-only.
+    "0040",
 }
 
 

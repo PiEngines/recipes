@@ -1,4 +1,4 @@
-"""Echte SQLite-Session für Router-Tests (Shopping/Bring).
+"""Echte SQLite-Session für Router-Tests.
 
 Das globale `conftest.py` mockt `sqlalchemy.create_engine` und liefert eine
 MagicMock-Session — für Endpoints, die tatsächlich Daten lesen und schreiben,
@@ -8,9 +8,10 @@ Zwei Eigenheiten, die dafür nötig sind:
 
 * `create_engine` wird aus `sqlalchemy.engine` importiert. Der conftest-Patch
   ersetzt nur den Namen im `sqlalchemy`-Namespace, nicht die Funktion selbst.
-* `recipes.seasonal_tags` ist in Produktion ein Postgres-`ARRAY`, das SQLite
-  nicht anlegen kann. Der Typ wird ausschließlich für die Testtabelle auf
-  `Text` gesetzt — das Prod-Modell bleibt unverändert `ARRAY`.
+* Fünf Spalten nutzen Postgres-eigene Typen (ARRAY/JSONB), die SQLite nicht
+  anlegen kann. Sie werden ausschließlich fürs `CREATE TABLE` auf `Text`
+  herabgesetzt und sofort zurückgesetzt — die Prod-Modelle bleiben unverändert
+  (gegen echtes Postgres verifiziert).
 """
 from sqlalchemy import Text
 from sqlalchemy.engine import create_engine  # bewusst nicht `from sqlalchemy import …`
@@ -18,58 +19,23 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base
-from app.models import (
-    Collection,
-    CollectionItem,
-    CollectionRecipe,
-    ExternalPost,
-    Ingredient,
-    Recipe,
-    ShoppingListItem,
-    User,
-    UserFollow,
-)
-from app.models.access import RecipeAccess
-from app.models.category import Category, Tag
-from app.models.associations import recipe_categories, recipe_tags
-from app.models.media import Media
-from app.models.rating import Rating
+from app.models import ExternalPost, Recipe, RecipeStep, RecipeVersion, User
 
-_TABLES = [
-    User.__table__,
-    Recipe.__table__,
-    Ingredient.__table__,
-    ShoppingListItem.__table__,
-    RecipeAccess.__table__,
-    Media.__table__,
-    UserFollow.__table__,
-    ExternalPost.__table__,
-    Collection.__table__,
-    CollectionItem.__table__,
-    # Deprecated, aber weiterhin gemappt: die Relation Collection.recipes löst
-    # beim Löschen einer Sammlung eine Abfrage darauf aus.
-    CollectionRecipe.__table__,
-    # Für die aufgelöste Rezeptdarstellung in Sammlungen (RecipeListItem
-    # trägt categories/tags).
-    Category.__table__,
-    Tag.__table__,
-    recipe_categories,
-    recipe_tags,
-    # _attach_ratings (kanonischer Helfer aus dem Rezept-Router) liest hier.
-    Rating.__table__,
-]
-
-# Postgres-eigene Spaltentypen, die SQLite nicht anlegen kann. Sie werden nur
-# für das CREATE TABLE herabgesetzt und danach zurückgesetzt — die ORM-Modelle
-# bleiben in Produktion unverändert (gegen echtes Postgres verifiziert).
+# Angelegt wird das komplette Schema, keine handgepflegte Auswahl: Endpoints
+# laden über Relationen mehr Tabellen als auf den ersten Blick sichtbar (der
+# Rezept-Detail-Endpoint etwa Steps, Videos und Komponenten), und eine Teilmenge
+# führt nur zu „no such table" an unerwarteter Stelle.
 _PG_ONLY_COLUMNS = [
-    Recipe.__table__.c.seasonal_tags,          # ARRAY
+    Recipe.__table__.c.seasonal_tags,                # ARRAY
     ExternalPost.__table__.c.extracted_ingredients,  # JSONB
+    RecipeVersion.__table__.c.snapshot,              # JSONB
+    RecipeStep.__table__.c.ingredient_ids,           # JSONB
+    RecipeStep.__table__.c.ingredient_ids_auto,      # JSONB
 ]
 
 
 def make_session_factory():
-    """Frische In-Memory-DB mit den für diese Tests nötigen Tabellen."""
+    """Frische In-Memory-DB mit dem vollständigen Schema."""
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
@@ -80,7 +46,7 @@ def make_session_factory():
     for spalte, _ in originale:
         spalte.type = Text()
     try:
-        Base.metadata.create_all(bind=engine, tables=_TABLES)
+        Base.metadata.create_all(bind=engine)
     finally:
         for spalte, typ in originale:
             spalte.type = typ

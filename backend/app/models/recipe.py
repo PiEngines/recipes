@@ -16,6 +16,9 @@ from app.models.associations import (
 
 class RecipeStatus(str, enum.Enum):
     published = "published"
+    # Entwurf: nur für den Autor sichtbar, taucht in keiner öffentlichen Sicht
+    # auf. Der Erstell-/Bearbeiten-Flow kommt in F3b.
+    draft = "draft"
 
 
 class RecipeType(str, enum.Enum):

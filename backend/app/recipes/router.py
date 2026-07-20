@@ -17,7 +17,7 @@ from app.auth.dependencies import (
 from app.database import get_db
 from app.matching import step_scanner
 from app.models import Allergen, Category, DietLabel, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
-from app.models.recipe import RecipeType
+from app.models.recipe import RecipeStatus, RecipeType
 from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.recipes import matching
@@ -95,6 +95,8 @@ def _apply_visibility_filter(q, current_user: User | None, db: Session):
 
     now = datetime.now(timezone.utc)
 
+    # Entwürfe sind nie öffentlich — sie gehören nur ihrem Autor. Die
+    # Redaktionsrollen unten sehen weiterhin alles (unveränderte Regel).
     if current_user is None:
         # Unauthenticated: only active free_for_all recipes
         free_sq = (
@@ -106,7 +108,10 @@ def _apply_visibility_filter(q, current_user: User | None, db: Session):
             )
             .subquery()
         )
-        return q.filter(Recipe.id.in_(free_sq))
+        return q.filter(
+            Recipe.id.in_(free_sq),
+            Recipe.status == RecipeStatus.published,
+        )
 
     if current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin):
         # Küchenchef + Chefkoch sees everything
@@ -131,10 +136,10 @@ def _apply_visibility_filter(q, current_user: User | None, db: Session):
         )
         .subquery()
     )
-    visible = (
-        (Recipe.created_by == current_user.id)
-        | Recipe.id.in_(free_sq)
-        | Recipe.id.in_(individual_sq)
+    # Fremde Rezepte nur, wenn veröffentlicht; eigene Entwürfe bleiben sichtbar.
+    visible = (Recipe.created_by == current_user.id) | (
+        (Recipe.status == RecipeStatus.published)
+        & (Recipe.id.in_(free_sq) | Recipe.id.in_(individual_sq))
     )
     return q.filter(visible)
 
@@ -632,6 +637,16 @@ def get_recipe(
     recipe = _load_full(recipe_id, db)
     if not recipe or recipe.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # Entwürfe gehören nur ihrem Autor — für alle anderen existieren sie nicht.
+    # Die Redaktionsrollen behalten ihren bestehenden Vollzugriff.
+    if recipe.status == RecipeStatus.draft:
+        darf_sehen = current_user is not None and (
+            recipe.created_by == current_user.id
+            or current_user.role in (UserRole.kuechenchef, UserRole.chefkoch, UserRole.admin)
+        )
+        if not darf_sehen:
+            raise HTTPException(status_code=404, detail="Recipe not found")
 
     now = datetime.now(timezone.utc)
 
