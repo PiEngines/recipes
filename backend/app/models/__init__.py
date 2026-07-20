@@ -1,7 +1,13 @@
 from app.models.access import DisposableEmailDomain, RecipeAccess
 from app.models.associations import recipe_allergens, recipe_categories, recipe_diet_labels, recipe_tags
 from app.models.category import Allergen, Category, DietLabel, Tag
-from app.models.collection import Collection, CollectionRecipe
+from app.models.collection import (
+    Collection,
+    CollectionItem,
+    CollectionItemType,
+    CollectionRecipe,
+    CollectionVisibility,
+)
 from app.models.cooked_log import CookedLog
 from app.models.recipe import (
     Ingredient,
@@ -54,6 +60,9 @@ __all__ = [
     "Allergen",
     "Collection",
     "CollectionRecipe",
+    "CollectionItem",
+    "CollectionItemType",
+    "CollectionVisibility",
     "CookedLog",
     "recipe_categories",
     "recipe_tags",

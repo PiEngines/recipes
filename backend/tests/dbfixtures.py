@@ -19,6 +19,9 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base
 from app.models import (
+    Collection,
+    CollectionItem,
+    CollectionRecipe,
     ExternalPost,
     Ingredient,
     Recipe,
@@ -27,7 +30,10 @@ from app.models import (
     UserFollow,
 )
 from app.models.access import RecipeAccess
+from app.models.category import Category, Tag
+from app.models.associations import recipe_categories, recipe_tags
 from app.models.media import Media
+from app.models.rating import Rating
 
 _TABLES = [
     User.__table__,
@@ -38,6 +44,19 @@ _TABLES = [
     Media.__table__,
     UserFollow.__table__,
     ExternalPost.__table__,
+    Collection.__table__,
+    CollectionItem.__table__,
+    # Deprecated, aber weiterhin gemappt: die Relation Collection.recipes löst
+    # beim Löschen einer Sammlung eine Abfrage darauf aus.
+    CollectionRecipe.__table__,
+    # Für die aufgelöste Rezeptdarstellung in Sammlungen (RecipeListItem
+    # trägt categories/tags).
+    Category.__table__,
+    Tag.__table__,
+    recipe_categories,
+    recipe_tags,
+    # _attach_ratings (kanonischer Helfer aus dem Rezept-Router) liest hier.
+    Rating.__table__,
 ]
 
 # Postgres-eigene Spaltentypen, die SQLite nicht anlegen kann. Sie werden nur

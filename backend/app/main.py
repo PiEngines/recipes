@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.router import router as auth_router
 from app.bring.router import router as bring_router
 from app.categories.router import router as categories_router
+from app.collections.router import router as collections_router
+from app.collections.router import user_router as user_collections_router
 from app.config import settings
 from app.external_posts.router import router as external_posts_router
 from app.favorites.router import router as favorites_router
@@ -284,6 +286,8 @@ app.include_router(shopping_router)
 app.include_router(bring_router)
 app.include_router(follows_router)
 app.include_router(external_posts_router)
+app.include_router(collections_router)
+app.include_router(user_collections_router)
 
 
 @app.get("/api/health")
