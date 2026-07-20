@@ -41,6 +41,12 @@ import MobileSearchBar from './components/MobileSearchBar.jsx'
 
 const NO_NAVBAR_PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email']
 
+// Screens mit eigenem Sticky-Footer-CTA. Die globale Suchleiste liegt fix bei
+// bottom:78 und würde denselben Streifen belegen — Klicks landeten dann auf der
+// Suche statt auf dem CTA. Auf solchen Screens ist eine Rezeptsuche ohnehin
+// nicht das, was man sucht.
+const NO_SEARCHBAR_PATTERNS = [/^\/recipes\/[^/]+\/zur-liste$/]
+
 function Layout() {
   const { pathname } = useLocation()
   const { pendingNotifications } = useAuth()
@@ -57,6 +63,7 @@ function Layout() {
 
   const showNavbar = !NO_NAVBAR_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
     && !pathname.startsWith('/users/')
+  const showSearchBar = showNavbar && !NO_SEARCHBAR_PATTERNS.some(re => re.test(pathname))
   return (
     <>
       <ScrollRestoration getKey={(location) => {
@@ -65,7 +72,7 @@ function Layout() {
       }} />
       {showNavbar && <Navbar onBellClick={() => setNotifOpen(true)} notificationCount={pendingNotifications?.length ?? 0} />}
       <Outlet />
-      {showNavbar && <MobileSearchBar />}
+      {showSearchBar && <MobileSearchBar />}
       {showNavbar && <BottomNav />}
       <TimerWidgetGlobal />
       <NotificationsModal open={notifOpen} onClose={() => setNotifOpen(false)} />

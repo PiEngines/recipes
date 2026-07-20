@@ -181,8 +181,15 @@ export default function ZurListe() {
               })}
             </section>
 
-            {/* CTA */}
-            <div style={{ position: 'fixed', left: 0, right: 0, bottom: 78, padding: '0 1.25rem', pointerEvents: 'none' }}>
+            {/* CTA — liegt bewusst über Bottom-Nav (z 100) und Suchleiste (z 97).
+                Die globale Suchleiste ist auf diesem Screen ausgeblendet
+                (NO_SEARCHBAR_PATTERNS in main.jsx); der z-index hält den CTA
+                auch dann klickbar, wenn dort später etwas hinzukommt.
+                Abstand unten: mobil über der 78 px hohen Nav, ab md ohne Nav. */}
+            <div
+              className="bottom-[78px] md:bottom-4"
+              style={{ position: 'fixed', left: 0, right: 0, zIndex: 101, padding: '0 1.25rem', pointerEvents: 'none' }}
+            >
               <div style={{ maxWidth: 760, margin: '0 auto', pointerEvents: 'auto' }}>
                 <button
                   onClick={submit}
