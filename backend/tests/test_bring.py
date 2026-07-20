@@ -174,12 +174,69 @@ def test_json_ld_pflichtfelder(ctx):
     assert ld["@context"] == "https://schema.org"
     assert ld["@type"] == "Recipe"
     assert ld["name"] == 'Kürbissuppe mit "Ingwer" & Chili'
-    assert ld["author"]["name"] == "autor"
+    assert ld["author"]["name"] == "PiEngines"
     assert ld["recipeIngredient"] == ["800 g Hokkaido-Kürbis", "30 g Ingwer, frisch", "Salz"]
     assert ld["recipeYield"] == "4"
-    assert ld["image"] == f"{settings.app_url}/media/recipe/1/images/k.webp"
     # Datensparsamkeit: Bring! braucht nur die Zutaten
     assert "recipeInstructions" not in ld
+
+
+def test_klon_ohne_bild(ctx):
+    """Bildrechte bleiben beim User — der Klon liefert kein image, obwohl das
+    Rezept ein Titelbild hat. Fuer den Bring-Import ist es nur empfohlen."""
+    client, _, mint = ctx
+    token = mint("autor", 1).json()["url"].rsplit("/", 1)[-1]
+    antwort = client.get(f"/api/share/recipe/{token}")
+
+    assert "image" not in ld_of(antwort.text)
+    # auch nicht als Bild-Tag im sichtbaren HTML
+    assert "<img" not in antwort.text
+    assert "/media/" not in antwort.text
+
+
+def test_klon_nennt_keinen_klarnamen(ctx):
+    """Der Klon ist ohne Login abrufbar — weder Username noch Name noch Mail
+    duerfen darin auftauchen, in JSON-LD wie im HTML."""
+    client, db, mint = ctx
+    from app.models import User
+
+    token = mint("autor", 1).json()["url"].rsplit("/", 1)[-1]
+    text = client.get(f"/api/share/recipe/{token}").text
+
+    autor = db.query(User).filter(User.id == 1).first()
+    for geheim in (autor.username, autor.name, autor.email):
+        assert geheim not in text, f"{geheim!r} steht im Klon"
+
+    assert ld_of(text)["author"]["name"] == "PiEngines"
+    assert "von PiEngines" in text
+
+
+def test_autor_konstant_unabhaengig_vom_besitzer(ctx):
+    """Auch bei einem Rezept eines anderen Users bleibt der Autor konstant."""
+    client, db, mint = ctx
+    from app.models import Recipe
+
+    db.add(Recipe(id=9, title="Fremdrezept", servings=2, created_by=2, author_id=2))
+    db.commit()
+    db.add(RecipeAccess(recipe_id=9, access_type="free_for_all", created_by=2))
+    db.commit()
+
+    token = mint("fremder", 9).json()["url"].rsplit("/", 1)[-1]
+    text = client.get(f"/api/share/recipe/{token}").text
+    assert ld_of(text)["author"]["name"] == "PiEngines"
+    assert "fremder" not in text
+
+
+def test_titel_und_zutaten_bleiben_echt(ctx):
+    """Anonymisiert wird nur der Autor — Titel und Zutaten sind der Nutzen."""
+    client, _, mint = ctx
+    token = mint("autor", 1).json()["url"].rsplit("/", 1)[-1]
+    text = client.get(f"/api/share/recipe/{token}").text
+    ld = ld_of(text)
+
+    assert ld["name"] == 'Kürbissuppe mit "Ingwer" & Chili'
+    assert len(ld["recipeIngredient"]) == 3
+    assert "Hokkaido-Kürbis" in text
 
 
 def test_script_escape_im_titel(ctx):

@@ -12,6 +12,10 @@ alles andere geht an die SPA.
 
 Der Klon ist zustandslos: das HTML wird pro Request frisch aus der DB gerendert,
 nichts wird gespeichert oder zwischengehalten.
+
+Er trägt bewusst nur das Nötigste: Rezepttitel, Zutaten und — als Autor —
+konstant die Plattform. Kein Titelbild (Bildrechte bleiben beim User) und kein
+Klarname/Username, weil die Seite ohne Login abrufbar ist.
 """
 import html
 import json
@@ -28,13 +32,15 @@ from app.config import settings
 from app.database import get_db
 from app.models import Ingredient, Recipe, User
 from app.models.access import RecipeAccess
-from app.models.media import Media
 from app.models.recipe import RecipeStatus
 from app.models.user import UserRole
 from app.recipes.router import _get_or_404
-from app.storage import storage
 
 router = APIRouter(prefix="/api", tags=["bring"])
+
+# Der Klon ist ohne Login abrufbar. Als Autor steht dort deshalb konstant die
+# Plattform statt einer Person — Bring! braucht das Feld, aber keinen Namen.
+CLONE_AUTHOR = "PiEngines"
 
 
 def _is_editor(recipe: Recipe, user: User) -> bool:
@@ -103,30 +109,6 @@ def _ingredient_lines(db: Session, recipe_id: int) -> list[str]:
     return lines
 
 
-def _primary_image_url(db: Session, recipe_id: int) -> str | None:
-    """Absolute URL des Titelbilds — Bring! lädt das Bild von außen."""
-    media = (
-        db.query(Media)
-        .filter(
-            Media.entity_type == "recipe",
-            Media.entity_id == recipe_id,
-            Media.media_type == "image",
-            Media.processing_status == "ready",
-            Media.deleted_at.is_(None),
-        )
-        .order_by(Media.is_primary.desc(), Media.sort_order, Media.id)
-        .first()
-    )
-    if media is None or not media.storage_path:
-        return None
-    # Gleiche Ableitung wie in media/schemas.py — dort relativ ("/media/…"),
-    # hier absolut, weil der Crawler keinen Seitenkontext hat.
-    pfad = storage.get_url(media.storage_path)
-    if pfad.startswith("http://") or pfad.startswith("https://"):
-        return pfad
-    return f"{settings.app_url}{pfad}"
-
-
 @router.get("/share/recipe/{token}", response_class=HTMLResponse)
 def share_recipe_clone(
     token: str,
@@ -149,22 +131,22 @@ def share_recipe_clone(
     if recipe is None:
         raise HTTPException(status_code=404, detail="Rezept nicht gefunden")
 
-    autor = db.query(User).filter(User.id == recipe.created_by).first()
-    autor_name = (autor.username or autor.name) if autor else "PiEngines"
     zutaten = _ingredient_lines(db, recipe.id)
-    bild = _primary_image_url(db, recipe.id)
 
     # schema.org/Recipe — Pflichtfelder für Bring!: Titel, Autor, Zutaten.
-    # Bewusst ohne recipeInstructions: Bring! braucht nur die Zutaten.
+    # Bewusst NICHT enthalten:
+    #   image                — Bildrechte bleiben beim User; für den Import nur
+    #                          empfohlen, nicht erforderlich.
+    #   Klarname/Username    — der Klon ist öffentlich abrufbar, deshalb steht
+    #                          dort konstant CLONE_AUTHOR statt einer Person.
+    #   recipeInstructions   — Bring! braucht nur die Zutaten.
     ld = {
         "@context": "https://schema.org",
         "@type": "Recipe",
         "name": recipe.title,
-        "author": {"@type": "Person", "name": autor_name},
+        "author": {"@type": "Person", "name": CLONE_AUTHOR},
         "recipeIngredient": zutaten,
     }
-    if bild:
-        ld["image"] = bild
     if recipe.servings:
         ld["recipeYield"] = str(recipe.servings)
 
@@ -173,7 +155,6 @@ def share_recipe_clone(
     ld_json = json.dumps(ld, ensure_ascii=False).replace("<", "\\u003c")
 
     titel = html.escape(recipe.title)
-    autor_escaped = html.escape(autor_name)
     zutaten_html = "\n".join(f"      <li>{html.escape(z)}</li>" for z in zutaten)
 
     body = f"""<!DOCTYPE html>
@@ -186,7 +167,7 @@ def share_recipe_clone(
   </head>
   <body>
     <h1>{titel}</h1>
-    <p>von {autor_escaped}</p>
+    <p>von {CLONE_AUTHOR}</p>
     <ul>
 {zutaten_html}
     </ul>
