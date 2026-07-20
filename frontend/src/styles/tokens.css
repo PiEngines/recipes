@@ -22,6 +22,7 @@
   --gold-bright:    #ffd27a;         /* ★-Bewertung auf dunklem Foto-Overlay (Kachel) */
   --blue:           #3f72b0;         /* Aussaat (Kalender), Hauptgerichte */
   --danger:         #c84444;         /* Lösch-/Fehler-Aktionen */
+  --bring:          #d0021b;         /* Bring!-Markenrot — nur für den Bring!-Handoff */
   --danger-tint:    color-mix(in srgb, var(--danger) 10%, transparent); /* Danger-Flächen */
   --wood-shadow:    #d4b88a;         /* Karten-Unterkante (Holzkante) */
   --nav-top:        #d4b88a;         /* Bottom-Nav Oberkante */

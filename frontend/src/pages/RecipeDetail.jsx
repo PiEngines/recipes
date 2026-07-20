@@ -1,6 +1,7 @@
 import { Fragment, forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
+import { bringDeeplinkFor, createBringLink } from '../api/bring'
 import { useAuth } from '../context/AuthContext'
 import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
@@ -716,6 +717,8 @@ export default function RecipeDetail() {
   const [pillsExpanded, setPillsExpanded] = useState(false)
   const [serveWith, setServeWith] = useState([])
   const [rating, setRating] = useState(null) // {avg, count, my_stars}
+  const [bringBusy, setBringBusy] = useState(false)
+  const [bringError, setBringError] = useState('')
 
   const stepRefs = useRef({})
 
@@ -800,6 +803,31 @@ export default function RecipeDetail() {
     client.delete(`/api/recipes/${id}/rating`)
       .then(rr => setRating(rr.data)).catch(() => {})
   }
+  // Bring!: Klon-Link minten, dann auf den Deeplink navigieren. Der Tab wird
+  // synchron im Klick geöffnet — sonst hält ihn der Popup-Blocker auf, weil
+  // zwischen Klick und Navigation ein Request liegt.
+  const sendToBring = async () => {
+    if (bringBusy || !recipe) return
+    setBringBusy(true)
+    setBringError('')
+    const tab = window.open('', '_blank', 'noopener,noreferrer')
+    try {
+      const { url } = await createBringLink(recipe.id)
+      const deeplink = bringDeeplinkFor(url)
+      if (tab) tab.location.href = deeplink
+      else window.location.href = deeplink
+    } catch (err) {
+      tab?.close()
+      setBringError(
+        err?.response?.status === 403
+          ? 'Dieses Rezept darfst du nicht an Bring! senden.'
+          : 'Der Bring!-Link konnte nicht erstellt werden. Bitte versuch es noch einmal.',
+      )
+    } finally {
+      setBringBusy(false)
+    }
+  }
+
   const canRate = !!user && !!recipe && recipe.created_by !== user.id
 
   const canEdit = recipe
@@ -957,7 +985,28 @@ export default function RecipeDetail() {
               >
                 <i className="ti ti-basket" style={{ fontSize: 15 }} /> Zur Shoppingliste
               </button>
+              <button
+                onClick={sendToBring}
+                disabled={bringBusy}
+                data-track-id="recipe-detail-bring-handoff"
+                style={{
+                  flex: '1 1 auto', minWidth: 180, padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', border: 'none',
+                  cursor: bringBusy ? 'default' : 'pointer', opacity: bringBusy ? 0.6 : 1,
+                  background: 'var(--bring)', color: 'var(--on-accent)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <span aria-hidden="true" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, lineHeight: 1 }}>B</span>
+                {bringBusy ? 'Wird geöffnet …' : 'An Bring! senden'}
+              </button>
             </div>
+            {bringError && (
+              <p role="status" className="md:px-0" style={{ margin: '-0.75rem 0 1rem', padding: '0 18px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--danger)' }}>
+                {bringError}
+              </p>
+            )}
 
             {/* Steps heading */}
             <div className="px-[12px] md:px-0" style={{ paddingTop: 10 }}>
