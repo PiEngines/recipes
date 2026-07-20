@@ -33,6 +33,7 @@ import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
+import ShoppingList from './pages/ShoppingList.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
 import MobileSearchBar from './components/MobileSearchBar.jsx'
@@ -104,6 +105,7 @@ const router = createBrowserRouter([
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
       { path: '/pflanzen/:slug', element: <ProtectedRoute><PflanzenDetail /></ProtectedRoute> },
+      { path: '/einkaufsliste', element: <ProtectedRoute><ShoppingList /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },

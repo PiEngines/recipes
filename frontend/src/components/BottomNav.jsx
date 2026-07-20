@@ -27,7 +27,8 @@ export default function BottomNav() {
   // Garten-Slot führt auf »Mein Beet«; Kräuterschule und Pflanzen-Detail sind
   // von dort aus erreichbar und halten den Slot ebenfalls aktiv.
   const isGarten = startsWith('/garten') || startsWith('/kraeuterschule') || startsWith('/pflanzen')
-  const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher']
+  // Kräuterschule fehlt hier bewusst — sie gehört zum Garten-Slot.
+  const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher', '/einkaufsliste']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -58,8 +59,9 @@ export default function BottomNav() {
     { icon: 'ti-heart', label: 'Favoriten', to: '/favorites', trackId: 'bottom-mehr-favoriten-click' },
     { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
     { icon: 'ti-calendar-event', label: 'Saison', to: '/seasonal', trackId: 'bottom-mehr-saison-click' },
-    { icon: 'ti-plant-2', label: 'Kräuterschule', to: null, trackId: 'bottom-mehr-kraeuterschule-click' }, // Route folgt → „bald"
+    { icon: 'ti-plant-2', label: 'Kräuterschule', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
+    { icon: 'ti-basket', label: 'Einkaufsliste', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
   ]
 
   const mehrItemStyle = (dimmed) => ({
