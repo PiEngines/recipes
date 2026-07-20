@@ -30,6 +30,7 @@ from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
 from app.models.user_favorite import UserFavorite
+from app.models.user_plant import UserPlant
 
 __all__ = [
     "User",
@@ -60,6 +61,7 @@ __all__ = [
     "RecipeAccess",
     "DisposableEmailDomain",
     "UserFavorite",
+    "UserPlant",
     "StepUnmatchedSuggestion",
     "Rating",
     "Plant",
