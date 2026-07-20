@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
+from app.bring.router import router as bring_router
 from app.categories.router import router as categories_router
 from app.config import settings
 from app.favorites.router import router as favorites_router
@@ -278,6 +279,7 @@ app.include_router(plants_router)
 app.include_router(plant_ingredient_map_router)
 app.include_router(garden_router)
 app.include_router(shopping_router)
+app.include_router(bring_router)
 
 
 @app.get("/api/health")

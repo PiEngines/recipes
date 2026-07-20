@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     email_from: str = "noreply@piengines.com"
     app_url: str = "https://recipes.piengines.com"
+    # Gültigkeitsdauer des signierten Bring!-Klon-Links. Bewusst kurz, aber lang
+    # genug, um den Link auf einem anderen Gerät zu öffnen.
+    bring_link_ttl_seconds: int = 1800
 
     @property
     def cors_origins(self) -> list[str]:
