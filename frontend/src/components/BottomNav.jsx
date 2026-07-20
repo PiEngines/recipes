@@ -24,8 +24,8 @@ export default function BottomNav() {
   const isNeu = pathname === '/recipes/new'
   const isHome = pathname === '/'
   const isRezepte = startsWith('/recipes') && !isNeu
-  // Garten-Slot zeigt in F1 interim auf die Kräuterschule; ab F2 auf »Mein Beet«,
-  // von wo die Kräuterschule erreichbar wird. Alle drei Pfade halten den Slot aktiv.
+  // Garten-Slot führt auf »Mein Beet«; Kräuterschule und Pflanzen-Detail sind
+  // von dort aus erreichbar und halten den Slot ebenfalls aktiv.
   const isGarten = startsWith('/garten') || startsWith('/kraeuterschule') || startsWith('/pflanzen')
   const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
@@ -182,7 +182,7 @@ export default function BottomNav() {
             </span>
           )}
 
-          <Link to="/kraeuterschule" data-track-id="bottom-nav-garten-click" style={slotStyle(isGarten)}>
+          <Link to="/garten" data-track-id="bottom-nav-garten-click" style={slotStyle(isGarten)}>
             <i className="ti ti-plant-2" style={{ fontSize: ICON }} />
             <span style={labelStyle(isGarten)}>Garten</span>
           </Link>

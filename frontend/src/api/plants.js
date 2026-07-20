@@ -53,3 +53,33 @@ export function addToBeet(slug, opts = {}) {
 export function removeFromBeet(slug, opts = {}) {
   return client.delete(`/api/garden/beet/${encodeURIComponent(slug)}`, opts)
 }
+
+/** Pflanzdatum korrigieren — `plantedOn` als ISO-Datum ("YYYY-MM-DD"). */
+export function patchBeet(slug, plantedOn, opts = {}) {
+  return client
+    .patch(`/api/garden/beet/${encodeURIComponent(slug)}`, { planted_on: plantedOn }, opts)
+    .then(r => r.data)
+}
+
+// ── Beet-Aufgaben ────────────────────────────────────────────────────────────
+
+/** Im aktuellen Monat fällige Aufgaben + laufende Status-Hinweise.
+ *  `scope` kennt vorerst nur "month" — die Kalenderdaten haben ausschließlich
+ *  Monatsauflösung, eine Wochen-Linse könnte nicht feiner filtern. */
+export function getGardenTasks(opts = {}) {
+  return client.get('/api/garden/tasks', { ...opts, params: { scope: 'month' } }).then(r => r.data)
+}
+
+/** Aufgabe für die laufende Periode abhaken (204, idempotent). */
+export function markTaskDone(userPlantId, taskKey, opts = {}) {
+  return client.post(
+    `/api/garden/tasks/${userPlantId}/${encodeURIComponent(taskKey)}/done`, null, opts,
+  )
+}
+
+/** Haken für die laufende Periode entfernen (204). */
+export function unmarkTaskDone(userPlantId, taskKey, opts = {}) {
+  return client.delete(
+    `/api/garden/tasks/${userPlantId}/${encodeURIComponent(taskKey)}/done`, opts,
+  )
+}
