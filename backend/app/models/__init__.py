@@ -32,6 +32,7 @@ from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordR
 from app.models.user import User, UserRole
 from app.models.user_favorite import UserFavorite
 from app.models.user_plant import UserPlant
+from app.models.user_plant_task import UserPlantTaskDone
 
 __all__ = [
     "User",
@@ -63,6 +64,7 @@ __all__ = [
     "DisposableEmailDomain",
     "UserFavorite",
     "UserPlant",
+    "UserPlantTaskDone",
     "StepUnmatchedSuggestion",
     "Rating",
     "Plant",
