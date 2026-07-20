@@ -24,6 +24,7 @@ from app.recipes.router import router as recipes_router
 from app.recipes.versions_router import router as versions_router
 from app.seasonal.matcher import run_seasonal_matching
 from app.seasonal.router import router as seasonal_router
+from app.shopping.router import router as shopping_router
 from app.seed import seed_admin, seed_garbage_collector
 from app.tags.router import router as tags_router
 from app.taxonomy.router import router as taxonomy_router
@@ -276,6 +277,7 @@ app.include_router(admin_router)
 app.include_router(plants_router)
 app.include_router(plant_ingredient_map_router)
 app.include_router(garden_router)
+app.include_router(shopping_router)
 
 
 @app.get("/api/health")
