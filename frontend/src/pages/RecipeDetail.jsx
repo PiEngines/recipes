@@ -148,7 +148,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 
         {/* Pending-Review-Badge */}
         {recipe.is_pending_review && (
-          <span style={{ position: 'absolute', top: 12, left: 14, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: 'var(--radius-pill)', padding: '5px 10px', fontFamily: 'Inter, sans-serif' }}>
+          <span style={{ position: 'absolute', top: 12, left: 14, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600, color: '#fff', background: 'rgba(0,0,0,.55)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: 'var(--radius-pill)', padding: '5px 10px', fontFamily: 'var(--font-body)' }}>
             ● Wird geprüft
           </span>
         )}
@@ -156,7 +156,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
         {/* Edit button */}
         {canEdit && (
           <div style={{ position: 'absolute', top: 12, right: 14, zIndex: 2 }}>
-            <button onClick={onEdit} style={{ border: '1.5px solid rgba(255,255,255,.45)', background: 'rgba(0,0,0,.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', borderRadius: 999, padding: '5px 13px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}>
+            <button onClick={onEdit} style={{ border: '1.5px solid rgba(255,255,255,.45)', background: 'rgba(0,0,0,.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', color: '#fff', borderRadius: 999, padding: '5px 13px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer' }}>
               <i className="ti ti-pencil" style={{ fontSize: 12 }} /> Bearbeiten
             </button>
           </div>
@@ -170,12 +170,12 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 
         {/* Title first, description below */}
         <div style={{ position: 'absolute', bottom: 18, left: 16, right: 58 }}>
-          <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1.625rem, 6.7vw, 2rem)', fontWeight: 700, fontStyle: 'italic', color: '#fff', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,.5)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.625rem, 6.7vw, 2rem)', fontWeight: 700, fontStyle: 'italic', color: '#fff', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,.5)' }}>
             {recipe.title}
           </div>
           {recipe.description && (
             <div style={{ marginTop: 6, display: 'inline-block', background: 'rgba(0,0,0,.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', borderRadius: 6, padding: '4px 10px', maxWidth: '100%' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.9)', lineHeight: 1.45, overflow: 'hidden', maxHeight: 34, fontFamily: 'Inter, sans-serif' }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.9)', lineHeight: 1.45, overflow: 'hidden', maxHeight: 34, fontFamily: 'var(--font-body)' }}>
                 {recipe.description}
               </div>
             </div>
@@ -221,16 +221,16 @@ function MetaBar({ recipe }) {
         <Fragment key={i}>
           {i > 0 && <div style={{ width: 1, background: 'var(--border)', margin: '0 4px', flexShrink: 0 }} />}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: i > 0 ? 12 : 0 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'Inter, sans-serif' }}>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-body)' }}>
               {col.icon && <i className={`ti ${col.icon}`} style={{ fontSize: 10 }} />}
               {col.label}
             </span>
             {col.time != null ? (
-              <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--accent)', fontFamily: 'Inter, sans-serif', lineHeight: 1 }}>
+              <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-body)', lineHeight: 1 }}>
                 {col.time}<span style={{ fontSize: 12, color: 'var(--subtext)', fontWeight: 400, marginLeft: 2 }}>min</span>
               </span>
             ) : (
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'Inter, sans-serif' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
                 {col.text}
               </span>
             )}
@@ -662,7 +662,7 @@ function RatingBlock({ rating, canRate, onRate, onClear }) {
   const avg = rating?.avg ?? null
   const count = rating?.count ?? 0
   const mine = rating?.my_stars ?? 0
-  const label = { fontSize: 13, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }
+  const label = { fontSize: 13, color: 'var(--subtext)', fontFamily: 'var(--font-body)' }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {count > 0 ? (
@@ -854,11 +854,11 @@ export default function RecipeDetail() {
       {/* Preview banner */}
       {isPreview && (
         <div style={{ background: 'var(--accent)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
-          <span style={{ color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 500 }}>Vorschau-Modus</span>
+          <span style={{ color: '#fff', fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: 500 }}>Vorschau-Modus</span>
           <button
             data-track-id="recipe-detail-preview-close"
             onClick={() => window.close()}
-            style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.5)', color: '#fff', borderRadius: 'var(--radius-pill)', padding: '0.25rem 0.875rem', fontFamily: 'Inter, sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+            style={{ background: 'rgba(255,255,255,0.2)', border: '1.5px solid rgba(255,255,255,0.5)', color: '#fff', borderRadius: 'var(--radius-pill)', padding: '0.25rem 0.875rem', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
           >
             ✕ Schließen
           </button>
@@ -900,7 +900,7 @@ export default function RecipeDetail() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 8, borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   {recipe.author && (
-                    <span style={{ fontSize: '1rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                    <span style={{ fontSize: '1rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>
                       von <AuthorLink author={recipe.author} />
                       {' · '}
                       {new Date(recipe.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}
@@ -909,7 +909,7 @@ export default function RecipeDetail() {
                   {hasTags && (
                     <span
                       onClick={() => setPillsExpanded(p => !p)}
-                      style={{ fontSize: 11, color: 'var(--subtext)', background: 'rgba(0,0,0,.06)', borderRadius: 999, padding: '2px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'Inter, sans-serif' }}
+                      style={{ fontSize: 11, color: 'var(--subtext)', background: 'rgba(0,0,0,.06)', borderRadius: 999, padding: '2px 8px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, fontFamily: 'var(--font-body)' }}
                     >
                       {pillsChipLabel}
                     </span>
@@ -918,7 +918,7 @@ export default function RecipeDetail() {
                 {foreignModuleAuthors.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {foreignModuleAuthors.map(author => (
-                      <span key={author.id} data-track-id="detail-module-author-link" style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                      <span key={author.id} data-track-id="detail-module-author-link" style={{ fontSize: 12, color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>
                         inkl. Rezept von <AuthorLink author={author} />
                       </span>
                     ))}
@@ -927,10 +927,10 @@ export default function RecipeDetail() {
                 {pillsExpanded && hasTags && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
                     {recipe.diet_labels?.map(d => (
-                      <span key={d.id} style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#6B7C4E22', color: '#6B7C4E', border: '1px solid #6B7C4E44', whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif' }}>{d.name}</span>
+                      <span key={d.id} style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: 'color-mix(in srgb, var(--green) 13%, transparent)', color: 'var(--green)', border: '1px solid color-mix(in srgb, var(--green) 27%, transparent)', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>{d.name}</span>
                     ))}
                     {recipe.allergens?.map(a => (
-                      <span key={a.id} style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: '#C8A02022', color: '#C8A020', border: '1px solid #C8A02044', whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif' }}>{a.name}</span>
+                      <span key={a.id} style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500, background: 'color-mix(in srgb, var(--gold) 13%, transparent)', color: 'var(--gold)', border: '1px solid color-mix(in srgb, var(--gold) 27%, transparent)', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>{a.name}</span>
                     ))}
                   </div>
                 )}
@@ -944,10 +944,10 @@ export default function RecipeDetail() {
 
             {/* Steps heading */}
             <div className="px-[12px] md:px-0" style={{ paddingTop: 10 }}>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, marginBottom: 4, padding: '0 4px', color: 'var(--text)' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 4, padding: '0 4px', color: 'var(--text)' }}>
                 Zubereitung
               </div>
-              <div className="md:hidden" style={{ fontSize: 12, color: 'var(--subtext)', marginBottom: 14, padding: '0 4px', fontFamily: 'Inter, sans-serif' }}>
+              <div className="md:hidden" style={{ fontSize: 12, color: 'var(--subtext)', marginBottom: 14, padding: '0 4px', fontFamily: 'var(--font-body)' }}>
                 Schritt antippen · Zutaten erscheinen unten
               </div>
             </div>
@@ -979,7 +979,7 @@ export default function RecipeDetail() {
             {/* Passt dazu */}
             {serveWith.length > 0 && (
               <div className="px-[12px] md:px-0" style={{ marginTop: 32 }}>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 22, fontWeight: 700, marginBottom: 14, padding: '0 4px', color: 'var(--text)' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 14, padding: '0 4px', color: 'var(--text)' }}>
                   Passt dazu
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -991,7 +991,7 @@ export default function RecipeDetail() {
                       style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--card)', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,.06)', color: 'var(--text)' }}
                     >
                       <i className="ti ti-arrow-right" style={{ fontSize: 14, color: 'var(--accent)', flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500 }}>{r.title}</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500 }}>{r.title}</span>
                     </Link>
                   ))}
                 </div>
