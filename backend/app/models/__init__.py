@@ -26,6 +26,7 @@ from app.models.plant import (
     PlantTag,
     Schwierigkeitsgrad,
 )
+from app.models.plant_spotlight import PlantSpotlightHistory
 from app.models.step_suggestion import StepUnmatchedSuggestion
 from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordResetToken
 from app.models.user import User, UserRole
@@ -68,6 +69,7 @@ __all__ = [
     "PlantTag",
     "PlantRelation",
     "PlantCalendar",
+    "PlantSpotlightHistory",
     "Lebensdauer",
     "AnbauTyp",
     "Schwierigkeitsgrad",

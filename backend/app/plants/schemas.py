@@ -112,3 +112,23 @@ class MonthCalendar(BaseModel):
     monat: int
     aktive_phasen: list[int] = []
     eintraege: list[CalendarActivityItem] = []
+
+
+class PhaenophaseItem(BaseModel):
+    """Referenzdaten Phänophase → Monatsspanne (für die 12-Monats-Timeline)."""
+
+    phase_id: int
+    phase_name: str
+    ref_monat_von: int
+    ref_monat_bis: int
+    model_config = {"from_attributes": True}
+
+
+class PlantSpotlight(BaseModel):
+    """Kraut des Monats. Teaser = typische_verwendung (beschreibungstext ist DB-weit leer)."""
+
+    period_key: str
+    slug: str
+    deutscher_name: str
+    botanischer_name: str | None = None
+    teaser: str | None = None

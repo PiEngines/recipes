@@ -1,15 +1,26 @@
+import random
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, aliased
 
 from app.auth.dependencies import get_current_user
 from app.database import get_db
-from app.models import Phaenophase, Plant, PlantCalendar, PlantRelation, PlantTag, User
+from app.models import (
+    Phaenophase,
+    Plant,
+    PlantCalendar,
+    PlantRelation,
+    PlantSpotlightHistory,
+    PlantTag,
+    User,
+)
 from app.plants.permissions import can_view_plants, can_view_unreleased
 from app.plants.schemas import (
     CalendarActivityItem,
     MonthCalendar,
+    PhaenophaseItem,
     PlantCalendarGrouped,
     PlantCalendarItem,
     PlantDetail,
@@ -17,6 +28,7 @@ from app.plants.schemas import (
     PlantListItem,
     PlantRelationItem,
     PlantRelations,
+    PlantSpotlight,
     PlantTags,
 )
 
@@ -91,6 +103,115 @@ def get_month_calendar(
         ))
     eintraege.sort(key=lambda e: (e.pflanze_name, e.kategorie, e.aktivitaet))
     return MonthCalendar(monat=monat, aktive_phasen=active, eintraege=eintraege)
+
+
+@router.get("/phases", response_model=list[PhaenophaseItem])
+def list_phases(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Phänophasen-Referenzdaten (10 Zeilen) — Frontend mappt phase_von/phase_bis
+    auf Monatsspannen für die Anbau-Timeline. Eine Quelle der Wahrheit."""
+    if not can_view_plants(current_user):
+        raise HTTPException(status_code=403, detail="Kein Zugriff auf Pflanzendaten")
+
+    return db.query(Phaenophase).order_by(Phaenophase.phase_id).all()
+
+
+def _recent_period_keys(period_key: str, count: int) -> list[str]:
+    """Die `count` period_keys unmittelbar vor `period_key` (absteigend)."""
+    jahr, monat = (int(x) for x in period_key.split("-"))
+    keys = []
+    for _ in range(count):
+        monat -= 1
+        if monat == 0:
+            monat, jahr = 12, jahr - 1
+        keys.append(f"{jahr:04d}-{monat:02d}")
+    return keys
+
+
+@router.get("/spotlight", response_model=PlantSpotlight)
+def get_spotlight(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Kraut des Monats — innerhalb eines Monats stabil, 12 Monate Cooldown."""
+    if not can_view_plants(current_user):
+        raise HTTPException(status_code=403, detail="Kein Zugriff auf Pflanzendaten")
+
+    today = date.today()
+    period_key = f"{today.year:04d}-{today.month:02d}"
+
+    def _visible_plants():
+        q = db.query(Plant)
+        if not can_view_unreleased(current_user):
+            q = q.filter(Plant.redaktion_freigegeben.is_(True))
+        return q
+
+    def _response(plant: Plant) -> PlantSpotlight:
+        return PlantSpotlight(
+            period_key=period_key,
+            slug=plant.slug,
+            deutscher_name=plant.deutscher_name,
+            botanischer_name=plant.botanischer_name,
+            teaser=plant.typische_verwendung,
+        )
+
+    def _persisted_pick() -> Plant | None:
+        row = (
+            db.query(PlantSpotlightHistory)
+            .filter(PlantSpotlightHistory.period_key == period_key)
+            .first()
+        )
+        if row is None:
+            return None
+        return _visible_plants().filter(Plant.id == row.plant_id).first()
+
+    existing = _persisted_pick()
+    if existing is not None:
+        return _response(existing)
+
+    # Pool: Pflanzen mit saisonaler (phasengebundener) Aktivität im aktuellen Monat.
+    # Ganzjährige Einträge (phase_von NULL) zählen nicht — sie träfen auf fast
+    # jede Pflanze zu und würden die Saisonalität aushebeln.
+    active_set = set(_active_phases(today.month, db.query(Phaenophase).all()))
+    seasonal_ids = {
+        cal.pflanzen_id
+        for cal in db.query(PlantCalendar).filter(PlantCalendar.phase_von.isnot(None)).all()
+        if any(p in active_set for p in range(cal.phase_von, cal.phase_bis + 1))
+    }
+
+    candidates = _visible_plants().order_by(Plant.id).all()
+    pool = [p for p in candidates if p.id in seasonal_ids] or candidates
+    if not pool:
+        raise HTTPException(status_code=404, detail="Keine Pflanze für das Spotlight verfügbar")
+
+    # Cooldown: in den letzten 12 Perioden gezeigte Pflanzen ausschließen.
+    recent_keys = _recent_period_keys(period_key, 12)
+    recent_ids = {
+        row.plant_id
+        for row in db.query(PlantSpotlightHistory)
+        .filter(PlantSpotlightHistory.period_key.in_(recent_keys))
+        .all()
+    }
+    eligible = [p for p in pool if p.id not in recent_ids] or pool
+
+    # Deterministisch geseedet mit period_key — gleicher Monat, gleiche Wahl.
+    pick = random.Random(period_key).choice(eligible)
+
+    db.add(PlantSpotlightHistory(plant_id=pick.id, period_key=period_key))
+    try:
+        db.commit()
+    except IntegrityError:
+        # Paralleler Erstaufruf: Unique(period_key) hat gegriffen — den bereits
+        # persistierten Pick neu lesen statt einen zweiten anzulegen.
+        db.rollback()
+        concurrent = _persisted_pick()
+        if concurrent is None:
+            raise HTTPException(status_code=409, detail="Spotlight konnte nicht ermittelt werden")
+        return _response(concurrent)
+
+    return _response(pick)
 
 
 @router.get("/{slug}", response_model=PlantDetail)
