@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.external_posts.schemas import ExternalPostItem
+from app.external_posts.schemas import ExternalPostPublic
 from app.models.collection import CollectionItemType, CollectionVisibility
 from app.recipes.schemas import RecipeListItem
 
@@ -37,12 +37,20 @@ class ResolvedRecipeItem(BaseModel):
 
 
 class ResolvedExternalPostItem(BaseModel):
-    """Aufgelöster External Post in einer Sammlung."""
+    """Aufgelöster External Post in einer Sammlung.
+
+    `ExternalPostPublic` statt `ExternalPostItem` wegen `oembed_html`: die
+    Sammlungs-Detailseite spielt Beiträge ab, und der TikTok-Player entsteht
+    ausschließlich aus diesem Markup (Instagram baut seinen iFrame dagegen aus
+    der URL). Additiv — es kommt ein Feld dazu, keins fällt weg. Die private
+    Arbeitsfläche des Autors (Caption, Zutaten, Rezept-Verknüpfung) bleibt
+    weiterhin draußen.
+    """
 
     item_type: Literal["external_post"] = "external_post"
     item_id: int
     sort_order: int
-    external_post: ExternalPostItem
+    external_post: ExternalPostPublic
 
 
 class CollectionDetail(CollectionSummary):

@@ -34,7 +34,7 @@ from app.collections.schemas import (
     ResolvedRecipeItem,
 )
 from app.database import get_db
-from app.external_posts.schemas import ExternalPostItem
+from app.external_posts.schemas import ExternalPostPublic
 from app.models import (
     Collection,
     CollectionItem,
@@ -167,7 +167,7 @@ def _resolve_items(db: Session, collection_id: int):
             ergebnis.append(ResolvedExternalPostItem(
                 item_id=e.item_id,
                 sort_order=e.sort_order,
-                external_post=ExternalPostItem.model_validate(p),
+                external_post=ExternalPostPublic.model_validate(p),
             ))
     return ergebnis
 

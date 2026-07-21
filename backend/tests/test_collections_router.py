@@ -147,6 +147,33 @@ def test_gemischte_items_loesen_auf(ctx):
     assert items[1]["external_post"]["url"] == "https://instagram.com/p/A/"
 
 
+def test_post_item_traegt_oembed_html(ctx):
+    """F3b-2b: Die Detailseite spielt Beiträge ab. Der TikTok-Player entsteht
+    nur aus `oembed_html` — ohne das Feld bliebe er in Sammlungen stumm
+    (dieselbe Lehre wie in F3b-2a und F3b-3)."""
+    c, db, _ = ctx
+    db.add(ExternalPost(id=2, created_by=1, platform="tiktok",
+                        url="https://tiktok.com/@koch/video/1",
+                        oembed_html="<blockquote class='tiktok-embed'></blockquote>"))
+    db.commit()
+
+    sid = neue_sammlung(c)["id"]
+    c.post(f"/api/collections/{sid}/items", json={"item_type": "external_post", "item_id": 2})
+
+    post = c.get(f"/api/collections/{sid}").json()["items"][0]["external_post"]
+    assert "tiktok-embed" in post["oembed_html"]
+
+
+def test_post_item_bleibt_ohne_private_felder(ctx):
+    """Vertrag: `oembed_html` kommt dazu, die Arbeitsfläche des Autors nicht."""
+    c, _, _ = ctx
+    sid = neue_sammlung(c)["id"]
+    c.post(f"/api/collections/{sid}/items", json={"item_type": "external_post", "item_id": 1})
+
+    post = c.get(f"/api/collections/{sid}").json()["items"][0]["external_post"]
+    assert set(post) == {"id", "platform", "url", "thumbnail_url", "author_name", "oembed_html"}
+
+
 def test_items_folgen_sort_order(ctx):
     c, _, _ = ctx
     sid = neue_sammlung(c)["id"]
