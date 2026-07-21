@@ -33,6 +33,7 @@ import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
+import Netzwerk from './pages/Netzwerk.jsx'
 import ShoppingList from './pages/ShoppingList.jsx'
 import Social from './pages/Social.jsx'
 import ZurListe from './pages/ZurListe.jsx'
@@ -122,6 +123,7 @@ const router = createBrowserRouter([
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },
       { path: '/admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
       { path: '/admin/recipes', element: <AdminRoute><AdminRecipes /></AdminRoute> },
+      { path: '/users/:id/netzwerk', element: <ProtectedRoute><Netzwerk /></ProtectedRoute> },
       { path: '/users/:id', element: <PublicProfile /> },
     ]
   }
