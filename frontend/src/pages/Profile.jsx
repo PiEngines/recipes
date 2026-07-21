@@ -1,11 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
+// 13 · Profil (eigen) — SPEC §13, screens/profil-eigen.html
+//
+// BEWUSSTE ABWEICHUNGEN (Lead-entschieden, F3b-2a — siehe ABWEICHUNGEN.md):
+// - Keine Social-Chips („verbundene Konten"): ohne OAuth gibt es kein
+//   Verbinden. OAuth ist als Produktentscheidung weggeschoben.
+// - Dritter Tab „Einstellungen": §13 kennt nur „Meine Rezepte" und
+//   „Gespeichert". Diese Seite trug aber schon die komplette Kontoverwaltung
+//   (Daten, Passwort, Erscheinungsbild, freigegebene Rezepte, Konto löschen).
+//   Die bleibt erhalten und zieht in einen eigenen Tab, statt ersatzlos zu
+//   verschwinden oder unter den Tabs zu hängen.
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import client from '../api/client'
+import { getCollections, getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import BackButton from '../components/BackButton'
+import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
+import Segmented from '../components/Segmented'
 import { getRoleLabel, isKochOrAbove } from '../utils/roles'
+
+const TABS = [
+  { key: 'rezepte', label: 'MEINE REZEPTE' },
+  { key: 'gespeichert', label: 'GESPEICHERT' },
+  { key: 'einstellungen', label: 'EINSTELLUNGEN' },
+]
+
+const REZEPT_SEGMENTE = [
+  { key: 'published', label: 'VERÖFFENTLICHT' },
+  { key: 'draft', label: 'ENTWÜRFE' },
+]
 
 export default function Profile() {
   const { user, logout } = useAuth()
@@ -34,6 +58,19 @@ export default function Profile() {
   // My recipes
   const [recipes, setRecipes] = useState([])
   const [recipesLoading, setRecipesLoading] = useState(true)
+  const [recipesError, setRecipesError] = useState(false)
+  const [recipeTotal, setRecipeTotal] = useState(null)
+
+  // Profil-Kopf + Tabs (F3b-2a)
+  const [tab, setTab] = useState('rezepte')
+  const [segment, setSegment] = useState('published')
+  const [profil, setProfil] = useState(null)
+
+  // Tab „Gespeichert"
+  const [favorites, setFavorites] = useState([])
+  const [collections, setCollections] = useState([])
+  const [savedLoading, setSavedLoading] = useState(false)
+  const [savedError, setSavedError] = useState(false)
 
   // Sharing matrix
   const [editMode, setEditMode] = useState(false)
@@ -64,14 +101,54 @@ export default function Profile() {
   const [transferUserId, setTransferUserId] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (!user) return
+  const ladeRezepte = useCallback((signal) => {
+    if (!user) return Promise.resolve()
     setRecipesLoading(true)
-    client.get('/api/recipes', { params: { author_id: user.id, page_size: 50, page: 1 } })
-      .then(res => setRecipes(res.data.items))
-      .catch(console.error)
+    setRecipesError(false)
+    // `total` trägt die Rezept-Zahl im Kopf — sie kommt bewusst von hier und
+    // nicht aus /profile, das nur die Follow-Zahlen kennt.
+    return getRecipesByAuthor(user.id, signal ? { signal } : {})
+      .then(daten => {
+        setRecipes(daten.items || [])
+        setRecipeTotal(daten.total ?? (daten.items || []).length)
+      })
+      .catch(err => { if (err.name !== 'CanceledError') setRecipesError(true) })
       .finally(() => setRecipesLoading(false))
   }, [user])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    ladeRezepte(controller.signal)
+    return () => controller.abort()
+  }, [ladeRezepte])
+
+  const userId = user?.id
+  useEffect(() => {
+    if (!userId) return undefined
+    const controller = new AbortController()
+    getProfile(userId, { signal: controller.signal })
+      .then(setProfil)
+      .catch(() => { /* Kopf fällt auf die Auth-Daten zurück */ })
+    return () => controller.abort()
+  }, [userId])
+
+  // Favoriten und Sammlungen erst laden, wenn der Tab wirklich gezeigt wird.
+  const ladeGespeichert = useCallback((signal) => {
+    setSavedLoading(true)
+    setSavedError(false)
+    const opts = signal ? { signal } : {}
+    return Promise.all([getFavorites(opts), getCollections(opts)])
+      .then(([favs, colls]) => { setFavorites(favs || []); setCollections(colls || []) })
+      .catch(err => { if (err.name !== 'CanceledError') setSavedError(true) })
+      .finally(() => setSavedLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (tab !== 'gespeichert') return undefined
+    const controller = new AbortController()
+    ladeGespeichert(controller.signal)
+    return () => controller.abort()
+  }, [tab, ladeGespeichert])
 
   const handleProfileSave = async e => {
     e.preventDefault()
@@ -214,30 +291,35 @@ export default function Profile() {
 
   if (!user) return null
 
-  const initials = user.name?.[0]?.toUpperCase() ?? '?'
+  const veroeffentlicht = recipes.filter(r => r.status !== 'draft')
+  const entwuerfe = recipes.filter(r => r.status === 'draft')
+  const sichtbareRezepte = segment === 'draft' ? entwuerfe : veroeffentlicht
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <ProfileHeader
+        profile={profil || { id: user.id, name: user.name, username: user.username, avatar_url: user.avatar_url }}
+        recipeCount={recipeTotal}
+        overline={getRoleLabel(user.role)}
+      />
 
-        {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ marginBottom: '0.75rem' }}>
-            <BackButton />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--accent)', color: 'var(--on-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 }}>
-              {initials}
-            </div>
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.25rem', color: 'var(--text)' }}>Mein Profil</h1>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>
-                {getRoleLabel(user.role)} · Mitglied seit {new Date(user.created_at || Date.now()).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '1.25rem 1.5rem 2rem' }}>
+        <div style={{ marginBottom: '1rem' }}>
+          <BackButton />
         </div>
 
+        <div style={{ marginBottom: '1.5rem' }}>
+          <Segmented
+            items={TABS}
+            value={tab}
+            onChange={setTab}
+            ariaLabel="Profilbereiche"
+            trackId="profile-tab-switch"
+          />
+        </div>
+
+        {tab === 'einstellungen' && (
+        <>
         {/* Section: Meine Daten */}
         <SectionCard title="Meine Daten">
           <form onSubmit={handleProfileSave}>
@@ -304,12 +386,41 @@ export default function Profile() {
           {settingsMsg.text && <Msg type={settingsMsg.type}>{settingsMsg.text}</Msg>}
           <PrimaryBtn loading={settingsSaving} onClick={handleSettingsSave}>Einstellungen speichern</PrimaryBtn>
         </SectionCard>
+        </>
+        )}
 
-        {/* Section: Meine Rezepte */}
+        {/* Tab: Gespeichert — Favoriten + eigene Sammlungen */}
+        {tab === 'gespeichert' && (
+          <Gespeichert
+            favorites={favorites}
+            collections={collections}
+            loading={savedLoading}
+            error={savedError}
+            onRetry={() => ladeGespeichert()}
+            onRecipeClick={id => navigate(`/recipes/${id}`)}
+          />
+        )}
+
+        {/* Tab: Meine Rezepte */}
+        {tab === 'rezepte' && (
+        <>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <Segmented
+            items={[
+              { ...REZEPT_SEGMENTE[0], badge: veroeffentlicht.length },
+              { ...REZEPT_SEGMENTE[1], badge: entwuerfe.length },
+            ]}
+            value={segment}
+            onChange={setSegment}
+            ariaLabel="Veröffentlicht oder Entwürfe"
+            trackId="profile-recipes-segment"
+          />
+        </div>
+
         <div id="meine-rezepte" style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-card)', padding: '1.5rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-              Meine Rezepte
+              {segment === 'draft' ? 'Entwürfe' : 'Veröffentlicht'}
             </h2>
             {!editMode && recipes.length > 0 && isKochOrAbove(user) && (
               <button onClick={enterEditMode} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
@@ -324,12 +435,29 @@ export default function Profile() {
           </div>
 
           {recipesLoading ? (
-            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Wird geladen …</p>
-          ) : recipes.length === 0 ? (
-            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Du hast noch keine Rezepte erstellt.</p>
+            <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16 }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="skeleton-block" style={{ height: 150, borderRadius: 'var(--radius-card)' }} />
+              ))}
+            </div>
+          ) : recipesError ? (
+            <div>
+              <p style={{ color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: '0 0 0.75rem' }}>
+                Deine Rezepte konnten nicht geladen werden.
+              </p>
+              <button onClick={() => ladeRezepte()} data-track-id="profile-recipes-retry" style={{ padding: '0.5rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', cursor: 'pointer' }}>
+                Erneut versuchen
+              </button>
+            </div>
+          ) : sichtbareRezepte.length === 0 ? (
+            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>
+              {segment === 'draft'
+                ? 'Du hast keine Entwürfe. Ein Rezept bleibt Entwurf, bis du es veröffentlichst.'
+                : 'Du hast noch keine Rezepte veröffentlicht. Erstelle dein erstes Rezept.'}
+            </p>
           ) : editMode ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-              {recipes.map(r => {
+              {sichtbareRezepte.map(r => {
                 const access = accessData[r.id]
                 const freeEntry = access?.items?.find(a => a.access_type === 'free_for_all')
                 const individualCount = access?.items?.filter(a => a.access_type === 'individual').length ?? 0
@@ -396,7 +524,7 @@ export default function Profile() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16 }}>
-              {recipes.map(r => (
+              {sichtbareRezepte.map(r => (
                 <div key={r.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <RecipeCard recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -409,6 +537,14 @@ export default function Profile() {
           )}
         </div>
 
+        </>
+        )}
+
+        {/* Zweiter Einstellungen-Block: bleibt bewusst hier stehen, statt die
+            beiden Sektionen über 200 Zeilen nach oben zu ziehen. Im Tab landen
+            sie direkt unter den ersten dreien. */}
+        {tab === 'einstellungen' && (
+        <>
         {/* Section: Für mich freigegeben */}
         <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-card)', padding: '1.5rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
@@ -483,6 +619,8 @@ export default function Profile() {
             Konto löschen
           </button>
         </SectionCard>
+        </>
+        )}
       </div>
 
       {/* Individual access modal */}
@@ -573,6 +711,97 @@ export default function Profile() {
         </div>
       )}
     </div>
+  )
+}
+
+// ── Tab „Gespeichert" — Favoriten + eigene Sammlungen ────────────────────────
+
+const SICHTBARKEIT_LABEL = {
+  private: 'Privat',
+  public: 'Öffentlich',
+  unlisted: 'Über Link',
+}
+
+function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipeClick }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16 }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="skeleton-block" style={{ height: 150, borderRadius: 'var(--radius-card)' }} />
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p style={{ color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: '0 0 0.75rem' }}>
+          Favoriten und Sammlungen konnten nicht geladen werden.
+        </p>
+        <button onClick={onRetry} data-track-id="profile-saved-retry" style={{ padding: '0.5rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', cursor: 'pointer' }}>
+          Erneut versuchen
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <section id="profile-sammlungen" aria-label="Meine Sammlungen" style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem', color: 'var(--text)' }}>
+          Sammlungen
+        </h2>
+        {collections.length === 0 ? (
+          <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: 0 }}>
+            Du hast noch keine Sammlungen angelegt.
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {collections.map(c => (
+              <Link
+                key={c.id}
+                to={`/collections/${c.id}`}
+                data-track-id="profile-collection-open"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem',
+                  background: 'var(--surface)', border: '1px solid var(--hairline)',
+                  borderRadius: 'var(--radius-card)', textDecoration: 'none',
+                }}
+              >
+                <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 18, color: 'var(--text-muted)' }} />
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text)' }}>
+                  {c.name}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                  {SICHTBARKEIT_LABEL[c.visibility] || c.visibility}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+                  {c.item_count}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section id="profile-favoriten" aria-label="Meine Favoriten">
+        <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem', color: 'var(--text)' }}>
+          Favoriten
+        </h2>
+        {favorites.length === 0 ? (
+          <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: 0 }}>
+            Noch nichts favorisiert. Tippe auf das Herz eines Rezepts.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16, alignItems: 'stretch' }}>
+            {favorites.map(r => (
+              <RecipeCard key={r.id} recipe={r} onClick={() => onRecipeClick(r.id)} />
+            ))}
+          </div>
+        )}
+      </section>
+    </>
   )
 }
 
