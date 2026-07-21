@@ -11,10 +11,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
-import { getCollections, getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
+import { getCollections } from '../api/collections'
+import { getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
 import BackButton from '../components/BackButton'
+import CollectionFormModal from '../components/CollectionFormModal'
 import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
 import Segmented from '../components/Segmented'
@@ -66,6 +68,7 @@ export default function Profile() {
   // einer gelöschten Sammlung nach „Gespeichert". Unbekannte Werte fallen auf
   // den Standard zurück.
   const [suchParams] = useSearchParams()
+  const [sammlungModal, setSammlungModal] = useState(false)
   const [tab, setTab] = useState(() => {
     const gewuenscht = suchParams.get('tab')
     return TABS.some(t => t.key === gewuenscht) ? gewuenscht : 'rezepte'
@@ -405,6 +408,20 @@ export default function Profile() {
             error={savedError}
             onRetry={() => ladeGespeichert()}
             onRecipeClick={id => navigate(`/recipes/${id}`)}
+            onNeueSammlung={() => setSammlungModal(true)}
+          />
+        )}
+
+        {sammlungModal && (
+          <CollectionFormModal
+            onClose={() => setSammlungModal(false)}
+            onCreated={angelegt => {
+              // Sofort in der Liste, ohne Neuladen — und direkt hinein, denn
+              // eine gerade angelegte Sammlung will man befüllen.
+              setCollections(vorher => [...vorher, angelegt])
+              setSammlungModal(false)
+              navigate(`/collections/${angelegt.id}`)
+            }}
           />
         )}
 
@@ -729,7 +746,7 @@ const SICHTBARKEIT_LABEL = {
   unlisted: 'Über Link',
 }
 
-function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipeClick }) {
+function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipeClick, onNeueSammlung }) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16 }}>
@@ -756,9 +773,19 @@ function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipe
   return (
     <>
       <section id="profile-sammlungen" aria-label="Meine Sammlungen" style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem', color: 'var(--text)' }}>
-          Sammlungen
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '0 0 1rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>
+            Sammlungen
+          </h2>
+          <button
+            onClick={onNeueSammlung}
+            data-track-id="profile-collection-create-open"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.85rem', fontWeight: 500, color: 'var(--accent)' }}
+          >
+            <i className="ti ti-plus" aria-hidden="true" style={{ fontSize: 15 }} />
+            Neue Sammlung
+          </button>
+        </div>
         {collections.length === 0 ? (
           <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: 0 }}>
             Du hast noch keine Sammlungen angelegt.

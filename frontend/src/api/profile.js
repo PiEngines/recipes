@@ -52,8 +52,3 @@ export function getRecipesByAuthor(authorId, { page = 1, pageSize = 50, ...opts 
 export function getFavorites(opts = {}) {
   return client.get('/api/favorites', opts).then(r => r.data)
 }
-
-/** Eigene Sammlungen (`CollectionSummary[]`). */
-export function getCollections(opts = {}) {
-  return client.get('/api/collections', opts).then(r => r.data)
-}
