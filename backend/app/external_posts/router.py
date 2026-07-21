@@ -9,7 +9,7 @@ F3b-1 ergänzt oEmbed-Abruf und Zutaten-Extraktion:
 
   POST   /api/external-posts/preview            – Vorschau, legt NICHTS an
   POST   /api/external-posts/{id}/refresh       – oEmbed erneut abrufen (Owner)
-  PATCH  /api/external-posts/{id}               – Caption/Zutaten pflegen (Owner)
+  PATCH  /api/external-posts/{id}               – Caption/Zutaten/Rezept (Owner)
   POST   /api/external-posts/{id}/to-shopping-list – Zutaten übernehmen (Owner)
 
 Beim Anlegen werden `oembed_html`, `thumbnail_url`, `author_name` und (nur bei
@@ -34,7 +34,8 @@ from app.external_posts.schemas import (
     ExternalPostPreviewRequest,
     ToShoppingListResponse,
 )
-from app.models import ExternalPlatform, ExternalPost, ShoppingListItem, User
+from app.models import ExternalPlatform, ExternalPost, Recipe, ShoppingListItem, User
+from app.models.recipe import RecipeStatus
 from app.shopping.router import _next_sort_order
 
 router = APIRouter(prefix="/api/external-posts", tags=["external-posts"])
@@ -110,6 +111,40 @@ def _enrich(post: ExternalPost) -> bool:
     return True
 
 
+def _detail(db: Session, post: ExternalPost) -> ExternalPostDetail:
+    """Detail-Antwort inkl. `recipe_title` — ein Join statt eines Nachladens
+    im Frontend."""
+    detail = ExternalPostDetail.model_validate(post)
+    if post.recipe_id is None:
+        return detail
+
+    titel = db.query(Recipe.title).filter(Recipe.id == post.recipe_id).scalar()
+    return detail.model_copy(update={"recipe_title": titel})
+
+
+def _geprueftes_rezept(db: Session, recipe_id: int | None) -> int | None:
+    """Verknüpfbar ist nur ein existierendes, veröffentlichtes Rezept.
+
+    Ein Entwurf oder ein gelöschtes Rezept würde im Frontend zu einem
+    „Rezept ansehen"-Button führen, der ins Leere zeigt.
+    """
+    if recipe_id is None:
+        return None
+
+    rezept = (
+        db.query(Recipe.id)
+        .filter(
+            Recipe.id == recipe_id,
+            Recipe.deleted_at.is_(None),
+            Recipe.status == RecipeStatus.published,
+        )
+        .first()
+    )
+    if rezept is None:
+        raise HTTPException(status_code=400, detail="Rezept nicht gefunden")
+    return recipe_id
+
+
 def _own_post_or_404(db: Session, post_id: int, user: User) -> ExternalPost:
     post = db.query(ExternalPost).filter(ExternalPost.id == post_id).first()
     if post is None:
@@ -146,7 +181,7 @@ def create_external_post(
         db.commit()
         db.refresh(post)
 
-    return ExternalPostDetail.model_validate(post)
+    return _detail(db, post)
 
 
 @router.post("/preview", response_model=ExternalPostPreview)
@@ -194,7 +229,7 @@ def refresh_external_post(
 
     db.commit()
     db.refresh(post)
-    return ExternalPostDetail.model_validate(post)
+    return _detail(db, post)
 
 
 @router.get("", response_model=list[ExternalPostItem])
@@ -221,7 +256,7 @@ def get_external_post(
     post = db.query(ExternalPost).filter(ExternalPost.id == post_id).first()
     if post is None:
         raise HTTPException(status_code=404, detail="Beitrag nicht gefunden")
-    return ExternalPostDetail.model_validate(post)
+    return _detail(db, post)
 
 
 @router.patch("/{post_id}", response_model=ExternalPostDetail)
@@ -231,7 +266,7 @@ def patch_external_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_koch_or_above),
 ):
-    """Caption nachtragen oder die Zutatenliste korrigieren.
+    """Caption nachtragen, Zutatenliste korrigieren oder Rezept verknüpfen.
 
     Der Hauptfall ist Instagram: von dort kommt per oEmbed keine Caption, der
     User fügt sie also selbst ein — daraufhin wird neu geparst. Schickt er
@@ -240,6 +275,11 @@ def patch_external_post(
     """
     post = _own_post_or_404(db, post_id, current_user)
     gesetzt = body.model_fields_set
+
+    # Zuerst prüfen, dann schreiben: ein abgelehntes `recipe_id` darf keine
+    # halb angewandte Caption-Änderung in der Session zurücklassen.
+    if "recipe_id" in gesetzt:
+        post.recipe_id = _geprueftes_rezept(db, body.recipe_id)
 
     if "caption_text" in gesetzt:
         post.caption_text = body.caption_text or None
@@ -254,7 +294,7 @@ def patch_external_post(
 
     db.commit()
     db.refresh(post)
-    return ExternalPostDetail.model_validate(post)
+    return _detail(db, post)
 
 
 @router.post(

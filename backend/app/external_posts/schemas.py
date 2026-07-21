@@ -27,6 +27,10 @@ class ExternalPostDetail(ExternalPostItem):
     caption_text: str | None = None
     extracted_ingredients: list | dict | None = None
     created_at: datetime
+    recipe_id: int | None = None
+    # Kein Spaltenwert, sondern per Join nachgereicht — trägt den „Rezept
+    # ansehen"-Button, ohne dass das Frontend das Rezept nachladen muss.
+    recipe_title: str | None = None
 
 
 class ExternalPostPreviewRequest(BaseModel):
@@ -59,6 +63,9 @@ class ExternalPostPatch(BaseModel):
 
     caption_text: str | None = None
     extracted_ingredients: list[ExtractedIngredient] | None = None
+    # `null` löst die Verknüpfung — deshalb die Unterscheidung über
+    # `model_fields_set`.
+    recipe_id: int | None = None
 
 
 class ToShoppingListResponse(BaseModel):
