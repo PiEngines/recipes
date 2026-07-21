@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import client from '../api/client'
 import MediaUpload from '../components/MediaUpload'
 import BackButton from '../components/BackButton'
+import RecipePreview from '../components/RecipePreview'
 import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
@@ -603,6 +604,7 @@ export default function RecipeForm() {
   const moduleSearchTimers = useRef({})
   const [extractDialog, setExtractDialog] = useState(null)
   const [extracting, setExtracting] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   // Media state (managed independently of recipe API payload)
   const [recipeMedia, setRecipeMedia] = useState([])
@@ -2047,6 +2049,27 @@ export default function RecipeForm() {
         </main>
       </div>
 
+      {/* Vorschau (§05) — read-only, aus dem aktuellen Formularstand. Der
+          Autosave läuft im Hintergrund weiter, der Editor bleibt montiert. */}
+      {previewOpen && (
+        <RecipePreview
+          title={title}
+          description={description}
+          prepTime={prepTime}
+          cookTime={cookTime}
+          servings={servings}
+          difficulty={difficulty}
+          type={type}
+          course={course}
+          source={source}
+          categories={selectedCats}
+          tags={selectedTags}
+          ingredients={ingredients}
+          steps={steps}
+          onClose={() => setPreviewOpen(false)}
+        />
+      )}
+
       {/* Wizard footer */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--card)', boxShadow: '0 -2px 12px rgba(0,0,0,0.1)', zIndex: 200 }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.625rem' }}>
@@ -2063,9 +2086,8 @@ export default function RecipeForm() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <button
               data-track-id="recipe-form-preview"
-              onClick={() => window.open(`/recipes/${recipeId}?preview=true`, '_blank')}
-              disabled={!recipeId}
-              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: recipeId ? 'var(--text)' : 'var(--border-input)', cursor: recipeId ? 'pointer' : 'not-allowed', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
+              onClick={() => setPreviewOpen(true)}
+              style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
               Vorschau
             </button>
             {wizardStep < STEPS.length - 1 ? (
