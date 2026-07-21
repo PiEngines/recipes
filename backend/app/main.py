@@ -16,6 +16,7 @@ from app.config import settings
 from app.external_posts.router import router as external_posts_router
 from app.external_posts.router import users_router as external_posts_users_router
 from app.favorites.router import router as favorites_router
+from app.feed.router import router as feed_router
 from app.follows.router import router as follows_router
 from app.garden.router import router as garden_router
 from app.media.router import router as media_router
@@ -290,6 +291,7 @@ app.include_router(external_posts_router)
 app.include_router(external_posts_users_router)
 app.include_router(collections_router)
 app.include_router(user_collections_router)
+app.include_router(feed_router)
 
 
 @app.get("/api/health")
