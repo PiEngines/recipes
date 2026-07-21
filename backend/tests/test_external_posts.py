@@ -1,14 +1,19 @@
-"""Tests für External Posts (F3a Commit 3).
+"""Tests für External Posts — Persistenz, Host-Validierung, Sichtbarkeit.
 
-Wichtig: F3a darf keinen Netzwerk-Abruf machen — die Ableitungsfelder müssen
-nach dem Anlegen nachweislich leer bleiben.
+Angelegt in F3a (Commit 3). Seit F3b-1 reichert das Anlegen den Beitrag per
+oEmbed an; die Anreicherung selbst prüft `test_external_posts_oembed.py`. Hier
+wird sie durchgängig als *fehlgeschlagen* gemockt — das hält diese Suite auf
+ihrem Thema und stellt zugleich sicher, dass kein Test ins Netz geht.
 """
+from unittest.mock import patch
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.auth.dependencies import require_koch_or_above
 from app.database import get_db
+from app.external_posts.oembed import OEmbedError
 from app.external_posts.router import router as posts_router
 from app.models import ExternalPost
 from app.models.user import UserRole
@@ -16,6 +21,16 @@ from tests.dbfixtures import make_session_factory, make_user
 
 INSTA = "https://www.instagram.com/p/ABC123/"
 TIKTOK = "https://www.tiktok.com/@koch/video/12345"
+
+
+@pytest.fixture(autouse=True)
+def kein_netz():
+    """Sicherheitsnetz: kein Test dieser Datei darf oEmbed wirklich aufrufen."""
+    with patch(
+        "app.external_posts.router.fetch_oembed",
+        side_effect=OEmbedError("in Tests nicht abgerufen"),
+    ):
+        yield
 
 
 @pytest.fixture
@@ -57,8 +72,9 @@ def test_tiktok_post_anlegen(ctx):
     assert c.post("/api/external-posts", json={"platform": "tiktok", "url": TIKTOK}).status_code == 201
 
 
-def test_ableitungsfelder_bleiben_leer(ctx):
-    """F3a macht keinen Fetch — nichts darf versehentlich gefuellt sein."""
+def test_ableitungsfelder_bleiben_bei_oembed_fehler_leer(ctx):
+    """Schlägt die Anreicherung fehl, bleibt der Beitrag trotzdem gespeichert —
+    mit leeren Cache-Feldern, nachziehbar per `/refresh`."""
     c, db, _ = ctx
     c.post("/api/external-posts", json={"platform": "instagram", "url": INSTA})
     post = db.query(ExternalPost).first()

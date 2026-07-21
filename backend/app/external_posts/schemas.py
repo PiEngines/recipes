@@ -27,3 +27,23 @@ class ExternalPostDetail(ExternalPostItem):
     caption_text: str | None = None
     extracted_ingredients: list | dict | None = None
     created_at: datetime
+
+
+class ExternalPostPreviewRequest(BaseModel):
+    """Vorschau vor dem Speichern — gleiche Felder wie `ExternalPostCreate`,
+    aber bewusst ein eigener Typ: die beiden duerfen sich unabhaengig
+    entwickeln."""
+
+    platform: ExternalPlatform
+    url: str = Field(min_length=1, max_length=1000)
+
+
+class ExternalPostPreview(BaseModel):
+    """Live-Vorschau. Kein `id`/`created_at` — es wird nichts angelegt."""
+
+    platform: str
+    url: str
+    oembed_html: str | None = None
+    thumbnail_url: str | None = None
+    author_name: str | None = None
+    caption_text: str | None = None
