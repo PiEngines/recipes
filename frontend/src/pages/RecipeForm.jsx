@@ -611,6 +611,14 @@ export default function RecipeForm() {
   const [recipeId, setRecipeId] = useState(id ? parseInt(id) : null)
   const [savedAt, setSavedAt] = useState(null)
   const [isDirty, setIsDirty] = useState(false)
+  // Status des geladenen Rezepts — bestimmt den Modus (siehe `entwurfModus`).
+  // Bei einem neuen Rezept steht er sofort fest, beim Bearbeiten erst nach dem
+  // Laden; bis dahin `null`, damit kein Autosave zu früh greift.
+  const [recipeStatus, setRecipeStatus] = useState(isEdit ? null : 'draft')
+  // Zählt jede Änderung — daran hängt der Debounce des Entwurf-Autosaves.
+  // `isDirty` allein reicht nicht: es bleibt bis zum Speichern `true` und
+  // würde den Timer nicht je Tastenanschlag neu starten.
+  const [changeTick, setChangeTick] = useState(0)
   const [savingAs, setSavingAs] = useState(null)
   const [saveError, setSaveError] = useState(null)
   const [toast, setToast] = useState(null)
@@ -634,6 +642,20 @@ export default function RecipeForm() {
 
   const savingRef = useRef(false)
   const stateRef = useRef({})
+  // Eine Änderung, die während eines laufenden Saves eintrifft, wird nach
+  // dessen Abschluss nachgeholt — sonst ginge sie bis zum nächsten Trigger
+  // verloren.
+  const nachholenRef = useRef(false)
+  // Welche id bereits in das Formular geladen wurde. Nach dem ersten Autosave
+  // schreiben wir die URL auf /recipes/:id/edit um; ohne diese Sperre würde der
+  // Lade-Effekt erneut feuern und die gerade getippten Änderungen überschreiben.
+  const geladeneIdRef = useRef(id || null)
+
+  // Entwurf-Modus: neues Rezept oder geladener Entwurf. Nur hier wird als
+  // Entwurf automatisch gespeichert. Veröffentlichte Rezepte behalten beim
+  // Bearbeiten ihren bestehenden Versions-/Review-Flow — dieser Pfad bleibt
+  // bewusst unangetastet.
+  const entwurfModus = !isEdit || recipeStatus === 'draft'
 
   useEffect(() => {
     stateRef.current = {
@@ -643,10 +665,15 @@ export default function RecipeForm() {
       ingredients, steps,
       recipeId,
       serveWith,
+      entwurfModus,
+      isDirty,
     }
   })
 
-  const markDirty = useCallback(() => setIsDirty(true), [])
+  const markDirty = useCallback(() => {
+    setIsDirty(true)
+    setChangeTick(t => t + 1)
+  }, [])
 
   useEffect(() => {
     if (wizardStep === 1 && !aTextInitRef.current) {
@@ -744,8 +771,13 @@ export default function RecipeForm() {
   // Load existing recipe in edit mode
   useEffect(() => {
     if (!isEdit) return
+    // Nach dem ersten Autosave zeigt die URL auf das eben angelegte Rezept.
+    // Dieses erneute Laden würde den aktuellen Formularstand überschreiben.
+    if (geladeneIdRef.current && String(geladeneIdRef.current) === String(id)) return
+    geladeneIdRef.current = id
     client.get(`/api/recipes/${id}`)
       .then(({ data: r }) => {
+        setRecipeStatus(r.status || 'published')
         const ings = [...r.ingredients].sort((a, b) => a.sort_order - b.sort_order)
         const sps = [...r.steps].sort((a, b) => a.sort_order - b.sort_order)
         const snap = {
@@ -848,8 +880,11 @@ export default function RecipeForm() {
     client.post(`/api/recipes/${id}/snapshot`).catch(() => {})
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Build API payload from stateRef
-  const buildPayload = useCallback(() => {
+  // Build API payload from stateRef.
+  // `statusOverride` setzt den Zielstatus explizit (Veröffentlichen); ohne ihn
+  // ergibt er sich aus dem Modus: Entwürfe bleiben Entwürfe, veröffentlichte
+  // Rezepte bleiben veröffentlicht.
+  const buildPayload = useCallback((statusOverride) => {
     const s = stateRef.current
     return {
       title: s.title,
@@ -858,7 +893,7 @@ export default function RecipeForm() {
       cook_time: s.cookTime !== '' ? parseInt(s.cookTime) : null,
       servings: s.servings !== '' ? parseInt(s.servings) : null,
       difficulty: s.difficulty || null,
-      status: 'published',
+      status: statusOverride || (s.entwurfModus ? 'draft' : 'published'),
       type: s.type,
       course: s.course || null,
       source: s.source || null,
@@ -886,10 +921,10 @@ export default function RecipeForm() {
     if (!s.title.trim()) return null
     if (savingRef.current) return null
     savingRef.current = true
-    setSavingAs('published')
+    setSavingAs(targetStatus || (s.entwurfModus ? 'draft' : 'published'))
     setSaveError(null)
     try {
-      const payload = buildPayload()
+      const payload = buildPayload(targetStatus)
       let result
       const rid = s.recipeId
       if (rid) {
@@ -900,6 +935,9 @@ export default function RecipeForm() {
         const newId = result.data.id
         setRecipeId(newId)
         stateRef.current.recipeId = newId
+        // Vor dem Umschreiben der URL sperren, damit der Lade-Effekt das
+        // Formular nicht sofort wieder mit dem Serverstand überschreibt.
+        geladeneIdRef.current = String(newId)
         navigate(`/recipes/${newId}/edit`, { replace: true })
       }
       setSavedAt(new Date())
@@ -940,6 +978,54 @@ export default function RecipeForm() {
       setSavingAs(null)
     }
   }, [buildPayload, navigate])
+
+  // ── Entwurf-Autosave (F3b-2c) ──────────────────────────────────────────────
+  // Greift ausschliesslich im Entwurf-Modus. Erster Save legt per POST an
+  // (genau einmal — danach steht die id und es sind nur noch PUTs), Folge-Saves
+  // laufen mit `skip_version=true`, damit nicht jeder Tastenanschlag eine
+  // Version erzeugt.
+  const entwurfSpeichern = useCallback(async () => {
+    const s = stateRef.current
+    if (!s.entwurfModus || !s.title.trim()) return
+    if (savingRef.current) {
+      // Läuft schon einer: nach dessen Abschluss nachholen.
+      nachholenRef.current = true
+      return
+    }
+    await doSave('draft', true)
+    // Wurde währenddessen weitergetippt, direkt noch einmal speichern.
+    while (nachholenRef.current) {
+      nachholenRef.current = false
+      if (!stateRef.current.title.trim()) break
+      await doSave('draft', true)
+    }
+  }, [doSave])
+
+  // Immer die aktuelle Fassung greifbar halten — für Flush aus Effekten mit
+  // leerer Abhängigkeitsliste (Unmount).
+  const entwurfSpeichernRef = useRef(entwurfSpeichern)
+  useEffect(() => { entwurfSpeichernRef.current = entwurfSpeichern })
+
+  // Debounce: ~2 s nach der letzten Änderung.
+  useEffect(() => {
+    if (!entwurfModus || changeTick === 0 || !isDirty) return undefined
+    const t = setTimeout(() => { entwurfSpeichernRef.current() }, 2000)
+    return () => clearTimeout(t)
+  }, [changeTick, entwurfModus, isDirty])
+
+  // Flush beim Schritt-Wechsel — deckt alle Wege ab (Stepper, Weiter, Zurück).
+  const letzterStepRef = useRef(wizardStep)
+  useEffect(() => {
+    if (letzterStepRef.current === wizardStep) return
+    letzterStepRef.current = wizardStep
+    if (entwurfModus && isDirty) entwurfSpeichernRef.current()
+  }, [wizardStep, entwurfModus, isDirty])
+
+  // Flush beim Verlassen des Editors — nur wenn wirklich etwas offen ist.
+  useEffect(() => () => {
+    const s = stateRef.current
+    if (s.entwurfModus && s.isDirty && s.title?.trim()) entwurfSpeichernRef.current()
+  }, [])
 
   // Autosave condition
   const canAutosave = useCallback(() => {
