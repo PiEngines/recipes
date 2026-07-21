@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import ExternalPostEmbed from '../components/ExternalPostEmbed'
 import RecipeCard from '../components/RecipeCard'
 import { getCategoryColor } from '../theme/categoryColors'
 
@@ -86,6 +87,62 @@ function KrautHero({ onClick }) {
   )
 }
 
+// ── KrautKachel (F3b-3) ──────────────────────────────────────────────────────
+// Das Kraut des Monats als Kachel im Entdecken-Feed — gleiche Proportion und
+// Rundung wie RecipeCard, aber in der Kräuter-Farbwelt (grüner Akzent), damit
+// es sich im Raster einreiht und trotzdem als anderer Inhaltstyp lesbar ist.
+
+function KrautKachel({ spotlight, onClick }) {
+  if (!spotlight) return null
+
+  return (
+    <div
+      onClick={onClick}
+      data-track-id="home-feed-kraut-click"
+      style={{
+        position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+        aspectRatio: '4 / 3', overflow: 'hidden', cursor: 'pointer',
+        background: 'var(--surface)', border: '1px solid var(--hairline)',
+        borderLeft: '3px solid var(--green)', borderRadius: 'var(--radius-card)',
+        boxShadow: 'var(--shadow-card)', padding: '12px 13px',
+      }}
+    >
+      {/* Kräuter-Glyph — dezent, wie im KrautHero */}
+      <svg style={{ position: 'absolute', right: 8, top: 8, opacity: 0.08, pointerEvents: 'none' }}
+        width="52" height="52" viewBox="0 0 24 24" fill="var(--green)" aria-hidden="true">
+        <path d="M12 2C6 2 2 8 2 14c0 4 3 7 7 8 1-3 2-5 4-6-2 0-4-1-4-3s2-5 3-5 5 1 5 3-1 3-3 4c2 1 3 4 4 7 4-1 6-5 6-8 0-6-4-12-10-12z" />
+      </svg>
+      <div style={{ position: 'relative', minWidth: 0 }}>
+        <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--green)' }}>
+          ✦ Kraut des Monats
+        </p>
+        <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 19, lineHeight: 1.1, letterSpacing: '-.2px', color: 'var(--text)' }}>
+          {spotlight.deutscher_name}
+        </h3>
+        {spotlight.teaser && (
+          <p style={{ margin: '5px 0 0', fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.45, color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {spotlight.teaser}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Ladeplatzhalter im Raster — hält das Layout ruhig, statt es springen zu lassen.
+function FeedSkelett() {
+  return (
+    <div style={{ aspectRatio: '4 / 3', borderRadius: 'var(--radius-card)', background: 'var(--bg-alt)', border: '1px solid var(--hairline)' }} />
+  )
+}
+
+// Ein Feed-Item ist ein getaggter Umschlag — `type` sagt, welches Feld trägt.
+function feedKey(item, index) {
+  if (item.type === 'recipe') return `recipe-${item.recipe?.id ?? index}`
+  if (item.type === 'external_post') return `post-${item.post?.id ?? index}`
+  return `spotlight-${item.spotlight?.slug ?? index}`
+}
+
 // ── Home ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -97,7 +154,10 @@ export default function Home() {
   const [neue, setNeue] = useState([])
   const [feed, setFeed] = useState([])
   const [feedLoading, setFeedLoading] = useState(false)
-  const feedState = useRef({ page: 1, loading: false, done: false })
+  const [feedError, setFeedError] = useState(false)
+  // Cursor statt Seitenzahl: der Feed ist ein Live-Stream, Offset-Paginierung
+  // würde beim Nachladen driften (Dubletten bzw. übersprungene Items).
+  const feedState = useRef({ cursor: null, loading: false, done: false })
   const sentinelRef = useRef(null)
 
   useEffect(() => {
@@ -121,16 +181,30 @@ export default function Home() {
     if (st.loading || st.done) return
     st.loading = true
     setFeedLoading(true)
-    client.get('/api/recipes', { params: { page: st.page, page_size: 6 } })
+    setFeedError(false)
+    const params = { limit: 12 }
+    if (st.cursor) params.before = st.cursor
+    client.get('/api/feed', { params })
       .then(({ data }) => {
-        const items = data.items || []
-        if (items.length < 6) st.done = true
-        st.page += 1
-        setFeed(prev => [...prev, ...items])
+        st.cursor = data.next_cursor ?? null
+        if (!st.cursor) st.done = true
+        setFeed(prev => [...prev, ...(data.items || [])])
       })
-      .catch(() => {})
+      .catch(() => {
+        // Pausieren statt weiterprobieren: der Sentinel steht am Seitenende und
+        // würde sonst sofort den nächsten Fehlversuch auslösen. Der Retry-Button
+        // gibt das Nachladen wieder frei.
+        st.done = true
+        setFeedError(true)
+      })
       .finally(() => { st.loading = false; setFeedLoading(false) })
   }, [])
+
+  const retryFeed = useCallback(() => {
+    feedState.current.done = false
+    setFeedError(false)
+    loadFeed()
+  }, [loadFeed])
 
   useEffect(() => { loadFeed() }, [loadFeed])
 
@@ -242,15 +316,67 @@ export default function Home() {
           Entdecken
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 12 }}>
-          {feed.map(r => (
-            <RecipeCard key={r.id} recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
-          ))}
+          {feed.map((item, index) => {
+            const key = feedKey(item, index)
+
+            if (item.type === 'recipe' && item.recipe) {
+              return (
+                <RecipeCard key={key} recipe={item.recipe}
+                  onClick={() => navigate(`/recipes/${item.recipe.id}`)} />
+              )
+            }
+
+            if (item.type === 'spotlight' && item.spotlight) {
+              return (
+                <KrautKachel key={key} spotlight={item.spotlight}
+                  onClick={() => navigate(`/pflanzen/${item.spotlight.slug}`)} />
+              )
+            }
+
+            if (item.type === 'external_post' && item.post) {
+              // Volle Zeilenbreite: die Embeds bringen ihre eigene Größe mit
+              // (Instagram-iFrame, TikTok-Player) und sind zum Abspielen da,
+              // nicht zum Anreißen — als halbbreite Kachel wären sie unbedienbar.
+              return (
+                <div key={key} style={{ gridColumn: '1 / -1' }} data-track-id="home-feed-post-view">
+                  <ExternalPostEmbed post={item.post} />
+                </div>
+              )
+            }
+
+            return null
+          })}
+          {feedLoading && feed.length === 0 && (
+            <>
+              <FeedSkelett /><FeedSkelett /><FeedSkelett /><FeedSkelett />
+            </>
+          )}
         </div>
-        {feedLoading && (
+
+        {feedLoading && feed.length > 0 && (
           <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: 13 }}>
             Lädt …
           </div>
         )}
+
+        {feedError && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '18px 0 8px' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--subtext)' }}>
+              Konnte nicht geladen werden.
+            </span>
+            <button onClick={retryFeed} data-track-id="home-feed-retry-click"
+              style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: 'var(--accent)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
+        {!feedLoading && !feedError && feed.length === 0 && (
+          <p style={{ textAlign: 'center', padding: '18px 0 8px', margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>
+            Hier ist noch nichts — Rezepte und Beiträge erscheinen, sobald sie angelegt sind.
+          </p>
+        )}
+
         <div ref={sentinelRef} style={{ height: 1 }} />
       </section>
     </div>
