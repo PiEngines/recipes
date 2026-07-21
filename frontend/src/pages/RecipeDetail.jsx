@@ -7,6 +7,7 @@ import { useTimerContext } from '../context/TimerContext'
 import { useNavigation } from '../context/NavigationContext'
 import MediaLightbox from '../components/MediaLightbox'
 import BackButton from '../components/BackButton'
+import CollectionPicker from '../components/CollectionPicker'
 import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
 import RatingStars from '../components/RatingStars'
@@ -723,6 +724,7 @@ export default function RecipeDetail() {
   // gestengetrieben und Bring! landet über den AppsFlyer-Fallback im Play Store.
   const [bringLink, setBringLink] = useState('')
   const [bringError, setBringError] = useState('')
+  const [sammlungPicker, setSammlungPicker] = useState(false)
 
   const stepRefs = useRef({})
 
@@ -1018,6 +1020,20 @@ export default function RecipeDetail() {
                 <span aria-hidden="true" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, lineHeight: 1 }}>B</span>
                 An Bring! senden
               </a>
+              <button
+                onClick={() => setSammlungPicker(true)}
+                data-track-id="recipe-detail-in-sammlung"
+                style={{
+                  flex: '1 1 auto', minWidth: 180, padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', cursor: 'pointer',
+                  background: 'none', border: '1.5px solid var(--border-input)',
+                  color: 'var(--subtext)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <i className="ti ti-books" style={{ fontSize: 15 }} /> In Sammlung
+              </button>
             </div>
             {bringError && (
               <p role="status" className="md:px-0" style={{ margin: '-0.75rem 0 1rem', padding: '0 18px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--danger)' }}>
@@ -1113,6 +1129,14 @@ export default function RecipeDetail() {
           images={lightboxImages}
           startIndex={lightboxIndex}
           onClose={() => setLightboxOpen(false)}
+        />
+      )}
+
+      {sammlungPicker && (
+        <CollectionPicker
+          itemType="recipe"
+          itemId={recipe.id}
+          onClose={() => setSammlungPicker(false)}
         />
       )}
     </div>

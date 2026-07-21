@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import CollectionPicker from '../components/CollectionPicker'
 import PostKachel from '../components/PostKachel'
 import PostOverlay from '../components/PostOverlay'
 import RecipeCard from '../components/RecipeCard'
@@ -157,6 +158,7 @@ export default function Home() {
   const [feedLoading, setFeedLoading] = useState(false)
   const [feedError, setFeedError] = useState(false)
   const [offenerPost, setOffenerPost] = useState(null)
+  const [sammlungFuerPost, setSammlungFuerPost] = useState(null)
   // Cursor statt Seitenzahl: der Feed ist ein Live-Stream, Offset-Paginierung
   // würde beim Nachladen driften (Dubletten bzw. übersprungene Items).
   const feedState = useRef({ cursor: null, loading: false, done: false })
@@ -381,7 +383,19 @@ export default function Home() {
         <div ref={sentinelRef} style={{ height: 1 }} />
 
         {offenerPost && (
-          <PostOverlay post={offenerPost} onClose={() => setOffenerPost(null)} />
+          <PostOverlay
+            post={offenerPost}
+            onClose={() => setOffenerPost(null)}
+            onInSammlung={post => setSammlungFuerPost(post)}
+          />
+        )}
+
+        {sammlungFuerPost && (
+          <CollectionPicker
+            itemType="external_post"
+            itemId={sammlungFuerPost.id}
+            onClose={() => setSammlungFuerPost(null)}
+          />
         )}
       </section>
     </div>

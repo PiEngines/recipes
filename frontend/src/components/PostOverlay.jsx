@@ -13,7 +13,7 @@ import { useEffect } from 'react'
 
 import ExternalPostEmbed from './ExternalPostEmbed'
 
-export default function PostOverlay({ post, onClose }) {
+export default function PostOverlay({ post, onClose, onInSammlung = null }) {
   useEffect(() => {
     const onKey = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
@@ -63,6 +63,24 @@ export default function PostOverlay({ post, onClose }) {
         style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}
       >
         <ExternalPostEmbed post={post} />
+
+        {/* Optionale Aktion — nur wo der Aufrufer sie anbietet (F3b-2b). */}
+        {onInSammlung && (
+          <button
+            onClick={() => onInSammlung(post)}
+            data-track-id="post-overlay-in-sammlung"
+            style={{
+              marginTop: 12, width: '100%', padding: '11px 16px',
+              borderRadius: 'var(--radius-input)', cursor: 'pointer',
+              background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
+              color: 'var(--on-dark)',
+              fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            }}
+          >
+            <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 15 }} /> In Sammlung
+          </button>
+        )}
       </div>
     </div>
   )
