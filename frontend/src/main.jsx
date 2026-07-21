@@ -28,7 +28,6 @@ import RecipeForm from './pages/RecipeForm.jsx'
 import Recipes from './pages/Recipes.jsx'
 import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
-import Feed from './pages/Feed.jsx'
 import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
@@ -111,7 +110,6 @@ const router = createBrowserRouter([
       { path: '/recipes/:id/zur-liste', element: <ProtectedRoute><ZurListe /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
-      { path: '/feed', element: <ProtectedRoute><Feed /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },

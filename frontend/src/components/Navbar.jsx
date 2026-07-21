@@ -174,11 +174,10 @@ export default function Navbar({ onBellClick, notificationCount = 0 }) {
               <h1 style={{ margin: '2px 0 0', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 26, lineHeight: 1, letterSpacing: '-0.3px', color: 'var(--on-dark)' }}>PiEngines</h1>
               <p style={{ margin: '3px 0 0', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.1em', color: 'var(--on-dark)', opacity: 0.5 }}>— Rezepte &amp; Kräuterschule</p>
             </Link>
-            {/* Rechts: Feed · Glocke · Theme · Avatar */}
+            {/* Rechts: Glocke · Theme · Avatar
+                Kein Feed-Icon mehr: der Feed lebt seit F3b-3 in der
+                Entdecken-Sektion der Startseite, nicht auf einer eigenen Seite. */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-              <IconBtn onClick={() => navigate('/feed')} trackId="header-feed-click" title="Feed">
-                <i className="ti ti-users" style={{ fontSize: 19 }} />
-              </IconBtn>
               <IconBtn onClick={onBellClick} trackId="header-notifications-click" title="Neuigkeiten" badge={notificationCount}>
                 <i className="ti ti-bell" style={{ fontSize: 19 }} />
               </IconBtn>
