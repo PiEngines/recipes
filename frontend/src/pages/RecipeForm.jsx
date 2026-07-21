@@ -1180,6 +1180,21 @@ export default function RecipeForm() {
     pendingNavRef.current = null
   }
 
+  // Veröffentlichen (Feinschliff, nur Entwurf-Modus). Bewusst ein normaler PUT
+  // ohne `skip_version` — anders als die Autosaves soll das eine Version
+  // erzeugen. Danach ist das Rezept kein Entwurf mehr.
+  const handleVeroeffentlichen = useCallback(async () => {
+    if (savingRef.current || !stateRef.current.title.trim()) return
+    // Eine offene Autosave-Nachholung darf den Status nicht wieder auf 'draft'
+    // ziehen, nachdem veröffentlicht wurde.
+    nachholenRef.current = false
+    const data = await doSave('published', false)
+    if (!data) return
+    // Ab hier kein Entwurf mehr: das nimmt auch dem Unmount-Flush den Boden.
+    setRecipeStatus('published')
+    navigate(`/recipes/${data.id}`)
+  }, [doSave, navigate])
+
   // ✕ Schliessen im Entwurf-Modus: der Entwurf bleibt erhalten, es geht nichts
   // verloren. Nachgefragt wird nur, wenn gerade ein Save laeuft oder noch
   // Aenderungen offen sind — sonst waere die Rueckfrage reine Reibung.
@@ -1196,6 +1211,18 @@ export default function RecipeForm() {
   // Save status display — im Bestandsmodus unverändert wie bisher.
   const saveStatusText = savingAs ? 'Speichert …' : saveError ? saveError : isDirty ? 'Nicht gespeichert' : savedAt ? `Gespeichert um ${fmtTime(savedAt)}` : ''
   const saveStatusColor = saveError ? '#C84444' : isDirty ? '#C8A020' : savingAs ? 'var(--subtext)' : 'var(--secondary)'
+
+  // Pflichtfeld-Gate fürs Veröffentlichen (§05 Feinschliff). Was fehlt, wird
+  // benannt — ein bloss gesperrter Button erklärt sich nicht von selbst.
+  const fehlendeFelder = [
+    !title.trim() && 'Titel',
+    prepTime === '' && 'Vorbereitungszeit',
+    cookTime === '' && 'Zubereitungszeit',
+    servings === '' && 'Portionen',
+    !type && 'Art',
+    !course && 'Gang',
+  ].filter(Boolean)
+  const kannVeroeffentlichen = fehlendeFelder.length === 0
 
   // Autosave-Indikator (§05) — nur im Entwurf-Modus. Drei Zustände:
   // speichert · Entwurf gespeichert · Fehler (mit Retry).
@@ -1845,6 +1872,17 @@ export default function RecipeForm() {
               <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.25rem' }}>Feinschliff</div>
               <p style={{ fontSize: '0.875rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', marginBottom: '1.75rem' }}>Letzte Details — dann ist dein Rezept fertig.</p>
 
+              {/* Was zum Veröffentlichen noch fehlt — der gesperrte Button
+                  allein würde das nicht erklären. */}
+              {entwurfModus && !kannVeroeffentlichen && (
+                <div style={{ marginBottom: '1.75rem', padding: '0.75rem 0.875rem', borderRadius: 'var(--radius-input)', background: 'var(--bg-alt)', borderLeft: '3px solid #C8A020' }}>
+                  <p style={{ margin: 0, fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', lineHeight: 1.5, color: 'var(--subtext)' }}>
+                    Zum Veröffentlichen fehlt noch: <strong style={{ color: 'var(--text)' }}>{fehlendeFelder.join(', ')}</strong>.
+                    Dein Entwurf ist gespeichert — du kannst jederzeit weitermachen.
+                  </p>
+                </div>
+              )}
+
               {/* 1. Zeiten + Portionen */}
               <div style={{ marginBottom: '1.75rem' }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Zeiten &amp; Portionen</div>
@@ -2034,6 +2072,15 @@ export default function RecipeForm() {
               <button onClick={() => { setWizardStep(s => { const next = s + 1; return next === 2 && noModules ? 3 : next }); window.scrollTo({ top: 0, behavior: 'smooth' }) }} data-track-id="recipe-form-step-next"
                 style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
                 Weiter →
+              </button>
+            ) : entwurfModus ? (
+              // Entwurf: „Veröffentlichen" statt „Speichern" — gespeichert ist
+              // ohnehin schon. Gesperrt, solange Pflichtfelder fehlen.
+              <button onClick={handleVeroeffentlichen} data-track-id="recipe-form-publish"
+                disabled={!!savingAs || !kannVeroeffentlichen}
+                title={kannVeroeffentlichen ? undefined : `Es fehlt noch: ${fehlendeFelder.join(', ')}`}
+                style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: (savingAs || !kannVeroeffentlichen) ? 'var(--border-input)' : 'var(--accent)', color: '#fff', cursor: (savingAs || !kannVeroeffentlichen) ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
+                {savingAs === 'published' ? 'Veröffentlicht …' : 'Veröffentlichen'}
               </button>
             ) : (
               <button onClick={handleSave} data-track-id="recipe-form-submit"
