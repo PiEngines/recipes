@@ -34,6 +34,7 @@ import Garten from './pages/Garten.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
 import ShoppingList from './pages/ShoppingList.jsx'
+import Social from './pages/Social.jsx'
 import ZurListe from './pages/ZurListe.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
@@ -115,6 +116,7 @@ const router = createBrowserRouter([
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
       { path: '/pflanzen/:slug', element: <ProtectedRoute><PflanzenDetail /></ProtectedRoute> },
       { path: '/einkaufsliste', element: <ProtectedRoute><ShoppingList /></ProtectedRoute> },
+      { path: '/social', element: <ProtectedRoute><Social /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },

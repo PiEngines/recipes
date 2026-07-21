@@ -28,7 +28,7 @@ export default function BottomNav() {
   // von dort aus erreichbar und halten den Slot ebenfalls aktiv.
   const isGarten = startsWith('/garten') || startsWith('/kraeuterschule') || startsWith('/pflanzen')
   // Kräuterschule fehlt hier bewusst — sie gehört zum Garten-Slot.
-  const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher', '/einkaufsliste']
+  const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher', '/einkaufsliste', '/social']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -62,6 +62,7 @@ export default function BottomNav() {
     { icon: 'ti-plant-2', label: 'Kräuterschule', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
     { icon: 'ti-basket', label: 'Einkaufsliste', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
+    { icon: 'ti-brand-instagram', label: 'Beiträge', to: '/social', trackId: 'bottom-mehr-social-click' },
   ]
 
   const mehrItemStyle = (dimmed) => ({
