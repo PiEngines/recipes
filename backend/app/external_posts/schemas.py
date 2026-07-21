@@ -38,6 +38,33 @@ class ExternalPostPreviewRequest(BaseModel):
     url: str = Field(min_length=1, max_length=1000)
 
 
+class ExtractedIngredient(BaseModel):
+    """Eine Position der extrahierten Zutatenliste.
+
+    `raw` ist die bereinigte Caption-Zeile, aus der die Position entstand — sie
+    bleibt erhalten, damit im Frontend nachvollziehbar ist, was die Heuristik
+    gelesen hat.
+    """
+
+    name: str = Field(min_length=1, max_length=255)
+    amount: str | None = Field(default=None, max_length=100)
+    unit: str | None = Field(default=None, max_length=100)
+    raw: str | None = Field(default=None, max_length=500)
+
+
+class ExternalPostPatch(BaseModel):
+    """Teil-Update. Ausgewertet wird über `model_fields_set`, damit „Feld nicht
+    mitgeschickt" und „Feld ausdrücklich auf null gesetzt" unterscheidbar
+    bleiben."""
+
+    caption_text: str | None = None
+    extracted_ingredients: list[ExtractedIngredient] | None = None
+
+
+class ToShoppingListResponse(BaseModel):
+    created: int
+
+
 class ExternalPostPreview(BaseModel):
     """Live-Vorschau. Kein `id`/`created_at` — es wird nichts angelegt."""
 
