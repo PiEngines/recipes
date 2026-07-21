@@ -32,6 +32,7 @@ from app.external_posts.schemas import (
     ExternalPostPatch,
     ExternalPostPreview,
     ExternalPostPreviewRequest,
+    ExternalPostPublic,
     ToShoppingListResponse,
 )
 from app.models import ExternalPlatform, ExternalPost, Recipe, ShoppingListItem, User
@@ -39,6 +40,10 @@ from app.models.recipe import RecipeStatus
 from app.shopping.router import _next_sort_order
 
 router = APIRouter(prefix="/api/external-posts", tags=["external-posts"])
+
+# Fremdsicht fürs öffentliche Profil (F3b-2a). Eigener Router, weil der Pfad
+# unter /api/users hängt — inhaltlich gehört er aber hierher.
+users_router = APIRouter(prefix="/api/users", tags=["external-posts"])
 
 # Erlaubte Hosts je Plattform (jeweils auch als www./m.-Variante).
 _HOSTS: dict[ExternalPlatform, tuple[str, ...]] = {
@@ -245,6 +250,36 @@ def list_external_posts(
         ExternalPostItem.model_validate(p)
         for p in query.order_by(ExternalPost.created_at.desc(), ExternalPost.id.desc()).all()
     ]
+
+
+@users_router.get("/{user_id}/external-posts", response_model=list[ExternalPostPublic])
+def list_external_posts_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_koch_or_above),
+):
+    """Verlinkte Beiträge eines Users — die Fremdsicht fürs öffentliche Profil.
+
+    Ohne Sichtbarkeitsregel: einen Beitrag zu verlinken ist bereits die
+    Entscheidung, ihn zu zeigen. Die Antwort bleibt trotzdem knapp
+    (`ExternalPostPublic`) — Caption, Zutaten und Rezept-Verknüpfung sind die
+    private Arbeitsfläche des Autors und gehen Fremde nichts an.
+    """
+    nutzer = (
+        db.query(User.id)
+        .filter(User.id == user_id, User.deleted_at.is_(None))
+        .first()
+    )
+    if nutzer is None:
+        raise HTTPException(status_code=404, detail="Nutzer nicht gefunden")
+
+    posts = (
+        db.query(ExternalPost)
+        .filter(ExternalPost.created_by == user_id)
+        .order_by(ExternalPost.created_at.desc(), ExternalPost.id.desc())
+        .all()
+    )
+    return [ExternalPostPublic.model_validate(p) for p in posts]
 
 
 @router.get("/{post_id}", response_model=ExternalPostDetail)

@@ -21,6 +21,22 @@ class ExternalPostItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ExternalPostPublic(ExternalPostItem):
+    """Fremdsicht fürs öffentliche Profil (F3b-2a).
+
+    `ExternalPostItem` + `oembed_html` — ohne dieses Feld bliebe ein
+    TikTok-Beitrag auf fremden Profilen stumm (der Player entsteht erst aus dem
+    oEmbed-Markup; Instagram baut seinen iFrame dagegen aus der URL).
+    Bewusst NICHT dabei: `caption_text`, `extracted_ingredients`, `recipe_id`,
+    `created_by` — das ist die private Arbeitsfläche des Autors.
+
+    Eigener Typ statt einer Erweiterung von `ExternalPostItem`: dessen Form
+    nutzen die Sammlungen und die eigene Liste und bleibt unverändert.
+    """
+
+    oembed_html: str | None = None
+
+
 class ExternalPostDetail(ExternalPostItem):
     created_by: int
     oembed_html: str | None = None
