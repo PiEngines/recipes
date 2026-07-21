@@ -1168,6 +1168,10 @@ export default function RecipeForm() {
     setShowLeaveConfirm(false)
     const path = pendingNavRef.current
     pendingNavRef.current = null
+    // Im Entwurf-Modus gehen die Änderungen nicht verloren — sie werden noch
+    // weggeschrieben. Der Unmount-Flush greift zwar ohnehin, aber hier ist der
+    // Zeitpunkt sauber und der Nutzer hat die Wahl aktiv bestätigt.
+    if (stateRef.current.entwurfModus) entwurfSpeichernRef.current()
     if (path) navigate(path)
   }
 
@@ -1176,9 +1180,32 @@ export default function RecipeForm() {
     pendingNavRef.current = null
   }
 
-  // Save status display
+  // ✕ Schliessen im Entwurf-Modus: der Entwurf bleibt erhalten, es geht nichts
+  // verloren. Nachgefragt wird nur, wenn gerade ein Save laeuft oder noch
+  // Aenderungen offen sind — sonst waere die Rueckfrage reine Reibung.
+  const schliessen = useCallback(() => {
+    const ziel = recipeId ? `/recipes/${recipeId}` : '/'
+    if (savingRef.current || isDirty) {
+      pendingNavRef.current = ziel
+      setShowLeaveConfirm(true)
+      return
+    }
+    navigate(ziel)
+  }, [recipeId, isDirty, navigate])
+
+  // Save status display — im Bestandsmodus unverändert wie bisher.
   const saveStatusText = savingAs ? 'Speichert …' : saveError ? saveError : isDirty ? 'Nicht gespeichert' : savedAt ? `Gespeichert um ${fmtTime(savedAt)}` : ''
   const saveStatusColor = saveError ? '#C84444' : isDirty ? '#C8A020' : savingAs ? 'var(--subtext)' : 'var(--secondary)'
+
+  // Autosave-Indikator (§05) — nur im Entwurf-Modus. Drei Zustände:
+  // speichert · Entwurf gespeichert · Fehler (mit Retry).
+  const entwurfStatus = savingAs
+    ? { text: 'speichert …', farbe: 'var(--subtext)' }
+    : saveError
+      ? { text: 'Nicht gespeichert', farbe: '#C84444', retry: true }
+      : savedAt
+        ? { text: `Entwurf gespeichert · ${fmtTime(savedAt)}`, farbe: 'var(--secondary)' }
+        : null
 
   // ── Loading / error ────────────────────────────────────────────────────────
 
@@ -1210,11 +1237,13 @@ export default function RecipeForm() {
       {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
       {showLeaveConfirm && (
         <ConfirmDialog
-          message="Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren."
+          message={entwurfModus
+            ? 'Es sind noch Änderungen offen. Sie werden als Entwurf gespeichert — du kannst später weiterarbeiten.'
+            : 'Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren.'}
           onConfirm={handleLeaveConfirm}
           onCancel={handleLeaveCancel}
-          confirmLabel="Seite verlassen"
-          confirmDanger
+          confirmLabel={entwurfModus ? 'Speichern & schliessen' : 'Seite verlassen'}
+          confirmDanger={!entwurfModus}
         />
       )}
 
@@ -1279,13 +1308,45 @@ export default function RecipeForm() {
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
             {title || (isEdit ? 'Rezept bearbeiten' : 'Neues Rezept')}
           </h1>
-          {saveStatusText && (
-            <span className="hidden sm:inline" style={{ fontSize: '0.75rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
+          {/* Entwurf-Modus: Autosave-Indikator. Bestandsmodus: bisheriger Text. */}
+          {entwurfModus ? (
+            entwurfStatus && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                <span style={{ fontSize: '0.75rem', color: entwurfStatus.farbe, whiteSpace: 'nowrap' }}>
+                  {entwurfStatus.text}
+                </span>
+                {entwurfStatus.retry && (
+                  <button
+                    onClick={() => entwurfSpeichernRef.current()}
+                    data-track-id="recipe-form-autosave-retry"
+                    style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                  >
+                    erneut versuchen
+                  </button>
+                )}
+              </span>
+            )
+          ) : (
+            saveStatusText && (
+              <span className="hidden sm:inline" style={{ fontSize: '0.75rem', color: saveStatusColor, whiteSpace: 'nowrap', flexShrink: 0 }}>{saveStatusText}</span>
+            )
           )}
-          {isEdit && (
+          {isEdit && !entwurfModus && (
             <button onClick={handleDiscard} className="hidden sm:inline"
               style={{ padding: '0.5rem 0.875rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', flexShrink: 0 }}>
               Verwerfen
+            </button>
+          )}
+          {/* ✕ Schliessen (§05) — der Entwurf ist bereits gespeichert; gefragt
+              wird nur, wenn gerade noch etwas offen ist. */}
+          {entwurfModus && (
+            <button
+              onClick={schliessen}
+              aria-label="Editor schliessen"
+              data-track-id="recipe-form-close"
+              style={{ padding: '0.35rem 0.55rem', border: 'none', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontSize: '1.15rem', lineHeight: 1, flexShrink: 0 }}
+            >
+              ✕
             </button>
           )}
         </div>
