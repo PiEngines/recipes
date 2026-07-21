@@ -20,6 +20,23 @@ Dokumentiert **alle** bewussten Abweichungen von der ursprünglichen Anforderung
 
 ---
 
+## A2 · Abweichungen aus der Umsetzung (Phase F3b, nachgetragen)
+
+Entstanden während der Implementierung, jeweils vom Lead angeordnet oder in der Handover dokumentiert.
+
+| # | Fläche | Design sagt | Umgesetzt stattdessen | Grund |
+|---|---|---|---|---|
+| F1 | Social-Integration (§14) | OAuth-Flow: „Konto verbinden → deine Beiträge laden → auswählen" | **Manueller Flow:** User fügt die Beitrags-URL selbst ein (Teilen → „Link kopieren"), Vorschau per oEmbed, dann speichern | OAuth ist als Produktentscheidung weggeschoben (Professional-Konto-Pflicht + App-Review). Vgl. D7 |
+| F2 | Social-Integration (§14) | — | **Feld „Beschreibung einfügen"** bei Instagram | Instagram liefert per oEmbed keine Caption; ohne sie gäbe es keine Zutaten-Extraktion |
+| F3 | Beitrags-Embed | — | **Instagram als direkter Embed-iFrame** (`…/{typ}/{code}/embed/`) statt `embed.js`; TikTok weiter über `embed.js` | Instagrams `embed.js` antwortet live mit HTTP 503, `window.instgrm` bleibt undefiniert |
+| F4 | Profil eigen (§13), Profil öffentlich (§15) | Social-Chips „verbundene Konten" | **Weggelassen** | Ohne OAuth gibt es nichts zu verbinden |
+| F5 | Profil öffentlich (§15) | Tab „Fotos" | **Tab „Beiträge"** — die manuell verlinkten Instagram-/TikTok-Beiträge | Kein OAuth-Crossposting; die verlinkten Beiträge sind die vorhandene Datenquelle. Leerer Tab wird wie bei „Fotos" ausgeblendet |
+| F6 | Profil öffentlich (§15) | Glocke bei „Gefolgt" | **Sichtbar, aber deaktiviert** (`aria-disabled`, Tooltip „bald") | Benachrichtigungen kommen erst in F3b-5. Bewusst nicht entfernt, damit die Fläche später nur aktiviert werden muss |
+| F7 | Profil eigen (§13) | Tabs „Meine Rezepte" · „Gespeichert" | **Dritter Tab „Einstellungen"** | Die Seite trug bereits die komplette Kontoverwaltung (Daten, Passwort, Erscheinungsbild, freigegebene Rezepte, Konto löschen). Sie bleibt vollständig erhalten und zieht in einen eigenen Tab |
+| F8 | Netzwerk-Liste | „offen" (D6) | **Schlicht im Systemstil:** Segmented Follower/Folge ich, Zeile = Avatar + Name/@username, „Mehr laden"-Button | Design markiert die Fläche als offen; Nachladen explizit statt Infinite-Scroll (verträgt sich mit der ScrollRestoration der App) |
+
+---
+
 ## B · Struktur-Abweichungen gegenüber der Flächenliste im Brief
 
 Der Brief nennt einige Flächen zusammengefasst; geliefert wird feiner aufgeteilt (mehr Detail, nichts fehlt):
