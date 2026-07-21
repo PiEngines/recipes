@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import ExternalPostEmbed from '../components/ExternalPostEmbed'
+import PostKachel from '../components/PostKachel'
+import PostOverlay from '../components/PostOverlay'
 import RecipeCard from '../components/RecipeCard'
 import { getCategoryColor } from '../theme/categoryColors'
 
@@ -155,6 +156,7 @@ export default function Home() {
   const [feed, setFeed] = useState([])
   const [feedLoading, setFeedLoading] = useState(false)
   const [feedError, setFeedError] = useState(false)
+  const [offenerPost, setOffenerPost] = useState(null)
   // Cursor statt Seitenzahl: der Feed ist ein Live-Stream, Offset-Paginierung
   // würde beim Nachladen driften (Dubletten bzw. übersprungene Items).
   const feedState = useRef({ cursor: null, loading: false, done: false })
@@ -334,13 +336,12 @@ export default function Home() {
             }
 
             if (item.type === 'external_post' && item.post) {
-              // Volle Zeilenbreite: die Embeds bringen ihre eigene Größe mit
-              // (Instagram-iFrame, TikTok-Player) und sind zum Abspielen da,
-              // nicht zum Anreißen — als halbbreite Kachel wären sie unbedienbar.
+              // Kompakte Kachel wie Rezept und Kraut — der abspielbare Embed
+              // öffnet erst im Overlay. Als volle Zeile erschlug er das Raster,
+              // und jeder Beitrag im Scroll hätte einen Fremd-Player geladen.
               return (
-                <div key={key} style={{ gridColumn: '1 / -1' }} data-track-id="home-feed-post-view">
-                  <ExternalPostEmbed post={item.post} />
-                </div>
+                <PostKachel key={key} post={item.post}
+                  onClick={() => setOffenerPost(item.post)} />
               )
             }
 
@@ -378,6 +379,10 @@ export default function Home() {
         )}
 
         <div ref={sentinelRef} style={{ height: 1 }} />
+
+        {offenerPost && (
+          <PostOverlay post={offenerPost} onClose={() => setOffenerPost(null)} />
+        )}
       </section>
     </div>
   )
