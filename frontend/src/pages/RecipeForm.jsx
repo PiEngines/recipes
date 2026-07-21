@@ -651,7 +651,12 @@ export default function RecipeForm() {
   // Welche id bereits in das Formular geladen wurde. Nach dem ersten Autosave
   // schreiben wir die URL auf /recipes/:id/edit um; ohne diese Sperre würde der
   // Lade-Effekt erneut feuern und die gerade getippten Änderungen überschreiben.
-  const geladeneIdRef = useRef(id || null)
+  //
+  // Start bewusst `null` und NICHT `id`: beim direkten Öffnen einer Edit-URL
+  // steht `id` schon am Mount: die Sperre griffe sofort, der Erst-Load bliebe
+  // aus und die Seite hinge für immer bei „Lade Rezept …". Gesetzt wird die Ref
+  // erst dort, wo wirklich geladen (bzw. per POST angelegt) wurde.
+  const geladeneIdRef = useRef(null)
 
   // Entwurf-Modus: neues Rezept oder geladener Entwurf. Nur hier wird als
   // Entwurf automatisch gespeichert. Veröffentlichte Rezepte behalten beim
