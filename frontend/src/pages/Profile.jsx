@@ -9,7 +9,7 @@
 //   Die bleibt erhalten und zieht in einen eigenen Tab, statt ersatzlos zu
 //   verschwinden oder unter den Tabs zu hängen.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { getCollections, getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
@@ -62,7 +62,14 @@ export default function Profile() {
   const [recipeTotal, setRecipeTotal] = useState(null)
 
   // Profil-Kopf + Tabs (F3b-2a)
-  const [tab, setTab] = useState('rezepte')
+  // `?tab=` erlaubt das gezielte Anspringen eines Tabs — etwa die Rückkehr aus
+  // einer gelöschten Sammlung nach „Gespeichert". Unbekannte Werte fallen auf
+  // den Standard zurück.
+  const [suchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => {
+    const gewuenscht = suchParams.get('tab')
+    return TABS.some(t => t.key === gewuenscht) ? gewuenscht : 'rezepte'
+  })
   const [segment, setSegment] = useState('published')
   const [profil, setProfil] = useState(null)
 

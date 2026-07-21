@@ -18,6 +18,7 @@ import AdminUsers from './pages/AdminUsers.jsx'
 import Favorites from './pages/Favorites.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import Categories from './pages/Categories.jsx'
+import CollectionDetail from './pages/CollectionDetail.jsx'
 import Home from './pages/Home.jsx'
 import IngredientReview from './pages/IngredientReview.jsx'
 import Login from './pages/Login.jsx'
@@ -110,6 +111,7 @@ const router = createBrowserRouter([
       { path: '/recipes/:id/zur-liste', element: <ProtectedRoute><ZurListe /></ProtectedRoute> },
       { path: '/recipes/:id', element: <ProtectedRoute><RecipeDetail /></ProtectedRoute> },
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
+      { path: '/collections/:id', element: <ProtectedRoute><CollectionDetail /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
