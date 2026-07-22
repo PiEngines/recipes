@@ -2,7 +2,7 @@
 // Grüne Farbwelt. Foto-Flächen sind durchgängig Platzhalter (keine echten Assets).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
 import { getCategoryColor } from '../theme/categoryColors'
 import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
@@ -160,7 +160,6 @@ function SpotlightHero({ spotlight, monat }) {
 // ── Seite ────────────────────────────────────────────────────────────────────
 
 export default function Kraeuterschule() {
-  const navigate = useNavigate()
   const searchRef = useRef(null)
 
   const [plants, setPlants] = useState([])
@@ -353,6 +352,25 @@ export default function Kraeuterschule() {
               </div>
             </section>
           ))
+        )}
+
+        {/* Ausstieg in die flache Gesamtliste — die Regale zeigen jede Pflanze
+            im Kontext, hier sieht man sie am Stück (BUG-52). */}
+        {!loading && !error && !trimmed && (
+          <Link
+            to="/kraeuterschule/alle"
+            data-track-id="kraeuterschule-alle-link"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              marginTop: 6, padding: '12px 16px',
+              borderRadius: 'var(--radius-input)',
+              border: '1.5px dashed var(--wood-shadow)',
+              fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.08em',
+              textTransform: 'uppercase', color: 'var(--text-muted)', textDecoration: 'none',
+            }}
+          >
+            Alle Pflanzen ansehen <i className="ti ti-arrow-right" style={{ fontSize: 13 }} />
+          </Link>
         )}
       </div>
     </div>

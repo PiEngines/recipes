@@ -32,6 +32,7 @@ import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
+import KraeuterAlle from './pages/KraeuterAlle.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
 import Netzwerk from './pages/Netzwerk.jsx'
@@ -128,6 +129,7 @@ const router = createBrowserRouter([
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
+      { path: '/kraeuterschule/alle', element: <ProtectedRoute><KraeuterAlle /></ProtectedRoute> },
       { path: '/pflanzen/:slug', element: <ProtectedRoute><PflanzenDetail /></ProtectedRoute> },
       { path: '/einkaufsliste', element: <ProtectedRoute><ShoppingList /></ProtectedRoute> },
       { path: '/social', element: <ProtectedRoute><Social /></ProtectedRoute> },
