@@ -4,10 +4,14 @@
 // Weggelassen (Lead-entschieden → Merkliste):
 // - „Passend jetzt kochen" (Saison-Rezepte) — braucht Rezept↔Beet-Matching.
 // - Wochen-Linse — die Kalenderdaten haben nur Monatsauflösung.
+//
+// SAISON blickt zwei Monate voraus (BUG-48). ARBEIT bleibt beim laufenden
+// Monat: `/api/garden/tasks` kennt nur `scope=month` und liefert genau dessen
+// Aufgaben — ein zweiter Monat bräuchte den Endpunkt, nicht das Frontend.
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getGardenTasks, getPlantCalendar, markTaskDone, unmarkTaskDone } from '../api/plants'
+import { getPlantCalendar, markTaskDone, unmarkTaskDone } from '../api/plants'
 import { groupTasksByPlant, taskLabel, taskPhaseSpan } from '../theme/gardenTasks'
 import { MONTH_NAMES } from '../theme/plants'
 
@@ -26,20 +30,15 @@ const UMFAENGE = [
 
 // ── Linse SAISON ─────────────────────────────────────────────────────────────
 
-function SaisonLens({ monat, erntereif, loading, leerText }) {
+/** Ein Monatsblock der Saison-Linse. */
+function SaisonBlock({ monat, erntereif, loading, leerText, kopfAktion }) {
   return (
-    <section id="kalender-saison" aria-label={`Erntereif im ${MONTH_NAMES[monat - 1]}`}>
+    <section aria-label={`Erntereif im ${MONTH_NAMES[monat - 1]}`} style={{ marginBottom: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
           Erntereif im {MONTH_NAMES[monat - 1]}
         </p>
-        <Link
-          to="/kraeuterschule"
-          data-track-id="kalender-kraeuterschule-link"
-          style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', textDecoration: 'none' }}
-        >
-          Zur Kräuterschule →
-        </Link>
+        {kopfAktion}
       </div>
 
       {loading ? (
@@ -73,11 +72,41 @@ function SaisonLens({ monat, erntereif, loading, leerText }) {
             ))}
           </div>
           <p style={{ margin: '10px 0 0', fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-muted)' }}>
-            {erntereif.length} Pflanze{erntereif.length === 1 ? '' : 'n'} mit Erntezeit in diesem Monat
+            {erntereif.length} Pflanze{erntereif.length === 1 ? '' : 'n'} mit Erntezeit im {MONTH_NAMES[monat - 1]}
           </p>
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * Saison-Linse über zwei Monate (BUG-48): der laufende und der nächste. Feiner
+ * geht es nicht — die Kalenderdaten sind monatsgranular.
+ */
+function SaisonLens({ monate, erntereifJeMonat, loading, leerText }) {
+  return (
+    <div id="kalender-saison">
+      {monate.map((m, i) => (
+        <SaisonBlock
+          key={m}
+          monat={m}
+          erntereif={erntereifJeMonat[m] || []}
+          loading={loading}
+          leerText={leerText}
+          // Der Kräuterschule-Link gehört einmal nach oben, nicht an jeden Block.
+          kopfAktion={i === 0 ? (
+            <Link
+              to="/kraeuterschule"
+              data-track-id="kalender-kraeuterschule-link"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', textDecoration: 'none' }}
+            >
+              Zur Kräuterschule →
+            </Link>
+          ) : null}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -210,21 +239,28 @@ function ArbeitLens({ monat, groups, loading, busyKeys, onToggle, error }) {
 export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChange }) {
   const [lens, setLens] = useState('saison')
   const [umfang, setUmfang] = useState('beet')
-  const [calendar, setCalendar] = useState(null)
+  // Kalenderdaten je Monat: { [monat]: antwort }
+  const [calendar, setCalendar] = useState({})
   const [calendarLoading, setCalendarLoading] = useState(true)
   const [busyKeys, setBusyKeys] = useState(new Set())
   const [error, setError] = useState('')
 
   const monat = new Date().getMonth() + 1
+  // Zwei-Monats-Blick (BUG-48) — im Dezember ist der nächste Monat der Januar.
+  const naechsterMonat = monat === 12 ? 1 : monat + 1
+  const monate = useMemo(() => [monat, naechsterMonat], [monat, naechsterMonat])
 
   useEffect(() => {
     const controller = new AbortController()
-    getPlantCalendar(monat, { signal: controller.signal })
-      .then(setCalendar)
+    const opts = { signal: controller.signal }
+    Promise.all(monate.map(m => getPlantCalendar(m, opts)))
+      .then(antworten => {
+        setCalendar(Object.fromEntries(monate.map((m, i) => [m, antworten[i]])))
+      })
       .catch(() => {})
       .finally(() => setCalendarLoading(false))
     return () => controller.abort()
-  }, [monat])
+  }, [monate])
 
   // Der Kalender-Endpunkt liefert alle Pflanzen; hier zählt nur das eigene Beet
   // (BUG-47). Die Liste kommt vom Garten-Hub, der sie ohnehin schon geladen hat
@@ -236,14 +272,17 @@ export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChang
 
   const nurBeet = umfang === 'beet'
 
-  const erntereif = useMemo(() => {
-    const seen = new Set()
-    return (calendar?.eintraege || [])
-      .filter(e => e.aktivitaet === 'Ernte')
-      .filter(e => !nurBeet || beetSlugs.has(e.pflanze_slug))
-      .filter(e => !seen.has(e.pflanze_slug) && seen.add(e.pflanze_slug))
-      .sort((a, b) => a.pflanze_name.localeCompare(b.pflanze_name, 'de'))
-  }, [calendar, beetSlugs, nurBeet])
+  const erntereifJeMonat = useMemo(() => {
+    const bauen = (daten) => {
+      const seen = new Set()
+      return (daten?.eintraege || [])
+        .filter(e => e.aktivitaet === 'Ernte')
+        .filter(e => !nurBeet || beetSlugs.has(e.pflanze_slug))
+        .filter(e => !seen.has(e.pflanze_slug) && seen.add(e.pflanze_slug))
+        .sort((a, b) => a.pflanze_name.localeCompare(b.pflanze_name, 'de'))
+    }
+    return Object.fromEntries(monate.map(m => [m, bauen(calendar[m])]))
+  }, [calendar, beetSlugs, nurBeet, monate])
 
   const leerText = !nurBeet
     ? 'Für diesen Monat sind keine Erntetermine hinterlegt.'
@@ -351,7 +390,7 @@ export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChang
       )}
 
       {lens === 'saison' && (
-        <SaisonLens monat={monat} erntereif={erntereif} loading={calendarLoading} leerText={leerText} />
+        <SaisonLens monate={monate} erntereifJeMonat={erntereifJeMonat} loading={calendarLoading} leerText={leerText} />
       )}
       {lens === 'arbeit' && (
         <ArbeitLens
