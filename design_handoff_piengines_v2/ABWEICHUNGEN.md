@@ -34,6 +34,7 @@ Entstanden während der Implementierung, jeweils vom Lead angeordnet oder in der
 | F6 | Profil öffentlich (§15) | Glocke bei „Gefolgt" | **Sichtbar, aber deaktiviert** (`aria-disabled`, Tooltip „bald") | Benachrichtigungen kommen erst in F3b-5. Bewusst nicht entfernt, damit die Fläche später nur aktiviert werden muss |
 | F7 | Profil eigen (§13) | Tabs „Meine Rezepte" · „Gespeichert" | **Dritter Tab „Einstellungen"** | Die Seite trug bereits die komplette Kontoverwaltung (Daten, Passwort, Erscheinungsbild, freigegebene Rezepte, Konto löschen). Sie bleibt vollständig erhalten und zieht in einen eigenen Tab |
 | F8 | Netzwerk-Liste | „offen" (D6) | **Schlicht im Systemstil:** Segmented Follower/Folge ich, Zeile = Avatar + Name/@username, „Mehr laden"-Button | Design markiert die Fläche als offen; Nachladen explizit statt Infinite-Scroll (verträgt sich mit der ScrollRestoration der App) |
+| F9 | Mein Beet (§12) | Pflanze anlegen mit **Standort** (Hochbeet/Balkon/…) und **Menge** | **Beides gestrichen.** Das Beet heißt schlicht „Beet", ohne Spezifizierung. Der Add-Fluss ist ein Bottom-Sheet: Pflanze suchen → antippen → fertig, Pflanzdatum optional nachgereicht | Lead-Entscheidung (BUG-46). `user_plants` bleibt minimal (Pflanze + `planted_on`), passend zur bereits flachen Beet-Liste. Vgl. D5 |
 
 ---
 
