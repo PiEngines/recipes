@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Heart } from 'lucide-react'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
@@ -128,22 +127,6 @@ function DeletedFavoriteCard({ recipe }) {
         </button>
       </div>
     </div>
-  )
-}
-
-function FilterButton({ active, onClick, children }) {
-  return (
-    <button onClick={onClick} style={{
-      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-      padding: '0.5rem 1rem',
-      border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`,
-      borderRadius: 'var(--radius-pill)',
-      background: active ? 'var(--accent)' : 'var(--card)',
-      color: active ? 'var(--on-accent)' : 'var(--text)',
-      cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: 500, transition: 'var(--transition)',
-    }}>
-      {children}
-    </button>
   )
 }
 
@@ -332,6 +315,10 @@ export default function Recipes() {
     return next
   }, { replace: true })
 
+  // Ohne Aufrufer, seit der Favoriten-Filter aus der Toolbar raus ist (BUG-07).
+  // Bleibt bewusst stehen: `?favorites=1` funktioniert weiter (bestehende Links,
+  // Lesezeichen), nur der Einstieg aus der UI fehlt. Favoriten laufen über das
+  // Mehr-Panel und `/favorites`.
   const toggleFavoritesFilter = () => setSearchParams(prev => {
     const next = new URLSearchParams(prev)
     if (showFavorites) next.delete('favorites')
@@ -512,12 +499,6 @@ export default function Recipes() {
             {/* Toolbar: favorites/author + count + sort (Filter → FAB §2.10) */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
 
-              {isKochOrAbove(user) && (
-                <FilterButton active={showFavorites} onClick={toggleFavoritesFilter}>
-                  <Heart size={16} fill={showFavorites ? 'var(--on-accent)' : 'none'} strokeWidth={2} />
-                  Favoriten
-                </FilterButton>
-              )}
               {authorFilter && <AuthorFilterChip author={authorFilter} onClear={clearAuthorFilter} />}
 
               <div style={{ flex: 1 }} />
