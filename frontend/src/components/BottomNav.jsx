@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
 // Bottom-Nav Wahl 2.0 (SPEC §2.7): 5 Slots — Home · Rezepte · Neu (zentraler
-// erhöhter +) · Garten · Mehr. Höhe 78px, Creme-Fläche mit Holz-Oberkante.
+// erhöhter +) · Favoriten · Mehr. Höhe 78px, Creme-Fläche mit Holz-Oberkante.
 // Aktiv = dunkles Ink-Icon+Label (var(--text)), inaktiv = var(--nav-muted).
 // (Prototyp screens/*.html rendern den aktiven Slot bewusst dunkel, nicht Terrakotta.)
 // Profil liegt unter »Mehr« — KEIN eigener Slot.
@@ -24,11 +24,12 @@ export default function BottomNav() {
   const isNeu = pathname === '/recipes/new'
   const isHome = pathname === '/'
   const isRezepte = startsWith('/recipes') && !isNeu
-  // Garten-Slot führt auf »Mein Beet«; Kräuterschule und Pflanzen-Detail sind
-  // von dort aus erreichbar und halten den Slot ebenfalls aktiv.
-  const isGarten = startsWith('/garten') || startsWith('/kraeuterschule') || startsWith('/pflanzen')
-  // Kräuterschule fehlt hier bewusst — sie gehört zum Garten-Slot.
-  const MEHR_PATHS = ['/profile', '/favorites', '/categories', '/seasonal', '/fratcher', '/einkaufsliste', '/social']
+  const isFavoriten = startsWith('/favorites')
+  // Alles, was im Mehr-Panel hängt, hält den Mehr-Slot aktiv — Garten hat
+  // seit BUG-04 keinen eigenen Slot mehr, Kräuterschule und Pflanzen-Detail
+  // gehören zur selben Welt. Profil, Saison und Beiträge stehen im
+  // Avatar-Menü bzw. sind kein Panel-Ziel mehr.
+  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/kraeuterschule', '/garten', '/pflanzen']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -54,15 +55,13 @@ export default function BottomNav() {
     color: active ? 'var(--text)' : 'var(--nav-muted)',
   })
 
+  // Genau fünf — eine gleichmäßige Reihe zu je 20%.
   const MEHR_ITEMS = [
-    { icon: 'ti-user', label: 'Profil', to: '/profile', trackId: 'bottom-mehr-profil-click' },
-    { icon: 'ti-heart', label: 'Favoriten', to: '/favorites', trackId: 'bottom-mehr-favoriten-click' },
-    { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
-    { icon: 'ti-calendar-event', label: 'Saison', to: '/seasonal', trackId: 'bottom-mehr-saison-click' },
     { icon: 'ti-plant-2', label: 'Kräuterschule', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
-    { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
     { icon: 'ti-basket', label: 'Einkaufsliste', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
-    { icon: 'ti-brand-instagram', label: 'Beiträge', to: '/social', trackId: 'bottom-mehr-social-click' },
+    { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
+    { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
+    { icon: 'ti-seeding', label: 'Garten', to: '/garten', trackId: 'bottom-mehr-garten-click' },
   ]
 
   const mehrItemStyle = (dimmed) => ({
@@ -120,7 +119,7 @@ export default function BottomNav() {
                 to={to}
                 onClick={() => setMoreOpen(false)}
                 data-track-id={trackId}
-                style={{ ...mehrItemStyle(false), flexBasis: '33.333%' }}
+                style={{ ...mehrItemStyle(false), flexBasis: '20%' }}
               >
                 {inner}
               </Link>
@@ -129,7 +128,7 @@ export default function BottomNav() {
                 key={label}
                 data-track-id={trackId}
                 aria-disabled="true"
-                style={{ ...mehrItemStyle(true), flexBasis: '33.333%' }}
+                style={{ ...mehrItemStyle(true), flexBasis: '20%' }}
               >
                 {inner}
               </span>
@@ -185,9 +184,9 @@ export default function BottomNav() {
             </span>
           )}
 
-          <Link to="/garten" data-track-id="bottom-nav-garten-click" style={slotStyle(isGarten)}>
-            <i className="ti ti-plant-2" style={{ fontSize: ICON }} />
-            <span style={labelStyle(isGarten)}>Garten</span>
+          <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
+            <i className="ti ti-heart" style={{ fontSize: ICON }} />
+            <span style={labelStyle(isFavoriten)}>Favoriten</span>
           </Link>
 
           <button onClick={() => setMoreOpen(m => !m)} data-track-id="bottom-nav-mehr-click" style={slotStyle(isMehr)}>
