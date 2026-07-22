@@ -55,7 +55,11 @@ export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 
         transition: 'var(--transition)',
         cursor: onClick && !blockClick ? 'pointer' : 'default',
         opacity: dimmed ? 0.4 : 1,
-        pointerEvents: dimmed || blockClick ? 'none' : undefined,
+        // `dimmed` ist rein visuell („nicht mehr favorisiert"). Es hat früher
+        // auch die Pointer-Events abgeschaltet — damit war die Karte tot: weder
+        // ließ sich das Herz erneut setzen noch das Rezept öffnen (BUG-64).
+        // Blockiert wird nur noch über `blockClick`.
+        pointerEvents: blockClick ? 'none' : undefined,
       }}
     >
       {/* Medienfläche: Foto oder Kategorie-Farbblock + Glyph */}
