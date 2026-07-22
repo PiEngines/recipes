@@ -16,9 +16,17 @@ const LENSES = [
   { key: 'arbeit', label: 'ARBEIT' },
 ]
 
+// Umfang der Saison-Linse (BUG-47b). „Mein Beet" ist der Default; „Alle" macht
+// den vollen Kalenderbestand zum Entdecken sichtbar, was bei kleinem oder
+// leerem Beet sonst gar nichts anzeigt.
+const UMFAENGE = [
+  { key: 'beet', label: 'MEIN BEET' },
+  { key: 'alle', label: 'ALLE' },
+]
+
 // ── Linse SAISON ─────────────────────────────────────────────────────────────
 
-function SaisonLens({ monat, erntereif, loading, beetLeer }) {
+function SaisonLens({ monat, erntereif, loading, leerText }) {
   return (
     <section id="kalender-saison" aria-label={`Erntereif im ${MONTH_NAMES[monat - 1]}`}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -42,9 +50,7 @@ function SaisonLens({ monat, erntereif, loading, beetLeer }) {
         </div>
       ) : erntereif.length === 0 ? (
         <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
-          {beetLeer
-            ? 'Dein Beet ist noch leer — leg Pflanzen an, dann steht hier, was reif wird.'
-            : 'Diesen Monat wird in deinem Beet nichts reif.'}
+          {leerText}
         </p>
       ) : (
         <>
@@ -203,6 +209,7 @@ function ArbeitLens({ monat, groups, loading, busyKeys, onToggle, error }) {
 
 export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChange }) {
   const [lens, setLens] = useState('saison')
+  const [umfang, setUmfang] = useState('beet')
   const [calendar, setCalendar] = useState(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
   const [busyKeys, setBusyKeys] = useState(new Set())
@@ -227,14 +234,22 @@ export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChang
     [beet],
   )
 
+  const nurBeet = umfang === 'beet'
+
   const erntereif = useMemo(() => {
     const seen = new Set()
     return (calendar?.eintraege || [])
       .filter(e => e.aktivitaet === 'Ernte')
-      .filter(e => beetSlugs.has(e.pflanze_slug))
+      .filter(e => !nurBeet || beetSlugs.has(e.pflanze_slug))
       .filter(e => !seen.has(e.pflanze_slug) && seen.add(e.pflanze_slug))
       .sort((a, b) => a.pflanze_name.localeCompare(b.pflanze_name, 'de'))
-  }, [calendar, beetSlugs])
+  }, [calendar, beetSlugs, nurBeet])
+
+  const leerText = !nurBeet
+    ? 'Für diesen Monat sind keine Erntetermine hinterlegt.'
+    : beetSlugs.size === 0
+      ? 'Dein Beet ist noch leer — leg Pflanzen an, oder schau unter „Alle", was gerade Saison hat.'
+      : 'Diesen Monat wird in deinem Beet nichts reif.'
 
   const groups = useMemo(() => groupTasksByPlant(tasks), [tasks])
 
@@ -302,8 +317,41 @@ export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChang
         })}
       </div>
 
+      {/* Nur für SAISON: die Arbeits-Linse speist sich aus den Beet-Aufgaben,
+          ein „Alle" gäbe es dort gar nicht. */}
       {lens === 'saison' && (
-        <SaisonLens monat={monat} erntereif={erntereif} loading={calendarLoading} beetLeer={beetSlugs.size === 0} />
+        <div
+          role="tablist"
+          aria-label="Umfang"
+          style={{ display: 'flex', gap: 2, background: 'var(--bg-alt)', borderRadius: 'var(--radius-tag)', padding: 2, marginBottom: 14 }}
+        >
+          {UMFAENGE.map(u => {
+            const active = umfang === u.key
+            return (
+              <button
+                key={u.key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setUmfang(u.key)}
+                data-track-id={`kalender-umfang-${u.key}`}
+                style={{
+                  flex: 1, padding: '6px 0', border: 'none', cursor: 'pointer',
+                  borderRadius: 'var(--radius-tag)',
+                  fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em',
+                  fontWeight: active ? 600 : 400,
+                  background: active ? 'var(--surface)' : 'transparent',
+                  color: active ? 'var(--text)' : 'var(--text-muted)',
+                }}
+              >
+                {u.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {lens === 'saison' && (
+        <SaisonLens monat={monat} erntereif={erntereif} loading={calendarLoading} leerText={leerText} />
       )}
       {lens === 'arbeit' && (
         <ArbeitLens
