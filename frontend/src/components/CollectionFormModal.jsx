@@ -59,7 +59,9 @@ export default function CollectionFormModal({ onClose, onCreated }) {
       role="dialog"
       aria-modal="true"
       aria-label="Neue Sammlung"
-      style={{ position: 'fixed', inset: 0, zIndex: 700, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+      // zIndex ueber dem CollectionPicker (750): das Formular wird aus dem
+      // Picker heraus geoeffnet und lag sonst hinter dessen Backdrop.
+      style={{ position: 'fixed', inset: 0, zIndex: 800, background: 'rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
     >
       <div onClick={e => e.stopPropagation()}
         style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', padding: '1.6rem', maxWidth: 420, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
