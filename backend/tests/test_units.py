@@ -85,3 +85,28 @@ def test_present_skaliert_erst_ab_tausend():
 
 def test_present_laesst_fremde_basis_in_ruhe():
     assert present(Fraction(3), "EL") == (Fraction(3), "EL")
+
+
+# ── On-save: die Schemas normalisieren (BUG-34, Commit 2) ────────────────────
+
+def test_ingredient_create_vereinheitlicht_die_einheit():
+    from app.recipes.schemas import IngredientCreate
+
+    assert IngredientCreate(name="Mehl", unit="Gramm").unit == "g"
+    assert IngredientCreate(name="Öl", unit="Esslöffel").unit == "EL"
+    assert IngredientCreate(name="Milch", unit=" LITER ").unit == "l"
+
+
+def test_ingredient_create_laesst_unbekanntes_stehen():
+    from app.recipes.schemas import IngredientCreate
+
+    assert IngredientCreate(name="Nüsse", unit="Handvoll").unit == "Handvoll"
+    assert IngredientCreate(name="Eier", unit=None).unit is None
+
+
+def test_step_suggestion_accept_vereinheitlicht_ebenfalls():
+    """Der Einzel-Add geht nicht über IngredientCreate — eigener Validator."""
+    from app.recipes.schemas import StepSuggestionAccept
+
+    body = StepSuggestionAccept(name="Zucker", quantity="2", unit="stk", step_ids=[1])
+    assert body.unit == "St."

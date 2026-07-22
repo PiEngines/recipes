@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 from app.models.recipe import RecipeStatus, RecipeType
+from app.utils.units import normalize_label
 
 
 class CategoryResponse(BaseModel):
@@ -52,6 +53,14 @@ class IngredientCreate(BaseModel):
     @classmethod
     def trim_name(cls, v: str) -> str:
         return v.strip()
+
+    # Am Schema statt in den Routen: Anlegen und Aktualisieren gehen beide
+    # hierdurch, damit steht die Einheit gar nicht erst uneinheitlich in der DB
+    # (BUG-34). Unbekanntes bleibt erhalten.
+    @field_validator('unit')
+    @classmethod
+    def einheit_vereinheitlichen(cls, v: str | None) -> str | None:
+        return normalize_label(v)
 
 
 class IngredientResponse(BaseModel):
@@ -144,6 +153,13 @@ class StepSuggestionAccept(BaseModel):
     @classmethod
     def trim_name(cls, v: str) -> str:
         return v.strip()
+
+    # Der Einzel-Add legt eine `Ingredient`-Zeile an und geht nicht über
+    # `IngredientCreate` — die Normalisierung gehört deshalb auch hierhin.
+    @field_validator('unit')
+    @classmethod
+    def einheit_vereinheitlichen(cls, v: str | None) -> str | None:
+        return normalize_label(v)
 
 
 # ── Recipe ────────────────────────────────────────────────────────────────────
