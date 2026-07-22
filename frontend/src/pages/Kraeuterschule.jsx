@@ -7,7 +7,7 @@ import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
 import { getCategoryColor } from '../theme/categoryColors'
 import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
 import { PLANT_SHELVES, shelvesForPlant } from '../theme/plantShelves'
-import { MONTH_NAMES, plantImageStyle, shortBotanical } from '../theme/plants'
+import { MONTH_NAMES, plantHeroImageStyle, plantImageStyle, shortBotanical } from '../theme/plants'
 
 // ── Pflanzen-Kachel ──────────────────────────────────────────────────────────
 
@@ -136,7 +136,7 @@ function SpotlightHero({ spotlight, monat }) {
         display: 'block', position: 'relative', height: 130, margin: '0 0 16px',
         borderRadius: 'var(--radius-card)', overflow: 'hidden', textDecoration: 'none',
         boxShadow: '0 2px 8px rgba(0,0,0,.12), 0 4px 0 0 var(--nav-top-shadow)',
-        ...plantImageStyle,
+        ...plantHeroImageStyle,
       }}
     >
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(16,20,10,.9) 0%, rgba(16,20,10,.5) 42%, rgba(16,20,10,.12) 68%, transparent 84%)' }} />

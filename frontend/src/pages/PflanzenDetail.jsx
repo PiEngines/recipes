@@ -17,7 +17,7 @@ import BackButton from '../components/BackButton'
 import { getCategoryColor } from '../theme/categoryColors'
 import { buildPhaseMap, monthsForEntry, TIMELINE_ROWS } from '../theme/plantCalendar'
 import { shelfForHauptkategorie } from '../theme/plantShelves'
-import { LOREM_BESCHREIBUNG, MONTH_NAMES, plantImageStyle } from '../theme/plants'
+import { LOREM_BESCHREIBUNG, MONTH_NAMES, plantHeroImageStyle, plantImageStyle } from '../theme/plants'
 
 const TABS = [
   { key: 'steckbrief', label: 'STECKBRIEF' },
@@ -39,7 +39,7 @@ const HINT_ICONS = {
 
 function PlantHero({ plant }) {
   return (
-    <div style={{ position: 'relative', height: 180, borderRadius: 'var(--radius-card)', overflow: 'hidden', marginBottom: 0, ...plantImageStyle }}>
+    <div style={{ position: 'relative', height: 180, borderRadius: 'var(--radius-card)', overflow: 'hidden', marginBottom: 0, ...plantHeroImageStyle }}>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(16,20,10,.88) 0%, rgba(16,20,10,.45) 45%, rgba(16,20,10,.1) 72%, transparent 88%)' }} />
       <div style={{ position: 'absolute', left: 16, right: 16, bottom: 13 }}>
         <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 26, lineHeight: 1, color: 'var(--on-accent)', textShadow: '0 1px 5px rgba(0,0,0,.45)' }}>
