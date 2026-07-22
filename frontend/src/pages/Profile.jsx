@@ -442,12 +442,12 @@ export default function Profile() {
               {segment === 'draft' ? 'Entwürfe' : 'Veröffentlicht'}
             </h2>
             {!editMode && recipes.length > 0 && isKochOrAbove(user) && (
-              <button onClick={enterEditMode} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={enterEditMode} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Freigaben bearbeiten
               </button>
             )}
             {editMode && (
-              <button onClick={() => setEditMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => setEditMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Fertig
               </button>
             )}
@@ -503,7 +503,7 @@ export default function Profile() {
                         <Link to={`/recipes/${r.id}/edit`} style={{ padding: '0.3rem 0.75rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: '6px', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
                           ✏️
                         </Link>
-                        <button onClick={() => handleDeleteRecipe(r.id)} style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+                        <button onClick={() => handleDeleteRecipe(r.id)} style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                           Löschen
                         </button>
                       </div>
@@ -524,7 +524,7 @@ export default function Profile() {
                             />
                             <button
                               onClick={() => setAccessModal({ recipeId: r.id, title: r.title })}
-                              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: '6px', padding: '0.3rem 0.75rem', cursor: 'pointer', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 500 }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: '6px', padding: '0.3rem 0.75rem', cursor: 'pointer', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}
                             >
                               Einzelfreigaben
                               {individualCount > 0 && (
@@ -546,9 +546,13 @@ export default function Profile() {
               {sichtbareRezepte.map(r => (
                 <div key={r.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <RecipeCard recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Link to={`/recipes/${r.id}/edit`} style={{ flex: 1, textAlign: 'center', padding: '0.35rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: 6, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>Bearbeiten</Link>
-                    <button onClick={() => handleDeleteRecipe(r.id)} style={{ flex: 1, padding: '0.35rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: 6, color: '#c84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Löschen</button>
+                  {/* Zwei Buttons in einer Rasterzelle: auf schmalen Geräten ist
+                      die Zelle knapp halb so breit wie der Screen. Statt den
+                      Beschriftungen das Umbrechen zu erlauben, rutschen die
+                      Buttons dann untereinander. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <Link to={`/recipes/${r.id}/edit`} style={{ flex: '1 1 auto', textAlign: 'center', padding: '0.35rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: 6, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
+                    <button onClick={() => handleDeleteRecipe(r.id)} style={{ flex: '1 1 auto', padding: '0.35rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: 6, color: '#c84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Löschen</button>
                   </div>
                 </div>
               ))}
@@ -571,12 +575,12 @@ export default function Profile() {
               Für mich freigegeben
             </h2>
             {!unfollowMode && sharedRecipes.length > 0 && (
-              <button onClick={() => setUnfollowMode(true)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => setUnfollowMode(true)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Bearbeiten
               </button>
             )}
             {unfollowMode && (
-              <button onClick={() => setUnfollowMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => setUnfollowMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Fertig
               </button>
             )}
