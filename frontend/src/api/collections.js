@@ -4,9 +4,17 @@
 
 import client from './client'
 
-/** Eigene Sammlungen (`CollectionSummary[]`). */
-export function getCollections(opts = {}) {
-  return client.get('/api/collections', opts).then(r => r.data)
+/**
+ * Eigene Sammlungen (`CollectionSummary[]`).
+ *
+ * Mit `itemType` + `itemId` trägt jede Sammlung zusätzlich `contains`: liegt
+ * dieses Item darin? Ohne die beiden bleibt `contains` `null`.
+ */
+export function getCollections({ itemType, itemId, ...opts } = {}) {
+  const params = itemType && itemId != null
+    ? { contains_item_type: itemType, contains_item_id: itemId }
+    : undefined
+  return client.get('/api/collections', { ...opts, ...(params ? { params } : {}) }).then(r => r.data)
 }
 
 /** Eine Sammlung samt aufgelösten, gemischten Items (`CollectionDetail`). */

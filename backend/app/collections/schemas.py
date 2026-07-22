@@ -25,6 +25,10 @@ class CollectionSummary(BaseModel):
     created_by: int
     item_count: int
     created_at: datetime
+    # Nur gesetzt, wenn die Liste mit `contains_item_type`/`contains_item_id`
+    # abgefragt wurde: liegt genau dieses Item in dieser Sammlung? Sonst `None`,
+    # damit bestehende Aufrufer exakt dieselbe Antwort wie bisher bekommen.
+    contains: bool | None = None
 
 
 class ResolvedRecipeItem(BaseModel):

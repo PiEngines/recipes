@@ -5,10 +5,11 @@
  * neue an (dieselbe `CollectionFormModal` wie im Profil), die das Item dann
  * sofort aufnimmt.
  *
- * Doppeltes Hinzufügen ist serverseitig kein Fehler: die API antwortet auch
- * beim zweiten Mal mit 201 und derselben `CollectionSummary`. Ob wirklich
- * etwas dazukam, verrät nur `item_count` — genau daran unterscheiden wir
- * „hinzugefügt" von „ist schon drin", statt einen Statuscode zu deuten.
+ * Jede Zeile ist ein Umschalter (BUG-20): ein Häkchen zeigt, dass das Item
+ * schon drinliegt, ein Tap nimmt es wieder heraus. Woher das Häkchen kommt,
+ * sagt der Server — `getCollections` liefert mit Item-Kontext je Sammlung ein
+ * `contains`. Der Picker bleibt dabei offen, damit man mehrere Sammlungen
+ * hintereinander bedienen kann.
  *
  * `embedded` rendert nur den Körper, ohne eigenes Fullscreen-Overlay: für das
  * Bottom-Sheet im `PostOverlay`, das schon ein Dialog ist. Escape und
@@ -16,14 +17,14 @@
  * Sheet, dann Overlay) — der Picker mischt sich deshalb nicht ein. Der Körper
  * erwartet einen Flex-Spalten-Container mit begrenzter Höhe.
  *
- * `collections` überspringt den eigenen Abruf: wer die Sammlungen schon hat
- * (das `PostOverlay` lädt sie beim Öffnen vor), reicht sie herein, und das
- * Sheet klappt fertig gefüllt auf statt erst mit Skeletons. Ohne den Prop lädt
- * der Picker wie bisher selbst.
+ * `collections` ist ein Startwert aus dem Cache des Aufrufers (siehe
+ * `CollectionSheetContext`): damit klappt das Sheet gefüllt auf statt erst mit
+ * Skeletons. Die Häkchen hängen am Item und stehen im Cache nicht drin — der
+ * Picker lädt deshalb trotzdem, nur eben still im Hintergrund.
  */
 import { useCallback, useEffect, useState } from 'react'
 
-import { addCollectionItem, getCollections } from '../api/collections'
+import { addCollectionItem, getCollections, removeCollectionItem } from '../api/collections'
 import CollectionFormModal from './CollectionFormModal'
 import { Button } from './ui'
 
@@ -38,18 +39,19 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
   const [ergebnis, setErgebnis] = useState(null) // { text }
 
   const laden = useCallback((signal) => {
-    return getCollections({ signal })
+    return getCollections({ itemType, itemId, signal })
       .then(daten => setSammlungen(daten || []))
       .catch(err => { if (err.name !== 'CanceledError') setFehler(true) })
       .finally(() => setLaedt(false))
-  }, [])
+  }, [itemType, itemId])
 
+  // Immer laden — der Startwert aus dem Cache kennt die Häkchen nicht. Mit
+  // Startwert läuft es still im Hintergrund (kein `laedt`), ohne mit Skeletons.
   useEffect(() => {
-    if (collections) return undefined
     const controller = new AbortController()
     laden(controller.signal)
     return () => controller.abort()
-  }, [laden, collections])
+  }, [laden])
 
   useEffect(() => {
     if (embedded) return undefined
@@ -65,25 +67,35 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
     return () => { document.body.style.overflow = vorher }
   }, [embedded])
 
-  // Nach der Rückmeldung von selbst schließen — der Nutzer hat hier nichts
-  // mehr zu entscheiden.
+  // Die Rückmeldung verschwindet von selbst. Geschlossen wird *nicht* mehr
+  // automatisch: seit die Zeilen Umschalter sind, will man ggf. mehrere
+  // nacheinander bedienen (BUG-20).
   useEffect(() => {
     if (!ergebnis) return undefined
-    const t = setTimeout(onClose, 1400)
+    const t = setTimeout(() => setErgebnis(null), 2200)
     return () => clearTimeout(t)
-  }, [ergebnis, onClose])
+  }, [ergebnis])
 
-  const hinzufuegen = async sammlung => {
+  // Zeile lokal fortschreiben statt neu zu laden — der Zähler und das Häkchen
+  // sollen sofort stimmen.
+  const zeileSetzen = (id, patch) => {
+    setSammlungen(vorher => vorher.map(s => (s.id === id ? { ...s, ...patch } : s)))
+  }
+
+  const umschalten = async sammlung => {
     setLaeuft(sammlung.id)
     try {
-      const danach = await addCollectionItem(sammlung.id, { itemType, itemId })
-      setErgebnis({
-        text: danach.item_count > sammlung.item_count
-          ? `Zu „${sammlung.name}" hinzugefügt.`
-          : `Ist bereits in „${sammlung.name}".`,
-      })
+      if (sammlung.contains) {
+        await removeCollectionItem(sammlung.id, { itemType, itemId })
+        zeileSetzen(sammlung.id, { contains: false, item_count: Math.max(0, sammlung.item_count - 1) })
+        setErgebnis({ text: `Aus „${sammlung.name}" entfernt.` })
+      } else {
+        const danach = await addCollectionItem(sammlung.id, { itemType, itemId })
+        zeileSetzen(sammlung.id, { contains: true, item_count: danach.item_count })
+        setErgebnis({ text: `Zu „${sammlung.name}" hinzugefügt.` })
+      }
     } catch {
-      setErgebnis({ text: 'Konnte nicht hinzugefügt werden. Bitte versuch es erneut.' })
+      setErgebnis({ text: 'Hat nicht geklappt. Bitte versuch es erneut.', fehler: true })
     } finally {
       setLaeuft(null)
     }
@@ -97,14 +109,16 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
         In Sammlung legen
       </h2>
 
-      {ergebnis ? (
-        <p style={{ margin: '0 0 .25rem', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text)' }}>
-          <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16, color: 'var(--green)' }} />
+      {/* Status über der Liste statt an ihrer Stelle — die Liste bleibt
+          bedienbar, während die Rückmeldung steht. */}
+      {ergebnis && (
+        <p style={{ margin: '0 0 .625rem', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 13, color: ergebnis.fehler ? 'var(--danger)' : 'var(--text)' }}>
+          <i className={`ti ${ergebnis.fehler ? 'ti-alert-triangle' : 'ti-check'}`} aria-hidden="true" style={{ fontSize: 15, color: ergebnis.fehler ? 'var(--danger)' : 'var(--green)', flexShrink: 0 }} />
           {ergebnis.text}
         </p>
-      ) : (
-        <>
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', margin: '0 -.25rem' }}>
+      )}
+
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', margin: '0 -.25rem' }}>
             {laedt && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {Array.from({ length: 3 }).map((_, i) => (
@@ -125,35 +139,53 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
               </p>
             )}
 
-            {!laedt && !fehler && sammlungen.map(s => (
-              <button
-                key={s.id}
-                onClick={() => hinzufuegen(s)}
-                disabled={laeuft !== null}
-                data-track-id="collection-picker-select"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                  padding: '.7rem .75rem', marginBottom: 6, textAlign: 'left',
-                  background: 'none', border: '1px solid var(--hairline)',
-                  borderRadius: 'var(--radius-card)',
-                  cursor: laeuft !== null ? 'default' : 'pointer',
-                  opacity: laeuft !== null && laeuft !== s.id ? 0.5 : 1,
-                }}
-              >
-                <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 17, color: 'var(--text-muted)', flexShrink: 0 }} />
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {s.name}
+            {!laedt && !fehler && sammlungen.map(s => {
+              const drin = !!s.contains
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => umschalten(s)}
+                  disabled={laeuft !== null}
+                  aria-pressed={drin}
+                  data-track-id="collection-picker-select"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    padding: '.7rem .75rem', marginBottom: 6, textAlign: 'left',
+                    background: drin ? 'color-mix(in srgb, var(--green) 8%, transparent)' : 'none',
+                    border: `1px solid ${drin ? 'color-mix(in srgb, var(--green) 45%, transparent)' : 'var(--hairline)'}`,
+                    borderRadius: 'var(--radius-card)',
+                    cursor: laeuft !== null ? 'default' : 'pointer',
+                    opacity: laeuft !== null && laeuft !== s.id ? 0.5 : 1,
+                  }}
+                >
+                  <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 17, color: 'var(--text-muted)', flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {s.name}
+                    </span>
+                    <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                      {SICHTBARKEIT_LABEL[s.visibility] || s.visibility} · {s.item_count}
+                    </span>
                   </span>
-                  <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                    {SICHTBARKEIT_LABEL[s.visibility] || s.visibility} · {s.item_count}
-                  </span>
-                </span>
-                {laeuft === s.id && (
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)' }}>…</span>
-                )}
-              </button>
-            ))}
+                  {laeuft === s.id ? (
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>…</span>
+                  ) : (
+                    // Häkchen = liegt drin, Tap nimmt es wieder heraus.
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 21, height: 21, flexShrink: 0, borderRadius: 5,
+                        border: drin ? 'none' : '1.5px solid var(--border-input)',
+                        background: drin ? 'var(--green)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      {drin && <i className="ti ti-check" style={{ fontSize: 13, color: 'var(--on-accent)' }} />}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
@@ -162,12 +194,12 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
               leftIcon={<i className="ti ti-plus" aria-hidden="true" />}>
               Neue Sammlung
             </Button>
+            {/* „Fertig" statt „Abbrechen": Umschalten wirkt sofort, es gibt
+                nichts mehr zu bestätigen oder abzubrechen. */}
             <Button variant="ghost" size="sm" onClick={onClose} trackId="collection-picker-cancel">
-              Abbrechen
+              Fertig
             </Button>
-          </div>
-        </>
-      )}
+      </div>
     </>
   )
 
@@ -179,8 +211,8 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
       onCreated={angelegt => {
         setNeueOffen(false)
         // Frisch angelegt heißt leer — das Item kann nur neu dazukommen.
-        setSammlungen(vorher => [...vorher, angelegt])
-        hinzufuegen(angelegt)
+        setSammlungen(vorher => [...vorher, { ...angelegt, contains: false }])
+        umschalten({ ...angelegt, contains: false })
       }}
     />
   )

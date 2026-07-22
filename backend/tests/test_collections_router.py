@@ -266,3 +266,62 @@ def test_cascade_raeumt_items_beim_loeschen(ctx):
     db.execute(text("PRAGMA foreign_keys=ON"))
     assert c.delete(f"/api/collections/{sid}").status_code == 204
     assert db.query(CollectionItem).count() == 0
+
+
+# ── contains-Flag (BUG-20) ───────────────────────────────────────────────────
+
+def test_ohne_contains_parameter_bleibt_das_feld_leer(ctx):
+    """Bestehende Aufrufer bekommen exakt dieselbe Antwort wie vorher."""
+    c, _, _ = ctx
+    sid = neue_sammlung(c)["id"]
+    c.post(f"/api/collections/{sid}/items", json={"item_type": "recipe", "item_id": 1})
+
+    zeilen = c.get("/api/collections").json()
+    assert [z["contains"] for z in zeilen] == [None]
+
+
+def test_contains_markiert_nur_die_sammlung_mit_dem_item(ctx):
+    c, _, _ = ctx
+    mit = neue_sammlung(c, "Mit")["id"]
+    ohne = neue_sammlung(c, "Ohne")["id"]
+    c.post(f"/api/collections/{mit}/items", json={"item_type": "recipe", "item_id": 1})
+
+    zeilen = c.get("/api/collections",
+                   params={"contains_item_type": "recipe", "contains_item_id": 1}).json()
+    nach_id = {z["id"]: z["contains"] for z in zeilen}
+    assert nach_id[mit] is True
+    assert nach_id[ohne] is False
+
+
+def test_contains_unterscheidet_item_type(ctx):
+    """Rezept 1 und Beitrag 1 teilen sich die id — der Typ muss zaehlen."""
+    c, _, _ = ctx
+    sid = neue_sammlung(c)["id"]
+    c.post(f"/api/collections/{sid}/items", json={"item_type": "external_post", "item_id": 1})
+
+    als_rezept = c.get("/api/collections",
+                       params={"contains_item_type": "recipe", "contains_item_id": 1}).json()
+    als_beitrag = c.get("/api/collections",
+                        params={"contains_item_type": "external_post", "contains_item_id": 1}).json()
+    assert als_rezept[0]["contains"] is False
+    assert als_beitrag[0]["contains"] is True
+
+
+def test_contains_sieht_nur_eigene_sammlungen(ctx):
+    c, _, als = ctx
+    meine = neue_sammlung(c, "Meine")["id"]
+    c.post(f"/api/collections/{meine}/items", json={"item_type": "recipe", "item_id": 1})
+
+    als("fremd")
+    zeilen = c.get("/api/collections",
+                   params={"contains_item_type": "recipe", "contains_item_id": 1}).json()
+    assert zeilen == []
+
+
+def test_nur_ein_halber_parameter_laesst_contains_leer(ctx):
+    c, _, _ = ctx
+    sid = neue_sammlung(c)["id"]
+    c.post(f"/api/collections/{sid}/items", json={"item_type": "recipe", "item_id": 1})
+
+    zeilen = c.get("/api/collections", params={"contains_item_id": 1}).json()
+    assert zeilen[0]["contains"] is None

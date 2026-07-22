@@ -17,7 +17,7 @@ nicht existierenden unterscheidbar (404, kein 403).
 Eine Sammlung mischt Rezepte und External Posts; dasselbe Rezept darf in
 beliebig vielen Sammlungen liegen, innerhalb einer Sammlung aber nur einmal.
 """
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, subqueryload
@@ -193,16 +193,39 @@ def create_collection(
 
 @router.get("", response_model=list[CollectionSummary])
 def list_my_collections(
+    contains_item_type: CollectionItemType | None = Query(None),
+    contains_item_id: int | None = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_koch_or_above),
 ):
+    """Eigene Sammlungen.
+
+    Mit `contains_item_type` *und* `contains_item_id` trägt jede Sammlung
+    zusätzlich `contains`: liegt dieses Item darin? Das braucht der Picker, um
+    „schon drin" anzuzeigen und zum Entfernen umzuschalten (BUG-20). Eine
+    einzelne Zusatz-Query über alle Sammlungen, kein N+1. Ohne die Parameter
+    bleibt `contains` `None` und die Antwort unverändert.
+    """
     rows = (
         db.query(Collection)
         .filter(Collection.created_by == current_user.id)
         .order_by(Collection.created_at.desc(), Collection.id.desc())
         .all()
     )
-    return [_summary(db, c) for c in rows]
+    summaries = [_summary(db, c) for c in rows]
+
+    if contains_item_type is not None and contains_item_id is not None:
+        drin = {
+            cid for (cid,) in db.query(CollectionItem.collection_id).filter(
+                CollectionItem.collection_id.in_([c.id for c in rows] or [0]),
+                CollectionItem.item_type == contains_item_type,
+                CollectionItem.item_id == contains_item_id,
+            )
+        }
+        for s in summaries:
+            s.contains = s.id in drin
+
+    return summaries
 
 
 @router.get("/{collection_id}", response_model=CollectionDetail)
