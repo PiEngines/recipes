@@ -123,6 +123,17 @@ body {
 
 .shake { animation: shake 0.5s ease; }
 
+/* ── Bottom sheet ────────────────────────────────────────────────────────── */
+
+/* Das Sheet liegt über der Aktionszone statt sie aufzudehnen — so gleitet es
+   herein, ohne dass die Höhe des Overlays springt. */
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheet-enter { animation: sheet-in 0.2s ease-out; }
+
 /* ── Recipe card ─────────────────────────────────────────────────────────── */
 
 .recipe-card {

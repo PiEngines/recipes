@@ -23,6 +23,7 @@
  */
 import { useEffect, useState } from 'react'
 
+import { getCollections } from '../api/collections'
 import { getPost } from '../api/externalPosts'
 import { addManual } from '../api/shopping'
 import CollectionPicker from './CollectionPicker'
@@ -37,6 +38,8 @@ function mengenText(z) {
 
 export default function PostOverlay({ post, onClose, inSammlung = false }) {
   const [sheet, setSheet] = useState(null)          // null | 'sammlung' | 'liste'
+  const [sammlungen, setSammlungen] = useState(null) // vorgeladen; null = noch offen
+  const [sammlungenTick, setSammlungenTick] = useState(0)
   const [zutaten, setZutaten] = useState([])
   const [gewaehlt, setGewaehlt] = useState(() => new Set())
   const [laeuft, setLaeuft] = useState(false)
@@ -65,6 +68,20 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = vorher }
   }, [])
+
+  // Sammlungen schon beim Öffnen des Beitrags holen, nicht erst beim Tap auf
+  // „In Sammlung" — sonst klappt das Sheet erst mit Skeletons auf und füllt
+  // sich danach. Scheitert der Abruf, bleibt der Cache leer und der Picker lädt
+  // wie gehabt selbst. Der Tick frischt nach dem Schließen auf, damit eine im
+  // Sheet angelegte Sammlung beim nächsten Öffnen dabei ist.
+  useEffect(() => {
+    if (!inSammlung) return undefined
+    const controller = new AbortController()
+    getCollections({ signal: controller.signal })
+      .then(daten => setSammlungen(daten || []))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [inSammlung, sammlungenTick])
 
   // Die Zutaten stecken nur im Detail-Schema — Feed und Sammlungen liefern die
   // schlanke Form ohne sie. Der Detail-Endpunkt ist nicht owner-beschränkt, der
@@ -189,38 +206,83 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
       </div>
 
       {/* Aktionszone: am Overlay-Boden verankert, damit die Aktionen unabhängig
-          von der Player-Höhe erreichbar bleiben. Offen zeigt sie das jeweilige
-          Sheet, sonst nur die Buttons — die Steuerleiste des Players bleibt so
-          frei. */}
+          von der Player-Höhe erreichbar bleiben. Die Steuerleiste des Players
+          bleibt so frei. */}
       {aktionen && (
         <div
           onClick={e => e.stopPropagation()}
           style={{
             flexShrink: 0,
-            background: sheetOffen
-              ? 'var(--surface)'
-              : 'linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.55))',
-            borderTop: sheetOffen ? '1px solid var(--hairline)' : 'none',
-            borderRadius: sheetOffen ? 'var(--radius-card) var(--radius-card) 0 0' : 0,
-            padding: sheetOffen
-              ? '1.25rem 1rem calc(1rem + env(safe-area-inset-bottom))'
-              : '12px 16px calc(12px + env(safe-area-inset-bottom))',
-            maxHeight: sheetOffen ? '62vh' : undefined,
-            display: sheetOffen ? 'flex' : 'block',
-            flexDirection: 'column',
+            background: 'linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.55))',
+            padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+          }}
+        >
+          <div style={{ maxWidth: 560, margin: '0 auto', width: '100%', display: 'flex', gap: 8 }}>
+            {inSammlung && (
+              <button
+                onClick={() => setSheet('sammlung')}
+                data-track-id="post-overlay-in-sammlung"
+                style={{
+                  flex: 1, padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', cursor: 'pointer',
+                  background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
+                  color: 'var(--on-dark)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 15 }} /> In Sammlung
+              </button>
+            )}
+            {zurListe && (
+              <button
+                onClick={() => setSheet('liste')}
+                data-track-id="post-overlay-zur-liste"
+                style={{
+                  flex: 1, padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', cursor: 'pointer',
+                  background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
+                  color: 'var(--on-dark)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <i className="ti ti-shopping-cart" aria-hidden="true" style={{ fontSize: 15 }} /> Zur Liste
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sheet: liegt über der Aktionszone statt sie aufzudehnen. So gleitet es
+          herein, ohne dass die Höhe des Overlays springt — und der Player
+          behält seine Box, muss also nicht neu layouten. */}
+      {sheetOffen && (
+        <div
+          className="sheet-enter"
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 3,
+            background: 'var(--surface)',
+            borderTop: '1px solid var(--hairline)',
+            borderRadius: 'var(--radius-card) var(--radius-card) 0 0',
+            boxShadow: '0 -12px 40px rgba(0,0,0,.35)',
+            padding: '1.25rem 1rem calc(1rem + env(safe-area-inset-bottom))',
+            maxHeight: '62vh',
+            display: 'flex', flexDirection: 'column',
           }}
         >
           <div style={{
-            maxWidth: 560, margin: '0 auto', width: '100%',
+            maxWidth: 560, margin: '0 auto', width: '100%', flex: 1,
             display: 'flex', flexDirection: 'column', minHeight: 0,
-            ...(sheetOffen ? { flex: 1 } : null),
           }}>
             {sheet === 'sammlung' && (
               <CollectionPicker
                 embedded
+                collections={sammlungen}
                 itemType="external_post"
                 itemId={post.id}
-                onClose={() => setSheet(null)}
+                onClose={() => { setSheet(null); setSammlungenTick(t => t + 1) }}
               />
             )}
 
@@ -310,43 +372,6 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
                   </>
                 )}
               </>
-            )}
-
-            {!sheetOffen && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                {inSammlung && (
-                  <button
-                    onClick={() => setSheet('sammlung')}
-                    data-track-id="post-overlay-in-sammlung"
-                    style={{
-                      flex: 1, padding: '11px 16px',
-                      borderRadius: 'var(--radius-input)', cursor: 'pointer',
-                      background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
-                      color: 'var(--on-dark)',
-                      fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    }}
-                  >
-                    <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 15 }} /> In Sammlung
-                  </button>
-                )}
-                {zurListe && (
-                  <button
-                    onClick={() => setSheet('liste')}
-                    data-track-id="post-overlay-zur-liste"
-                    style={{
-                      flex: 1, padding: '11px 16px',
-                      borderRadius: 'var(--radius-input)', cursor: 'pointer',
-                      background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
-                      color: 'var(--on-dark)',
-                      fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    }}
-                  >
-                    <i className="ti ti-shopping-cart" aria-hidden="true" style={{ fontSize: 15 }} /> Zur Liste
-                  </button>
-                )}
-              </div>
             )}
           </div>
         </div>

@@ -15,6 +15,11 @@
  * Body-Scroll gehören dort dem Overlay, das sie gestaffelt behandelt (erst
  * Sheet, dann Overlay) — der Picker mischt sich deshalb nicht ein. Der Körper
  * erwartet einen Flex-Spalten-Container mit begrenzter Höhe.
+ *
+ * `collections` überspringt den eigenen Abruf: wer die Sammlungen schon hat
+ * (das `PostOverlay` lädt sie beim Öffnen vor), reicht sie herein, und das
+ * Sheet klappt fertig gefüllt auf statt erst mit Skeletons. Ohne den Prop lädt
+ * der Picker wie bisher selbst.
  */
 import { useCallback, useEffect, useState } from 'react'
 
@@ -24,9 +29,9 @@ import { Button } from './ui'
 
 const SICHTBARKEIT_LABEL = { private: 'Privat', public: 'Öffentlich', unlisted: 'Über Link' }
 
-export default function CollectionPicker({ itemType, itemId, onClose, embedded = false }) {
-  const [sammlungen, setSammlungen] = useState([])
-  const [laedt, setLaedt] = useState(true)
+export default function CollectionPicker({ itemType, itemId, onClose, embedded = false, collections = null }) {
+  const [sammlungen, setSammlungen] = useState(collections || [])
+  const [laedt, setLaedt] = useState(!collections)
   const [fehler, setFehler] = useState(false)
   const [neueOffen, setNeueOffen] = useState(false)
   const [laeuft, setLaeuft] = useState(null)     // id der Sammlung, die gerade schreibt
@@ -40,10 +45,11 @@ export default function CollectionPicker({ itemType, itemId, onClose, embedded =
   }, [])
 
   useEffect(() => {
+    if (collections) return undefined
     const controller = new AbortController()
     laden(controller.signal)
     return () => controller.abort()
-  }, [laden])
+  }, [laden, collections])
 
   useEffect(() => {
     if (embedded) return undefined
