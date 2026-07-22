@@ -11,6 +11,15 @@ import { getCategoryColor } from '../theme/categoryColors'
 
 const PAGE_SIZE = 12
 
+// Server-Cap für `page_size` (recipes/router.py: `le=100`). Beim Wiederherstellen
+// wird in Blöcken geholt, die dieses Maß und zugleich ein Vielfaches von
+// PAGE_SIZE einhalten — sonst passen die Offsets der Folgeseiten nicht mehr.
+const MAX_PAGE_SIZE = 100
+const RESTORE_BLOCK = Math.floor(MAX_PAGE_SIZE / PAGE_SIZE) * PAGE_SIZE
+
+// Scroll-Position + Ladestand für die Rückkehr aus dem Detail.
+const RESTORE_KEY = 'recipes_restore'
+
 // Sort-Dropdown → Server-`sort` (Client-Sort entfällt; Reihenfolge kommt vom
 // Server). Datum und Kochzeit gibt es jeweils in beide Richtungen; die Labels
 // benennen die Richtung, statt sie zu verschweigen.
@@ -231,6 +240,14 @@ export default function Recipes() {
 
   const effectiveAuthor = authorFilter || (scopeAuthor && search ? search : '')
 
+  // Signatur der aktuellen Abfrage — dieselben Werte, die unten den Neuaufbau
+  // der Liste auslösen. Der Scroll-Restore gilt nur, solange sie passt.
+  const queryKey = JSON.stringify([
+    search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter,
+    authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey,
+    difficultyKey, categoryKey, maxTimeFilter, sort,
+  ])
+
   // Baut die /api/recipes-Query aus expliziten Filter-Sets — eine Quelle für Haupt-Fetch + Diagnose (⑤).
   const buildRecipeParams = (t, di, co, df, ca, mt, pg = 1) => {
     const scopeParts = ['title']
@@ -257,7 +274,7 @@ export default function Recipes() {
   // Ladefortschritt der Liste — bewusst im Ref: der Observer feuert öfter, als
   // gerendert wird, und muss sofort sehen, dass schon geladen wird.
   const listState = useRef({ page: 0, geladen: 0, done: false, loading: false })
-  const ladeSeiteRef = useRef(() => {})
+  const ladenRef = useRef({})
   const sentinelRef = useRef(null)
   const [error, setError] = useState(false)
   const [total, setTotal] = useState(0)
@@ -299,7 +316,13 @@ export default function Recipes() {
     else setLoadingMore(true)
     setError(false)
 
-    const fertig = () => { st.loading = false; setLoading(false); setLoadingMore(false) }
+    const fertig = () => {
+      st.loading = false
+      // Die Ladeanzeige gehört inzwischen ggf. einer neueren Abfrage.
+      if (listState.current !== st) return
+      setLoading(false)
+      setLoadingMore(false)
+    }
 
     // Favoriten liegen komplett im Client — hier wird nur weiter aufgedeckt.
     if (showFavorites) {
@@ -313,9 +336,11 @@ export default function Recipes() {
       }
       if (typeFilters.size > 0 && typeFilters.size < 3) list = list.filter(r => typeFilters.has(r.type || 'kochen'))
       const bis = pg * PAGE_SIZE
+      const sichtbar = list.slice(0, bis)
       st.page = pg
+      st.geladen = sichtbar.length
       st.done = bis >= list.length
-      setRecipes(list.slice(0, bis))
+      setRecipes(sichtbar)
       setTotal(list.length)
       setFacets({}) // Favoriten sind client-seitig → keine Server-Facetten
       fertig()
@@ -326,6 +351,9 @@ export default function Recipes() {
 
     client.get('/api/recipes', { params, paramsSerializer: { indexes: null } })
       .then(res => {
+        // Query hat sich während des Requests geändert (der Reset-Effekt legt
+        // dafür ein neues `listState`-Objekt an) → Antwort verwerfen.
+        if (listState.current !== st) return
         const items = res.data.items || []
         st.page = pg
         st.geladen = (pg === 1 ? 0 : st.geladen) + items.length
@@ -333,18 +361,6 @@ export default function Recipes() {
         setRecipes(prev => (pg === 1 ? items : [...prev, ...items]))
         setTotal(res.data.total)
         setFacets(res.data.facets || {})
-        // Scroll-Restore nach Rückkehr aus dem Detail
-        if (pg === 1) {
-          const savedY = sessionStorage.getItem('recipes_scroll_y')
-          const savedH = sessionStorage.getItem('recipes_scroll_height')
-          if (savedY !== null) {
-            sessionStorage.removeItem('recipes_scroll_y')
-            sessionStorage.removeItem('recipes_scroll_height')
-            document.body.style.minHeight = parseInt(savedH, 10) + 'px'
-            window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
-            requestAnimationFrame(() => { document.body.style.minHeight = '' })
-          }
-        }
       })
       .catch(() => {
         // Pausieren statt weiterprobieren: der Sentinel steht am Listenende und
@@ -356,25 +372,115 @@ export default function Recipes() {
       .finally(fertig)
   }
 
-  // Nach jeder Render-Runde die frische Closure hinterlegen — der Observer
+  // ── Rückkehr aus dem Detail ────────────────────────────────────────────────
+
+  // Erst nach dem Paint scrollen: vorher stehen die nachgeladenen Karten noch
+  // nicht im DOM und `scrollTo` liefe ins Leere. `minHeight` überbrückt den
+  // Moment, bis das Layout die gespeicherte Höhe wirklich hergibt.
+  const scrolleZurueck = (restore) => {
+    requestAnimationFrame(() => {
+      document.body.style.minHeight = restore.h + 'px'
+      window.scrollTo({ top: restore.y, behavior: 'instant' })
+      requestAnimationFrame(() => { document.body.style.minHeight = '' })
+    })
+  }
+
+  // Einmalig auslesen. Ein Eintrag aus einer anderen Query (Filter/Sortierung
+  // zwischenzeitlich geändert) wird verworfen, nicht angewendet — sonst
+  // stellte er die falsche Liste wieder her.
+  const leseRestore = () => {
+    const roh = sessionStorage.getItem(RESTORE_KEY)
+    if (!roh) return null
+    sessionStorage.removeItem(RESTORE_KEY)
+    try {
+      const daten = JSON.parse(roh)
+      return daten?.key === queryKey && daten.geladen > 0 ? daten : null
+    } catch {
+      return null
+    }
+  }
+
+  // Alle zuvor geladenen Rezepte zurückholen, bevor gescrollt wird — genau
+  // das fehlte: nach dem Umstieg auf Infinite Scroll lag nur Seite 1 vor und
+  // die gespeicherte Position war gar nicht erreichbar.
+  const ladeWiederher = async (restore) => {
+    const st = listState.current
+    if (st.loading) return
+    st.loading = true
+    setLoading(true)
+    setError(false)
+
+    // Favoriten liegen im Client — dort genügt es, weiter aufzudecken.
+    if (showFavorites) {
+      st.loading = false
+      ladeSeite(Math.max(1, Math.ceil(restore.geladen / PAGE_SIZE)))
+      scrolleZurueck(restore)
+      return
+    }
+
+    // Blockgröße für alle Requests gleich halten, sonst stimmen die Offsets
+    // der Folgeseiten nicht.
+    const block = Math.min(RESTORE_BLOCK, Math.ceil(restore.geladen / PAGE_SIZE) * PAGE_SIZE)
+    const gesammelt = []
+    let summe = 0
+    let facetten = {}
+
+    try {
+      for (let pg = 1; gesammelt.length < restore.geladen; pg++) {
+        const params = buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, categoryFilters, maxTimeFilter, pg)
+        params.page_size = block
+        const res = await client.get('/api/recipes', { params, paramsSerializer: { indexes: null } })
+        const items = res.data.items || []
+        summe = res.data.total ?? 0
+        facetten = res.data.facets || {}
+        gesammelt.push(...items)
+        if (items.length < block) break
+      }
+
+      // Der Restore läuft über mehrere Requests — in der Zeit kann ein
+      // Filterwechsel dazwischenkommen. Dann gehört das Ergebnis nicht mehr
+      // zur aktuellen Liste.
+      if (listState.current !== st) return
+
+      st.page = Math.ceil(gesammelt.length / PAGE_SIZE)
+      st.geladen = gesammelt.length
+      st.done = gesammelt.length >= summe
+      setRecipes(gesammelt)
+      setTotal(summe)
+      setFacets(facetten)
+      scrolleZurueck(restore)
+    } catch {
+      if (listState.current !== st) return
+      st.done = true
+      setError(true)
+    } finally {
+      st.loading = false
+      // Die Ladeanzeige gehört inzwischen ggf. einer neueren Abfrage.
+      if (listState.current === st) setLoading(false)
+    }
+  }
+
+  // Nach jeder Render-Runde die frischen Closures hinterlegen — der Observer
   // unten wird nur einmal aufgesetzt und greift trotzdem immer auf die
   // aktuellen Filter zu. Muss vor den Effekten darunter stehen, damit die beim
   // ersten Durchlauf schon einen Loader vorfinden.
-  useEffect(() => { ladeSeiteRef.current = ladeSeite })
+  useEffect(() => { ladenRef.current = { ladeSeite, ladeWiederher, leseRestore } })
 
   // Suche, Filter oder Sortierung geändert → Zähler zurück und neu ab Seite 1.
   // Die alte Liste bleibt bis zur Antwort im State, ist aber nicht zu sehen:
   // `ladeSeite(1)` schaltet auf `loading`, also auf die Skeletons.
   useEffect(() => {
     listState.current = { page: 0, geladen: 0, done: false, loading: false }
-    ladeSeiteRef.current(1)
+    const restore = ladenRef.current.leseRestore()
+    if (restore) ladenRef.current.ladeWiederher(restore)
+    else ladenRef.current.ladeSeite(1)
   }, [search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce])
 
   useEffect(() => {
     const el = sentinelRef.current
     if (!el) return undefined
     const obs = new IntersectionObserver(
-      entries => { if (entries[0].isIntersecting) ladeSeiteRef.current(listState.current.page + 1) },
+      entries => { if (entries[0].isIntersecting) ladenRef.current.ladeSeite(listState.current.page + 1) },
       { rootMargin: '300px' },
     )
     obs.observe(el)
@@ -561,8 +667,15 @@ export default function Recipes() {
   }
 
   const openDetail = (r) => {
-    sessionStorage.setItem('recipes_scroll_y', window.scrollY)
-    sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
+    // Neben der Position auch den Ladestand merken: ohne ihn käme man mit nur
+    // einer geladenen Seite zurück und die Position wäre unerreichbar. Die
+    // Länge der Liste ist der Ladestand — kein zweiter Zähler nötig.
+    sessionStorage.setItem(RESTORE_KEY, JSON.stringify({
+      y: window.scrollY,
+      h: document.body.scrollHeight,
+      geladen: recipes.length,
+      key: queryKey,
+    }))
     navigate(`/recipes/${r.id}`)
   }
 
