@@ -11,15 +11,23 @@ import { getCategoryColor } from '../theme/categoryColors'
 
 const PAGE_SIZE = 12
 
-// Sort-Dropdown → Server-`sort` (Client-Sort entfällt; Reihenfolge kommt vom Server).
+// Sort-Dropdown → Server-`sort` (Client-Sort entfällt; Reihenfolge kommt vom
+// Server). Datum und Kochzeit gibt es jeweils in beide Richtungen; die Labels
+// benennen die Richtung, statt sie zu verschweigen.
 const SORT_OPTIONS = [
-  { value: 'default', label: 'Relevanz' },   // kein Param (Default)
-  { value: 'newest', label: 'Neueste' },
-  { value: 'oldest', label: 'Älteste' },
-  { value: 'rating', label: 'Bewertung' },
-  { value: 'time_asc', label: 'Kochzeit' },
+  { value: 'newest', label: 'Neueste zuerst' },
+  { value: 'oldest', label: 'Älteste zuerst' },
+  { value: 'rating', label: 'Beste Bewertung' },
+  { value: 'time_asc', label: 'Kochzeit ↑ (kurz)' },
+  { value: 'time_desc', label: 'Kochzeit ↓ (lang)' },
 ]
-const SERVER_SORTS = new Set(['newest', 'oldest', 'rating', 'time_asc'])
+
+// „Relevanz" heißt: keinen `sort` mitschicken und den Server entscheiden
+// lassen. Das ergibt nur bei aktiver Suche Sinn — beim reinen Blättern stand
+// darüber „Relevanz", sortiert wurde aber ohnehin nach Datum (BUG-08).
+const RELEVANZ = { value: 'default', label: 'Relevanz' }
+
+const SERVER_SORTS = new Set(['newest', 'oldest', 'rating', 'time_asc', 'time_desc'])
 
 const TYPE_OPTS = [
   { value: 'kochen', label: 'Kochen' },
@@ -210,7 +218,10 @@ export default function Recipes() {
   const difficultyFilters = new Set((searchParams.get('difficulty') || '').split(',').filter(Boolean))
   const categoryFilters = new Set((searchParams.get('category') || '').split(',').filter(Boolean))
   const maxTimeFilter = parseInt(searchParams.get('max_time') || '0', 10)
-  const sort = searchParams.get('sort') || 'default'
+  // Ohne Suche ist „Neueste zuerst" der Default — vorher stand hier
+  // „Relevanz", ohne dass es eine Relevanz zu sortieren gab.
+  const sort = searchParams.get('sort') || (search ? 'default' : 'newest')
+  const sortOptions = search ? [RELEVANZ, ...SORT_OPTIONS] : SORT_OPTIONS
 
   // Keys for the fetch effect dependency array (Sets are new refs every render).
   const typeKey = searchParams.get('type') || ''
@@ -514,14 +525,14 @@ export default function Recipes() {
                   data-track-id="recipes-sort-select"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--text)', letterSpacing: '.02em' }}
                 >
-                  {SORT_OPTIONS.find(o => o.value === sort)?.label ?? 'Relevanz'}
+                  {sortOptions.find(o => o.value === sort)?.label ?? 'Neueste zuerst'}
                   <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
                 </button>
                 {sortOpen && (
                   <>
                     <div onClick={() => setSortOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
                     <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-hover)', padding: 4, minWidth: 150 }}>
-                      {SORT_OPTIONS.map(o => (
+                      {sortOptions.map(o => (
                         <button key={o.value} onClick={() => { setSort(o.value); setSortOpen(false) }}
                           style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', background: o.value === sort ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'none', color: o.value === sort ? 'var(--accent)' : 'var(--text)', fontFamily: 'var(--font-body)', fontSize: 13 }}>
                           {o.label}
