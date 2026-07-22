@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -261,6 +261,14 @@ export default function Recipes() {
   const [courseOpts, setCourseOpts] = useState([])   // [string]
   const [categoryOpts, setCategoryOpts] = useState([]) // [{ id, name, slug, recipe_count }]
   const [sheetOpen, setSheetOpen] = useState(false)
+  // Sheet-Animation: `sheetIn` schaltet einen Frame nach dem Mount auf 0 und
+  // löst damit den Slide-in aus. `dragY` ist der Versatz während des Ziehens
+  // am Griff — beim Loslassen entweder zurück auf 0 oder ganz hinaus.
+  const [sheetIn, setSheetIn] = useState(false)
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const dragStartRef = useRef(0)
+  const panelRef = useRef(null)
   const [sortOpen, setSortOpen] = useState(false)
   const [diagnosis, setDiagnosis] = useState([])
   const [reloadNonce, setReloadNonce] = useState(0)
@@ -466,6 +474,45 @@ export default function Recipes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipes.length, loading, error, showFavorites, activeFilterCount, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, search, scopeDesc, scopeIng, scopeAuthor, authorFilter, authorIdFilter, sort, reloadNonce])
 
+  // ── Filter-Sheet: Slide-in und Drag-to-close ───────────────────────────────
+
+  const oeffneSheet = () => { setDragY(0); setSheetOpen(true) }
+
+  useEffect(() => {
+    if (!sheetOpen) return undefined
+    // Erst im nächsten Frame — sonst rendert der Browser gleich den Endzustand
+    // und es gibt nichts zu animieren.
+    const id = requestAnimationFrame(() => setSheetIn(true))
+    return () => cancelAnimationFrame(id)
+  }, [sheetOpen])
+
+  const schliesseSheet = () => {
+    setDragging(false)
+    // Nach unten rausschieben und erst danach abbauen, damit das Sheet nicht
+    // aus dem Bild springt.
+    setDragY(panelRef.current?.offsetHeight || 400)
+    setTimeout(() => { setSheetOpen(false); setSheetIn(false); setDragY(0) }, 220)
+  }
+
+  const griffDown = (e) => {
+    dragStartRef.current = e.clientY
+    setDragging(true)
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+  }
+
+  const griffMove = (e) => {
+    if (!dragging) return
+    // Nur nach unten — nach oben gibt es nichts aufzuziehen.
+    setDragY(Math.max(0, e.clientY - dragStartRef.current))
+  }
+
+  const griffUp = () => {
+    if (!dragging) return
+    setDragging(false)
+    if (dragY > 90) schliesseSheet()
+    else setDragY(0)
+  }
+
   const openDetail = (r) => {
     sessionStorage.setItem('recipes_scroll_y', window.scrollY)
     sessionStorage.setItem('recipes_scroll_height', document.body.scrollHeight)
@@ -592,7 +639,7 @@ export default function Recipes() {
             ))}
             {chips.length > 2 && (
               <button
-                onClick={() => setSheetOpen(true)}
+                onClick={oeffneSheet}
                 data-track-id="recipes-filter-overflow-open"
                 aria-label={`${chips.length - 2} weitere Filter`}
                 style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '.04em', padding: '7px 11px', background: 'var(--ink-braun)', color: 'var(--on-dark)', border: 'none', borderRadius: 16, boxShadow: '0 3px 10px rgba(0,0,0,.2)' }}
@@ -602,7 +649,7 @@ export default function Recipes() {
             )}
           </div>
           <button
-            onClick={() => setSheetOpen(true)}
+            onClick={oeffneSheet}
             data-track-id="recipes-filter-fab-open"
             aria-label="Filter"
             style={{ pointerEvents: 'auto', flexShrink: 0, width: 52, height: 52, borderRadius: '50%', background: 'var(--accent)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(80,35,12,.28)' }}
@@ -615,10 +662,38 @@ export default function Recipes() {
       {/* Filter-Bottom-Sheet (§2.11) */}
       {sheetOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
-          <div onClick={() => setSheetOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(42,34,24,.4)' }} />
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '85vh', background: 'var(--bg)', borderRadius: '12px 12px 0 0', boxShadow: '0 -8px 32px rgba(0,0,0,.2)', display: 'flex', flexDirection: 'column' }}>
-            {/* Griff */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+          <div
+            onClick={schliesseSheet}
+            style={{
+              position: 'absolute', inset: 0, background: 'rgba(42,34,24,.4)',
+              opacity: sheetIn && dragY === 0 ? 1 : 0.6,
+              transition: dragging ? 'none' : 'opacity .22s ease',
+            }}
+          />
+          <div
+            ref={panelRef}
+            style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '85vh',
+              background: 'var(--bg)', borderRadius: '12px 12px 0 0',
+              boxShadow: '0 -8px 32px rgba(0,0,0,.2)',
+              display: 'flex', flexDirection: 'column',
+              transform: sheetIn ? `translateY(${dragY}px)` : 'translateY(100%)',
+              transition: dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
+              willChange: 'transform',
+            }}
+          >
+            {/* Griff — zieht das Sheet zu (BUG-12). `touchAction: none`, sonst
+                scrollt der Browser beim Ziehen die Seite statt das Sheet. */}
+            <div
+              onPointerDown={griffDown}
+              onPointerMove={griffMove}
+              onPointerUp={griffUp}
+              onPointerCancel={griffUp}
+              role="button"
+              aria-label="Filter schließen"
+              data-track-id="recipes-filter-sheet-grabber"
+              style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0, cursor: 'grab', touchAction: 'none' }}
+            >
               <div style={{ width: 36, height: 4, background: 'var(--wood-shadow)', borderRadius: 2 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px 12px', flexShrink: 0 }}>
@@ -631,7 +706,7 @@ export default function Recipes() {
               <FilterPanel groups={groups} />
             </div>
             <div style={{ padding: '12px 20px 24px', borderTop: '1px solid var(--hairline)', flexShrink: 0 }}>
-              <button onClick={() => setSheetOpen(false)} style={{ width: '100%', padding: 14, borderRadius: 4, background: 'var(--ink-braun)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 13, color: 'var(--on-dark)', boxShadow: '0 3px 0 rgba(0,0,0,.25)' }}>
+              <button onClick={schliesseSheet} style={{ width: '100%', padding: 14, borderRadius: 4, background: 'var(--ink-braun)', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 13, color: 'var(--on-dark)', boxShadow: '0 3px 0 rgba(0,0,0,.25)' }}>
                 {total} Rezepte anzeigen
               </button>
             </div>
