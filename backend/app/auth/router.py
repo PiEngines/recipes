@@ -3,16 +3,18 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from jose import JWTError
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_koch_or_above
-from app.auth.jwt import create_access_token, create_refresh_token
+from app.auth.jwt import create_access_token, create_refresh_token, decode_token
 from app.auth.password import hash_password, verify_password
 from app.auth.schemas import (
     ForgotPasswordRequest,
     InviteRequest,
     LoginRequest,
+    RefreshRequest,
     RegisterRequest,
     ResendVerificationRequest,
     ResetPasswordRequest,
@@ -168,6 +170,40 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         refresh_token=create_refresh_token(user.id),
         declined_shares=declined_shares if declined_shares else None,
         notifications=notifications if notifications else None,
+    )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(body: RefreshRequest, db: Session = Depends(get_db)):
+    """Neues Access-Token gegen ein gültiges Refresh-Token.
+
+    Stateless: das Refresh-Token ist ein JWT mit `type: "refresh"`, es gibt
+    keine Tabelle und nichts zu invalidieren. Es wird bewusst *nicht* rotiert —
+    es läuft nach 7 Tagen ohnehin ab, und ohne Rotation können parallele
+    Requests denselben Token gefahrlos mehrfach einlösen.
+    """
+    unauthorized = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired refresh token",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_token(body.refresh_token)
+        # Ein Access-Token darf hier nicht durchgehen — sonst liesse sich der
+        # 60-Minuten-Ablauf endlos verlängern.
+        if payload.get("type") != "refresh":
+            raise unauthorized
+        user_id = int(payload["sub"])
+    except (JWTError, KeyError, TypeError, ValueError):
+        raise unauthorized
+
+    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
+    if user is None:
+        raise unauthorized
+
+    return TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=body.refresh_token,
     )
 
 
