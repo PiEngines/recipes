@@ -1,30 +1,24 @@
 /**
  * ExternalPostEmbed — abspielbarer Instagram-/TikTok-Beitrag (F3b-1).
  *
- * Die beiden Plattformen werden bewusst **unterschiedlich** eingebettet:
+ * Beide Plattformen werden als **direkter Embed-iFrame** eingebettet — die
+ * plattform-eigenen `embed.js`-Skripte sind für eine SPA unbrauchbar:
  *
- * • Instagram → direkter iFrame auf `…/{typ}/{code}/embed/`.
- *   Instagrams eigenes `embed.js` antwortet in der Praxis mit HTTP 503,
- *   `window.instgrm` bleibt dann undefiniert und der Beitrag wird nie zum
- *   Player verarbeitet. Der Embed-iFrame umgeht das Skript komplett und
- *   braucht kein `window.instgrm`. `oembed_html` wird für Instagram deshalb
- *   ignoriert (das Backend speichert es weiter — schadet nicht).
+ * • Instagram → `…/{typ}/{code}/embed/`. Instagrams `embed.js` antwortet in der
+ *   Praxis mit HTTP 503, `window.instgrm` bleibt dann undefiniert und der
+ *   Beitrag wird nie zum Player verarbeitet.
  *
- * • TikTok → `oembed_html` (ein `<blockquote>`) plus `embed.js`. Dort
- *   funktioniert das Skript zuverlässig. Zwei Dinge sind dabei wichtig:
- *   ein per innerHTML eingefügtes `<script>` führt der Browser nicht aus (das
- *   Skript wird also selbst geladen, einmalig pro Plattform), und das
- *   Fremd-HTML wird vor dem Einfügen sanitisiert.
+ * • TikTok → `…/embed/v2/{videoId}`. TikToks `embed.js` upgradet das
+ *   `<blockquote>` aus `oembed_html` nur beim **ersten** Skript-Lauf und bietet
+ *   keine Re-Process-API. Bei jedem erneuten Mount (z. B. Overlay öffnen) blieb
+ *   deshalb statisches HTML stehen — ein Tap sprang in die TikTok-App.
  *
- * Klappt beides nicht (Adblocker, CSP, nicht parsebare URL), bleibt der
- * Fallback: Thumbnail + Link auf den Originalbeitrag.
+ * `oembed_html` wird nur noch als Fallback-Quelle für die Video-ID gelesen (das
+ * Backend speichert es weiter — schadet nicht). Klappt der Embed nicht
+ * (Adblocker, CSP, nicht parsebare URL), bleibt der Fallback: Thumbnail + Link
+ * auf den Originalbeitrag.
  */
-import DOMPurify from 'dompurify'
-import { useEffect, useMemo, useState } from 'react'
-
-const SKRIPTE = {
-  tiktok: 'https://www.tiktok.com/embed.js',
-}
+import { useMemo, useState } from 'react'
 
 const LABEL = { instagram: 'Instagram', tiktok: 'TikTok' }
 
@@ -34,40 +28,9 @@ const IG_TYPEN = { reel: 'reel', reels: 'reel', p: 'p', tv: 'tv' }
 // Reels sind hochkant, Feed-Posts eher quadratisch.
 const IG_HOEHEN = { reel: 640, p: 500, tv: 640 }
 
-// Ein Promise je Plattform — mehrere Embeds auf einer Seite laden das Skript
-// gemeinsam genau einmal.
-const skriptPromises = {}
-
-function ladeSkript(platform) {
-  if (skriptPromises[platform]) return skriptPromises[platform]
-
-  skriptPromises[platform] = new Promise((resolve, reject) => {
-    const src = SKRIPTE[platform]
-    if (!src) {
-      reject(new Error('Unbekannte Plattform'))
-      return
-    }
-
-    const vorhanden = document.querySelector(`script[src="${src}"]`)
-    if (vorhanden) {
-      if (vorhanden.dataset.geladen === 'ja') resolve()
-      else {
-        vorhanden.addEventListener('load', () => resolve())
-        vorhanden.addEventListener('error', () => reject(new Error('Skript nicht geladen')))
-      }
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = src
-    script.async = true
-    script.addEventListener('load', () => { script.dataset.geladen = 'ja'; resolve() })
-    script.addEventListener('error', () => reject(new Error('Skript nicht geladen')))
-    document.body.appendChild(script)
-  })
-
-  return skriptPromises[platform]
-}
+// TikTok ist durchgängig hochkant; der v2-Player bringt zusätzlich eine
+// Kopfzeile mit Autor und eine Fußzeile mit Beschreibung mit.
+const TT_HOEHE = 760
 
 /**
  * Embed-Ziel aus einer Instagram-URL ableiten.
@@ -98,6 +61,23 @@ function instagramEmbed(url) {
   return null
 }
 
+/**
+ * Embed-Ziel aus einer TikTok-URL ableiten.
+ *
+ * Primär aus der URL (`…/@user/video/{id}`). Kurzlinks (`vm.tiktok.com/XYZ`)
+ * tragen die ID nicht im Pfad — dort greift das `oembed_html` des Backends, in
+ * dem TikTok die ID als `data-video-id` mitliefert.
+ *
+ * @returns {{src: string, hoehe: number} | null} `null`, wenn keine ID findbar.
+ */
+function tiktokEmbed(url, oembedHtml) {
+  const ausUrl = String(url || '').match(/\/video\/(\d+)/)
+  const ausHtml = String(oembedHtml || '').match(/data-video-id="(\d+)"/)
+  const videoId = ausUrl?.[1] || ausHtml?.[1]
+  if (!videoId) return null
+  return { src: `https://www.tiktok.com/embed/v2/${videoId}`, hoehe: TT_HOEHE }
+}
+
 // ── Platzhalter & Fallback ───────────────────────────────────────────────────
 
 const rahmen = {
@@ -106,12 +86,6 @@ const rahmen = {
   borderRadius: 'var(--radius-card)',
   overflow: 'hidden',
   background: 'var(--bg-alt)',
-}
-
-function Platzhalter({ hoehe = 320 }) {
-  return (
-    <div className="skeleton-block" style={{ ...rahmen, height: hoehe }} aria-hidden="true" />
-  )
 }
 
 function Fallback({ post }) {
@@ -188,44 +162,41 @@ function InstagramEmbed({ post }) {
   )
 }
 
-// ── TikTok: oEmbed-HTML + Embed-Skript ───────────────────────────────────────
+// ── TikTok: direkter Embed-iFrame ────────────────────────────────────────────
 
-function SkriptEmbed({ post }) {
-  const [status, setStatus] = useState('laedt')  // laedt | bereit | fehler
+function TikTokEmbed({ post }) {
+  const [fehlgeschlagen, setFehlgeschlagen] = useState(false)
+  const [geladen, setGeladen] = useState(false)
+  const embed = useMemo(
+    () => tiktokEmbed(post?.url || '', post?.oembed_html || ''),
+    [post?.url, post?.oembed_html],
+  )
 
-  const html = post?.oembed_html || null
-  const platform = post?.platform
-
-  // Kein setState im Effekt-Rumpf: der Startwert ist bereits „laedt", und ohne
-  // `html` greift ohnehin der Fallback im Render.
-  useEffect(() => {
-    if (!html) return undefined
-
-    let aktiv = true
-    ladeSkript(platform)
-      .then(() => { if (aktiv) setStatus('bereit') })
-      .catch(() => { if (aktiv) setStatus('fehler') })
-
-    return () => { aktiv = false }
-  }, [html, platform])
-
-  if (!html || status === 'fehler') return <Fallback post={post} />
-
-  const sauber = DOMPurify.sanitize(html, {
-    ADD_TAGS: ['blockquote', 'iframe'],
-    ADD_ATTR: ['allowfullscreen', 'allow', 'frameborder', 'scrolling',
-               'data-video-id', 'cite'],
-  })
+  if (!embed || fehlgeschlagen) return <Fallback post={post} />
 
   return (
-    <>
-      {status === 'laedt' && <Platzhalter />}
-      <div
-        // Fremd-HTML vom offiziellen oEmbed-Endpunkt — sanitisiert (s. o.).
-        dangerouslySetInnerHTML={{ __html: sauber }}
-        style={{ display: status === 'bereit' ? 'block' : 'none' }}
+    <div style={{ ...rahmen, height: embed.hoehe }}>
+      {/* Platzhalter über dem iFrame — siehe InstagramEmbed. */}
+      {!geladen && (
+        <div className="skeleton-block" style={{ position: 'absolute', inset: 0 }} aria-hidden="true" />
+      )}
+      <iframe
+        src={embed.src}
+        title={`Beitrag von ${post.author_name || 'TikTok'}`}
+        scrolling="no"
+        frameBorder="0"
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+        allowFullScreen
+        loading="lazy"
+        onLoad={() => setGeladen(true)}
+        onError={() => setFehlgeschlagen(true)}
+        data-track-id="social-embed-tiktok"
+        style={{
+          width: '100%', height: '100%', border: 0, display: 'block',
+          opacity: geladen ? 1 : 0, transition: 'opacity .2s ease',
+        }}
       />
-    </>
+    </div>
   )
 }
 
@@ -233,5 +204,6 @@ function SkriptEmbed({ post }) {
 
 export default function ExternalPostEmbed({ post }) {
   if (post?.platform === 'instagram') return <InstagramEmbed post={post} />
-  return <SkriptEmbed post={post} />
+  if (post?.platform === 'tiktok') return <TikTokEmbed post={post} />
+  return <Fallback post={post} />
 }
