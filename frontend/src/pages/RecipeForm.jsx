@@ -119,6 +119,51 @@ function ConfirmDialog({ message, onConfirm, onCancel, confirmLabel = 'Fortfahre
   )
 }
 
+/**
+ * Verlassen-Dialog im Entwurf-Modus (BUG-63).
+ *
+ * Der Autosave legt beim Tippen bereits einen Entwurf an — beim Verlassen
+ * bleibt der also liegen, ohne dass jemand danach gefragt hätte. Deshalb hier
+ * drei Wege statt zwei. Nach „behalten" zeigt derselbe Dialog kurz, wo der
+ * Entwurf wieder auftaucht; sonst sucht man ihn.
+ */
+function EntwurfVerlassenDialog({ hinweis, onVerwerfen, onBehalten, onBleiben, onWeiter }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.75rem', maxWidth: '380px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        {hinweis ? (
+          <>
+            <p style={{ margin: '0 0 1.25rem', color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6, display: 'flex', gap: 8 }}>
+              <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 18, color: 'var(--secondary)', flexShrink: 0 }} />
+              <span>Entwurf gespeichert — du findest ihn unter <strong>Profil › Meine Rezepte › Entwürfe</strong>.</span>
+            </p>
+            <button onClick={onWeiter} style={{ width: '100%', padding: '0.625rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+              Alles klar
+            </button>
+          </>
+        ) : (
+          <>
+            <p style={{ margin: '0 0 1.5rem', color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              Dein Rezept ist als Entwurf gespeichert. Was soll damit passieren?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              <button onClick={onBehalten} data-track-id="recipe-form-leave-keep" style={{ padding: '0.625rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+                Entwurf behalten
+              </button>
+              <button onClick={onVerwerfen} data-track-id="recipe-form-leave-discard" style={{ padding: '0.625rem 1.25rem', border: '1.5px solid #C84444', borderRadius: 'var(--radius-input)', background: 'none', color: '#C84444', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+                Entwurf verwerfen
+              </button>
+              <button onClick={onBleiben} data-track-id="recipe-form-leave-stay" style={{ padding: '0.625rem 1.25rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>
+                Im Wizard bleiben
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function ReviewNavDialog({ onSaveAndGo, onDiscardAndGo, onCancel }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -580,6 +625,11 @@ export default function RecipeForm() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [showReviewDialog, setShowReviewDialog] = useState(false)
   const pendingNavRef = useRef(null)
+  // Zweiter Schritt im Verlassen-Dialog: Bestätigung nach „Entwurf behalten".
+  const [leaveHinweis, setLeaveHinweis] = useState(false)
+  // Nach „verwerfen" darf kein Autosave den gelöschten Entwurf neu anlegen —
+  // weder der Debounce, noch der Intervall-Save, noch der Unmount-Flush.
+  const verworfenRef = useRef(false)
 
   // Snapshot for discard
   const [savedSnapshot, setSavedSnapshot] = useState(null)
@@ -751,9 +801,16 @@ export default function RecipeForm() {
     } catch {}
   }, [])
 
-  // Guarded navigation: show confirm dialog when there are unsaved changes
+  // Guarded navigation: show confirm dialog when there are unsaved changes.
+  // Im Entwurf-Modus wird auch dann gefragt, wenn alles gespeichert ist — der
+  // Autosave hat dann bereits einen Entwurf angelegt, und über dessen Verbleib
+  // soll der Nutzer entscheiden (BUG-63).
   const guardedNavigate = useCallback((path) => {
-    if (isDirty && !savingRef.current) {
+    const s = stateRef.current
+    const fragen = s.entwurfModus
+      ? (isDirty || savingRef.current || !!s.recipeId)
+      : (isDirty && !savingRef.current)
+    if (fragen) {
       pendingNavRef.current = path
       setShowLeaveConfirm(true)
     } else {
@@ -996,6 +1053,7 @@ export default function RecipeForm() {
   // Version erzeugt.
   const entwurfSpeichern = useCallback(async () => {
     const s = stateRef.current
+    if (verworfenRef.current) return
     if (!s.entwurfModus || !s.title.trim()) return
     if (savingRef.current) {
       // Läuft schon einer: nach dessen Abschluss nachholen.
@@ -1040,6 +1098,7 @@ export default function RecipeForm() {
   // Autosave condition
   const canAutosave = useCallback(() => {
     const s = stateRef.current
+    if (verworfenRef.current) return false
     if (!s.title.trim()) return false
     const chars =
       (s.description || '').length + (s.source || '').length +
@@ -1174,21 +1233,63 @@ export default function RecipeForm() {
     else navigate(recipeId ? `/recipes/${recipeId}` : '/')
   }
 
+  // Nur noch der Bestandsmodus (veröffentlichtes Rezept): Änderungen verwerfen
+  // und gehen. Der Entwurf-Modus läuft über `EntwurfVerlassenDialog`.
   const handleLeaveConfirm = () => {
     setShowLeaveConfirm(false)
     const path = pendingNavRef.current
     pendingNavRef.current = null
-    // Im Entwurf-Modus gehen die Änderungen nicht verloren — sie werden noch
-    // weggeschrieben. Der Unmount-Flush greift zwar ohnehin, aber hier ist der
-    // Zeitpunkt sauber und der Nutzer hat die Wahl aktiv bestätigt.
-    if (stateRef.current.entwurfModus) entwurfSpeichernRef.current()
     if (path) navigate(path)
   }
 
   const handleLeaveCancel = () => {
     setShowLeaveConfirm(false)
+    setLeaveHinweis(false)
     pendingNavRef.current = null
   }
+
+  // ── Verlassen im Entwurf-Modus (BUG-63) ───────────────────────────────────
+
+  const verlassen = useCallback(() => {
+    const path = pendingNavRef.current
+    pendingNavRef.current = null
+    setShowLeaveConfirm(false)
+    setLeaveHinweis(false)
+    navigate(path || '/')
+  }, [navigate])
+
+  // Entwurf behalten: wegschreiben, dann kurz zeigen, wo er wieder auftaucht.
+  const handleEntwurfBehalten = () => {
+    entwurfSpeichernRef.current()
+    setLeaveHinweis(true)
+  }
+
+  // Entwurf verwerfen: erst den Autosave stilllegen, dann löschen. Ohne
+  // `recipeId` wurde noch nichts angelegt — dann gibt es nur den ungesicherten
+  // Stand zu verwerfen, und der verschwindet mit dem Unmount ohnehin.
+  const handleEntwurfVerwerfen = async () => {
+    verworfenRef.current = true
+    nachholenRef.current = false
+    const id = stateRef.current.recipeId
+    if (id) {
+      try {
+        await client.delete(`/api/recipes/${id}`)
+      } catch {
+        // Löschen fehlgeschlagen: lieber den Entwurf behalten als den Nutzer
+        // festhalten — er steht danach im Profil und lässt sich dort entfernen.
+        verworfenRef.current = false
+      }
+    }
+    verlassen()
+  }
+
+  // Nach dem Behalten-Hinweis von selbst weiter — der Dialog hat seinen Zweck
+  // erfüllt, sobald er gelesen ist.
+  useEffect(() => {
+    if (!leaveHinweis) return undefined
+    const t = setTimeout(verlassen, 2600)
+    return () => clearTimeout(t)
+  }, [leaveHinweis, verlassen])
 
   // Veröffentlichen (Feinschliff, nur Entwurf-Modus). Bewusst ein normaler PUT
   // ohne `skip_version` — anders als die Autosaves soll das eine Version
@@ -1205,18 +1306,11 @@ export default function RecipeForm() {
     navigate(`/recipes/${data.id}`)
   }, [doSave, navigate])
 
-  // ✕ Schliessen im Entwurf-Modus: der Entwurf bleibt erhalten, es geht nichts
-  // verloren. Nachgefragt wird nur, wenn gerade ein Save laeuft oder noch
-  // Aenderungen offen sind — sonst waere die Rueckfrage reine Reibung.
+  // ✕ Schliessen: derselbe Weg wie der Zurueck-Button, damit im Entwurf-Modus
+  // auch hier die Frage nach dem Verbleib des Entwurfs kommt (BUG-63).
   const schliessen = useCallback(() => {
-    const ziel = recipeId ? `/recipes/${recipeId}` : '/'
-    if (savingRef.current || isDirty) {
-      pendingNavRef.current = ziel
-      setShowLeaveConfirm(true)
-      return
-    }
-    navigate(ziel)
-  }, [recipeId, isDirty, navigate])
+    guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')
+  }, [recipeId, guardedNavigate])
 
   // Save status display — im Bestandsmodus unverändert wie bisher.
   const saveStatusText = savingAs ? 'Speichert …' : saveError ? saveError : isDirty ? 'Nicht gespeichert' : savedAt ? `Gespeichert um ${fmtTime(savedAt)}` : ''
@@ -1271,17 +1365,28 @@ export default function RecipeForm() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
       <style>{`@keyframes ing-highlight { 0%{background:rgba(200,96,42,0.3)} 100%{background:rgba(200,96,42,0.1)} }`}</style>
 
-      {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen) */}
+      {/* Leave confirm dialog (Zurück-Button bei ungespeicherten Änderungen).
+          Im Entwurf-Modus drei Wege, weil dort bereits ein Entwurf liegt.
+          Beim Bearbeiten eines veröffentlichten Rezepts bleibt es beim alten
+          Zwei-Wege-Dialog — dort wird nie gelöscht. */}
       {showLeaveConfirm && (
-        <ConfirmDialog
-          message={entwurfModus
-            ? 'Es sind noch Änderungen offen. Sie werden als Entwurf gespeichert — du kannst später weiterarbeiten.'
-            : 'Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren.'}
-          onConfirm={handleLeaveConfirm}
-          onCancel={handleLeaveCancel}
-          confirmLabel={entwurfModus ? 'Speichern & schliessen' : 'Seite verlassen'}
-          confirmDanger={!entwurfModus}
-        />
+        entwurfModus ? (
+          <EntwurfVerlassenDialog
+            hinweis={leaveHinweis}
+            onBehalten={handleEntwurfBehalten}
+            onVerwerfen={handleEntwurfVerwerfen}
+            onBleiben={handleLeaveCancel}
+            onWeiter={verlassen}
+          />
+        ) : (
+          <ConfirmDialog
+            message="Du hast ungespeicherte Änderungen. Wenn du die Seite verlässt, gehen diese verloren."
+            onConfirm={handleLeaveConfirm}
+            onCancel={handleLeaveCancel}
+            confirmLabel="Seite verlassen"
+            confirmDanger
+          />
+        )
       )}
 
       {/* Discard confirm dialog */}
