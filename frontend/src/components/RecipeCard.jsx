@@ -88,12 +88,14 @@ export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 
         </span>
       ) : null}
 
-      {/* oben rechts: Herz (bestehende FavoriteHeart, Rollen-Gate + Outline für Foto-Sichtbarkeit) */}
+      {/* oben rechts: Herz (bestehende FavoriteHeart, Rollen-Gate). Kein Outline —
+          der dunkle Kreis liefert den Kontrast; --heart-outline ist im Light-Theme
+          selbst dunkel und ergäbe nur einen Halo („innerer Kreis"). */}
       <FavoriteHeart
         recipeId={recipe.id}
         recipe={recipe}
-        size={featured ? 16 : 15}
-        outline
+        size={featured ? 20 : 18}
+        outline={false}
         style={{ position: 'absolute', top: heartInset, right: heartInset, width: heartSize, height: heartSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.4)', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', zIndex: 3, padding: 0 }}
       />
 

@@ -166,7 +166,7 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 
         {/* Heart */}
         <FavoriteHeart
-          recipeId={recipe.id} recipe={recipe} size={20} outline={false} trackId="detail-favorite-toggle"
+          recipeId={recipe.id} recipe={recipe} size={23} outline={false} trackId="detail-favorite-toggle"
           style={{ position: 'absolute', bottom: 18, right: 14, background: 'rgba(0,0,0,.28)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, padding: 0 }}
         />
 

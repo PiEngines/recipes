@@ -33,6 +33,9 @@ export default function FavoriteHeart({ recipeId, recipe, size = 22, outline = t
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        // Die Herzform ist oben-lastig (Spitze unten) — geometrisch zentriert wirkt
+        // sie im runden Button zu hoch. 1px nach unten setzt sie optisch mittig.
+        transform: 'translateY(1px)',
         filter: outline ? HEART_OUTLINE_FILTER : 'none',
         ...style,
       }}
