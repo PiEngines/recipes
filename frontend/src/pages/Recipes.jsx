@@ -208,7 +208,6 @@ export default function Recipes() {
   const scopeDesc = searchParams.get('scopeDesc') === '1'
   const scopeIng = searchParams.get('scopeIng') === '1'
   const scopeAuthor = searchParams.get('scopeAuthor') === '1'
-  const page = parseInt(searchParams.get('page') || '1', 10)
   const showFavorites = searchParams.get('favorites') === '1' && isKochOrAbove(user)
   const authorFilter = searchParams.get('author') || ''
   const authorIdFilter = searchParams.get('author_id') || null
@@ -254,6 +253,12 @@ export default function Recipes() {
 
   const [recipes, setRecipes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  // Ladefortschritt der Liste — bewusst im Ref: der Observer feuert öfter, als
+  // gerendert wird, und muss sofort sehen, dass schon geladen wird.
+  const listState = useRef({ page: 0, geladen: 0, done: false, loading: false })
+  const ladeSeiteRef = useRef(() => {})
+  const sentinelRef = useRef(null)
   const [error, setError] = useState(false)
   const [total, setTotal] = useState(0)
   const [facets, setFacets] = useState({})           // {diet:{id:count}, course:{value:count}, difficulty:{level:count}, category:{id:count}}
@@ -280,10 +285,23 @@ export default function Recipes() {
     client.get('/api/categories').then(({ data }) => setCategoryOpts(data)).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    setLoading(true)
+  // ── Laden: Seite 1 ersetzt, jede weitere hängt an (Infinite Scroll) ────────
+  //
+  // Muster wie im Home-Feed: ein Sentinel am Listenende zieht die nächste
+  // Seite nach. Der Fortschritt steht im Ref, nicht im State — er darf kein
+  // Rendern auslösen und muss innerhalb desselben Ticks stimmen, sonst feuert
+  // der Observer mehrfach dieselbe Seite.
+  const ladeSeite = (pg) => {
+    const st = listState.current
+    if (st.loading || (pg > 1 && st.done)) return
+    st.loading = true
+    if (pg === 1) setLoading(true)
+    else setLoadingMore(true)
     setError(false)
 
+    const fertig = () => { st.loading = false; setLoading(false); setLoadingMore(false) }
+
+    // Favoriten liegen komplett im Client — hier wird nur weiter aufgedeckt.
     if (showFavorites) {
       let list = favorites
       if (effectiveAuthor) {
@@ -294,45 +312,74 @@ export default function Recipes() {
         list = list.filter(r => r.title.toLowerCase().includes(term))
       }
       if (typeFilters.size > 0 && typeFilters.size < 3) list = list.filter(r => typeFilters.has(r.type || 'kochen'))
-      const start = (page - 1) * PAGE_SIZE
-      setRecipes(list.slice(start, start + PAGE_SIZE))
+      const bis = pg * PAGE_SIZE
+      st.page = pg
+      st.done = bis >= list.length
+      setRecipes(list.slice(0, bis))
       setTotal(list.length)
       setFacets({}) // Favoriten sind client-seitig → keine Server-Facetten
-      setLoading(false)
+      fertig()
       return
     }
 
-    const params = buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, categoryFilters, maxTimeFilter, page)
+    const params = buildRecipeParams(typeFilters, dietFilters, courseFilters, difficultyFilters, categoryFilters, maxTimeFilter, pg)
 
     client.get('/api/recipes', { params, paramsSerializer: { indexes: null } })
       .then(res => {
-        setRecipes(res.data.items)
+        const items = res.data.items || []
+        st.page = pg
+        st.geladen = (pg === 1 ? 0 : st.geladen) + items.length
+        st.done = items.length === 0 || st.geladen >= (res.data.total ?? 0)
+        setRecipes(prev => (pg === 1 ? items : [...prev, ...items]))
         setTotal(res.data.total)
         setFacets(res.data.facets || {})
         // Scroll-Restore nach Rückkehr aus dem Detail
-        const savedY = sessionStorage.getItem('recipes_scroll_y')
-        const savedH = sessionStorage.getItem('recipes_scroll_height')
-        if (savedY !== null) {
-          sessionStorage.removeItem('recipes_scroll_y')
-          sessionStorage.removeItem('recipes_scroll_height')
-          document.body.style.minHeight = parseInt(savedH, 10) + 'px'
-          window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
-          requestAnimationFrame(() => { document.body.style.minHeight = '' })
+        if (pg === 1) {
+          const savedY = sessionStorage.getItem('recipes_scroll_y')
+          const savedH = sessionStorage.getItem('recipes_scroll_height')
+          if (savedY !== null) {
+            sessionStorage.removeItem('recipes_scroll_y')
+            sessionStorage.removeItem('recipes_scroll_height')
+            document.body.style.minHeight = parseInt(savedH, 10) + 'px'
+            window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' })
+            requestAnimationFrame(() => { document.body.style.minHeight = '' })
+          }
         }
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce])
+      .catch(() => {
+        // Pausieren statt weiterprobieren: der Sentinel steht am Listenende und
+        // würde sonst sofort den nächsten Fehlversuch auslösen. Der
+        // Retry-Button gibt das Nachladen wieder frei.
+        st.done = true
+        setError(true)
+      })
+      .finally(fertig)
+  }
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  // Nach jeder Render-Runde die frische Closure hinterlegen — der Observer
+  // unten wird nur einmal aufgesetzt und greift trotzdem immer auf die
+  // aktuellen Filter zu. Muss vor den Effekten darunter stehen, damit die beim
+  // ersten Durchlauf schon einen Loader vorfinden.
+  useEffect(() => { ladeSeiteRef.current = ladeSeite })
 
-  const setPage = (p) => setSearchParams(prev => {
-    const next = new URLSearchParams(prev)
-    if (p > 1) next.set('page', String(p))
-    else next.delete('page')
-    return next
-  }, { replace: true })
+  // Suche, Filter oder Sortierung geändert → Zähler zurück und neu ab Seite 1.
+  // Die alte Liste bleibt bis zur Antwort im State, ist aber nicht zu sehen:
+  // `ladeSeite(1)` schaltet auf `loading`, also auf die Skeletons.
+  useEffect(() => {
+    listState.current = { page: 0, geladen: 0, done: false, loading: false }
+    ladeSeiteRef.current(1)
+  }, [search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce])
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return undefined
+    const obs = new IntersectionObserver(
+      entries => { if (entries[0].isIntersecting) ladeSeiteRef.current(listState.current.page + 1) },
+      { rootMargin: '300px' },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
   // Ohne Aufrufer, seit der Favoriten-Filter aus der Toolbar raus ist (BUG-07).
   // Bleibt bewusst stehen: `?favorites=1` funktioniert weiter (bestehende Links,
@@ -602,20 +649,16 @@ export default function Recipes() {
                 : <EmptyState search={search} hasActiveFilters={activeFilterCount > 0} diagnosis={diagnosis} onClearFilters={clearAllFilters} />
             ) : renderGrid()}
 
-            {/* Pagination */}
-            {!loading && totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2.5rem' }}>
-                <button onClick={() => setPage(page - 1)} disabled={page === 1}
-                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === 1 ? 'transparent' : 'var(--card)', color: page === 1 ? 'var(--subtext)' : 'var(--text)', cursor: page === 1 ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'var(--transition)' }}>
-                  ← Zurück
-                </button>
-                <span style={{ color: 'var(--subtext)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Seite {page} / {totalPages}</span>
-                <button onClick={() => setPage(page + 1)} disabled={page === totalPages}
-                  style={{ padding: '0.5rem 1.25rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: page === totalPages ? 'transparent' : 'var(--card)', color: page === totalPages ? 'var(--subtext)' : 'var(--text)', cursor: page === totalPages ? 'default' : 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'var(--transition)' }}>
-                  Weiter →
-                </button>
+            {/* Nachladen (Infinite Scroll) statt Seitenblättern */}
+            {loadingMore && (
+              <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 20, alignItems: 'stretch', marginTop: 20 }}>
+                {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             )}
+
+            {/* Sentinel — steht immer im Baum, damit der Observer ihn beim
+                ersten Rendern findet. */}
+            <div ref={sentinelRef} style={{ height: 1 }} />
           </div>
         </div>
       </div>
