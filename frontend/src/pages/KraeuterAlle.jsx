@@ -14,6 +14,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { getPlants } from '../api/plants'
 import BackButton from '../components/BackButton'
+import BeetBadge from '../components/BeetBadge'
 import { getCategoryColor } from '../theme/categoryColors'
 import { plantImageStyle, shortBotanical } from '../theme/plants'
 import { PLANT_SHELVES, shelfForHauptkategorie } from '../theme/plantShelves'
@@ -61,6 +62,9 @@ function PlantRow({ plant }) {
       <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '.06em', color: farbe }}>
         {SHELF_LABEL[shelf] || ''}
       </span>
+      {/* In der Zeile sitzt das Badge am rechten Rand statt im Bild — die
+          52px-Fläche ist dafür zu klein. */}
+      <BeetBadge slug={plant.slug} name={plant.deutscher_name} style={{ position: 'static' }} />
     </Link>
   )
 }

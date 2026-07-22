@@ -4,10 +4,11 @@
 // Anzahl — `user_plants` bleibt minimal (Pflanze + planted_on), die Liste ist
 // flach statt nach Standort gruppiert. Licht/Sonne steht im Pflanzen-Steckbrief.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { getGardenTasks, getMyBeet } from '../api/plants'
+import { getGardenTasks } from '../api/plants'
 import AddPlantSheet from '../components/AddPlantSheet'
+import { useBeet } from '../context/BeetContext'
 import { phaseBadge, plantedLabel, primaryTaskFor, taskLabel } from '../theme/gardenTasks'
 import { plantImageStyle } from '../theme/plants'
 import GartenKalender from './GartenKalender'
@@ -104,31 +105,27 @@ export default function Garten() {
     else next.set('tab', key)
     return next
   }, { replace: true })
-  const [beet, setBeet] = useState([])
+  // Das Beet kommt aus dem Context — damit teilen es sich diese Seite, die
+  // Quick-Add-Badges in der Kräuterschule und der Kalender-Filter.
+  const { beet, loading: beetLoading, refresh: beetRefresh } = useBeet()
   const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [tasksLoading, setTasksLoading] = useState(true)
   // Pflanzen kommen seit BUG-46 im Sheet dazu, nicht mehr über einen Absprung
   // in die Kräuterschule.
   const [addOffen, setAddOffen] = useState(false)
 
-  const load = useCallback((signal) => {
-    const opts = signal ? { signal } : {}
-    return Promise.all([
-      getMyBeet(opts).then(d => setBeet(Array.isArray(d) ? d : [])),
-      // Aufgaben sind Beiwerk der Liste — ein Fehler hier darf das Beet nicht kippen.
-      getGardenTasks(opts).then(d => setTasks(d?.tasks || [])).catch(() => {}),
-    ])
-  }, [])
-
   useEffect(() => {
     document.title = 'Mein Beet – PiEngines Recipes'
     const controller = new AbortController()
-    load(controller.signal)
-      .catch(err => { if (err.name !== 'CanceledError') setError(true) })
-      .finally(() => setLoading(false))
+    // Aufgaben sind Beiwerk der Liste — ein Fehler hier darf das Beet nicht kippen.
+    getGardenTasks({ signal: controller.signal })
+      .then(d => setTasks(d?.tasks || []))
+      .catch(() => {})
+      .finally(() => setTasksLoading(false))
     return () => controller.abort()
-  }, [load])
+  }, [])
+
+  const loading = beetLoading || tasksLoading
 
   return (
     <div data-world="gruen" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -186,10 +183,6 @@ export default function Garten() {
                 <div key={i} className="skeleton-block" style={{ height: 72, borderRadius: 'var(--radius-card)' }} />
               ))}
             </div>
-          ) : error ? (
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
-              Dein Beet konnte nicht geladen werden. Bitte lade die Seite neu.
-            </p>
           ) : beet.length === 0 ? (
             <EmptyBeet onAdd={() => setAddOffen(true)} />
           ) : (
@@ -225,18 +218,14 @@ export default function Garten() {
           <GartenKalender
             beet={beet}
             tasks={tasks}
-            tasksLoading={loading}
+            tasksLoading={tasksLoading}
             onTasksChange={setTasks}
           />
         )}
       </div>
 
       {addOffen && (
-        <AddPlantSheet
-          beet={beet}
-          onClose={() => setAddOffen(false)}
-          onAdded={() => load()}
-        />
+        <AddPlantSheet onClose={() => setAddOffen(false)} onAdded={beetRefresh} />
       )}
     </div>
   )

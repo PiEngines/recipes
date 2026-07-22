@@ -12,7 +12,8 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { addToBeet, getPlants, patchBeet } from '../api/plants'
+import { getPlants, patchBeet } from '../api/plants'
+import { useBeet } from '../context/BeetContext'
 import { plantImageStyle, shortBotanical } from '../theme/plants'
 
 // Nicht alle 279 Treffer rendern, solange nicht gesucht wird — die Liste im
@@ -25,7 +26,10 @@ function heute() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
-export default function AddPlantSheet({ beet, onClose, onAdded }) {
+export default function AddPlantSheet({ onClose, onAdded }) {
+  // Beet-Zugehörigkeit und Schreibweg kommen aus dem Context, damit die
+  // Quick-Add-Badges anderswo denselben Stand zeigen.
+  const { slugs: imBeet, hinzufuegen } = useBeet()
   const [pflanzen, setPflanzen] = useState([])
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState(false)
@@ -33,11 +37,6 @@ export default function AddPlantSheet({ beet, onClose, onAdded }) {
   const [laeuft, setLaeuft] = useState(null)   // slug, der gerade schreibt
   const [ergebnis, setErgebnis] = useState(null) // { slug, name, text, fehler? }
   const eingabeRef = useRef(null)
-
-  const imBeet = useMemo(
-    () => new Set((beet || []).map(e => e.plant_slug).filter(Boolean)),
-    [beet],
-  )
 
   useEffect(() => {
     const controller = new AbortController()
@@ -73,16 +72,15 @@ export default function AddPlantSheet({ beet, onClose, onAdded }) {
       .slice(0, MAX_TREFFER)
   }, [pflanzen, query])
 
-  const hinzufuegen = async (pflanze) => {
+  const auswaehlen = async (pflanze) => {
     if (imBeet.has(pflanze.slug)) {
       setErgebnis({ slug: pflanze.slug, name: pflanze.deutscher_name, text: `„${pflanze.deutscher_name}" ist schon in deinem Beet.` })
       return
     }
     setLaeuft(pflanze.slug)
     try {
-      await addToBeet(pflanze.slug)
+      await hinzufuegen(pflanze.slug, pflanze.deutscher_name)
       setErgebnis({ slug: pflanze.slug, name: pflanze.deutscher_name, text: `„${pflanze.deutscher_name}" ins Beet gelegt.` })
-      onAdded?.()
     } catch {
       setErgebnis({ text: 'Hat nicht geklappt. Bitte versuch es erneut.', fehler: true })
     } finally {
@@ -214,7 +212,7 @@ export default function AddPlantSheet({ beet, onClose, onAdded }) {
               return (
                 <button
                   key={p.slug}
-                  onClick={() => hinzufuegen(p)}
+                  onClick={() => auswaehlen(p)}
                   disabled={laeuft !== null}
                   data-track-id="beet-add-sheet-select"
                   style={{

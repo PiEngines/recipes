@@ -5,15 +5,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import {
-  addToBeet,
-  getMyBeet,
-  getPhases,
-  getPlant,
-  getPlantRecipes,
-  removeFromBeet,
-} from '../api/plants'
+import { getPhases, getPlant, getPlantRecipes } from '../api/plants'
 import BackButton from '../components/BackButton'
+import { useBeet } from '../context/BeetContext'
 import { getCategoryColor } from '../theme/categoryColors'
 import { buildPhaseMap, monthsForEntry, TIMELINE_ROWS } from '../theme/plantCalendar'
 import { shelfForHauptkategorie } from '../theme/plantShelves'
@@ -427,7 +421,9 @@ export default function PflanzenDetail() {
 
   const [plant, setPlant] = useState(null)
   const [phases, setPhases] = useState([])
-  const [beet, setBeet] = useState([])
+  // Das Beet kommt aus dem Context, damit diese Seite und die Quick-Add-Badges
+  // denselben Stand teilen.
+  const { beet, umschalten: beetUmschalten } = useBeet()
   const [recipes, setRecipes] = useState([])
   const [recipesLoading, setRecipesLoading] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -452,7 +448,6 @@ export default function PflanzenDetail() {
       .finally(() => setLoading(false))
 
     getPhases(opts).then(setPhases).catch(() => {})
-    getMyBeet(opts).then(data => setBeet(Array.isArray(data) ? data : [])).catch(() => {})
     getPlantRecipes(slug, opts)
       .then(data => setRecipes(data?.recipes || []))
       .catch(() => {})
@@ -466,36 +461,20 @@ export default function PflanzenDetail() {
   const beetEntry = beet.find(b => b.plant_slug === slug) || null
   const inBeet = !!beetEntry
 
+  // Umschalten läuft über den Context — sonst wüsste das „+"-Badge auf den
+  // Kacheln nichts davon (und umgekehrt).
   const toggleBeet = useCallback(async () => {
     if (!plant || beetBusy) return
     setBeetBusy(true)
     setBeetError('')
-    const snapshot = beet
-    // Optimistisch umschalten, bei Fehler zurückrollen.
-    if (inBeet) {
-      setBeet(prev => prev.filter(b => b.plant_slug !== slug))
-    } else {
-      setBeet(prev => [...prev, {
-        plant_slug: slug,
-        deutscher_name: plant.deutscher_name,
-        planted_on: new Date().toISOString().slice(0, 10),
-      }])
-    }
     try {
-      if (inBeet) {
-        await removeFromBeet(slug)
-      } else {
-        const entry = await addToBeet(slug)
-        // Serverwert übernehmen (planted_on kommt aus der DB).
-        setBeet(prev => prev.map(b => (b.plant_slug === slug ? entry : b)))
-      }
+      await beetUmschalten(slug, plant.deutscher_name)
     } catch {
-      setBeet(snapshot)
       setBeetError('Das hat nicht geklappt. Bitte versuch es noch einmal.')
     } finally {
       setBeetBusy(false)
     }
-  }, [plant, beetBusy, beet, inBeet, slug])
+  }, [plant, beetBusy, slug, beetUmschalten])
 
   if (loading) {
     return (

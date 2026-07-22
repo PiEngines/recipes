@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
+import BeetBadge from '../components/BeetBadge'
 import { getCategoryColor } from '../theme/categoryColors'
 import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
 import { PLANT_SHELVES, shelvesForPlant } from '../theme/plantShelves'
@@ -32,6 +33,7 @@ function PlantTile({ plant, dotColor }) {
             background: dotColor, boxShadow: '0 0 0 1.5px var(--surface)',
           }}
         />
+        <BeetBadge slug={plant.slug} name={plant.deutscher_name} />
       </div>
       <div style={{ padding: '7px 8px 9px' }}>
         <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 12, lineHeight: 1.15, color: 'var(--text)' }}>
