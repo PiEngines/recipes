@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { isKochOrAbove } from '../utils/roles'
 import RecipeCard from '../components/RecipeCard'
-import BackButton from '../components/BackButton'
 import { getCategoryColor } from '../theme/categoryColors'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -506,10 +505,6 @@ export default function Recipes() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '1.5rem 1.25rem 6rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton fallback="/" />
-        </div>
-
         <div>
           {/* Results (Sidebar entfällt — Filter via FAB/Sheet §2.10) */}
           <div style={{ minWidth: 0 }}>

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useFavorites } from '../context/FavoritesContext'
 import { SkeletonCard } from './Recipes.jsx'
 import RecipeCard from '../components/RecipeCard'
-import BackButton from '../components/BackButton'
 
 function EmptyFavoritesState() {
   return (
@@ -34,9 +33,6 @@ export default function Favorites() {
   return (
     <div data-track-id="favorites-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ marginBottom: '0.75rem' }}>
-          <BackButton />
-        </div>
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             <SkeletonCard /><SkeletonCard /><SkeletonCard />

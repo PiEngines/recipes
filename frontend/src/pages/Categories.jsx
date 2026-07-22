@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
-import BackButton from '../components/BackButton'
 import { getCategoryColor, getCategoryGroup, CATEGORY_GROUP_ORDER } from '../theme/categoryColors'
 
 // Kategorie-Farb-Overlay (§1.3): unten Kategorie-Farbe (base→dark), oben transparent
@@ -69,9 +68,6 @@ export default function Categories() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', padding: '1.5rem 1.25rem 6rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton fallback="/" />
-        </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
           Kategorien
         </h1>

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import client from '../api/client'
-import BackButton from '../components/BackButton'
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
 
@@ -165,9 +164,6 @@ export default function Seasonal() {
   return (
     <div data-track-id="seasonal-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <div style={{ marginBottom: '0.75rem' }}>
-          <BackButton />
-        </div>
         <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', color: 'var(--text)', margin: '0 0 1rem' }}>
           Saisonkalender
         </h1>

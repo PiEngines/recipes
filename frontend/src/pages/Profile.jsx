@@ -15,7 +15,6 @@ import { getCollections } from '../api/collections'
 import { getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../hooks/useTheme'
-import BackButton from '../components/BackButton'
 import CollectionFormModal from '../components/CollectionFormModal'
 import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
@@ -314,10 +313,6 @@ export default function Profile() {
       />
 
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '1.25rem 1.5rem 2rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton />
-        </div>
-
         <div style={{ marginBottom: '1.5rem' }}>
           <Segmented
             items={TABS}
