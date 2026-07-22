@@ -487,18 +487,10 @@ export default function Recipes() {
     return () => obs.disconnect()
   }, [])
 
-  // Ohne Aufrufer, seit der Favoriten-Filter aus der Toolbar raus ist (BUG-07).
-  // Bleibt bewusst stehen: `?favorites=1` funktioniert weiter (bestehende Links,
-  // Lesezeichen), nur der Einstieg aus der UI fehlt. Favoriten laufen über das
-  // Mehr-Panel und `/favorites`.
-  const toggleFavoritesFilter = () => setSearchParams(prev => {
-    const next = new URLSearchParams(prev)
-    if (showFavorites) next.delete('favorites')
-    else next.set('favorites', '1')
-    next.delete('page')
-    return next
-  }, { replace: true })
-
+  // Kein Umschalter für `?favorites=1` mehr — der Toolbar-Button ist mit
+  // BUG-07 entfallen. Der Parameter selbst wird weiter ausgewertet, damit
+  // bestehende Links und Lesezeichen funktionieren; der Einstieg läuft über
+  // das Mehr-Panel und `/favorites`.
   const clearAuthorFilter = () => setSearchParams(prev => {
     const next = new URLSearchParams(prev)
     next.delete('author')
