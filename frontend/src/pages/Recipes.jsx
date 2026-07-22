@@ -424,9 +424,6 @@ export default function Recipes() {
 
   const activeFilterCount = typeFilters.size + dietFilters.size + courseFilters.size + difficultyFilters.size + categoryFilters.size + (maxTimeFilter ? 1 : 0)
 
-  // Browse-Zustand (①): keine Suche/Filter/Autor/Favoriten, Seite 1 → Featured-Kachel oben.
-  const isBrowse = !search && !effectiveAuthor && !authorIdFilter && !showFavorites && activeFilterCount === 0 && page === 1
-
   // Aktive Filter → schwebende Pills (§2.10). dot = Kategorie-Farbe für Kategorie-Filter, sonst neutral.
   const chips = [
     ...[...typeFilters].map(t => ({ key: 'type-' + t, label: t === 'kochen' ? 'Kochen' : 'Backen', dot: null, remove: () => toggleTypeFilter(t) })),
@@ -475,30 +472,21 @@ export default function Recipes() {
     navigate(`/recipes/${r.id}`)
   }
 
-  const renderGrid = () => {
-    const showFeatured = isBrowse && recipes.length > 0 && !recipes[0].deleted_at
-    const featured = showFeatured ? recipes[0] : null
-    const rest = showFeatured ? recipes.slice(1) : recipes
-    return (
-      <>
-        {featured && (
-          <div style={{ marginBottom: 20 }}>
-            <RecipeCard recipe={featured} variant="featured" onClick={() => openDetail(featured)} />
+  // Einheitliches Raster: das erste Rezept war beim reinen Blättern eine
+  // 16:9-Featured-Karte. Das hat es ohne Grund hervorgehoben — die Reihenfolge
+  // ist eine Sortierung, keine Redaktion (BUG-09).
+  const renderGrid = () => (
+    <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 20, alignItems: 'stretch' }}>
+      {recipes.map(r => r.deleted_at
+        ? <DeletedFavoriteCard key={r.id} recipe={r} />
+        : (
+          <div key={r.id} style={{ opacity: showFavorites && !favoriteIds.has(r.id) ? 0.4 : 1, pointerEvents: showFavorites && !favoriteIds.has(r.id) ? 'none' : 'auto' }}>
+            <RecipeCard recipe={r} onClick={() => openDetail(r)} />
           </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 20, alignItems: 'stretch' }}>
-          {rest.map(r => r.deleted_at
-            ? <DeletedFavoriteCard key={r.id} recipe={r} />
-            : (
-              <div key={r.id} style={{ opacity: showFavorites && !favoriteIds.has(r.id) ? 0.4 : 1, pointerEvents: showFavorites && !favoriteIds.has(r.id) ? 'none' : 'auto' }}>
-                <RecipeCard recipe={r} onClick={() => openDetail(r)} />
-              </div>
-            )
-          )}
-        </div>
-      </>
-    )
-  }
+        )
+      )}
+    </div>
+  )
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
