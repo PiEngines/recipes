@@ -81,9 +81,14 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Backdrop zum Schließen des »Mehr«-Panels */}
+      {/* Backdrop zum Schließen des »Mehr«-Panels.
+          Die drei Ebenen (Backdrop 102 < Panel 103 < Leiste 104) liegen
+          bewusst über dem fixierten CTA aus `ZurListe` (z 101) — der lag
+          sonst über dem aufklappenden Panel (BUG-55). Untereinander bleibt
+          die Ordnung wie gehabt: die Leiste zuoberst, damit die Slots auch
+          bei offenem Panel antippbar sind. */}
       {moreOpen && (
-        <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 98 }} />
+        <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 102 }} />
       )}
 
       {/* »Mehr«-Slide-up-Panel.
@@ -97,7 +102,7 @@ export default function BottomNav() {
           bottom: 78,
           left: 0,
           right: 0,
-          zIndex: 99,
+          zIndex: 103,
           background: 'var(--surface)',
           borderTop: '2px solid var(--nav-top)',
           padding: '6px 0 10px',
@@ -156,7 +161,7 @@ export default function BottomNav() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           padding: '10px 4px 0',
-          zIndex: 100,
+          zIndex: 104,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around', width: '100%', maxWidth: 480 }}>

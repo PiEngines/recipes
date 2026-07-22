@@ -181,7 +181,9 @@ export default function ZurListe() {
               })}
             </section>
 
-            {/* CTA — liegt bewusst über Bottom-Nav (z 100) und Suchleiste (z 97).
+            {/* CTA — liegt bewusst über der Suchleiste (z 97). Die Bottom-Nav
+                und ihr »Mehr«-Panel liegen seit BUG-55 darüber (z 102–104),
+                damit das Panel nicht vom CTA verdeckt wird.
                 Die globale Suchleiste ist auf diesem Screen ausgeblendet
                 (NO_SEARCHBAR_PATTERNS in main.jsx); der z-index hält den CTA
                 auch dann klickbar, wenn dort später etwas hinzukommt.
