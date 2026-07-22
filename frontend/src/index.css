@@ -192,6 +192,9 @@ input[type="date"] {
 }
 
 @media (min-width: 768px) {
+  /* Greift nur bei Elementen ohne eigenes Inline-`display`. Die Hauptleiste
+     setzt `display:flex` inline und bleibt am Desktop bewusst sichtbar — es
+     gibt oben keine Desktop-Navigation, die sie ersetzen würde. */
   .bottom-nav {
     display: none;
   }

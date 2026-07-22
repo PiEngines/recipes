@@ -86,9 +86,12 @@ export default function BottomNav() {
         <div onClick={() => setMoreOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 98 }} />
       )}
 
-      {/* »Mehr«-Slide-up-Panel */}
+      {/* »Mehr«-Slide-up-Panel.
+          Bewusst ohne `.bottom-nav`: die Klasse setzt ab 768px `display:none`.
+          Die Hauptleiste überschreibt das mit ihrem Inline-`display:flex` und
+          bleibt am Desktop sichtbar — das Panel hatte kein Inline-`display`
+          und war deshalb dort unsichtbar, der »Mehr«-Tap wirkungslos. */}
       <div
-        className="bottom-nav"
         style={{
           position: 'fixed',
           bottom: 78,
