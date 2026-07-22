@@ -219,6 +219,7 @@ export default function Garten() {
 
         {segment === 'kalender' && (
           <GartenKalender
+            beet={beet}
             tasks={tasks}
             tasksLoading={loading}
             onTasksChange={setTasks}

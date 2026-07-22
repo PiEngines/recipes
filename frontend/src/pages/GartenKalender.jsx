@@ -18,7 +18,7 @@ const LENSES = [
 
 // ── Linse SAISON ─────────────────────────────────────────────────────────────
 
-function SaisonLens({ monat, erntereif, loading }) {
+function SaisonLens({ monat, erntereif, loading, beetLeer }) {
   return (
     <section id="kalender-saison" aria-label={`Erntereif im ${MONTH_NAMES[monat - 1]}`}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -42,7 +42,9 @@ function SaisonLens({ monat, erntereif, loading }) {
         </div>
       ) : erntereif.length === 0 ? (
         <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
-          Für diesen Monat sind keine Erntetermine hinterlegt.
+          {beetLeer
+            ? 'Dein Beet ist noch leer — leg Pflanzen an, dann steht hier, was reif wird.'
+            : 'Diesen Monat wird in deinem Beet nichts reif.'}
         </p>
       ) : (
         <>
@@ -199,7 +201,7 @@ function ArbeitLens({ monat, groups, loading, busyKeys, onToggle, error }) {
 
 // ── Segment ──────────────────────────────────────────────────────────────────
 
-export default function GartenKalender({ tasks, tasksLoading, onTasksChange }) {
+export default function GartenKalender({ beet, tasks, tasksLoading, onTasksChange }) {
   const [lens, setLens] = useState('saison')
   const [calendar, setCalendar] = useState(null)
   const [calendarLoading, setCalendarLoading] = useState(true)
@@ -217,13 +219,22 @@ export default function GartenKalender({ tasks, tasksLoading, onTasksChange }) {
     return () => controller.abort()
   }, [monat])
 
+  // Der Kalender-Endpunkt liefert alle Pflanzen; hier zählt nur das eigene Beet
+  // (BUG-47). Die Liste kommt vom Garten-Hub, der sie ohnehin schon geladen hat
+  // — kein zweiter Abruf.
+  const beetSlugs = useMemo(
+    () => new Set((beet || []).map(e => e.plant_slug).filter(Boolean)),
+    [beet],
+  )
+
   const erntereif = useMemo(() => {
     const seen = new Set()
     return (calendar?.eintraege || [])
       .filter(e => e.aktivitaet === 'Ernte')
+      .filter(e => beetSlugs.has(e.pflanze_slug))
       .filter(e => !seen.has(e.pflanze_slug) && seen.add(e.pflanze_slug))
       .sort((a, b) => a.pflanze_name.localeCompare(b.pflanze_name, 'de'))
-  }, [calendar])
+  }, [calendar, beetSlugs])
 
   const groups = useMemo(() => groupTasksByPlant(tasks), [tasks])
 
@@ -292,7 +303,7 @@ export default function GartenKalender({ tasks, tasksLoading, onTasksChange }) {
       </div>
 
       {lens === 'saison' && (
-        <SaisonLens monat={monat} erntereif={erntereif} loading={calendarLoading} />
+        <SaisonLens monat={monat} erntereif={erntereif} loading={calendarLoading} beetLeer={beetSlugs.size === 0} />
       )}
       {lens === 'arbeit' && (
         <ArbeitLens
