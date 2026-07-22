@@ -1343,15 +1343,19 @@ export default function RecipeForm() {
   ].filter(Boolean)
   const kannVeroeffentlichen = fehlendeFelder.length === 0
 
-  // Autosave-Indikator (§05) — nur im Entwurf-Modus. Drei Zustände:
-  // speichert · Entwurf gespeichert · Fehler (mit Retry).
+  // Autosave-Indikator (§05) — nur im Entwurf-Modus. Vier Zustände als
+  // farbiger Chip mit Icon: der blasse Text davor ging im Header unter
+  // (BUG-33). „Änderung offen" fehlte bisher ganz — zwischen Tastenanschlag
+  // und Autosave stand einfach der alte Zeitstempel.
   const entwurfStatus = savingAs
-    ? { text: 'speichert …', farbe: 'var(--subtext)' }
+    ? { text: 'Speichert …', icon: 'ti-loader-2', farbe: 'var(--subtext)', ton: 'rgba(0,0,0,.05)' }
     : saveError
-      ? { text: 'Nicht gespeichert', farbe: '#C84444', retry: true }
-      : savedAt
-        ? { text: `Entwurf gespeichert · ${fmtTime(savedAt)}`, farbe: 'var(--secondary)' }
-        : null
+      ? { text: 'Nicht gespeichert', icon: 'ti-alert-triangle', farbe: '#C84444', ton: 'rgba(200,68,68,.12)', retry: true }
+      : isDirty
+        ? { text: 'Änderung offen', icon: 'ti-pencil', farbe: '#8A6D1F', ton: 'rgba(200,160,32,.16)' }
+        : savedAt
+          ? { text: `Entwurf gespeichert · ${fmtTime(savedAt)}`, icon: 'ti-check', farbe: 'var(--secondary)', ton: 'rgba(107,124,78,.14)' }
+          : null
 
   // ── Loading / error ────────────────────────────────────────────────────────
 
@@ -1470,17 +1474,29 @@ export default function RecipeForm() {
           {/* Entwurf-Modus: Autosave-Indikator. Bestandsmodus: bisheriger Text. */}
           {entwurfModus ? (
             entwurfStatus && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                <span style={{ fontSize: '0.75rem', color: entwurfStatus.farbe, whiteSpace: 'nowrap' }}>
-                  {entwurfStatus.text}
-                </span>
+              <span
+                role="status"
+                aria-live="polite"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0,
+                  padding: '4px 9px', borderRadius: 999,
+                  background: entwurfStatus.ton,
+                  color: entwurfStatus.farbe,
+                  fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600,
+                }}
+              >
+                <i className={`ti ${entwurfStatus.icon}`} aria-hidden="true" style={{ fontSize: 13, flexShrink: 0 }} />
+                {/* Der Zeitstempel ist Beiwerk — auf schmalen Screens zählt der
+                    Zustand, nicht die Uhrzeit. */}
+                <span className="hidden sm:inline" style={{ whiteSpace: 'nowrap' }}>{entwurfStatus.text}</span>
+                <span className="sm:hidden" style={{ whiteSpace: 'nowrap' }}>{entwurfStatus.text.split(' · ')[0]}</span>
                 {entwurfStatus.retry && (
                   <button
                     onClick={() => entwurfSpeichernRef.current()}
                     data-track-id="recipe-form-autosave-retry"
-                    style={{ padding: 0, border: 'none', background: 'none', color: 'var(--accent)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                    style={{ padding: 0, border: 'none', background: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}
                   >
-                    erneut versuchen
+                    erneut
                   </button>
                 )}
               </span>
