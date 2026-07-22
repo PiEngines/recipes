@@ -73,7 +73,6 @@ function Layout() {
   }, [pathname])
 
   const showNavbar = !NO_NAVBAR_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
-    && !pathname.startsWith('/users/')
   const showSearchBar = showNavbar && !NO_SEARCHBAR_PATTERNS.some(re => re.test(pathname))
   return (
     <>
@@ -134,7 +133,7 @@ const router = createBrowserRouter([
       { path: '/admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
       { path: '/admin/recipes', element: <AdminRoute><AdminRecipes /></AdminRoute> },
       { path: '/users/:id/netzwerk', element: <ProtectedRoute><Netzwerk /></ProtectedRoute> },
-      { path: '/users/:id', element: <PublicProfile /> },
+      { path: '/users/:id', element: <ProtectedRoute><PublicProfile /></ProtectedRoute> },
     ]
   }
 ])
