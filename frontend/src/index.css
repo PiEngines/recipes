@@ -134,6 +134,19 @@ body {
 
 .sheet-enter { animation: sheet-in 0.2s ease-out; }
 
+/* ── Selbst ausblendender Toast ──────────────────────────────────────────── */
+
+/* Ein- und Ausblenden komplett in CSS — die Meldung braucht damit weder State
+   noch Timer, und `forwards` lässt sie unsichtbar stehen. */
+@keyframes toast-auto {
+  0%   { opacity: 0; transform: translate(-50%, -6px); }
+  8%   { opacity: 1; transform: translate(-50%, 0); }
+  85%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
+}
+
+.toast-auto { animation: toast-auto 3.4s ease forwards; pointer-events: none; }
+
 /* ── Recipe card ─────────────────────────────────────────────────────────── */
 
 .recipe-card {

@@ -722,6 +722,9 @@ export default function RecipeDetail() {
   const navigate = useNavigate()
   const location = useLocation()
   const isPreview = new URLSearchParams(location.search).has('preview')
+  // Rückmeldung aus „Zur Einkaufsliste" — kommt als Router-State mit und
+  // blendet sich per CSS von selbst wieder aus.
+  const hinweis = location.state?.listeHinweis || null
   const { user } = useAuth()
   const { setDynamicLabel } = useNavigation()
   const isAdmin = isChefkochOrAbove(user)
@@ -752,6 +755,15 @@ export default function RecipeDetail() {
   const [sammlungPicker, setSammlungPicker] = useState(false)
 
   const stepRefs = useRef({})
+
+  // Den Hinweis aus der History nehmen, sobald er einmal gezeigt wurde — sonst
+  // taucht er bei Reload oder Zurück wieder auf. Bewusst direkt über
+  // `history.replaceState` statt über `navigate`: React Router behält seine
+  // In-Memory-Location, der Toast bleibt also stehen und blendet sich in Ruhe
+  // aus, statt beim Location-Wechsel abgeräumt zu werden.
+  useEffect(() => {
+    if (hinweis) window.history.replaceState(null, '', window.location.href)
+  }, [hinweis])
 
   // Fetch recipe + media
   useEffect(() => {
@@ -1165,6 +1177,26 @@ export default function RecipeDetail() {
           itemId={recipe.id}
           onClose={() => setSammlungPicker(false)}
         />
+      )}
+
+      {/* Bestätigung nach „Zur Einkaufsliste" — gleiche Optik wie der
+          Speichern-Toast im Wizard. */}
+      {hinweis && (
+        <div
+          role="status"
+          className="toast-auto"
+          style={{
+            position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 1000, maxWidth: 'calc(100% - 32px)',
+            background: 'rgba(44,44,42,.92)', color: '#fff', borderRadius: 8,
+            padding: '12px 20px', fontFamily: 'var(--font-body)', fontSize: '0.9rem',
+            fontWeight: 500, boxShadow: '0 4px 16px rgba(0,0,0,.25)',
+            display: 'flex', alignItems: 'center', gap: 8, pointerEvents: 'none',
+          }}
+        >
+          <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16 }} />
+          {hinweis}
+        </div>
       )}
     </div>
   )

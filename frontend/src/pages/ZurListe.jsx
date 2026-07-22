@@ -70,12 +70,23 @@ export default function ZurListe() {
     setSaving(true)
     setError('')
     try {
+      const anzahl = selected.size
       await addFromRecipe({
         recipeId: Number(id),
         servings,
         ingredientIds: [...selected],
       })
-      navigate('/einkaufsliste')
+      // Zurück ins Rezept statt in die Einkaufsliste: der Ruecksprung gehört
+      // zum Rezept-Kontext, aus dem man kam. `replace`, weil dieser Screen
+      // erledigt ist und im Zurück-Weg nichts mehr zu suchen hat.
+      navigate(`/recipes/${id}`, {
+        replace: true,
+        state: {
+          listeHinweis: anzahl === 1
+            ? '1 Zutat zur Einkaufsliste hinzugefügt.'
+            : `${anzahl} Zutaten zur Einkaufsliste hinzugefügt.`,
+        },
+      })
     } catch {
       setError('Die Zutaten konnten nicht übernommen werden. Bitte versuch es noch einmal.')
       setSaving(false)
