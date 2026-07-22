@@ -1,5 +1,7 @@
 import { Heart } from 'lucide-react'
+import { useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useCollectionSheet } from '../context/CollectionSheetContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { isKochOrAbove } from '../utils/roles'
 
@@ -13,14 +15,29 @@ const HEART_OUTLINE_FILTER = [
 export default function FavoriteHeart({ recipeId, recipe, size = 22, outline = true, style = {}, trackId }) {
   const { user } = useAuth()
   const { favoriteIds, toggleFavorite } = useFavorites()
+  const sheet = useCollectionSheet()
+  const berechtigt = isKochOrAbove(user)
 
-  if (!isKochOrAbove(user)) return null
+  // Sammlungen einmal pro Sitzung vorladen (der Provider entprellt das über
+  // alle Herzen hinweg) — sonst klappt das Sheet beim Faven erst leer auf.
+  useEffect(() => {
+    if (berechtigt) sheet?.vorladen()
+  }, [berechtigt, sheet])
+
+  if (!berechtigt) return null
 
   const isFavorite = favoriteIds.has(recipeId)
 
+  // Faven öffnet zusätzlich das „In Sammlung"-Sheet (BUG-05) — das Rezept ist
+  // damit gemerkt *und* einsortierbar. Ent-faven bleibt ein reiner Toggle.
+  const umschalten = () => {
+    toggleFavorite(recipeId, recipe)
+    if (!isFavorite) sheet?.oeffnen('recipe', recipeId)
+  }
+
   return (
     <button
-      onClick={e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(recipeId, recipe) }}
+      onClick={e => { e.preventDefault(); e.stopPropagation(); umschalten() }}
       title={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
       aria-label={isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
       data-track-id={trackId}

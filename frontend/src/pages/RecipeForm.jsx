@@ -1530,7 +1530,7 @@ export default function RecipeForm() {
             Handy gab es damit gar keine Schrittführung (BUG-31). Kompakte
             Variante in der Kopfzeile: Punkte zum Springen plus „Schritt x/5"
             und der Name des aktuellen Schritts. */}
-        <div className="sm:hidden" style={{ padding: '0 1rem 0.625rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+        <div className="sm:hidden" style={{ padding: '0 1rem 0.625rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem' }}>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             {STEPS.map((label, i) => {
               const gesperrt = i === 2 && noModules

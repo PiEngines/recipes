@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
 import './index.css'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
+import { CollectionSheetProvider } from './context/CollectionSheetContext.jsx'
 import { FavoritesProvider } from './context/FavoritesContext.jsx'
 import { TimerProvider } from './context/TimerContext.jsx'
 import { NavigationProvider } from './context/NavigationContext.jsx'
@@ -99,7 +100,10 @@ const router = createBrowserRouter([
         <FavoritesProvider>
           <TimerProvider>
             <NavigationProvider>
-              <Layout />
+              {/* Das „In Sammlung"-Sheet hängt einmal hier, nicht pro Karte. */}
+              <CollectionSheetProvider>
+                <Layout />
+              </CollectionSheetProvider>
             </NavigationProvider>
           </TimerProvider>
         </FavoritesProvider>

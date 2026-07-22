@@ -23,10 +23,9 @@
  */
 import { useEffect, useState } from 'react'
 
-import { getCollections } from '../api/collections'
 import { getPost } from '../api/externalPosts'
 import { addManual } from '../api/shopping'
-import CollectionPicker from './CollectionPicker'
+import { useCollectionSheet } from '../context/CollectionSheetContext'
 import ExternalPostEmbed from './ExternalPostEmbed'
 import { Button } from './ui'
 
@@ -37,18 +36,23 @@ function mengenText(z) {
 }
 
 export default function PostOverlay({ post, onClose, inSammlung = false }) {
-  const [sheet, setSheet] = useState(null)          // null | 'sammlung' | 'liste'
-  const [sammlungen, setSammlungen] = useState(null) // vorgeladen; null = noch offen
-  const [sammlungenTick, setSammlungenTick] = useState(0)
+  // „In Sammlung" läuft seit BUG-05 über das gemeinsame Sheet am Wurzelbaum,
+  // hier bleibt nur noch das Zutaten-Sheet.
+  const sammlungsSheet = useCollectionSheet()
+  const [sheet, setSheet] = useState(null)          // null | 'liste'
   const [zutaten, setZutaten] = useState([])
   const [gewaehlt, setGewaehlt] = useState(() => new Set())
   const [laeuft, setLaeuft] = useState(false)
   const [ergebnis, setErgebnis] = useState(null)
 
   const sheetOffen = sheet !== null
+  // Das Sammlungs-Sheet liegt über dem Overlay und behandelt Escape selbst —
+  // hier nichts tun, sonst schlösse ein Tastendruck beide Ebenen auf einmal.
+  const sammlungOffen = !!sammlungsSheet?.istOffen
 
   // Eine Ebene zurück: erst das Sheet, dann das Overlay.
   const zurueck = () => {
+    if (sammlungOffen) return
     if (sheetOffen) setSheet(null)
     else onClose()
   }
@@ -56,12 +60,13 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
   useEffect(() => {
     const onKey = e => {
       if (e.key !== 'Escape') return
+      if (sammlungOffen) return
       if (sheetOffen) setSheet(null)
       else onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose, sheetOffen])
+  }, [onClose, sheetOffen, sammlungOffen])
 
   useEffect(() => {
     const vorher = document.body.style.overflow
@@ -69,19 +74,11 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
     return () => { document.body.style.overflow = vorher }
   }, [])
 
-  // Sammlungen schon beim Öffnen des Beitrags holen, nicht erst beim Tap auf
-  // „In Sammlung" — sonst klappt das Sheet erst mit Skeletons auf und füllt
-  // sich danach. Scheitert der Abruf, bleibt der Cache leer und der Picker lädt
-  // wie gehabt selbst. Der Tick frischt nach dem Schließen auf, damit eine im
-  // Sheet angelegte Sammlung beim nächsten Öffnen dabei ist.
+  // Sammlungen schon beim Öffnen des Beitrags vorladen, nicht erst beim Tap auf
+  // „In Sammlung" — sonst klappt das Sheet erst mit Skeletons auf.
   useEffect(() => {
-    if (!inSammlung) return undefined
-    const controller = new AbortController()
-    getCollections({ signal: controller.signal })
-      .then(daten => setSammlungen(daten || []))
-      .catch(() => {})
-    return () => controller.abort()
-  }, [inSammlung, sammlungenTick])
+    if (inSammlung) sammlungsSheet?.vorladen()
+  }, [inSammlung, sammlungsSheet])
 
   // Die Zutaten stecken nur im Detail-Schema — Feed und Sammlungen liefern die
   // schlanke Form ohne sie. Der Detail-Endpunkt ist nicht owner-beschränkt, der
@@ -220,7 +217,7 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
           <div style={{ maxWidth: 560, margin: '0 auto', width: '100%', display: 'flex', gap: 8 }}>
             {inSammlung && (
               <button
-                onClick={() => setSheet('sammlung')}
+                onClick={() => sammlungsSheet?.oeffnen('external_post', post.id)}
                 data-track-id="post-overlay-in-sammlung"
                 style={{
                   flex: 1, padding: '11px 16px',
@@ -276,16 +273,6 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
             maxWidth: 560, margin: '0 auto', width: '100%', flex: 1,
             display: 'flex', flexDirection: 'column', minHeight: 0,
           }}>
-            {sheet === 'sammlung' && (
-              <CollectionPicker
-                embedded
-                collections={sammlungen}
-                itemType="external_post"
-                itemId={post.id}
-                onClose={() => { setSheet(null); setSammlungenTick(t => t + 1) }}
-              />
-            )}
-
             {sheet === 'liste' && (
               <>
                 <h2 style={{ margin: '0 0 1rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
