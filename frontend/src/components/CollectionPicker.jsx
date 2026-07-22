@@ -9,6 +9,12 @@
  * beim zweiten Mal mit 201 und derselben `CollectionSummary`. Ob wirklich
  * etwas dazukam, verrät nur `item_count` — genau daran unterscheiden wir
  * „hinzugefügt" von „ist schon drin", statt einen Statuscode zu deuten.
+ *
+ * `embedded` rendert nur den Körper, ohne eigenes Fullscreen-Overlay: für das
+ * Bottom-Sheet im `PostOverlay`, das schon ein Dialog ist. Escape und
+ * Body-Scroll gehören dort dem Overlay, das sie gestaffelt behandelt (erst
+ * Sheet, dann Overlay) — der Picker mischt sich deshalb nicht ein. Der Körper
+ * erwartet einen Flex-Spalten-Container mit begrenzter Höhe.
  */
 import { useCallback, useEffect, useState } from 'react'
 
@@ -18,7 +24,7 @@ import { Button } from './ui'
 
 const SICHTBARKEIT_LABEL = { private: 'Privat', public: 'Öffentlich', unlisted: 'Über Link' }
 
-export default function CollectionPicker({ itemType, itemId, onClose }) {
+export default function CollectionPicker({ itemType, itemId, onClose, embedded = false }) {
   const [sammlungen, setSammlungen] = useState([])
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState(false)
@@ -40,16 +46,18 @@ export default function CollectionPicker({ itemType, itemId, onClose }) {
   }, [laden])
 
   useEffect(() => {
+    if (embedded) return undefined
     const onKey = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [onClose, embedded])
 
   useEffect(() => {
+    if (embedded) return undefined
     const vorher = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = vorher }
-  }, [])
+  }, [embedded])
 
   // Nach der Rückmeldung von selbst schließen — der Nutzer hat hier nichts
   // mehr zu entscheiden.
@@ -75,6 +83,111 @@ export default function CollectionPicker({ itemType, itemId, onClose }) {
     }
   }
 
+  // Der Körper ohne Rahmen — im Fullscreen-Pfad steckt er im Dialog-Panel, im
+  // eingebetteten Pfad im Bottom-Sheet des Aufrufers.
+  const koerper = (
+    <>
+      <h2 style={{ margin: '0 0 1rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
+        In Sammlung legen
+      </h2>
+
+      {ergebnis ? (
+        <p style={{ margin: '0 0 .25rem', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text)' }}>
+          <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16, color: 'var(--green)' }} />
+          {ergebnis.text}
+        </p>
+      ) : (
+        <>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', margin: '0 -.25rem' }}>
+            {laedt && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="skeleton-block" style={{ height: 46, borderRadius: 'var(--radius-card)' }} />
+                ))}
+              </div>
+            )}
+
+            {!laedt && fehler && (
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--danger)' }}>
+                Deine Sammlungen konnten nicht geladen werden.
+              </p>
+            )}
+
+            {!laedt && !fehler && sammlungen.length === 0 && (
+              <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
+                Du hast noch keine Sammlung. Leg unten eine an.
+              </p>
+            )}
+
+            {!laedt && !fehler && sammlungen.map(s => (
+              <button
+                key={s.id}
+                onClick={() => hinzufuegen(s)}
+                disabled={laeuft !== null}
+                data-track-id="collection-picker-select"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  padding: '.7rem .75rem', marginBottom: 6, textAlign: 'left',
+                  background: 'none', border: '1px solid var(--hairline)',
+                  borderRadius: 'var(--radius-card)',
+                  cursor: laeuft !== null ? 'default' : 'pointer',
+                  opacity: laeuft !== null && laeuft !== s.id ? 0.5 : 1,
+                }}
+              >
+                <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 17, color: 'var(--text-muted)', flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {s.name}
+                  </span>
+                  <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                    {SICHTBARKEIT_LABEL[s.visibility] || s.visibility} · {s.item_count}
+                  </span>
+                </span>
+                {laeuft === s.id && (
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)' }}>…</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+            <Button variant="secondary" size="sm" trackId="collection-picker-create-open"
+              onClick={() => setNeueOffen(true)}
+              leftIcon={<i className="ti ti-plus" aria-hidden="true" />}>
+              Neue Sammlung
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose} trackId="collection-picker-cancel">
+              Abbrechen
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  )
+
+  // Das Anlege-Formular hängt in beiden Pfaden an derselben Stelle: es bringt
+  // sein eigenes Overlay mit und liegt per zIndex über allem anderen.
+  const neueSammlung = neueOffen && (
+    <CollectionFormModal
+      onClose={() => setNeueOffen(false)}
+      onCreated={angelegt => {
+        setNeueOffen(false)
+        // Frisch angelegt heißt leer — das Item kann nur neu dazukommen.
+        setSammlungen(vorher => [...vorher, angelegt])
+        hinzufuegen(angelegt)
+      }}
+    />
+  )
+
+  if (embedded) {
+    return (
+      <>
+        {koerper}
+        {neueSammlung}
+      </>
+    )
+  }
+
   return (
     <>
       <div
@@ -86,95 +199,11 @@ export default function CollectionPicker({ itemType, itemId, onClose }) {
       >
         <div onClick={e => e.stopPropagation()}
           style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', padding: '1.5rem', maxWidth: 420, width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,.3)' }}>
-          <h2 style={{ margin: '0 0 1rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
-            In Sammlung legen
-          </h2>
-
-          {ergebnis ? (
-            <p style={{ margin: '0 0 .25rem', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text)' }}>
-              <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16, color: 'var(--green)' }} />
-              {ergebnis.text}
-            </p>
-          ) : (
-            <>
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', margin: '0 -.25rem' }}>
-                {laedt && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="skeleton-block" style={{ height: 46, borderRadius: 'var(--radius-card)' }} />
-                    ))}
-                  </div>
-                )}
-
-                {!laedt && fehler && (
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--danger)' }}>
-                    Deine Sammlungen konnten nicht geladen werden.
-                  </p>
-                )}
-
-                {!laedt && !fehler && sammlungen.length === 0 && (
-                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-muted)' }}>
-                    Du hast noch keine Sammlung. Leg unten eine an.
-                  </p>
-                )}
-
-                {!laedt && !fehler && sammlungen.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => hinzufuegen(s)}
-                    disabled={laeuft !== null}
-                    data-track-id="collection-picker-select"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                      padding: '.7rem .75rem', marginBottom: 6, textAlign: 'left',
-                      background: 'none', border: '1px solid var(--hairline)',
-                      borderRadius: 'var(--radius-card)',
-                      cursor: laeuft !== null ? 'default' : 'pointer',
-                      opacity: laeuft !== null && laeuft !== s.id ? 0.5 : 1,
-                    }}
-                  >
-                    <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 17, color: 'var(--text-muted)', flexShrink: 0 }} />
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {s.name}
-                      </span>
-                      <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                        {SICHTBARKEIT_LABEL[s.visibility] || s.visibility} · {s.item_count}
-                      </span>
-                    </span>
-                    {laeuft === s.id && (
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)' }}>…</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                <Button variant="secondary" size="sm" trackId="collection-picker-create-open"
-                  onClick={() => setNeueOffen(true)}
-                  leftIcon={<i className="ti ti-plus" aria-hidden="true" />}>
-                  Neue Sammlung
-                </Button>
-                <Button variant="ghost" size="sm" onClick={onClose} trackId="collection-picker-cancel">
-                  Abbrechen
-                </Button>
-              </div>
-            </>
-          )}
+          {koerper}
         </div>
       </div>
 
-      {neueOffen && (
-        <CollectionFormModal
-          onClose={() => setNeueOffen(false)}
-          onCreated={angelegt => {
-            setNeueOffen(false)
-            // Frisch angelegt heißt leer — das Item kann nur neu dazukommen.
-            setSammlungen(vorher => [...vorher, angelegt])
-            hinzufuegen(angelegt)
-          }}
-        />
-      )}
+      {neueSammlung}
     </>
   )
 }

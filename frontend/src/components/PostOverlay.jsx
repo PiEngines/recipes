@@ -11,19 +11,37 @@
  * Scroll-Fluss — sonst schiebt der Player sie unter die Falz und man muss am
  * Video vorbeiscrollen, um sie zu erreichen.
  *
+ * `inSammlung` blendet die Aktion ein. Der Picker öffnet dann *hier* als
+ * Bottom-Sheet in derselben Zone, statt als zweites Fullscreen-Overlay: der
+ * Beitrag bleibt sichtbar, während man die Sammlung wählt.
+ *
  * Muster wie `MediaLightbox`: abgedunkelter Hintergrund, Schließen per ✕,
- * Backdrop-Klick und Escape, Body-Scroll gesperrt.
+ * Backdrop-Klick und Escape, Body-Scroll gesperrt. Escape und Backdrop wirken
+ * gestaffelt — offenes Sheet zuerst, erst danach das Overlay.
  */
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
+import CollectionPicker from './CollectionPicker'
 import ExternalPostEmbed from './ExternalPostEmbed'
 
-export default function PostOverlay({ post, onClose, onInSammlung = null }) {
+export default function PostOverlay({ post, onClose, inSammlung = false }) {
+  const [sheetOffen, setSheetOffen] = useState(false)
+
+  // Eine Ebene zurück: erst das Sheet, dann das Overlay.
+  const zurueck = () => {
+    if (sheetOffen) setSheetOffen(false)
+    else onClose()
+  }
+
   useEffect(() => {
-    const onKey = e => { if (e.key === 'Escape') onClose() }
+    const onKey = e => {
+      if (e.key !== 'Escape') return
+      if (sheetOffen) setSheetOffen(false)
+      else onClose()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [onClose, sheetOffen])
 
   useEffect(() => {
     const vorher = document.body.style.overflow
@@ -35,7 +53,7 @@ export default function PostOverlay({ post, onClose, onInSammlung = null }) {
 
   return (
     <div
-      onClick={onClose}
+      onClick={zurueck}
       role="dialog"
       aria-modal="true"
       aria-label="Verlinkter Beitrag"
@@ -73,31 +91,54 @@ export default function PostOverlay({ post, onClose, onInSammlung = null }) {
 
       {/* Aktionszone: am Overlay-Boden verankert, damit die Aktion unabhängig
           von der Player-Höhe erreichbar bleibt. Nur wo der Aufrufer sie
-          anbietet (F3b-2b). */}
-      {onInSammlung && (
+          anbietet (F3b-2b). Offen zeigt sie die Sammlungsliste, sonst nur den
+          Button — die Steuerleiste des Players bleibt so frei. */}
+      {inSammlung && (
         <div
           onClick={e => e.stopPropagation()}
           style={{
             flexShrink: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.55))',
-            padding: '12px 16px calc(12px + env(safe-area-inset-bottom))',
+            background: sheetOffen
+              ? 'var(--surface)'
+              : 'linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.55))',
+            borderTop: sheetOffen ? '1px solid var(--hairline)' : 'none',
+            borderRadius: sheetOffen ? 'var(--radius-card) var(--radius-card) 0 0' : 0,
+            padding: sheetOffen
+              ? '1.25rem 1rem calc(1rem + env(safe-area-inset-bottom))'
+              : '12px 16px calc(12px + env(safe-area-inset-bottom))',
+            maxHeight: sheetOffen ? '62vh' : undefined,
+            display: sheetOffen ? 'flex' : 'block',
+            flexDirection: 'column',
           }}
         >
-          <div style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}>
-            <button
-              onClick={() => onInSammlung(post)}
-              data-track-id="post-overlay-in-sammlung"
-              style={{
-                width: '100%', padding: '11px 16px',
-                borderRadius: 'var(--radius-input)', cursor: 'pointer',
-                background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
-                color: 'var(--on-dark)',
-                fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              }}
-            >
-              <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 15 }} /> In Sammlung
-            </button>
+          <div style={{
+            maxWidth: 560, margin: '0 auto', width: '100%',
+            display: 'flex', flexDirection: 'column', minHeight: 0,
+            ...(sheetOffen ? { flex: 1 } : null),
+          }}>
+            {sheetOffen ? (
+              <CollectionPicker
+                embedded
+                itemType="external_post"
+                itemId={post.id}
+                onClose={() => setSheetOffen(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setSheetOffen(true)}
+                data-track-id="post-overlay-in-sammlung"
+                style={{
+                  width: '100%', padding: '11px 16px',
+                  borderRadius: 'var(--radius-input)', cursor: 'pointer',
+                  background: 'rgba(255,255,255,.1)', border: '1.5px solid rgba(255,255,255,.3)',
+                  color: 'var(--on-dark)',
+                  fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 14,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                }}
+              >
+                <i className="ti ti-books" aria-hidden="true" style={{ fontSize: 15 }} /> In Sammlung
+              </button>
+            )}
           </div>
         </div>
       )}
