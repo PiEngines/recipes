@@ -589,7 +589,10 @@ export default function RecipeForm() {
   const [description, setDescription] = useState('')
   const [prepTime, setPrepTime] = useState('')
   const [cookTime, setCookTime] = useState('')
-  const [servings, setServings] = useState('')
+  // Vorbelegt mit '4' — die 4 war bisher nur ein Anzeige-Fallback (parseInt||4).
+  // Der leere State liess das Publish-Gate „Portionen fehlt" melden und haette
+  // beim Speichern null persistiert, obwohl im Formular 4 stand.
+  const [servings, setServings] = useState('4')
   const [difficulty, setDifficulty] = useState(3)
   const [source, setSource] = useState('')
   const [type, setType] = useState('kochen')
