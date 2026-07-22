@@ -3,10 +3,10 @@
 Kernfrage: taucht ein Entwurf irgendwo auf, wo er nicht hingehört?
 """
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from app.auth.dependencies import get_optional_user, require_koch_or_above
+from app.auth.dependencies import get_current_user, require_koch_or_above
 from app.collections.router import router as collections_router
 from app.database import get_db
 from app.models import Recipe
@@ -102,7 +102,15 @@ def detail_client(ctx):
     app = FastAPI()
     app.include_router(recipes_router)
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[get_optional_user] = lambda: aktuell["u"]
+
+    # `als(None)` bildet den ausgeloggten Fall nach — seit BUG-43 kommt der gar
+    # nicht mehr am Endpoint an, sondern scheitert schon an der Dependency.
+    def _aktueller_user():
+        if aktuell["u"] is None:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+        return aktuell["u"]
+
+    app.dependency_overrides[get_current_user] = _aktueller_user
 
     def als(name):
         aktuell["u"] = users[name] if name else None
@@ -116,10 +124,12 @@ def test_detail_entwurf_fuer_fremde_404(detail_client):
     assert c.get("/api/recipes/2").status_code == 404
 
 
-def test_detail_entwurf_unangemeldet_404(detail_client):
+def test_detail_unangemeldet_401(detail_client):
+    """Seit BUG-43: ausgeloggt gibt es keinen Rezept-Read mehr, auch nicht 404."""
     c, als = detail_client
     als(None)
-    assert c.get("/api/recipes/2").status_code == 404
+    assert c.get("/api/recipes/2").status_code == 401
+    assert c.get("/api/recipes/1").status_code == 401
 
 
 def test_detail_entwurf_fuer_autor_200(detail_client):

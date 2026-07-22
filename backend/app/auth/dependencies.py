@@ -9,7 +9,6 @@ from app.models import User
 from app.models.user import UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-_optional_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def get_current_user(
@@ -37,22 +36,9 @@ def get_current_user(
     return user
 
 
-def get_optional_user(
-    token: str | None = Depends(_optional_oauth2),
-    db: Session = Depends(get_db),
-) -> User | None:
-    if not token:
-        return None
-    try:
-        payload = decode_token(token)
-        if payload.get("type") != "access":
-            return None
-        user_id: str | None = payload.get("sub")
-        if not user_id:
-            return None
-    except JWTError:
-        return None
-    return db.query(User).filter(User.id == int(user_id), User.is_active.is_(True)).first()
+# `get_optional_user` ist mit BUG-43 entfallen: es gibt keinen Content-Endpoint
+# mehr, der ohne Login antwortet. Öffentlich bleibt allein der token-gesicherte
+# Bring!-Klon (`app/bring/router.py`), der gar keine Auth-Dependency nutzt.
 
 
 def require_kuechenchef(current_user: User = Depends(get_current_user)) -> User:

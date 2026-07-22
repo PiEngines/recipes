@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.auth.dependencies import get_current_user, get_optional_user
+from app.auth.dependencies import get_current_user
 from app.models.user import User
 from app.models.recipe import Recipe
 from app.models.rating import Rating
@@ -44,5 +44,5 @@ def unrate(recipe_id: int, db: Session = Depends(get_db), user: User = Depends(g
     return _aggregate(db, recipe_id, user)
 
 @router.get("/{recipe_id}/rating", response_model=RatingAggregate)
-def get_rating(recipe_id: int, db: Session = Depends(get_db), user: User | None = Depends(get_optional_user)):
+def get_rating(recipe_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return _aggregate(db, recipe_id, user)

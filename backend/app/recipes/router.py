@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session, aliased, joinedload, subqueryload
 
 from app.auth.dependencies import (
     get_current_user,
-    get_optional_user,
     require_admin,
     require_chefkoch_or_above,
     require_koch_or_above,
@@ -91,6 +90,13 @@ def _word_tokens(text: str) -> set[str]:
 
 
 def _apply_visibility_filter(q, current_user: User | None, db: Session):
+    """Sichtbarkeits-Filter je Rolle.
+
+    `current_user=None` erreicht seit BUG-43 keiner der Endpoints mehr — sie
+    verlangen alle `get_current_user`. Der Zweig bleibt als engster Fallback
+    stehen, damit ein künftiger Aufrufer mit optionalem User nicht versehentlich
+    den ungefilterten Query bekommt.
+    """
     from app.models.access import RecipeAccess
 
     now = datetime.now(timezone.utc)
@@ -217,7 +223,7 @@ def list_recipes(
     sort: str = Query("newest"),
     as_module: bool = Query(False),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     from app.models.access import RecipeAccess
 
@@ -225,6 +231,8 @@ def list_recipes(
 
     now = datetime.now(timezone.utc)
 
+    # Seit BUG-43 unerreichbar (der Endpoint verlangt Auth) — bleibt als
+    # engster Fallback stehen, siehe `_apply_visibility_filter`.
     if current_user is None:
         # Unauthenticated: only active free_for_all recipes
         free_sq = (
@@ -429,7 +437,7 @@ def list_recipes(
 def get_random_recipes(
     count: int = Query(3, ge=1, le=10),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
     q = _apply_visibility_filter(q, current_user, db)
@@ -629,7 +637,7 @@ def get_recipe(
     recipe_id: int,
     token: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     from app.models.access import RecipeAccess
     from app.recipes.schemas import RecipeResponse as RecipeResponseSchema
@@ -650,6 +658,10 @@ def get_recipe(
 
     now = datetime.now(timezone.utc)
 
+    # Seit BUG-43 unerreichbar (der Endpoint verlangt Auth). Damit läuft auch
+    # der `token`-Query-Parameter ins Leere — verteilt wurde er ohnehin nie:
+    # die Share-Mail verschickt die nackte Rezept-URL ohne Token
+    # (`access_router.py:57`). Beides bleibt als Fallback stehen.
     if current_user is None:
         # Unauthenticated: check free_for_all or individual token
         has_free = (
@@ -736,11 +748,12 @@ def get_step_ingredients(
     recipe_id: int,
     step_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id, Recipe.deleted_at.is_(None)).first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
+    # Seit BUG-43 unerreichbar (der Endpoint verlangt Auth), bleibt als Fallback.
     if current_user is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
 

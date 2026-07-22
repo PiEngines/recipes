@@ -7,7 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFi
 from PIL import Image
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user, get_optional_user
+from app.auth.dependencies import get_current_user
 from app.config import settings
 from app.database import SessionLocal, get_db
 from app.media.schemas import MediaOut, MediaStatusOut
@@ -203,7 +203,7 @@ def update_media(
 def get_status(
     media_id: int,
     db: Session = Depends(get_db),
-    _: User | None = Depends(get_optional_user),
+    _: User = Depends(get_current_user),
 ):
     media = db.query(Media).filter(Media.id == media_id, Media.deleted_at.is_(None)).first()
     if not media:

@@ -625,7 +625,7 @@ class TestListRecipesAsModule:
 
     def _make_search_client(self, mock_db=None, user=None):
         from app.recipes.router import router as recipes_router
-        from app.auth.dependencies import get_optional_user
+        from app.auth.dependencies import get_current_user
 
         if mock_db is None:
             mock_db = MagicMock()
@@ -647,7 +647,7 @@ class TestListRecipesAsModule:
         app = FastAPI()
         app.include_router(recipes_router)
         app.dependency_overrides[get_db] = _override_db(mock_db)
-        app.dependency_overrides[get_optional_user] = _override_user(user)
+        app.dependency_overrides[get_current_user] = _override_user(user)
         return TestClient(app)
 
     def test_as_module_false_accepted(self):
