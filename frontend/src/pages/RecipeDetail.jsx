@@ -210,11 +210,14 @@ function HeroSection({ recipe, media, onImageClick, canEdit, onEdit }) {
 // ── Meta bar ──────────────────────────────────────────────────────────────────
 
 function MetaBar({ recipe }) {
+  // Kurze Labels: „Vorbereitung" und „Schwierigkeit" brachen in ihrer Zelle um,
+  // „Kochen" und „Art" nicht — dadurch saßen die Werte auf unterschiedlichen
+  // Höhen und die Zeile wirkte gequetscht (BUG-18).
   const cols = [
-    recipe.prep_time ? { label: 'Vorbereitung', icon: 'ti-clock', time: recipe.prep_time } : null,
+    recipe.prep_time ? { label: 'Vorber.', icon: 'ti-clock', time: recipe.prep_time } : null,
     recipe.cook_time ? { label: 'Kochen', icon: 'ti-flame', time: recipe.cook_time } : null,
     { label: 'Art', text: recipe.type === 'backen' ? 'Backen' : 'Kochen' },
-    recipe.difficulty ? { label: 'Schwierigkeit', text: DIFF_LABELS[recipe.difficulty] || String(recipe.difficulty) } : null,
+    recipe.difficulty ? { label: 'Schwierigk.', text: DIFF_LABELS[recipe.difficulty] || String(recipe.difficulty) } : null,
   ].filter(Boolean)
 
   return (
@@ -222,17 +225,23 @@ function MetaBar({ recipe }) {
       {cols.map((col, i) => (
         <Fragment key={i}>
           {i > 0 && <div style={{ width: 1, background: 'var(--border)', margin: '0 4px', flexShrink: 0 }} />}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: i > 0 ? 12 : 0 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-body)' }}>
-              {col.icon && <i className={`ti ${col.icon}`} style={{ fontSize: 10 }} />}
-              {col.label}
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: i > 0 ? 12 : 0 }}>
+            {/* Feste Label-Höhe: auch wenn ein Label auf sehr schmalen Geräten
+                doch nicht passt, bleiben die Werte darunter auf einer Linie. */}
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'var(--font-body)', lineHeight: 1.3, minHeight: 13 }}>
+              {col.icon && <i className={`ti ${col.icon}`} style={{ fontSize: 10, flexShrink: 0 }} />}
+              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {col.label}
+              </span>
             </span>
+            {/* Gleiche Zeilenhöhe für Zeit- und Textwerte, damit die vier
+                Zellen auch unten bündig abschließen. */}
             {col.time != null ? (
-              <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-body)', lineHeight: 1 }}>
+              <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-body)', lineHeight: '20px', whiteSpace: 'nowrap' }}>
                 {col.time}<span style={{ fontSize: 12, color: 'var(--subtext)', fontWeight: 400, marginLeft: 2 }}>min</span>
               </span>
             ) : (
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-body)', lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {col.text}
               </span>
             )}
