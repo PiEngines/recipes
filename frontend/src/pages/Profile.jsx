@@ -21,9 +21,12 @@ import RecipeCard from '../components/RecipeCard'
 import Segmented from '../components/Segmented'
 import { getRoleLabel, isKochOrAbove } from '../utils/roles'
 
+// Der `key` bleibt `gespeichert` — er steckt in der Tab-Logik und im
+// Lade-Effekt. Nur die Beschriftung wechselt: hinter dem Tab liegen Favoriten
+// *und* Sammlungen, „Gespeichert" sagte darüber nichts (BUG-38).
 const TABS = [
   { key: 'rezepte', label: 'MEINE REZEPTE' },
-  { key: 'gespeichert', label: 'GESPEICHERT' },
+  { key: 'gespeichert', label: 'MERKLISTE' },
   { key: 'einstellungen', label: 'EINSTELLUNGEN' },
 ]
 
