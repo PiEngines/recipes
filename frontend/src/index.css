@@ -147,6 +147,18 @@ body {
 
 .toast-auto { animation: toast-auto 3.4s ease forwards; pointer-events: none; }
 
+/* Undo-Variante: steht länger und ist anklickbar — der Rückgängig-Knopf darin
+   muss ja erreichbar sein. Ausblenden übernimmt weiterhin die Animation, das
+   Abräumen aus dem Baum der Aufrufer. */
+@keyframes toast-undo {
+  0%   { opacity: 0; transform: translate(-50%, 8px); }
+  5%   { opacity: 1; transform: translate(-50%, 0); }
+  92%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 8px); }
+}
+
+.toast-undo { animation: toast-undo 6s ease forwards; }
+
 /* ── Recipe card ─────────────────────────────────────────────────────────── */
 
 .recipe-card {
