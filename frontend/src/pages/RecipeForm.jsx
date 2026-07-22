@@ -1495,6 +1495,39 @@ export default function RecipeForm() {
           )}
         </div>
 
+        {/* Mobile-Stepper: die Sidebar unten ist `hidden sm:flex`, auf dem
+            Handy gab es damit gar keine Schrittführung (BUG-31). Kompakte
+            Variante in der Kopfzeile: Punkte zum Springen plus „Schritt x/5"
+            und der Name des aktuellen Schritts. */}
+        <div className="sm:hidden" style={{ padding: '0 1rem 0.625rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {STEPS.map((label, i) => {
+              const gesperrt = i === 2 && noModules
+              const aktiv = wizardStep === i
+              return (
+                <button
+                  key={i}
+                  onClick={gesperrt ? undefined : () => { setWizardStep(i); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  aria-label={`Schritt ${i + 1}: ${label}`}
+                  aria-current={aktiv ? 'step' : undefined}
+                  data-track-id={`recipe-form-step-${i}-click`}
+                  style={{
+                    width: aktiv ? 22 : 9, height: 9, padding: 0, borderRadius: 999, border: 'none',
+                    background: aktiv ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--border-input)'),
+                    opacity: gesperrt ? 0.4 : 1,
+                    cursor: gesperrt ? 'default' : 'pointer',
+                    transition: 'width .2s ease, background .2s ease',
+                  }}
+                />
+              )
+            })}
+          </div>
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Inter, sans-serif', fontSize: '0.75rem', color: 'var(--subtext)' }}>
+            <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{STEPS[wizardStep]}</strong>
+            {` · Schritt ${wizardStep + 1}/${STEPS.length}`}
+          </span>
+        </div>
+
       </header>
 
       {/* Main area */}
