@@ -2,7 +2,7 @@
 // Grüne Farbwelt. Foto-Flächen sind durchgängig Platzhalter (keine echten Assets).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getPlantCalendar, getPlants, getSpotlight } from '../api/plants'
 import { getCategoryColor } from '../theme/categoryColors'
 import { SAAT_ACTIVITIES } from '../theme/plantCalendar'
@@ -169,8 +169,22 @@ export default function Kraeuterschule() {
   const [loading, setLoading] = useState(true)
   const [calendarLoading, setCalendarLoading] = useState(true)
   const [error, setError] = useState(false)
-  const [query, setQuery] = useState('')
-  const [searchOpen, setSearchOpen] = useState(false)
+  // Der Suchbegriff steht in der URL, nicht im State: seit BUG-49 füttert ihn
+  // auch die globale Suchleiste, und zwei Quellen für dasselbe Feld liefen
+  // sonst auseinander.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const query = searchParams.get('q') || ''
+  const setQuery = (wert) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev)
+    if (wert) next.set('q', wert)
+    else next.delete('q')
+    return next
+  }, { replace: true })
+
+  // Kommt der Begriff von außen, steht das Feld offen — sonst sähe man den
+  // Filter wirken, ohne ihn leeren zu können.
+  const [searchManuell, setSearchManuell] = useState(false)
+  const searchOpen = searchManuell || !!query
 
   const monat = new Date().getMonth() + 1
 
@@ -250,7 +264,10 @@ export default function Kraeuterschule() {
             </h1>
           </div>
           <button
-            onClick={() => setSearchOpen(o => !o)}
+            onClick={() => {
+              if (searchOpen) { setQuery(''); setSearchManuell(false) }
+              else setSearchManuell(true)
+            }}
             data-track-id="kraeuterschule-search-toggle"
             aria-label="Pflanze suchen"
             aria-expanded={searchOpen}

@@ -7,6 +7,12 @@ const HIDE_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
 const EDIT_NEW_RE = /^\/recipes\/(new|\d+\/edit)$/
 const RECIPE_DETAIL_RE = /^\/recipes\/\d+$/
 
+// Grüne Welt: dort sucht die Leiste Pflanzen statt Rezepte (BUG-49). Die
+// Ergebnisse zeigt die Kräuterschule — sie filtert die volle Pflanzenliste
+// bereits, seit BUG-49 über `?q=` statt über internen State.
+const PFLANZEN_RE = /^\/(garten|kraeuterschule|pflanzen)(\/|$)/
+const PFLANZEN_ZIEL = '/kraeuterschule'
+
 // Zuletzt gesucht — lokal (kein Backend).
 const HISTORY_KEY = 'recipe_search_history'
 const HISTORY_MAX = 6
@@ -69,6 +75,9 @@ export default function MobileSearchBar() {
     || RECIPE_DETAIL_RE.test(location.pathname)
     || location.pathname.startsWith('/users/')
 
+  const pflanzenModus = PFLANZEN_RE.test(location.pathname)
+  const zielPfad = pflanzenModus ? PFLANZEN_ZIEL : '/recipes'
+
   const [inputValue, setInputValue] = useState(() => searchParams.get('q') || '')
   const scopeDesc = searchParams.get('scopeDesc') === '1'
   const scopeIng = searchParams.get('scopeIng') === '1'
@@ -76,13 +85,17 @@ export default function MobileSearchBar() {
   const hasSearch = Boolean(inputValue)
   const [focused, setFocused] = useState(false)
 
-  // Such-Fokus-Overlay (②): sichtbar bei fokussiertem, leerem Feld.
-  const overlayOpen = focused && !inputValue
+  // Such-Fokus-Overlay (②): sichtbar bei fokussiertem, leerem Feld. Sein Inhalt
+  // (Rezept-Kategorien, beliebte Rezeptbegriffe) passt nicht zur Pflanzensuche
+  // — dort bleibt es zu.
+  const overlayOpen = focused && !inputValue && !pflanzenModus
   const [categories, setCategories] = useState([])
   const [history, setHistory] = useState(loadHistory)
 
   const pathnameRef = useRef(location.pathname)
   useEffect(() => { pathnameRef.current = location.pathname }, [location.pathname])
+  const zielRef = useRef(zielPfad)
+  useEffect(() => { zielRef.current = zielPfad }, [zielPfad])
 
   // Kategorien lazy laden, sobald das Overlay erstmals geöffnet wird.
   useEffect(() => {
@@ -93,8 +106,10 @@ export default function MobileSearchBar() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      if (pathnameRef.current !== '/recipes') {
-        if (inputValue) navigate(`/recipes?q=${encodeURIComponent(inputValue)}`)
+      // Auf der Ergebnisseite den Parameter fortschreiben, sonst dorthin
+      // navigieren — je nach Modus Rezepte oder Pflanzen.
+      if (pathnameRef.current !== zielRef.current) {
+        if (inputValue) navigate(`${zielRef.current}?q=${encodeURIComponent(inputValue)}`)
         return
       }
       setSearchParams(prev => {
@@ -131,7 +146,7 @@ export default function MobileSearchBar() {
     setHistory(pushHistory(t))
     setInputValue(t)
     dismiss()
-    navigate(`/recipes?q=${encodeURIComponent(t)}`)
+    navigate(`${zielPfad}?q=${encodeURIComponent(t)}`)
   }
 
   const openCategory = (cat) => {
@@ -256,19 +271,28 @@ export default function MobileSearchBar() {
               if (e.key === 'Enter' && inputValue.trim()) runSearch(inputValue)
               else if (e.key === 'Escape') dismiss()
             }}
-            placeholder="Rezepte suchen …"
+            placeholder={pflanzenModus ? 'Pflanze suchen …' : 'Rezepte suchen …'}
             data-track-id="search-input"
             style={{
               width: '100%', padding: '0.45rem 1rem',
-              border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`,
+              // In der grünen Welt trägt das Feld denselben Ton (BUG-49b) —
+              // sonst neutral wie bisher.
+              border: `1.5px solid ${focused
+                ? (pflanzenModus ? 'var(--green)' : 'var(--accent)')
+                : (pflanzenModus ? 'color-mix(in srgb, var(--green) 40%, var(--border-input))' : 'var(--border-input)')}`,
               borderRadius: 'var(--radius-pill)',
-              background: 'var(--bg)', color: 'var(--text)',
+              background: pflanzenModus ? 'color-mix(in srgb, var(--green) 7%, var(--bg))' : 'var(--bg)',
+              color: 'var(--text)',
               fontSize: '0.9rem', fontFamily: 'var(--font-body)',
               outline: 'none', transition: 'var(--transition)',
-              boxShadow: focused ? '0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent)' : 'none',
+              boxShadow: focused
+                ? `0 0 0 3px color-mix(in srgb, ${pflanzenModus ? 'var(--green)' : 'var(--accent)'} 12%, transparent)`
+                : 'none',
             }}
           />
-          {hasSearch && (
+          {/* Die Scope-Pills gehören zur Rezeptsuche (Beschreibung, Zutaten,
+              Autor) — für Pflanzen gibt es sie nicht. */}
+          {hasSearch && !pflanzenModus && (
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: 6 }}>
               <ScopePill active={scopeDesc} onClick={() => toggleScope('scopeDesc', !scopeDesc)} icon="ti-search">
                 Rezept
