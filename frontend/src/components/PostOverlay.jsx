@@ -77,16 +77,31 @@ export default function PostOverlay({ post, onClose, inSammlung = false }) {
       >×</button>
 
       {/* Media-Zone: nimmt den Platz oberhalb der Aktionszone ein und scrollt
-          selbst, wenn der Player höher ist. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '64px 16px 16px' }}>
-        {/* Klicks im Inhalt dürfen das Overlay nicht schließen — sonst wäre der
-            Player nicht bedienbar. */}
-        <div
-          onClick={e => e.stopPropagation()}
-          style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}
-        >
-          <ExternalPostEmbed post={post} />
+          selbst, wenn der Player höher ist. Der Scroller liegt absolut in einem
+          eigenen Rahmen, damit der Scrim darüber stehen bleibt statt
+          mitzuscrollen. */}
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', padding: '64px 16px 16px' }}>
+          {/* Klicks im Inhalt dürfen das Overlay nicht schließen — sonst wäre der
+              Player nicht bedienbar. */}
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 560, margin: '0 auto', width: '100%' }}
+          >
+            <ExternalPostEmbed post={post} />
+          </div>
         </div>
+
+        {/* Bei offenem Sheet fängt ein Scrim die Taps über dem Video ab. Ohne
+            ihn landet der Tap im Cross-Origin-iFrame und kommt hier nie an —
+            das Sheet ließe sich über dem Video nicht schließen. */}
+        {sheetOffen && (
+          <div
+            onClick={() => setSheetOffen(false)}
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.35)' }}
+          />
+        )}
       </div>
 
       {/* Aktionszone: am Overlay-Boden verankert, damit die Aktion unabhängig
