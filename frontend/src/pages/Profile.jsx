@@ -40,6 +40,7 @@ export default function Profile() {
   // Profile data state
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
+  const [bio, setBio] = useState('')
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' })
 
@@ -136,7 +137,7 @@ export default function Profile() {
     if (!userId) return undefined
     const controller = new AbortController()
     getProfile(userId, { signal: controller.signal })
-      .then(setProfil)
+      .then(p => { setProfil(p); setBio(p?.bio || '') })
       .catch(() => { /* Kopf fällt auf die Auth-Daten zurück */ })
     return () => controller.abort()
   }, [userId])
@@ -164,7 +165,9 @@ export default function Profile() {
     setProfileSaving(true)
     setProfileMsg({ type: '', text: '' })
     try {
-      await client.patch('/api/users/me', { name, email })
+      await client.patch('/api/users/me', { name, email, bio })
+      // Den Kopf mitziehen, damit die Bio ohne Reload dort steht.
+      setProfil(p => (p ? { ...p, bio: bio.trim() || null } : p))
       setProfileMsg({ type: 'success', text: 'Profil gespeichert.' })
     } catch (err) {
       setProfileMsg({ type: 'error', text: err.response?.data?.detail || 'Fehler beim Speichern.' })
@@ -340,6 +343,24 @@ export default function Profile() {
               <div>
                 <label style={labelStyle}>Rolle</label>
                 <div style={{ ...inputStyle, background: 'transparent', cursor: 'default', color: 'var(--subtext)' }}>{getRoleLabel(user.role)}</div>
+              </div>
+            </div>
+            {/* Bio: wird im Profilkopf angezeigt, auch für Fremde. Leeren
+                löscht sie serverseitig (users/router.py: Leerstring → NULL). */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={labelStyle} htmlFor="p-bio">Über mich</label>
+              <textarea
+                id="p-bio"
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                maxLength={500}
+                rows={3}
+                placeholder="Ein paar Sätze über dich — erscheint auf deinem Profil."
+                data-track-id="profile-bio-input"
+                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}
+              />
+              <div style={{ marginTop: 4, textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--subtext)' }}>
+                {bio.length}/500
               </div>
             </div>
             {profileMsg.text && <Msg type={profileMsg.type}>{profileMsg.text}</Msg>}
