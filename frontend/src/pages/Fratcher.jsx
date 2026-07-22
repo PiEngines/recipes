@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
+import BackButton from '../components/BackButton'
 import BottomNav from '../components/BottomNav'
 import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 
@@ -586,12 +587,9 @@ export default function Fratcher() {
 
         {/* Header */}
         <div style={{ flexShrink: 0, background: 'var(--bg)', borderBottom: '1px solid var(--hairline)', padding: '12px 16px 11px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={() => view === 'results' ? setView('input') : navigate(-1)}
-            style={{ width: 34, height: 34, borderRadius: 'var(--radius-pill)', background: 'var(--card)', border: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}
-          >
-            <i className="ti ti-arrow-left" style={{ fontSize: 17, color: 'var(--text)' }} />
-          </button>
+          {/* Aus der Ergebnisliste führt „Zurück" eine Stufe in die Eingabe, nicht
+              aus dem Fratcher heraus. */}
+          <BackButton onClick={() => view === 'results' ? setView('input') : navigate(-1)} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, var(--ink-gruen), var(--green))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ti ti-fridge" style={{ fontSize: 15, color: 'var(--on-dark)' }} />
@@ -666,9 +664,7 @@ export default function Fratcher() {
 
         {/* Sticky Header */}
         <div style={{ position: 'sticky', top: 0, zIndex: 20, background: 'var(--bg)', borderBottom: '1px solid var(--hairline)', padding: '14px 32px 13px', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={() => navigate(-1)} style={{ width: 36, height: 36, borderRadius: 'var(--radius-pill)', background: 'var(--card)', border: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-            <i className="ti ti-arrow-left" style={{ fontSize: 17, color: 'var(--text)' }} />
-          </button>
+          <BackButton />
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--ink-gruen), var(--green))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <i className="ti ti-fridge" style={{ fontSize: 16, color: 'var(--on-dark)' }} />

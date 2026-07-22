@@ -17,6 +17,7 @@ import {
   followUser, getProfile, getRecipesByAuthor, getUserExternalPosts, unfollowUser,
 } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
+import BackButton from '../components/BackButton'
 import ExternalPostEmbed from '../components/ExternalPostEmbed'
 import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
@@ -227,17 +228,9 @@ export default function PublicProfile() {
       />
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '1.25rem 1.5rem 6rem' }}>
-        <button
-          onClick={() => navigate(-1)}
-          data-track-id="public-profile-back"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)',
-            fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.9rem',
-            padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-          }}
-        >
-          ← Zurück
-        </button>
+        <div style={{ marginBottom: '1rem' }}>
+          <BackButton />
+        </div>
 
         {aktionsFehler && (
           <p role="status" style={{ margin: '0 0 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--danger)' }}>

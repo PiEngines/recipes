@@ -6,8 +6,9 @@
 // beiden Profilen; der aktive Tab steht in `?tab=`, damit der Tap direkt im
 // richtigen Segment landet und der Zurück-Weg stimmt.
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { getFollowers, getFollowing, getProfile } from '../api/profile'
+import BackButton from '../components/BackButton'
 import Segmented from '../components/Segmented'
 
 const TABS = [
@@ -72,7 +73,6 @@ function Zeile({ person }) {
 
 export default function Netzwerk() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const [suchParams, setSuchParams] = useSearchParams()
 
   const tabAusUrl = suchParams.get('tab')
@@ -184,17 +184,9 @@ export default function Netzwerk() {
       </div>
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.25rem 1.25rem 6rem' }}>
-        <button
-          onClick={() => navigate(-1)}
-          data-track-id="netzwerk-back"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)',
-            fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: '0.9rem',
-            padding: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-          }}
-        >
-          ← Zurück
-        </button>
+        <div style={{ marginBottom: '1rem' }}>
+          <BackButton />
+        </div>
 
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
