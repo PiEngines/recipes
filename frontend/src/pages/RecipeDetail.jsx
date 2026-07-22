@@ -575,7 +575,9 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
     <div
       className="md:hidden"
       style={{
-        position: 'fixed', bottom: 60, left: 0, right: 0,
+        // Über der BottomNav (78px) statt darin — bei bottom:60 lag der Strip
+        // 18px hinter der Leiste und der eingeklappte Peek war kaum sichtbar.
+        position: 'fixed', bottom: 86, left: 0, right: 0,
         maxWidth: 430, margin: '0 auto', zIndex: 44,
         background: 'var(--card)',
         borderRadius: '12px 12px 0 0',
@@ -585,18 +587,32 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
       }}
     >
       {!expanded ? (
-        <div onClick={() => setExpanded(true)} style={{ padding: '10px 18px 12px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 1 }}>
-            {[...items].sort((a, b) => (checkedIngredients[a.id] ? 1 : 0) - (checkedIngredients[b.id] ? 1 : 0)).map(ing => (
-              <div key={ing.id} style={{
-                width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
-                border: '2px solid var(--accent)',
-                background: checkedIngredients[ing.id] ? 'var(--accent)' : 'transparent',
-                transition: 'background .2s ease',
-              }} />
-            ))}
+        // Peek als Griff: Grabber-Balken, Label und Chevron sagen, dass sich
+        // hier etwas hochziehen lässt — die Punktreihe allein tat das nicht.
+        <div
+          onClick={() => setExpanded(true)}
+          role="button"
+          aria-label="Zutaten zum Schritt anzeigen"
+          data-track-id="detail-ingredient-strip-expand"
+          style={{ padding: '6px 18px 12px', cursor: 'pointer' }}
+        >
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--subtext)' }}>
+              Zutaten
+            </span>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              {[...items].sort((a, b) => (checkedIngredients[a.id] ? 1 : 0) - (checkedIngredients[b.id] ? 1 : 0)).map(ing => (
+                <div key={ing.id} style={{
+                  width: 11, height: 11, borderRadius: '50%', flexShrink: 0,
+                  border: '2px solid var(--accent)',
+                  background: checkedIngredients[ing.id] ? 'var(--accent)' : 'transparent',
+                  transition: 'background .2s ease',
+                }} />
+              ))}
+            </div>
+            <i className="ti ti-chevron-up" style={{ fontSize: 14, color: 'var(--accent)', flexShrink: 0 }} />
           </div>
-          <i className="ti ti-chevron-up" style={{ fontSize: 14, color: 'var(--accent)' }} />
         </div>
       ) : (
         <div>
@@ -906,7 +922,9 @@ export default function RecipeDetail() {
       )}
 
       {/* Content */}
-      <div className="px-0 md:px-6" style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: '4rem' }}>
+      {/* Bodenpadding trägt den IngredientStrip, der über der 78px-BottomNav
+          schwebt — sonst verdeckt er den letzten Schritt. */}
+      <div className="px-0 md:px-6" style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: '9rem' }}>
         <div className="md:flex md:gap-8" style={{ alignItems: 'flex-start' }}>
 
           {/* Ingredient sidebar (desktop) */}
