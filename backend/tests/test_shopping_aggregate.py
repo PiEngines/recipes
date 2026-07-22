@@ -142,3 +142,93 @@ def test_recipe_titles_dedupliziert_und_ohne_none():
 
 def test_leere_liste():
     assert aggregate_items([]) == []
+
+
+# ── Einheiten-bewusste Summierung (BUG-34) ───────────────────────────────────
+
+def test_gramm_und_kilo_werden_zusammengefasst():
+    rows = aggregate_items([
+        item(1, "Mehl", "500", "g"),
+        item(2, "Mehl", "500", "g"),
+        item(3, "Mehl", "1", "kg"),
+    ])
+    assert len(rows) == 1
+    assert rows[0]["amount"] == "2"
+    assert rows[0]["unit"] == "kg"
+    assert rows[0]["merged_from_count"] == 3
+
+
+def test_unter_tausend_bleibt_die_basis_einheit():
+    rows = aggregate_items([
+        item(1, "Zucker", "200", "g"),
+        item(2, "Zucker", "300", "g"),
+    ])
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("500", "g")
+
+
+def test_milliliter_und_liter():
+    rows = aggregate_items([
+        item(1, "Milch", "500", "ml"),
+        item(2, "Milch", "1", "l"),
+    ])
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("1 1/2", "l")
+
+
+def test_schreibweisen_fallen_schon_ohne_umrechnung_zusammen():
+    """„g" und „Gramm" sind dieselbe Einheit — auch bei Altbestand."""
+    rows = aggregate_items([
+        item(1, "Butter", "100", "g"),
+        item(2, "Butter", "150", "Gramm"),
+    ])
+    assert len(rows) == 1
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("250", "g")
+
+
+def test_prisen_werden_nicht_umgerechnet():
+    rows = aggregate_items([
+        item(1, "Salz", "1", "Prise"),
+        item(2, "Salz", "1", "prisen"),
+    ])
+    assert len(rows) == 1
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("2", "Prise")
+
+
+def test_el_und_tl_bleiben_getrennte_zeilen():
+    rows = aggregate_items([
+        item(1, "Öl", "2", "EL"),
+        item(2, "Öl", "1", "TL"),
+    ])
+    assert len(rows) == 2
+    assert {r["unit"] for r in rows} == {"EL", "TL"}
+
+
+def test_gewicht_und_volumen_derselben_zutat_bleiben_getrennt():
+    rows = aggregate_items([
+        item(1, "Sahne", "200", "g"),
+        item(2, "Sahne", "200", "ml"),
+    ])
+    assert len(rows) == 2
+
+
+def test_einzelne_position_wird_nicht_umgerechnet():
+    """Was einmal dasteht, bleibt so — umgerechnet wird nur beim Summieren."""
+    rows = aggregate_items([item(1, "Mehl", "1500", "g")])
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("1500", "g")
+
+
+def test_unlesbarer_betrag_verhindert_die_umrechnung():
+    rows = aggregate_items([
+        item(1, "Mehl", "500", "g"),
+        item(2, "Mehl", "etwas", "kg"),
+    ])
+    assert len(rows) == 2
+    assert rows[0]["merged_from_count"] == 1
+
+
+def test_gleiche_einheit_bleibt_stehen():
+    """Nur wenn die Einheiten auseinandergehen, wird eine gewählt."""
+    rows = aggregate_items([
+        item(1, "Mehl", "1/2", "kg"),
+        item(2, "Mehl", "1/4", "kg"),
+    ])
+    assert (rows[0]["amount"], rows[0]["unit"]) == ("3/4", "kg")
