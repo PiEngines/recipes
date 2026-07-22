@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, useEffect, useLayoutEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
 import './index.css'
@@ -63,15 +63,25 @@ function Layout() {
     })
   }, [pathname])
 
+  // Die Startseite oeffnet immer oben — auch bei Zurueck-Navigation, damit die
+  // Begruessung sichtbar ist. Layout-Effekt, weil er damit *nach* dem Layout-
+  // Effekt von ScrollRestoration (Kind-Komponente) und noch vor dem Paint
+  // laeuft: eine wiederhergestellte Position wird ohne sichtbaren Sprung
+  // ueberschrieben.
+  useLayoutEffect(() => {
+    if (pathname === '/') window.scrollTo(0, 0)
+  }, [pathname])
+
   const showNavbar = !NO_NAVBAR_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
     && !pathname.startsWith('/users/')
   const showSearchBar = showNavbar && !NO_SEARCHBAR_PATTERNS.some(re => re.test(pathname))
   return (
     <>
-      <ScrollRestoration getKey={(location) => {
-        if (location.pathname === '/') return 'no-restore'
-        return location.key
-      }} />
+      {/* Pro Navigations-Eintrag ein Key. Fuer '/' gab es hier einen konstanten
+          Key ('no-restore') — der schaltet Restoration nicht ab, sondern legt
+          alle Home-Positionen unter genau einem Eintrag ab und holt sie zurueck.
+          Home wird stattdessen oben im Layout-Effekt nach oben gesetzt. */}
+      <ScrollRestoration getKey={(location) => location.key} />
       {showNavbar && <Navbar onBellClick={() => setNotifOpen(true)} notificationCount={pendingNotifications?.length ?? 0} />}
       <Outlet />
       {showSearchBar && <MobileSearchBar />}
