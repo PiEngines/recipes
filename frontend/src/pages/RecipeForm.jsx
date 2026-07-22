@@ -11,6 +11,11 @@ import { isKochOrAbove } from '../utils/roles'
 
 const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Stück', 'Prise', 'Bund', 'Scheibe', 'Dose', 'Packung', 'nach Geschmack']
 
+// Frei gewählt: die Spalte ist `Text` und das Schema setzt keine Grenze. 1000
+// Zeichen reichen für den Anreißer, den die Beschreibung sein soll — auf der
+// Detailseite wird sie ohnehin auf wenige Zeilen gekürzt.
+const DESCRIPTION_MAX = 1000
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function levenshtein(a, b) {
@@ -205,10 +210,20 @@ function StyledInput({ value, onChange, type = 'text', placeholder, min, max, au
   )
 }
 
-function StyledTextarea({ value, onChange, placeholder, rows = 4 }) {
+// `maxLength` ist optional: gesetzt kommt ein Zähler dazu, ohne bleibt das
+// Feld exakt wie bisher — die Schritt-Textareas sollen unberührt bleiben.
+function StyledTextarea({ value, onChange, placeholder, rows = 4, maxLength }) {
   const [focused, setFocused] = useState(false)
+  const laenge = (value || '').length
   return (
-    <textarea value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} rows={rows} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+    <>
+      <textarea value={value} onChange={e => onChange(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} rows={rows} maxLength={maxLength} style={{ width: '100%', padding: '0.625rem 0.875rem', border: `1.5px solid ${focused ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.95rem', fontFamily: 'Inter, sans-serif', outline: 'none', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', boxShadow: focused ? '0 0 0 3px rgba(200,96,42,0.12)' : 'none', boxSizing: 'border-box', resize: 'vertical' }} />
+      {maxLength != null && (
+        <div style={{ marginTop: 4, textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 10, color: laenge >= maxLength ? '#C84444' : 'var(--subtext)' }}>
+          {laenge}/{maxLength}
+        </div>
+      )}
+    </>
   )
 }
 
@@ -1563,7 +1578,7 @@ export default function RecipeForm() {
               </div>
               <div style={{ marginBottom: '1.25rem' }}>
                 <FieldLabel>Beschreibung</FieldLabel>
-                <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung …" rows={3} />
+                <StyledTextarea value={description} onChange={v => { setDescription(v); markDirty() }} placeholder="Kurze Beschreibung …" rows={3} maxLength={DESCRIPTION_MAX} />
               </div>
             </div>
           )}
