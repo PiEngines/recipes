@@ -91,7 +91,7 @@ function MonthModule({ monat, saeen, ernten, loading }) {
           ◷ Jetzt im {MONTH_NAMES[monat - 1]}
         </span>
         <Link
-          to="/garten"
+          to="/garten?tab=kalender"
           data-track-id="kraeuterschule-kalender-link"
           style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', textDecoration: 'none' }}
         >

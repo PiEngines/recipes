@@ -317,7 +317,7 @@ function AnbauTab({ plant, kalender, phaseMap, monat, beetEntry }) {
             </p>
           </div>
           <Link
-            to="/garten"
+            to="/garten?tab=kalender"
             data-track-id="pflanze-beet-kalender-link"
             style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--green)', textDecoration: 'none' }}
           >

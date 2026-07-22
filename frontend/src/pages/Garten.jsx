@@ -5,7 +5,7 @@
 // flach statt nach Standort gruppiert. Licht/Sonne steht im Pflanzen-Steckbrief.
 
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getGardenTasks, getMyBeet } from '../api/plants'
 import { phaseBadge, plantedLabel, primaryTaskFor, taskLabel } from '../theme/gardenTasks'
 import { plantImageStyle } from '../theme/plants'
@@ -92,7 +92,17 @@ function EmptyBeet() {
 
 export default function Garten() {
   const navigate = useNavigate()
-  const [segment, setSegment] = useState('beet')
+  // Das Segment steht in der URL, damit „Kalender →" von außen direkt dorthin
+  // führt (BUG-51). Ohne Parameter bleibt es beim Beet.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const segmentAusUrl = searchParams.get('tab')
+  const segment = SEGMENTS.some(s => s.key === segmentAusUrl) ? segmentAusUrl : 'beet'
+  const setSegment = (key) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev)
+    if (key === 'beet') next.delete('tab')
+    else next.set('tab', key)
+    return next
+  }, { replace: true })
   const [beet, setBeet] = useState([])
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
