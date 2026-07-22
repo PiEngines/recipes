@@ -8,10 +8,12 @@
  *   Praxis mit HTTP 503, `window.instgrm` bleibt dann undefiniert und der
  *   Beitrag wird nie zum Player verarbeitet.
  *
- * • TikTok → `…/embed/v2/{videoId}`. TikToks `embed.js` upgradet das
+ * • TikTok → Player-API `…/player/v1/{videoId}`. TikToks `embed.js` upgradet das
  *   `<blockquote>` aus `oembed_html` nur beim **ersten** Skript-Lauf und bietet
  *   keine Re-Process-API. Bei jedem erneuten Mount (z. B. Overlay öffnen) blieb
- *   deshalb statisches HTML stehen — ein Tap sprang in die TikTok-App.
+ *   deshalb statisches HTML stehen — ein Tap sprang in die TikTok-App. Die
+ *   Vorschau-Card `embed/v2` spielt zwar inline, aber stumm und schickt bei Ton
+ *   oder Replay ebenfalls in die App; die Player-API spielt mit Ton.
  *
  * `oembed_html` wird nur noch als Fallback-Quelle für die Video-ID gelesen (das
  * Backend speichert es weiter — schadet nicht). Klappt der Embed nicht
@@ -28,9 +30,15 @@ const IG_TYPEN = { reel: 'reel', reels: 'reel', p: 'p', tv: 'tv' }
 // Reels sind hochkant, Feed-Posts eher quadratisch.
 const IG_HOEHEN = { reel: 640, p: 500, tv: 640 }
 
-// TikTok ist durchgängig hochkant; der v2-Player bringt zusätzlich eine
-// Kopfzeile mit Autor und eine Fußzeile mit Beschreibung mit.
-const TT_HOEHE = 760
+// TikTok ist durchgängig hochkant (9:16). Der Player rendert nur das Video
+// plus Steuerleiste — ohne Kopf-/Fußzeile wie die alte Vorschau-Card.
+const TT_HOEHE = 700
+
+// Offizielle Player-API statt der Vorschau-Card (`embed/v2`): die Card ist
+// stumm und schickt bei Ton oder Replay in die TikTok-App. `controls` blendet
+// die Steuerleiste ein, `music_info` nennt den Sound, `description` und `rel`
+// aus, weil Beschreibung und Empfehlungen im Feed nur stören.
+const TT_PARAMS = 'controls=1&music_info=1&description=0&rel=0'
 
 /**
  * Embed-Ziel aus einer Instagram-URL ableiten.
@@ -75,7 +83,7 @@ function tiktokEmbed(url, oembedHtml) {
   const ausHtml = String(oembedHtml || '').match(/data-video-id="(\d+)"/)
   const videoId = ausUrl?.[1] || ausHtml?.[1]
   if (!videoId) return null
-  return { src: `https://www.tiktok.com/embed/v2/${videoId}`, hoehe: TT_HOEHE }
+  return { src: `https://www.tiktok.com/player/v1/${videoId}?${TT_PARAMS}`, hoehe: TT_HOEHE }
 }
 
 // ── Platzhalter & Fallback ───────────────────────────────────────────────────
