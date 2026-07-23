@@ -2449,6 +2449,16 @@ export default function RecipeForm() {
                 </div>
               </div>
 
+              {/* Trenner: alles darüber ist Pflicht fürs Veröffentlichen (inkl.
+                  Schwierigkeit — Abweichung F10, die sie zur Pflicht gemacht
+                  hat), alles darunter optional. Aufbau wie im Prototyp:
+                  Linie · OPTIONAL · Linie. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '2rem 0 1.5rem' }}>
+                <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', letterSpacing: '0.16em', color: 'var(--text-muted)' }}>OPTIONAL</span>
+                <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
+              </div>
+
               {/* 4. Fotos */}
               <div style={{ marginBottom: '1.75rem' }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', marginBottom: '0.625rem', textTransform: 'uppercase' }}>Fotos</div>
