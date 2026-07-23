@@ -48,6 +48,7 @@ from app.models.tokens import EmailVerificationToken, InvitationToken, PasswordR
 from app.models.user import User, UserRole
 from app.models.user_favorite import UserFavorite
 from app.models.user_follow import UserFollow
+from app.models.user_pin import PinItemType, UserPin
 from app.models.user_plant import UserPlant
 from app.models.user_plant_task import UserPlantTaskDone
 
@@ -90,6 +91,8 @@ __all__ = [
     "DisposableEmailDomain",
     "UserFavorite",
     "UserFollow",
+    "UserPin",
+    "PinItemType",
     "UserPlant",
     "UserPlantTaskDone",
     "ShoppingListItem",

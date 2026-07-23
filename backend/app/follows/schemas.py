@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.pins.schemas import PinnedContent
+
 
 class FollowUserItem(BaseModel):
     """Kompakte User-Darstellung für Follower-/Following-Listen."""
@@ -47,3 +49,6 @@ class UserProfile(BaseModel):
     # tauchen in dieser öffentlichen Sicht bewusst gar nicht auf.
     diet_labels: list[TaxItem] = []
     exclusions: list[TaxItem] = []
+    # Highlights (Ü18) — angepinnte Rezepte + Beiträge. Öffentlich, kein Gate:
+    # Highlights sind zum Zeigen da.
+    pinned: PinnedContent = PinnedContent()

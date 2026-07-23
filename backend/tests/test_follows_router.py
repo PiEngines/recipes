@@ -221,7 +221,7 @@ def test_profil_schema_ohne_email(ctx):
     assert set(profil) == {
         "id", "name", "username", "avatar_url", "bio",
         "follower_count", "following_count", "is_following", "preferences",
-        "diet_labels", "exclusions",
+        "diet_labels", "exclusions", "pinned",
     }
 
 

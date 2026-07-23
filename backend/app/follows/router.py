@@ -18,6 +18,7 @@ from app.auth.dependencies import require_koch_or_above
 from app.database import get_db
 from app.follows.schemas import FollowUserItem, FollowUserPage, UserProfile
 from app.models import User, UserFollow
+from app.pins.router import resolve_pins
 
 router = APIRouter(prefix="/api/users", tags=["follows"])
 
@@ -152,6 +153,8 @@ def get_profile(
         # fehlen hier bewusst ganz — sie werden nie öffentlich.
         diet_labels=user.diet_labels if user.diet_public else [],
         exclusions=user.exclusions if user.exclusions_public else [],
+        # Highlights sind zum Zeigen da — kein Gate.
+        pinned=resolve_pins(db, user.id),
         follower_count=_follower_count(db, user.id),
         following_count=_following_count(db, user.id),
         # Sich selbst folgt man nie.
