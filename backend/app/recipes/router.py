@@ -152,19 +152,25 @@ def _apply_visibility_filter(q, current_user: User | None, db: Session):
 
 # ── List ──────────────────────────────────────────────────────────────────────
 
-def _attach_primary_images(items, db):
-    """Setzt item.primary_image (Thumbnail-URL) aus dem media-System. Batch, kein N+1."""
-    from app.models.media import Media
-    from app.storage import storage
+def primary_media_by_recipe(recipe_ids, db) -> dict[int, "Media"]:  # noqa: F821
+    """Das anzuzeigende Bild je Rezept — eine Query für alle IDs, kein N+1.
 
-    if not items:
-        return items
-    ids = [r.id for r in items]
+    „Primär" heißt: die als `is_primary` markierte Aufnahme, sonst die mit dem
+    kleinsten `sort_order`. Ein Rezept ohne markiertes Titelbild bleibt so nicht
+    bilderlos.
+
+    Öffentlich, weil außer der Rezeptliste auch der Fratcher dieselbe Auswahl
+    braucht — zwei Ordnungen nebeneinander würden auseinanderlaufen.
+    """
+    from app.models.media import Media
+
+    if not recipe_ids:
+        return {}
     rows = (
         db.query(Media)
         .filter(
             Media.entity_type == "recipe",
-            Media.entity_id.in_(ids),
+            Media.entity_id.in_(list(recipe_ids)),
             Media.media_type == "image",
             Media.deleted_at.is_(None),
             Media.processing_status == "ready",
@@ -177,12 +183,23 @@ def _attach_primary_images(items, db):
         )
         .all()
     )
-    best: dict[int, str] = {}
+    best: dict[int, Media] = {}
     for m in rows:
         if m.entity_id not in best:  # erster pro entity_id = primär / niedrigster sort_order
-            best[m.entity_id] = m.thumbnail_path or m.storage_path
+            best[m.entity_id] = m
+    return best
+
+
+def _attach_primary_images(items, db):
+    """Setzt item.primary_image (Thumbnail-URL) aus dem media-System. Batch, kein N+1."""
+    from app.storage import storage
+
+    if not items:
+        return items
+    best = primary_media_by_recipe([r.id for r in items], db)
     for r in items:
-        path = best.get(r.id)
+        m = best.get(r.id)
+        path = (m.thumbnail_path or m.storage_path) if m else None
         r.primary_image = storage.get_url(path) if path else None
     return items
 

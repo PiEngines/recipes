@@ -60,7 +60,12 @@ def _load_bls_words() -> frozenset[str]:
     return frozenset(words)
 
 
-def _synonym_variants(name: str) -> set[str]:
+# Gecacht, weil die Suche über das komplette Synonym-Wörterbuch läuft: der
+# Fratcher fragt pro Aufruf Rezepte × Zutaten × Nutzerzutaten ab, da lohnt sich
+# das. `frozenset`, damit ein Aufrufer den Cache-Eintrag nicht versehentlich
+# verändern kann.
+@lru_cache(maxsize=4096)
+def _synonym_variants(name: str) -> frozenset[str]:
     """Normalized name plus all synonyms it is grouped with (in either direction)."""
     norm = _normalize(name)
     variants = {norm}
@@ -68,7 +73,7 @@ def _synonym_variants(name: str) -> set[str]:
         group = {_normalize(canonical)} | {_normalize(s) for s in synonyms}
         if norm in group:
             variants |= group
-    return variants
+    return frozenset(variants)
 
 
 def _fuzzy_match(ing_name: str, instruction_tokens: set[str], instruction_norm: str) -> bool:
@@ -80,6 +85,32 @@ def _fuzzy_match(ing_name: str, instruction_tokens: set[str], instruction_norm: 
     return any(fuzz.ratio(norm, token) >= FUZZY_THRESHOLD for token in instruction_tokens)
 
 
+def name_matches(ing_name: str, haystack: str) -> bool:
+    """Kommt `ing_name` in `haystack` vor — Synonyme und Tippfehler eingerechnet?
+
+    Der gemeinsame Kern der Stufen 1 und 2. Zwei Verwender mit sehr
+    unterschiedlichen Heuhaufen:
+
+    * `match_ingredients` prüft eine Zutat gegen einen ganzen Anleitungstext.
+    * Der Fratcher prüft eine Rezeptzutat gegen **eine** Zutat aus dem Vorrat
+      des Nutzers („Tomaten" deckt „Tomate").
+
+    Beides trägt dieselbe Logik: erst die Synonymgruppe als Teilstring, dann
+    rapidfuzz. Für einen einzelnen Namen als Heuhaufen ist die Tokenmenge
+    eben genau ein Token — die Stufe 2 funktioniert dadurch unverändert.
+    """
+    haystack_norm = _normalize(haystack)
+    if not haystack_norm:
+        return False
+
+    # Stufe 1: exakter Treffer + Synonym-Wörterbuch
+    if any(variant and variant in haystack_norm for variant in _synonym_variants(ing_name)):
+        return True
+
+    # Stufe 2: rapidfuzz
+    return _fuzzy_match(ing_name, _word_tokens(haystack), haystack_norm)
+
+
 def match_ingredients(step_instruction: str, ingredients: list) -> list[int]:
     """Returns the IDs of the recipe's ingredients that occur in the step instruction."""
     instruction_norm = _normalize(step_instruction)
@@ -87,12 +118,11 @@ def match_ingredients(step_instruction: str, ingredients: list) -> list[int]:
 
     matched_ids: list[int] = []
     for ing in ingredients:
-        # Stage 1: exact match + synonym dict
+        # Stages 1+2 — shared with the Fratcher, see name_matches().
         if any(variant and variant in instruction_norm for variant in _synonym_variants(ing.name)):
             matched_ids.append(ing.id)
             continue
 
-        # Stage 2: rapidfuzz token-set-ratio
         if _fuzzy_match(ing.name, instruction_tokens, instruction_norm):
             matched_ids.append(ing.id)
             continue
