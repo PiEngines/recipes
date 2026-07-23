@@ -180,14 +180,14 @@ export default function Einstellungen() {
             {/* Vorlieben (BUG-41): Freitext, standardmäßig privat. Der Toggle
                 schaltet die Anzeige auf dem Profil frei. */}
             <div style={{ marginBottom: '1rem' }}>
-              <label style={labelStyle} htmlFor="p-preferences">Vorlieben</label>
+              <label style={labelStyle} htmlFor="p-preferences">Über deine Küche</label>
               <textarea
                 id="p-preferences"
                 value={preferences}
                 onChange={e => setPreferences(e.target.value)}
                 maxLength={2000}
                 rows={3}
-                placeholder="Was du gern isst, Allergien, Abneigungen …"
+                placeholder="Erzähl uns von deiner Küche, deinem Lieblingsrezept oder deinem liebsten Dessert."
                 data-track-id="settings-preferences-input"
                 style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}
               />
@@ -197,7 +197,7 @@ export default function Einstellungen() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>Vorlieben auf Profil teilen</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>Auf Profil teilen</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Sonst sehen nur die Einstellungen sie.</div>
               </div>
               <ToggleSwitch checked={preferencesPublic} onChange={setPreferencesPublic} />
