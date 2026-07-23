@@ -5,9 +5,9 @@ import BackButton from '../components/BackButton'
 import BottomNav from '../components/BottomNav'
 import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 
-// Standard-Basics (Gewürze/Grundzutaten) — Startwert. Ab Commit 2 nutzer-editierbar
-// und in localStorage persistiert; werden beim Matching ignoriert (zählen nicht als
-// „fehlend"). matchRecipe liest die dynamische Liste, nicht mehr diesen fixen Set.
+// Standard-Basics (Gewürze/Grundzutaten) — Startwert. Nutzer-editierbar und in
+// localStorage persistiert; sie gehen beim Matching mit an den Server und
+// zählen dort nicht als „fehlend".
 const DEFAULT_BASICS = [
   'salz','pfeffer','zucker','olivenöl','öl','wasser','essig','brühe',
   'oregano','basilikum','thymian','rosmarin','petersilie','schnittlauch',
