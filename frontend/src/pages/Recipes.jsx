@@ -304,6 +304,19 @@ export default function Recipes() {
   // Seite nach. Der Fortschritt steht im Ref, nicht im State — er darf kein
   // Rendern auslösen und muss innerhalb desselben Ticks stimmen, sonst feuert
   // der Observer mehrfach dieselbe Seite.
+
+  // Steht der Sentinel im Nachlade-Bereich? Frisch gemessen statt aus dem
+  // Observer gemerkt: dessen letzte Meldung stammt vom letzten *Wechsel* und
+  // wäre genau dann veraltet, wenn wir sie brauchen — direkt nachdem die neuen
+  // Karten gerendert wurden. Der Rand entspricht dem `rootMargin` weiter unten.
+  const NACHLADE_RAND = 300
+  const sentinelImBlick = () => {
+    const el = sentinelRef.current
+    if (!el) return false
+    const kasten = el.getBoundingClientRect()
+    return kasten.top <= window.innerHeight + NACHLADE_RAND && kasten.bottom >= -NACHLADE_RAND
+  }
+
   const ladeSeite = (pg) => {
     const st = listState.current
     if (st.loading || (pg > 1 && st.done)) return
@@ -318,6 +331,22 @@ export default function Recipes() {
       if (listState.current !== st) return
       setLoading(false)
       setLoadingMore(false)
+
+      // BUG-67: Der Observer meldet nur den *Wechsel* von `isIntersecting`.
+      // Bleibt der Sentinel nach dem Nachladen weiter im Rand — auf schmalen
+      // Viewports schon nach Seite 1 —, kommt nie ein neues Ereignis und die
+      // Liste hängt ohne Ladeanzeige fest. Also selbst nachfassen, bis der
+      // Sentinel aus dem Rand geschoben ist oder nichts mehr nachkommt.
+      //
+      // Im `requestAnimationFrame`, damit die eben gesetzten Karten wirklich im
+      // Layout stehen — vorher gemessen wäre die Höhe noch die alte und es
+      // liefe eine Seite zu viel.
+      if (st.done) return
+      requestAnimationFrame(() => {
+        if (listState.current !== st || st.loading || st.done) return
+        if (!sentinelImBlick()) return
+        ladeSeite(st.page + 1)
+      })
     }
 
     // Favoriten liegen komplett im Client — hier wird nur weiter aufgedeckt.
@@ -476,6 +505,8 @@ export default function Recipes() {
     const el = sentinelRef.current
     if (!el) return undefined
     const obs = new IntersectionObserver(
+      // Zieht die nächste Seite, sobald der Sentinel in den Rand *eintritt*.
+      // Bleibt er drin, übernimmt der Nachfass-Pfad in `fertig()` (BUG-67).
       entries => { if (entries[0].isIntersecting) ladenRef.current.ladeSeite(listState.current.page + 1) },
       { rootMargin: '300px' },
     )
