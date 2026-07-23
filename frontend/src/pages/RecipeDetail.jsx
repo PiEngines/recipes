@@ -595,6 +595,36 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
     schliessAb: 48, oeffnenAb: 36,
   })
 
+  // Der Chip-Bereich bleibt **immer** montiert und wird nur weggeschnitten
+  // (FR-Sheet-Open). Vorher tauschte das Sheet den Inhalt bei `expanded`: der
+  // Zieh-Versatz lief sanft auf 0, während der große Inhalt schlagartig
+  // erschien — genau das Nachspringen. Jetzt trägt eine einzige animierte
+  // Größe Ziehen, Öffnen und Schließen.
+  const kopfRef = useRef(null)
+  const koerperRef = useRef(null)
+  const [kopfH, setKopfH] = useState(0)
+  const [koerperH, setKoerperH] = useState(0)
+
+  useEffect(() => {
+    // Der ResizeObserver feuert schon beim Beobachten — die erste Messung
+    // kommt also von ihm und nicht aus dem Effekt-Rumpf.
+    const beobachter = new ResizeObserver(() => {
+      setKopfH(kopfRef.current?.offsetHeight || 0)
+      setKoerperH(koerperRef.current?.offsetHeight || 0)
+    })
+    if (kopfRef.current) beobachter.observe(kopfRef.current)
+    if (koerperRef.current) beobachter.observe(koerperRef.current)
+    return () => beobachter.disconnect()
+  }, [])
+
+  // 0 = ganz offen, `koerperH` = zugeklappt. Der Zieh-Versatz ist eingeklappt
+  // negativ (hoch = auf) und offen positiv (runter = zu) — beides läuft hier
+  // auf derselben Achse zusammen.
+  const versatz = Math.max(0, Math.min(koerperH, (expanded ? 0 : koerperH) + drag.dragY))
+  // Vor der ersten Messung keine Höhe erzwingen, sonst klappte das Sheet beim
+  // Mounten einmal auf.
+  const gemessen = kopfH > 0
+
   return (
     <div
       className="md:hidden"
@@ -606,26 +636,57 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
         background: 'var(--card)',
         borderRadius: '12px 12px 0 0',
         boxShadow: '0 -4px 20px rgba(0,0,0,.1)',
-        // Der Zieh-Versatz zählt nur, solange der Finger liegt: beim Loslassen
-        // führt entweder das Einklappen oder das Zurückschnappen zurück auf 0.
-        transform: showStrip ? `translateY(${drag.dragging ? drag.dragY : 0}px)` : 'translateY(110%)',
-        transition: drag.dragging ? 'none' : 'transform .3s cubic-bezier(.4,0,.2,1)',
+        // Die Unterkante ist verankert, also wächst das Sheet nach oben und der
+        // abgeschnittene Körper verschwindet unter dem Kopf. Der Schatten zeigt
+        // nach oben und wird von `overflow` nicht beschnitten.
+        height: gemessen ? kopfH + koerperH - versatz : undefined,
+        overflow: 'hidden',
+        // 110% reichten nicht: das eingeklappte Sheet ist flacher als die 86px,
+        // die es über der Leiste schwebt, und blieb sonst sichtbar.
+        transform: showStrip ? 'none' : 'translateY(calc(100% + 96px))',
+        transition: drag.dragging
+          ? 'none'
+          : 'height .3s cubic-bezier(.4,0,.2,1), transform .3s cubic-bezier(.4,0,.2,1)',
       }}
     >
-      {!expanded ? (
-        // Peek als Griff: Grabber-Balken, Label und Chevron sagen, dass sich
-        // hier etwas hochziehen lässt — die Punktreihe allein tat das nicht.
-        // Der ganze Streifen ist ziehbar, nicht nur der 4px-Balken; Antippen
-        // öffnet weiterhin (der Zug startet erst nach dem Richtungs-Lock).
-        <div
-          {...drag.griffProps}
-          onClick={() => setExpanded(true)}
-          role="button"
-          aria-label="Zutaten zum Schritt anzeigen"
-          data-track-id="detail-ingredient-strip-expand"
-          style={{ ...drag.griffProps.style, padding: '6px 18px 12px' }}
-        >
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
+      {/* Kopf: bleibt stehen, wechselt nur seine Beschriftung. Ganzflächig
+          ziehbar — runter klappt zu, hoch klappt auf. Antippen öffnet
+          weiterhin, der Zug startet erst nach dem Richtungs-Lock. */}
+      <div
+        ref={kopfRef}
+        {...drag.griffProps}
+        onClick={expanded ? undefined : () => setExpanded(true)}
+        role={expanded ? undefined : 'button'}
+        aria-label={expanded ? undefined : 'Zutaten zum Schritt anzeigen'}
+        aria-expanded={expanded}
+        data-track-id="detail-ingredient-strip-expand"
+        style={{
+          ...drag.griffProps.style, padding: '8px 16px 10px',
+          // Eingeklappt läge die Trennlinie genau auf der Unterkante des
+          // Sheets — sie trennt dann nichts mehr.
+          borderBottom: expanded ? '1px solid var(--border)' : 'none',
+        }}
+      >
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
+        {expanded ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                Schritt {activeStep?.sort_order ?? 1}
+              </span>
+              {activeStep?.title && (
+                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>
+                  {activeStep.title}
+                </div>
+              )}
+            </div>
+            <button onClick={() => setExpanded(false)} aria-label="Zutaten einklappen" data-track-id="detail-ingredient-strip-collapse" style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', flexShrink: 0 }}>
+              <i className="ti ti-chevron-down" />
+            </button>
+          </div>
+        ) : (
+          // Eingeklappt sagen Label, Punktreihe und Chevron, dass sich hier
+          // etwas hochziehen lässt — die Punkte allein taten das nicht.
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--subtext)' }}>
               Zutaten
@@ -642,34 +703,19 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
             </div>
             <i className="ti ti-chevron-up" style={{ fontSize: 14, color: 'var(--accent)', flexShrink: 0 }} />
           </div>
-        </div>
-      ) : (
-        <div>
-          {/* Ganzer Kopf als Ziehgriff — runterziehen klappt zu, genau wie im
-              Filter-Sheet. Die Chips darunter bleiben antippbar. */}
-          <div
-            {...drag.griffProps}
-            style={{ ...drag.griffProps.style, padding: '8px 16px 10px', borderBottom: '1px solid var(--border)' }}
-          >
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                  Schritt {activeStep?.sort_order ?? 1}
-                </span>
-                {activeStep?.title && (
-                  <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>
-                    {activeStep.title}
-                  </div>
-                )}
-              </div>
-              <button onClick={() => setExpanded(false)} aria-label="Zutaten einklappen" data-track-id="detail-ingredient-strip-collapse" style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', flexShrink: 0 }}>
-                <i className="ti ti-chevron-down" />
-              </button>
-            </div>
-          </div>
-          <div style={{ padding: '12px 16px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {items.map(ing => {
+        )}
+      </div>
+
+      <div
+        ref={koerperRef}
+        aria-hidden={!expanded}
+        style={{
+          padding: '12px 16px 16px', display: 'flex', flexWrap: 'wrap', gap: 8,
+          // Weggeschnitten heißt auch: nicht antippbar.
+          pointerEvents: expanded ? 'auto' : 'none',
+        }}
+      >
+          {items.map(ing => {
               const checked = !!checkedIngredients[ing.id]
               const scaled = scaleAmount(ing.amount, scaleFactor, ing.unit, ing.is_integer)
               const amtStr = scaled ? `${scaled}${ing.unit ? ' ' + ing.unit : ''}` : ''
@@ -691,10 +737,8 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
                   {label}
                 </div>
               )
-            })}
-          </div>
-        </div>
-      )}
+        })}
+      </div>
     </div>
   )
 }
