@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import client from '../api/client'
-import { categoryGradient } from '../theme/categoryColors'
+import useSheetDrag from '../hooks/useSheetDrag'
 
 const HIDE_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
 const EDIT_NEW_RE = /^\/recipes\/(new|\d+\/edit)$/
@@ -9,9 +8,13 @@ const RECIPE_DETAIL_RE = /^\/recipes\/\d+$/
 
 // Grüne Welt: dort sucht die Leiste Pflanzen statt Rezepte (BUG-49). Die
 // Ergebnisse zeigt die Kräuterschule — sie filtert die volle Pflanzenliste
-// bereits, seit BUG-49 über `?q=` statt über internen State.
+// bereits, seit BUG-49 über `?q=` statt über internen State. Das Rezept-Sheet
+// mit „Zuletzt gesucht" bleibt in der grünen Welt aus (Ü20).
 const PFLANZEN_RE = /^\/(garten|kraeuterschule|pflanzen)(\/|$)/
 const PFLANZEN_ZIEL = '/kraeuterschule'
+
+// Höhe der Bottom-Nav, über der die Leiste sitzt.
+const NAV_HOEHE = 78
 
 // Zuletzt gesucht — lokal (kein Backend).
 const HISTORY_KEY = 'recipe_search_history'
@@ -26,9 +29,6 @@ function pushHistory(term) {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)) } catch { /* ignore */ }
   return next
 }
-
-// „Beliebt" — kuratierte, redaktionelle Begriffe (STATISCH, kein Live-Popular-Backend).
-const POPULAR = ['Bärlauch', 'Ofengemüse', 'Kürbissuppe', 'Spargel', 'Focaccia', 'Rhabarber']
 
 function ScopePill({ active, onClick, icon, children }) {
   return (
@@ -54,8 +54,8 @@ function ScopePill({ active, onClick, icon, children }) {
   )
 }
 
-// Mono-Abschnittslabel im Such-Fokus-Overlay.
-function OverlayLabel({ children, action }) {
+// Mono-Abschnittslabel im Such-Sheet.
+function SheetLabel({ children, action }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '0 2px 10px' }}>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{children}</span>
@@ -69,6 +69,7 @@ export default function MobileSearchBar() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const inputRef = useRef(null)
+  const barRef = useRef(null)
 
   const isHidden = HIDE_PATHS.includes(location.pathname)
     || EDIT_NEW_RE.test(location.pathname)
@@ -84,25 +85,53 @@ export default function MobileSearchBar() {
   const scopeAuthor = searchParams.get('scopeAuthor') === '1'
   const hasSearch = Boolean(inputValue)
   const [focused, setFocused] = useState(false)
-
-  // Such-Fokus-Overlay (②): sichtbar bei fokussiertem, leerem Feld. Sein Inhalt
-  // (Rezept-Kategorien, beliebte Rezeptbegriffe) passt nicht zur Pflanzensuche
-  // — dort bleibt es zu.
-  const overlayOpen = focused && !inputValue && !pflanzenModus
-  const [categories, setCategories] = useState([])
   const [history, setHistory] = useState(loadHistory)
+
+  // Das Such-Sheet (Ü20) hängt an einem eigenen State, nicht am Fokus: so
+  // reisst ein Blur während des Ziehens am Griff das Sheet nicht weg. In der
+  // grünen Welt bleibt es aus — dort sucht die Leiste Pflanzen.
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetIn, setSheetIn] = useState(false)
+  // Höhe der Leiste messen, damit das Sheet exakt darüber sitzt (die Leiste
+  // wächst mit den Scope-Pills).
+  const [barH, setBarH] = useState(56)
 
   const pathnameRef = useRef(location.pathname)
   useEffect(() => { pathnameRef.current = location.pathname }, [location.pathname])
   const zielRef = useRef(zielPfad)
   useEffect(() => { zielRef.current = zielPfad }, [zielPfad])
 
-  // Kategorien lazy laden, sobald das Overlay erstmals geöffnet wird.
   useEffect(() => {
-    if (overlayOpen && categories.length === 0) {
-      client.get('/api/categories').then(({ data }) => setCategories(Array.isArray(data) ? data : [])).catch(() => {})
-    }
-  }, [overlayOpen, categories.length])
+    const el = barRef.current
+    if (!el) return undefined
+    const beobachter = new ResizeObserver(() => setBarH(el.offsetHeight || 56))
+    beobachter.observe(el)
+    return () => beobachter.disconnect()
+  }, [])
+
+  // Slide-in einen Frame nach dem Öffnen (sonst rendert der Browser gleich den
+  // Endzustand und es gibt nichts zu animieren).
+  useEffect(() => {
+    if (!sheetOpen) return undefined
+    const id = requestAnimationFrame(() => setSheetIn(true))
+    return () => cancelAnimationFrame(id)
+  }, [sheetOpen])
+
+  const schliesseSheet = () => {
+    setSheetIn(false)
+    setFocused(false)
+    inputRef.current?.blur()
+    // Nach unten rausschieben, dann abbauen.
+    setTimeout(() => setSheetOpen(false), 200)
+  }
+
+  const sheetDrag = useSheetDrag({ onClose: schliesseSheet })
+
+  const oeffneSheet = () => {
+    if (pflanzenModus) return
+    sheetDrag.reset()
+    setSheetOpen(true)
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -138,20 +167,13 @@ export default function MobileSearchBar() {
     }, { replace: true })
   }
 
-  const dismiss = () => { setFocused(false); inputRef.current?.blur() }
-
   const runSearch = (term) => {
     const t = term.trim()
     if (!t) return
     setHistory(pushHistory(t))
     setInputValue(t)
-    dismiss()
+    schliesseSheet()
     navigate(`${zielPfad}?q=${encodeURIComponent(t)}`)
-  }
-
-  const openCategory = (cat) => {
-    dismiss()
-    navigate(`/recipes?category=${cat.id}`)
   }
 
   const clearHistory = () => {
@@ -161,135 +183,137 @@ export default function MobileSearchBar() {
 
   if (isHidden) return null
 
+  // Leiste ist breit, solange das Sheet offen ist oder etwas im Feld steht;
+  // im Ruhezustand (unfokussiert und leer) klappt sie zur kompakten Pille.
+  const barWide = focused || sheetOpen || hasSearch
+  const sheetGezeigt = sheetOpen && !pflanzenModus
+
   return (
     <>
-      {/* Such-Fokus-Overlay ② — verdeckt das Grid; Eingabe bleibt unten (Bar liegt darüber, z-97) */}
-      {overlayOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 96, background: 'var(--bg)', overflowY: 'auto' }}>
-          <div style={{ maxWidth: 960, margin: '0 auto', padding: '76px 16px 156px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: 'var(--text)' }}>Suche</span>
-              <button
-                onMouseDown={e => { e.preventDefault(); dismiss() }}
-                data-track-id="search-overlay-cancel"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}
-              >
-                Abbrechen
-              </button>
-            </div>
-
-            {/* Kategorien */}
-            {categories.length > 0 && (
-              <>
-                <OverlayLabel action={
-                  <button onMouseDown={e => { e.preventDefault(); dismiss(); navigate('/categories') }} data-track-id="search-overlay-all-categories"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--accent)' }}>
-                    Alle Kategorien <i className="ti ti-chevron-right" style={{ fontSize: 12 }} />
-                  </button>
-                }>Kategorien</OverlayLabel>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
-                  {categories.map(c => (
-                    <button
-                      key={c.id}
-                      onMouseDown={e => { e.preventDefault(); openCategory(c) }}
-                      data-track-id="search-overlay-category"
-                      style={{ position: 'relative', height: 64, border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: 6, overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,.1), 0 3px 0 0 var(--wood-shadow)', background: categoryGradient(c.name) }}
-                    >
-                      <div style={{ position: 'absolute', left: 10, bottom: 8 }}>
-                        <p style={{ margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 15, color: 'var(--on-accent)', textShadow: '0 1px 2px rgba(0,0,0,.35)' }}>{c.name}</p>
-                        <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(255,255,255,.75)' }}>{c.recipe_count} Rezepte</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Beliebt (statisch) */}
-            <OverlayLabel>Beliebt</OverlayLabel>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 22 }}>
-              {POPULAR.map(term => (
+      {sheetGezeigt && (
+        <>
+          {/* Backdrop — Tippen daneben schließt. Die Leiste (z 97) liegt darüber
+              und bleibt bedienbar. */}
+          <div
+            onClick={schliesseSheet}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 95, background: 'rgba(42,34,24,.28)',
+              opacity: sheetIn && sheetDrag.dragY === 0 ? 1 : 0,
+              transition: sheetDrag.dragging ? 'none' : 'opacity .2s ease',
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed', left: 0, right: 0, bottom: NAV_HOEHE + barH, zIndex: 96,
+              maxWidth: 960, margin: '0 auto',
+              maxHeight: '60vh', display: 'flex', flexDirection: 'column',
+              background: 'var(--card)', borderRadius: '14px 14px 0 0',
+              boxShadow: '0 -8px 32px rgba(0,0,0,.16)',
+              transform: sheetIn ? `translateY(${sheetDrag.dragY}px)` : 'translateY(110%)',
+              transition: sheetDrag.dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
+            }}
+          >
+            {/* Ganzer Kopf = Drag-Close-Zone: Grabber + Titelzeile. Das Sheet
+                hängt an `sheetOpen`, nicht am Fokus — ein Blur beim Ziehen tut
+                ihm also nichts. */}
+            <div
+              {...sheetDrag.griffProps}
+              style={{ ...sheetDrag.griffProps.style, flexShrink: 0, padding: '10px 16px 6px' }}
+            >
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>Suche</span>
                 <button
-                  key={term}
-                  onMouseDown={e => { e.preventDefault(); runSearch(term) }}
-                  data-track-id="search-overlay-popular"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 16, padding: '7px 13px' }}
+                  onClick={schliesseSheet}
+                  aria-label="Suche schließen"
+                  data-track-id="search-sheet-close"
+                  style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(0,0,0,.06)', color: 'var(--subtext)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}
                 >
-                  <i className="ti ti-heart" style={{ fontSize: 12, color: 'var(--accent)' }} />
-                  {term}
+                  <i className="ti ti-x" />
                 </button>
-              ))}
+              </div>
             </div>
 
-            {/* Zuletzt gesucht (localStorage) */}
-            {history.length > 0 && (
-              <>
-                <OverlayLabel action={
-                  <button onMouseDown={e => { e.preventDefault(); clearHistory() }} data-track-id="search-overlay-history-clear"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 500, fontSize: 10, color: 'var(--text-muted)' }}>
-                    Löschen
-                  </button>
-                }>Zuletzt gesucht</OverlayLabel>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {history.map((term, i) => (
-                    <button
-                      key={term}
-                      onMouseDown={e => { e.preventDefault(); runSearch(term) }}
-                      data-track-id="search-overlay-history"
-                      style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 2px', background: 'none', border: 'none', borderBottom: i === history.length - 1 ? 'none' : '1px solid var(--hairline)', cursor: 'pointer', textAlign: 'left' }}
-                    >
-                      <i className="ti ti-clock" style={{ fontSize: 15, color: 'var(--text-muted)', flexShrink: 0 }} />
-                      <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)' }}>{term}</span>
-                      <i className="ti ti-chevron-right" style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
+            <div style={{ flex: 1, overflowY: 'auto', padding: '10px 16px 18px' }}>
+              {history.length > 0 ? (
+                <>
+                  <SheetLabel action={
+                    <button onClick={clearHistory} data-track-id="search-sheet-history-clear"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontWeight: 500, fontSize: 10, color: 'var(--text-muted)' }}>
+                      Löschen
                     </button>
-                  ))}
-                </div>
-              </>
-            )}
+                  }>Zuletzt gesucht</SheetLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {history.map((term, i) => (
+                      <button
+                        key={term}
+                        onClick={() => runSearch(term)}
+                        data-track-id="search-sheet-history"
+                        style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 2px', background: 'none', border: 'none', borderBottom: i === history.length - 1 ? 'none' : '1px solid var(--hairline)', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        <i className="ti ti-clock" style={{ fontSize: 15, color: 'var(--text-muted)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)' }}>{term}</span>
+                        <i className="ti ti-chevron-right" style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p style={{ margin: '4px 2px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>
+                  Tippe einen Begriff ein, um zu suchen.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <div
+        ref={barRef}
         className="mobile-search-bar"
         style={{
-          position: 'fixed', left: 0, right: 0, bottom: 78, zIndex: 97,
+          position: 'fixed', left: 0, right: 0, bottom: NAV_HOEHE, zIndex: 97,
           background: 'var(--card)',
           borderTop: '1px solid rgba(0,0,0,.07)',
           boxShadow: '0 -2px 12px rgba(0,0,0,.06)',
         }}
       >
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: hasSearch ? '8px 12px 6px' : '8px 12px' }}>
-          <input
-            ref={inputRef}
-            type="search"
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && inputValue.trim()) runSearch(inputValue)
-              else if (e.key === 'Escape') dismiss()
-            }}
-            placeholder={pflanzenModus ? 'Pflanze suchen …' : 'Rezepte suchen …'}
-            data-track-id="search-input"
-            style={{
-              width: '100%', padding: '0.45rem 1rem',
-              // In der grünen Welt trägt das Feld denselben Ton (BUG-49b) —
-              // sonst neutral wie bisher.
-              border: `1.5px solid ${focused
-                ? (pflanzenModus ? 'var(--green)' : 'var(--accent)')
-                : (pflanzenModus ? 'color-mix(in srgb, var(--green) 40%, var(--border-input))' : 'var(--border-input)')}`,
-              borderRadius: 'var(--radius-pill)',
-              background: pflanzenModus ? 'color-mix(in srgb, var(--green) 7%, var(--bg))' : 'var(--bg)',
-              color: 'var(--text)',
-              fontSize: '0.9rem', fontFamily: 'var(--font-body)',
-              outline: 'none', transition: 'var(--transition)',
-              boxShadow: focused
-                ? `0 0 0 3px color-mix(in srgb, ${pflanzenModus ? 'var(--green)' : 'var(--accent)'} 12%, transparent)`
-                : 'none',
-            }}
-          />
+        {/* Die Pille dehnt sich per max-width mit dem Fokus; im Ruhezustand
+            bleibt sie kompakt und zentriert. */}
+        <div style={{ maxWidth: barWide ? 960 : 340, margin: '0 auto', padding: hasSearch ? '8px 12px 6px' : '8px 12px', transition: 'max-width .25s ease' }}>
+          <div style={{ position: 'relative' }}>
+            <i className="ti ti-search" aria-hidden="true" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 15, color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              ref={inputRef}
+              type="search"
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              onFocus={() => { setFocused(true); oeffneSheet() }}
+              onBlur={() => setFocused(false)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && inputValue.trim()) runSearch(inputValue)
+                else if (e.key === 'Escape') schliesseSheet()
+              }}
+              placeholder={pflanzenModus ? 'Pflanze suchen …' : (barWide ? 'Rezepte suchen …' : 'Suchen')}
+              data-track-id="search-input"
+              style={{
+                width: '100%', padding: '0.45rem 1rem 0.45rem 2.35rem',
+                // In der grünen Welt trägt das Feld denselben Ton (BUG-49b) —
+                // sonst neutral wie bisher.
+                border: `1.5px solid ${focused
+                  ? (pflanzenModus ? 'var(--green)' : 'var(--accent)')
+                  : (pflanzenModus ? 'color-mix(in srgb, var(--green) 40%, var(--border-input))' : 'var(--border-input)')}`,
+                borderRadius: 'var(--radius-pill)',
+                background: pflanzenModus ? 'color-mix(in srgb, var(--green) 7%, var(--bg))' : 'var(--bg)',
+                color: 'var(--text)',
+                fontSize: '0.9rem', fontFamily: 'var(--font-body)',
+                outline: 'none', transition: 'var(--transition)',
+                boxShadow: focused
+                  ? `0 0 0 3px color-mix(in srgb, ${pflanzenModus ? 'var(--green)' : 'var(--accent)'} 12%, transparent)`
+                  : 'none',
+              }}
+            />
+          </div>
           {/* Die Scope-Pills gehören zur Rezeptsuche (Beschreibung, Zutaten,
               Autor) — für Pflanzen gibt es sie nicht. */}
           {hasSearch && !pflanzenModus && (
