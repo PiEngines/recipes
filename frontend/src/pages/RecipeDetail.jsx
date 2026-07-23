@@ -13,6 +13,7 @@ import AuthorLink from '../components/AuthorLink'
 import RatingStars from '../components/RatingStars'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
 import { difficultyLabel } from '../utils/difficulty'
+import useSheetDrag from '../hooks/useSheetDrag'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
 
@@ -584,6 +585,10 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
   const [expanded, setExpanded] = useState(true)
   const items = stepIngredients || []
   const showStrip = !!activeStep && items.length > 0
+  // Runterziehen am Kopf klappt das Sheet zu — dieselbe Geste wie im
+  // Filter-Sheet (FR-Sheet-Drag). Kürzerer Weg als 90px, das Sheet ist flach.
+  const einklappen = useCallback(() => setExpanded(false), [])
+  const drag = useSheetDrag({ onClose: einklappen, schliessAb: 48 })
 
   return (
     <div
@@ -596,8 +601,10 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
         background: 'var(--card)',
         borderRadius: '12px 12px 0 0',
         boxShadow: '0 -4px 20px rgba(0,0,0,.1)',
-        transform: showStrip ? 'translateY(0)' : 'translateY(110%)',
-        transition: 'transform .3s cubic-bezier(.4,0,.2,1)',
+        // Der Zieh-Versatz zählt nur, solange der Finger liegt: beim Loslassen
+        // führt entweder das Einklappen oder das Zurückschnappen zurück auf 0.
+        transform: showStrip ? `translateY(${drag.dragging ? drag.dragY : 0}px)` : 'translateY(110%)',
+        transition: drag.dragging ? 'none' : 'transform .3s cubic-bezier(.4,0,.2,1)',
       }}
     >
       {!expanded ? (
@@ -630,20 +637,28 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
         </div>
       ) : (
         <div>
-          <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
-                Schritt {activeStep?.sort_order ?? 1}
-              </span>
-              {activeStep?.title && (
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>
-                  {activeStep.title}
-                </div>
-              )}
+          {/* Ganzer Kopf als Ziehgriff — runterziehen klappt zu, genau wie im
+              Filter-Sheet. Die Chips darunter bleiben antippbar. */}
+          <div
+            {...drag.griffProps}
+            style={{ ...drag.griffProps.style, padding: '8px 16px 10px', borderBottom: '1px solid var(--border)' }}
+          >
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
+                  Schritt {activeStep?.sort_order ?? 1}
+                </span>
+                {activeStep?.title && (
+                  <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>
+                    {activeStep.title}
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setExpanded(false)} aria-label="Zutaten einklappen" data-track-id="detail-ingredient-strip-collapse" style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', flexShrink: 0 }}>
+                <i className="ti ti-chevron-down" />
+              </button>
             </div>
-            <button onClick={() => setExpanded(false)} style={{ background: 'rgba(0,0,0,.06)', border: 'none', color: 'var(--subtext)', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', flexShrink: 0 }}>
-              <i className="ti ti-chevron-down" />
-            </button>
           </div>
           <div style={{ padding: '12px 16px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {items.map(ing => {

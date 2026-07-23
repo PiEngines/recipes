@@ -16,6 +16,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import { getCollections } from '../api/collections'
 import CollectionPicker from '../components/CollectionPicker'
+import useSheetDrag from '../hooks/useSheetDrag'
 
 const CollectionSheetContext = createContext(null)
 
@@ -55,6 +56,8 @@ export function CollectionSheetProvider({ children }) {
     setTick(t => t + 1)
   }, [])
 
+  const drag = useSheetDrag({ onClose: schliessen })
+
   // Escape schließt das Sheet. Es liegt über allem anderen, also gehört ihm der
   // Tastendruck — Aufrufer mit eigenem Escape-Handler (PostOverlay) fragen
   // `istOffen` ab und halten sich zurück.
@@ -91,11 +94,21 @@ export function CollectionSheetProvider({ children }) {
               borderTop: '1px solid var(--hairline)',
               borderRadius: 'var(--radius-card) var(--radius-card) 0 0',
               boxShadow: '0 -12px 40px rgba(0,0,0,.35)',
-              padding: '1.25rem 1rem calc(1rem + env(safe-area-inset-bottom))',
+              padding: '0.5rem 1rem calc(1rem + env(safe-area-inset-bottom))',
               maxHeight: '62vh',
               display: 'flex', flexDirection: 'column',
+              transform: `translateY(${drag.dragY}px)`,
+              transition: drag.dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
             }}
           >
+            {/* Kopfzone als Ziehgriff (FR-Sheet-Drag). Der Titel steckt im
+                eingebetteten CollectionPicker, greifbar ist die Zone darüber. */}
+            <div
+              {...drag.griffProps}
+              style={{ ...drag.griffProps.style, flexShrink: 0, padding: '6px 0 12px' }}
+            >
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto' }} />
+            </div>
             <div style={{
               maxWidth: 560, margin: '0 auto', width: '100%', flex: 1,
               display: 'flex', flexDirection: 'column', minHeight: 0,

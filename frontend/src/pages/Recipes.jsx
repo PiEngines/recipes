@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import useSheetDrag from '../hooks/useSheetDrag'
 import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
 import { isKochOrAbove } from '../utils/roles'
@@ -284,13 +285,8 @@ export default function Recipes() {
   const [categoryOpts, setCategoryOpts] = useState([]) // [{ id, name, slug, recipe_count }]
   const [sheetOpen, setSheetOpen] = useState(false)
   // Sheet-Animation: `sheetIn` schaltet einen Frame nach dem Mount auf 0 und
-  // löst damit den Slide-in aus. `dragY` ist der Versatz während des Ziehens
-  // am Griff — beim Loslassen entweder zurück auf 0 oder ganz hinaus.
+  // löst damit den Slide-in aus. Der Zieh-Versatz kommt aus `useSheetDrag`.
   const [sheetIn, setSheetIn] = useState(false)
-  const [dragY, setDragY] = useState(0)
-  const [dragging, setDragging] = useState(false)
-  const dragStartRef = useRef(0)
-  const panelRef = useRef(null)
   const [sortOpen, setSortOpen] = useState(false)
   const [diagnosis, setDiagnosis] = useState([])
   const [reloadNonce, setReloadNonce] = useState(0)
@@ -621,8 +617,6 @@ export default function Recipes() {
 
   // ── Filter-Sheet: Slide-in und Drag-to-close ───────────────────────────────
 
-  const oeffneSheet = () => { setDragY(0); setSheetOpen(true) }
-
   useEffect(() => {
     if (!sheetOpen) return undefined
     // Erst im nächsten Frame — sonst rendert der Browser gleich den Endzustand
@@ -631,32 +625,16 @@ export default function Recipes() {
     return () => cancelAnimationFrame(id)
   }, [sheetOpen])
 
-  const schliesseSheet = () => {
-    setDragging(false)
-    // Nach unten rausschieben und erst danach abbauen, damit das Sheet nicht
-    // aus dem Bild springt.
-    setDragY(panelRef.current?.offsetHeight || 400)
-    setTimeout(() => { setSheetOpen(false); setSheetIn(false); setDragY(0) }, 220)
-  }
+  const schliesseSheet = useCallback(() => {
+    // `sheetIn: false` schiebt das Panel wieder ganz nach unten; erst danach
+    // abbauen, damit es nicht aus dem Bild springt.
+    setSheetIn(false)
+    setTimeout(() => setSheetOpen(false), 220)
+  }, [])
 
-  const griffDown = (e) => {
-    dragStartRef.current = e.clientY
-    setDragging(true)
-    e.currentTarget.setPointerCapture?.(e.pointerId)
-  }
+  const sheetDrag = useSheetDrag({ onClose: schliesseSheet })
 
-  const griffMove = (e) => {
-    if (!dragging) return
-    // Nur nach unten — nach oben gibt es nichts aufzuziehen.
-    setDragY(Math.max(0, e.clientY - dragStartRef.current))
-  }
-
-  const griffUp = () => {
-    if (!dragging) return
-    setDragging(false)
-    if (dragY > 90) schliesseSheet()
-    else setDragY(0)
-  }
+  const oeffneSheet = () => { sheetDrag.reset(); setSheetOpen(true) }
 
   const openDetail = (r) => {
     // Neben der Position auch den Ladestand merken: ohne ihn käme man mit nur
@@ -814,41 +792,37 @@ export default function Recipes() {
             onClick={schliesseSheet}
             style={{
               position: 'absolute', inset: 0, background: 'rgba(42,34,24,.4)',
-              opacity: sheetIn && dragY === 0 ? 1 : 0.6,
-              transition: dragging ? 'none' : 'opacity .22s ease',
+              opacity: sheetIn && sheetDrag.dragY === 0 ? 1 : 0.6,
+              transition: sheetDrag.dragging ? 'none' : 'opacity .22s ease',
             }}
           />
           <div
-            ref={panelRef}
             style={{
               position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '85vh',
               background: 'var(--bg)', borderRadius: '12px 12px 0 0',
               boxShadow: '0 -8px 32px rgba(0,0,0,.2)',
               display: 'flex', flexDirection: 'column',
-              transform: sheetIn ? `translateY(${dragY}px)` : 'translateY(100%)',
-              transition: dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
+              transform: sheetIn ? `translateY(${sheetDrag.dragY}px)` : 'translateY(100%)',
+              transition: sheetDrag.dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
               willChange: 'transform',
             }}
           >
-            {/* Griff — zieht das Sheet zu (BUG-12). `touchAction: none`, sonst
-                scrollt der Browser beim Ziehen die Seite statt das Sheet. */}
+            {/* Ziehzone ist der ganze Kopf — Balken *und* Titelzeile (BUG-12,
+                FR-Sheet-Drag). Der schmale Balken allein war kaum zu treffen. */}
             <div
-              onPointerDown={griffDown}
-              onPointerMove={griffMove}
-              onPointerUp={griffUp}
-              onPointerCancel={griffUp}
+              {...sheetDrag.griffProps}
               role="button"
               aria-label="Filter schließen"
               data-track-id="recipes-filter-sheet-grabber"
-              style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0, cursor: 'grab', touchAction: 'none' }}
+              style={{ ...sheetDrag.griffProps.style, flexShrink: 0, padding: '10px 0 0' }}
             >
-              <div style={{ width: 36, height: 4, background: 'var(--wood-shadow)', borderRadius: 2 }} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px 12px', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: 'var(--text)' }}>Filter</span>
-              {activeFilterCount > 0 && (
-                <button onClick={clearAllFilters} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.04em' }}>Zurücksetzen</button>
-              )}
+              <div style={{ width: 36, height: 4, background: 'var(--wood-shadow)', borderRadius: 2, margin: '0 auto' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 12px' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: 'var(--text)' }}>Filter</span>
+                {activeFilterCount > 0 && (
+                  <button onClick={clearAllFilters} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.04em' }}>Zurücksetzen</button>
+                )}
+              </div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 12px' }}>
               <FilterPanel groups={groups} />

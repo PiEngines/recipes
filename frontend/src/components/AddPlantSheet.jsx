@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { getPlants, patchBeet } from '../api/plants'
 import { useBeet } from '../context/BeetContext'
+import useSheetDrag from '../hooks/useSheetDrag'
 import { plantImageStyle, shortBotanical } from '../theme/plants'
 
 // Nicht alle 279 Treffer rendern, solange nicht gesucht wird — die Liste im
@@ -37,6 +38,7 @@ export default function AddPlantSheet({ onClose, onAdded }) {
   const [laeuft, setLaeuft] = useState(null)   // slug, der gerade schreibt
   const [ergebnis, setErgebnis] = useState(null) // { slug, name, text, fehler? }
   const eingabeRef = useRef(null)
+  const drag = useSheetDrag({ onClose })
 
   useEffect(() => {
     const controller = new AbortController()
@@ -121,25 +123,34 @@ export default function AddPlantSheet({ onClose, onAdded }) {
           borderTop: '1px solid var(--hairline)',
           borderRadius: 'var(--radius-card) var(--radius-card) 0 0',
           boxShadow: '0 -12px 40px rgba(0,0,0,.35)',
-          padding: '1.25rem 1rem calc(1rem + env(safe-area-inset-bottom))',
+          padding: '0.5rem 1rem calc(1rem + env(safe-area-inset-bottom))',
           maxHeight: '78vh',
           display: 'flex', flexDirection: 'column',
+          transform: `translateY(${drag.dragY}px)`,
+          transition: drag.dragging ? 'none' : 'transform .22s cubic-bezier(.4,0,.2,1)',
         }}
       >
         <div style={{ maxWidth: 560, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem' }}>
-            <h2 style={{ flex: 1, margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
-              Pflanze hinzufügen
-            </h2>
-            <button
-              onClick={onClose}
-              aria-label="Schließen"
-              data-track-id="beet-add-sheet-close"
-              style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1, padding: 4 }}
-            >
-              ✕
-            </button>
+          {/* Ganzer Kopf als Ziehgriff (FR-Sheet-Drag) — runterziehen schließt. */}
+          <div
+            {...drag.griffProps}
+            style={{ ...drag.griffProps.style, flexShrink: 0, paddingTop: 6, marginBottom: '1rem' }}
+          >
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 10px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 style={{ flex: 1, margin: 0, fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text)' }}>
+                Pflanze hinzufügen
+              </h2>
+              <button
+                onClick={onClose}
+                aria-label="Schließen"
+                data-track-id="beet-add-sheet-close"
+                style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1, padding: 4 }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg)', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', padding: '9px 12px', marginBottom: 12, flexShrink: 0 }}>
