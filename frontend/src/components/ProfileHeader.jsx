@@ -79,10 +79,10 @@ function PinnedRecipe({ recipe }) {
     <Link
       to={`/recipes/${recipe.id}`}
       data-track-id="profile-highlight-recipe"
-      style={{ flexShrink: 0, width: 116, textDecoration: 'none' }}
+      style={{ minWidth: 0, textDecoration: 'none' }}
     >
       <div style={{
-        width: 116, height: 84, borderRadius: 10, overflow: 'hidden',
+        width: '100%', aspectRatio: '116 / 84', borderRadius: 10, overflow: 'hidden',
         background: recipe.primary_image ? `center/cover no-repeat url(${recipe.primary_image})` : 'rgba(240,232,208,.10)',
       }} />
       <div style={{
@@ -129,10 +129,13 @@ function Highlights({ pinned, onEdit }) {
       </div>
 
       {!leer && (
-        <div style={{ display: 'flex', gap: 10, marginTop: 8, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
+        // 2×3-Raster: bis zu 6 Pins (3 Rezepte + 3 Beiträge) brechen in zwei
+        // Reihen à 3 um — kein Seitwärts-Scrollen mehr. `maxWidth` hält die
+        // Kacheln auch bei ein, zwei Pins in Kachelgröße statt spaltenbreit.
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 8, maxWidth: 380 }}>
           {recipes.map(r => <PinnedRecipe key={`r-${r.id}`} recipe={r} />)}
           {posts.map(p => (
-            <div key={`p-${p.id}`} style={{ flexShrink: 0, width: 116 }}>
+            <div key={`p-${p.id}`} style={{ minWidth: 0 }}>
               <PostKachel post={p} onClick={() => setOffenerPost(p)} />
             </div>
           ))}
