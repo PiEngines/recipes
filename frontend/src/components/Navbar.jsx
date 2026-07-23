@@ -133,6 +133,8 @@ function AvatarMenu({ user, navigate, logout }) {
         <div style={{ position: 'absolute', right: 0, top: 44, background: 'var(--card)', boxShadow: 'var(--shadow-hover)', borderRadius: 10, padding: '0.375rem', minWidth: 180, zIndex: 200 }}>
           <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: 'var(--subtext)', borderBottom: '1px solid var(--border)', marginBottom: '0.25rem', fontFamily: 'var(--font-body)' }}>{user?.name}</div>
           <MenuItem trackId="header-menu-profil-click" onClick={() => { setOpen(false); navigate('/profile') }}>Mein Profil</MenuItem>
+          {/* Einstellungen sind aus dem Mehr-Panel hierher gewandert (Ü19). */}
+          <MenuItem trackId="header-menu-einstellungen-click" onClick={() => { setOpen(false); navigate('/einstellungen') }}>Einstellungen</MenuItem>
           {/* Beiträge sind aus dem Mehr-Panel hierher gewandert (BUG-04). */}
           <MenuItem trackId="header-menu-social-click" onClick={() => { setOpen(false); navigate('/social') }}>Beiträge</MenuItem>
           {isChefkochOrAbove(user) && <MenuItem trackId="header-menu-admin-click" onClick={() => { setOpen(false); navigate('/admin') }}>Admin-Bereich</MenuItem>}
