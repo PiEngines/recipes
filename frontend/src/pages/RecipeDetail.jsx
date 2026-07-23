@@ -265,6 +265,8 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
     return <p style={{ fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif', padding: '0.5rem 0' }}>Keine Zutaten angegeben.</p>
   }
 
+  const hatMengen = safeIngredients.some(ing => ing.amount || ing.unit)
+
   const renderIng = ing => {
     const active = activeIds.has(ing.id)
     const selected = selectedIngredient?.id === ing.id
@@ -284,14 +286,18 @@ function IngredientList({ ingredients, scaleFactor, activeIds, view, selectedIng
           cursor: 'pointer', transition: 'all .15s',
         }}
       >
-        <span style={{ fontSize: 14, flex: 1, color: highlighted ? 'var(--accent)' : 'var(--text)', fontWeight: highlighted ? 600 : 400, fontFamily: 'var(--font-body)', transition: 'color .15s' }}>
-          {ing.name}
-        </span>
-        {(scaled || ing.unit) && (
-          <span style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, paddingLeft: 8, color: highlighted ? 'var(--accent)' : 'var(--subtext)', fontFamily: 'var(--font-body)', transition: 'color .15s' }}>
+        {/* Klassische Leserichtung: Menge · Einheit · Name von links
+            („300 g Dinkelmehl"), wie SPEC §7 und der Prototyp es zeigen. Die
+            Spalte steht, sobald irgendeine Zutat eine Menge hat — sonst
+            begänne die halbe Liste eingerückt und die andere nicht. */}
+        {hatMengen && (
+          <span style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, minWidth: 56, paddingRight: 10, fontFamily: 'var(--font-mono)', color: highlighted ? 'var(--accent)' : 'var(--gold)', transition: 'color .15s' }}>
             {scaled}{ing.unit ? ` ${ing.unit}` : ''}
           </span>
         )}
+        <span style={{ fontSize: 14, flex: 1, minWidth: 0, color: highlighted ? 'var(--accent)' : 'var(--text)', fontWeight: highlighted ? 600 : 400, fontFamily: 'var(--font-body)', transition: 'color .15s' }}>
+          {ing.name}
+        </span>
       </div>
     )
   }
@@ -642,7 +648,8 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
               const checked = !!checkedIngredients[ing.id]
               const scaled = scaleAmount(ing.amount, scaleFactor, ing.unit, ing.is_integer)
               const amtStr = scaled ? `${scaled}${ing.unit ? ' ' + ing.unit : ''}` : ''
-              const label = ing.name + (amtStr ? ' · ' + amtStr : '')
+              // Gleiche Leserichtung wie in der Zutatenliste: „300 g Mehl".
+              const label = (amtStr ? amtStr + ' ' : '') + ing.name
               return (
                 <div
                   key={ing.id}

@@ -52,6 +52,10 @@ export default function RecipePreview({
     gruppe.items.push(zutat)
   }
 
+  // Mengenspalte nur reservieren, wenn es überhaupt Mengen gibt — sonst
+  // begänne eine reine Namensliste 84px eingerückt.
+  const hatMengen = ingredients.some(z => z.amount || z.unit)
+
   const echteSchritte = steps.filter(s => s.instruction?.trim())
   const zeitGesamt = (parseInt(prepTime) || 0) + (parseInt(cookTime) || 0)
 
@@ -148,10 +152,14 @@ export default function RecipePreview({
                       fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text)',
                     }}
                   >
-                    <span style={{ minWidth: 84, fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--gold)' }}>
-                      {[zutat.amount, zutat.unit].filter(Boolean).join(' ')}
-                    </span>
-                    <span>{zutat.name}</span>
+                    {/* Menge · Einheit · Name von links — wie SPEC §7 und die
+                        Detailseite. */}
+                    {hatMengen && (
+                      <span style={{ minWidth: 84, flexShrink: 0, fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--gold)' }}>
+                        {[zutat.amount, zutat.unit].filter(Boolean).join(' ')}
+                      </span>
+                    )}
+                    <span style={{ flex: 1, minWidth: 0 }}>{zutat.name}</span>
                   </li>
                 ))}
               </ul>
