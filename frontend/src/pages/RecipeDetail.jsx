@@ -581,6 +581,12 @@ const StepCard = forwardRef(function StepCard({ step, index, isActive, onClick, 
 
 // ── Ingredient strip (mobile bottom — checklist) ──────────────────────────────
 
+// Höhe des Beschriftungsbands im Sheet-Kopf. Muss die höhere der beiden
+// Varianten tragen: „Schritt N" (10px) über dem Titel (14px/1.3) sind rund
+// 31px, der Einklappen-Knopf daneben 26px. Fest, damit der Kopf beim Wechsel
+// nicht springt.
+const KOPF_LABEL_HOEHE = 32
+
 function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngredients, onToggleChecked }) {
   const [expanded, setExpanded] = useState(true)
   const items = stepIngredients || []
@@ -662,20 +668,35 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
         data-track-id="detail-ingredient-strip-expand"
         style={{
           ...drag.griffProps.style, padding: '8px 16px 10px',
-          // Eingeklappt läge die Trennlinie genau auf der Unterkante des
-          // Sheets — sie trennt dann nichts mehr.
-          borderBottom: expanded ? '1px solid var(--border)' : 'none',
+          // Immer eine Linie, eingeklappt nur unsichtbar: `none` würde den Kopf
+          // um 1px schrumpfen lassen, und genau diese Höhe soll fest stehen.
+          borderBottom: `1px solid ${expanded ? 'var(--border)' : 'transparent'}`,
         }}
       >
         <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
-        {expanded ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Beide Beschriftungen liegen übereinander in einem Band fester Höhe
+            und blenden ineinander über. Vorher tauschte der Kopf seinen Inhalt:
+            eingeklappt einzeilig, offen zweizeilig — die Kopfhöhe sprang beim
+            Loslassen, während die Höhe darunter noch glitt. Jetzt animiert nur
+            noch der Körper. */}
+        <div style={{ position: 'relative', height: KOPF_LABEL_HOEHE }}>
+          <div
+            aria-hidden={!expanded}
+            style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', gap: 8,
+              opacity: expanded ? 1 : 0,
+              pointerEvents: expanded ? 'auto' : 'none',
+              transition: 'opacity .2s ease',
+            }}
+          >
             <div style={{ flex: 1, minWidth: 0 }}>
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--subtext)', fontFamily: 'Inter, sans-serif' }}>
                 Schritt {activeStep?.sort_order ?? 1}
               </span>
               {activeStep?.title && (
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3 }}>
+                // Einzeilig halten: ein umbrechender Titel würde das Band
+                // sprengen, dessen feste Höhe hier den Sprung verhindert.
+                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 14, fontWeight: 600, color: 'var(--accent)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {activeStep.title}
                 </div>
               )}
@@ -684,10 +705,18 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
               <i className="ti ti-chevron-down" />
             </button>
           </div>
-        ) : (
-          // Eingeklappt sagen Label, Punktreihe und Chevron, dass sich hier
-          // etwas hochziehen lässt — die Punkte allein taten das nicht.
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          {/* Eingeklappt sagen Label, Punktreihe und Chevron, dass sich hier
+              etwas hochziehen lässt — die Punkte allein taten das nicht. */}
+          <div
+            aria-hidden={expanded}
+            style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', gap: 10,
+              opacity: expanded ? 0 : 1,
+              pointerEvents: expanded ? 'none' : 'auto',
+              transition: 'opacity .2s ease',
+            }}
+          >
             <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--subtext)' }}>
               Zutaten
             </span>
@@ -703,7 +732,7 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
             </div>
             <i className="ti ti-chevron-up" style={{ fontSize: 14, color: 'var(--accent)', flexShrink: 0 }} />
           </div>
-        )}
+        </div>
       </div>
 
       <div
