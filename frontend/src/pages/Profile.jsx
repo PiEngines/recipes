@@ -21,7 +21,7 @@ import PostOverlay from '../components/PostOverlay'
 import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
 import Segmented from '../components/Segmented'
-import { inputStyle } from '../components/settingsStyles'
+import { inputStyle, labelStyle } from '../components/settingsStyles'
 import { getRoleLabel, isKochOrAbove } from '../utils/roles'
 
 // Der `key` bleibt `gespeichert` — er steckt in der Tab-Logik und im
@@ -169,6 +169,9 @@ export default function Profile() {
   }, [ladeRezepte])
 
   const userId = user?.id
+  // `pinsNonce` erzwingt einen Profil-Reload nach dem Speichern der Highlights.
+  const [pinsNonce, setPinsNonce] = useState(0)
+  const [pinsPickerOpen, setPinsPickerOpen] = useState(false)
   useEffect(() => {
     if (!userId) return undefined
     const controller = new AbortController()
@@ -176,7 +179,7 @@ export default function Profile() {
       .then(p => setProfil(p))
       .catch(() => { /* Kopf fällt auf die Auth-Daten zurück */ })
     return () => controller.abort()
-  }, [userId])
+  }, [userId, pinsNonce])
 
   // Verlinkte Beiträge — einmal laden, der Tab entscheidet sich anhand der
   // Zahl (leer → kein Tab), also unabhängig davon, welcher Tab offen ist.
@@ -296,7 +299,18 @@ export default function Profile() {
         profile={profil || { id: user.id, name: user.name, username: user.username, avatar_url: user.avatar_url }}
         recipeCount={recipeTotal}
         overline={getRoleLabel(user.role)}
+        onEditPins={() => setPinsPickerOpen(true)}
       />
+
+      {pinsPickerOpen && (
+        <PinsPicker
+          recipes={recipes}
+          posts={posts}
+          pinned={profil?.pinned}
+          onClose={() => setPinsPickerOpen(false)}
+          onSaved={() => { setPinsPickerOpen(false); setPinsNonce(n => n + 1) }}
+        />
+      )}
 
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '1.25rem 1.5rem 2rem' }}>
         <div style={{ marginBottom: '1.5rem' }}>
@@ -765,6 +779,111 @@ function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipe
         <PostOverlay post={offenerPost} onClose={() => setOffenerPost(null)} />
       )}
     </>
+  )
+}
+
+// ── Highlights-Picker (nur eigenes Profil) ────────────────────────────────────
+
+const PIN_MAX = 3
+
+// Auswahl je Typ als geordnete ID-Liste; Antippen fügt hinten an oder nimmt
+// heraus, bei drei ist Schluss. Reihenfolge = Anzeigereihenfolge.
+function PinsPicker({ recipes, posts, pinned, onClose, onSaved }) {
+  const [recipeIds, setRecipeIds] = useState(() => (pinned?.recipes || []).map(r => r.id))
+  const [postIds, setPostIds] = useState(() => (pinned?.posts || []).map(p => p.id))
+  const [saving, setSaving] = useState(false)
+  const [fehler, setFehler] = useState('')
+
+  const umschalten = (setter, id) => setter(prev => {
+    if (prev.includes(id)) return prev.filter(x => x !== id)
+    if (prev.length >= PIN_MAX) return prev
+    return [...prev, id]
+  })
+
+  const speichern = async () => {
+    setSaving(true)
+    setFehler('')
+    try {
+      await client.put('/api/users/me/pins', { recipe_ids: recipeIds, external_post_ids: postIds })
+      onSaved()
+    } catch (err) {
+      setFehler(err.response?.data?.detail || 'Speichern fehlgeschlagen.')
+      setSaving(false)
+    }
+  }
+
+  const auswahlNr = (list, id) => list.indexOf(id) + 1
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '1.5rem', maxWidth: 520, width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.25rem', color: 'var(--text)' }}>
+          Highlights wählen
+        </h2>
+        <p style={{ margin: '0 0 1.25rem', fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: 'var(--subtext)' }}>
+          Bis zu {PIN_MAX} Rezepte und {PIN_MAX} Beiträge fürs Profil.
+        </p>
+
+        <PickerGruppe
+          titel={`Rezepte (${recipeIds.length}/${PIN_MAX})`}
+          eintraege={recipes.map(r => ({ id: r.id, label: r.title }))}
+          nr={id => auswahlNr(recipeIds, id)}
+          onToggle={id => umschalten(setRecipeIds, id)}
+          leer="Du hast noch keine Rezepte."
+        />
+        <PickerGruppe
+          titel={`Beiträge (${postIds.length}/${PIN_MAX})`}
+          eintraege={posts.map(p => ({ id: p.id, label: p.author_name ? `${p.platform} · ${p.author_name}` : p.url }))}
+          nr={id => auswahlNr(postIds, id)}
+          onToggle={id => umschalten(setPostIds, id)}
+          leer="Du hast noch keine Beiträge verlinkt."
+        />
+
+        {fehler && <p style={{ margin: '0.5rem 0 0', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.85rem' }}>{fehler}</p>}
+
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+          <button onClick={onClose} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontSize: '0.875rem' }}>
+            Abbrechen
+          </button>
+          <button onClick={speichern} disabled={saving} style={{ padding: '0.6rem 1.25rem', background: 'var(--accent)', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: saving ? 0.7 : 1 }}>
+            {saving ? 'Speichert …' : 'Speichern'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PickerGruppe({ titel, eintraege, nr, onToggle, leer }) {
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <div style={{ ...labelStyle, marginBottom: '0.5rem' }}>{titel}</div>
+      {eintraege.length === 0 ? (
+        <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{leer}</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {eintraege.map(e => {
+            const rang = nr(e.id)
+            const aktiv = rang > 0
+            return (
+              <button
+                key={e.id}
+                onClick={() => onToggle(e.id)}
+                aria-pressed={aktiv}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.6rem 0.75rem', border: `1.5px solid ${aktiv ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-input)', background: aktiv ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'none', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, background: aktiv ? 'var(--accent)' : 'var(--border-input)', color: aktiv ? 'var(--on-accent)' : 'var(--subtext)' }}>
+                  {aktiv ? rang : ''}
+                </span>
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {e.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 

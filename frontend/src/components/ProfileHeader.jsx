@@ -11,7 +11,10 @@
  * `aktion` nimmt den Folgen-Button des öffentlichen Profils auf; das eigene
  * Profil lässt den Slot leer.
  */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import PostKachel from './PostKachel'
+import PostOverlay from './PostOverlay'
 
 function Stat({ zahl, label, to, trackId }) {
   const inhalt = (
@@ -69,7 +72,79 @@ function TaxRow({ label, items }) {
   )
 }
 
-export default function ProfileHeader({ profile, recipeCount, aktion = null, overline = 'Profil' }) {
+// Ein angepinntes Rezept als kompakte Kachel (Foto + Titel) — dunkler Kopf,
+// daher eigenes Tile statt der hellen RecipeCard.
+function PinnedRecipe({ recipe }) {
+  return (
+    <Link
+      to={`/recipes/${recipe.id}`}
+      data-track-id="profile-highlight-recipe"
+      style={{ flexShrink: 0, width: 116, textDecoration: 'none' }}
+    >
+      <div style={{
+        width: 116, height: 84, borderRadius: 10, overflow: 'hidden',
+        background: recipe.primary_image ? `center/cover no-repeat url(${recipe.primary_image})` : 'rgba(240,232,208,.10)',
+      }} />
+      <div style={{
+        marginTop: 5, fontFamily: 'var(--font-body)', fontSize: 11, lineHeight: 1.25,
+        color: 'rgba(240,232,208,.85)', overflow: 'hidden', textOverflow: 'ellipsis',
+        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      }}>
+        {recipe.title}
+      </div>
+    </Link>
+  )
+}
+
+// Highlights-Streifen im Kopf: bis zu drei Rezepte + drei Beiträge. Erscheint
+// bei eigenem und fremdem Profil, sobald etwas angepinnt ist. `onEdit` (nur
+// eigenes Profil) blendet die Bearbeiten-Affordanz ein; ohne Pins wird sie zum
+// dezenten Einstieg.
+function Highlights({ pinned, onEdit }) {
+  const [offenerPost, setOffenerPost] = useState(null)
+  const recipes = pinned?.recipes || []
+  const posts = pinned?.posts || []
+  const leer = recipes.length === 0 && posts.length === 0
+
+  if (leer && !onEdit) return null
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <p style={{
+          margin: 0, fontFamily: 'var(--font-mono)', fontSize: 9,
+          letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(240,232,208,.45)',
+        }}>
+          Highlights
+        </p>
+        {onEdit && (
+          <button
+            onClick={onEdit}
+            data-track-id="profile-highlight-edit"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500, color: 'rgba(240,232,208,.7)' }}
+          >
+            {leer ? 'Highlights hinzufügen' : 'Bearbeiten'}
+          </button>
+        )}
+      </div>
+
+      {!leer && (
+        <div style={{ display: 'flex', gap: 10, marginTop: 8, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
+          {recipes.map(r => <PinnedRecipe key={`r-${r.id}`} recipe={r} />)}
+          {posts.map(p => (
+            <div key={`p-${p.id}`} style={{ flexShrink: 0, width: 116 }}>
+              <PostKachel post={p} onClick={() => setOffenerPost(p)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {offenerPost && <PostOverlay post={offenerPost} onClose={() => setOffenerPost(null)} />}
+    </div>
+  )
+}
+
+export default function ProfileHeader({ profile, recipeCount, aktion = null, overline = 'Profil', onEditPins = null }) {
   const name = profile?.name || 'Profil'
   const initialen = name[0]?.toUpperCase() ?? '?'
 
@@ -169,6 +244,10 @@ export default function ProfileHeader({ profile, recipeCount, aktion = null, ove
             trackId="profile-stat-following"
           />
         </div>
+
+        {/* Highlights (Ü18) — angepinnte Rezepte + Beiträge, nach der
+            Stats-Reihe. `onEditPins` nur beim eigenen Profil. */}
+        <Highlights pinned={profile?.pinned} onEdit={onEditPins} />
       </div>
     </div>
   )
