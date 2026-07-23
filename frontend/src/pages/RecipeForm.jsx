@@ -16,6 +16,13 @@ const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Stück', 'Prise', 'Bund', 'Sch
 // Detailseite wird sie ohnehin auf wenige Zeilen gekürzt.
 const DESCRIPTION_MAX = 1000
 
+const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
+
+// Wisch-Navigation im Wizard (FR-Wizard-Swipe).
+const SWIPE_START = 8      // ab hier gilt die Bewegung als Wisch, nicht als Tipp
+const SWIPE_SCHWELLE = 60  // ab hier wechselt der Schritt statt zurückzuschnappen
+const SWIPE_DAUER = 240    // muss zur Transition unten passen
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function levenshtein(a, b) {
@@ -694,6 +701,18 @@ export default function RecipeForm() {
   const [toast, setToast] = useState(null)
   const [toastFading, setToastFading] = useState(false)
   const [wizardStep, setWizardStep] = useState(0)
+  // Wisch-Navigation (FR-Wizard-Swipe): `swipeX` ist der Versatz der Seite,
+  // `swipeAnim` schaltet die Transition, `swipeAktiv` sagt, ob überhaupt ein
+  // `transform` gesetzt wird. Letzteres ist wichtig: ein dauerhaftes
+  // `transform` würde für `position: fixed`-Kinder (Crop-Modal, Upload-Toast)
+  // einen neuen Bezugsrahmen aufspannen und sie aus dem Vollbild reißen.
+  const [swipeX, setSwipeX] = useState(0)
+  const [swipeAnim, setSwipeAnim] = useState(false)
+  const [swipeAktiv, setSwipeAktiv] = useState(false)
+  const swipeRef = useRef(null)
+  const swipeBodyRef = useRef(null)
+  const swipeEndeRef = useRef(null)
+  useEffect(() => () => clearTimeout(swipeEndeRef.current), [])
   const [aText, setAText] = useState('')
   const aTextInitRef = useRef(false)
   const [subRecipeOpen, setSubRecipeOpen] = useState(false)
@@ -1376,11 +1395,106 @@ export default function RecipeForm() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
   const servingsNum = parseInt(servings) || 4
   const parsedA = wizardStep === 1 ? parseIngText(aText) : []
   const noModules = !ingredients.some(i => i._module_recipe_id)
   const realIngs = ingredients.filter(i => i.name.trim() && !i._module_recipe_id)
+
+  // ── Schrittwechsel + Wisch-Navigation ─────────────────────────────────────
+  // Alle Wege in einen Schritt laufen über `wechsleSchritt`: Stepper, die
+  // Weiter/Zurück-Knöpfe und der Wisch. So gleitet die Seite immer gleich.
+
+  const swipeEnde = (ms) => {
+    clearTimeout(swipeEndeRef.current)
+    swipeEndeRef.current = setTimeout(() => { setSwipeAktiv(false); setSwipeAnim(false) }, ms)
+  }
+
+  const schnappeZurueck = () => {
+    setSwipeAnim(true)
+    setSwipeX(0)
+    swipeEnde(SWIPE_DAUER)
+  }
+
+  const wechsleSchritt = (ziel) => {
+    const grenze = Math.max(0, Math.min(STEPS.length - 1, ziel))
+    // „Anordnung" gibt es nur mit eingebundenem Teilrezept — dieselbe Regel,
+    // nach der auch der Stepper den Punkt sperrt.
+    const nachModulen = grenze === 2 && noModules ? (grenze > wizardStep ? 3 : 1) : grenze
+    if (nachModulen === wizardStep) { schnappeZurueck(); return }
+
+    const breite = swipeBodyRef.current?.offsetWidth || 320
+    setWizardStep(nachModulen)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // Die neue Seite startet außerhalb und gleitet herein — von rechts beim
+    // Vorwärtsgehen, von links beim Zurück.
+    setSwipeAktiv(true)
+    setSwipeAnim(false)
+    setSwipeX(nachModulen > wizardStep ? breite : -breite)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setSwipeAnim(true)
+      setSwipeX(0)
+      swipeEnde(SWIPE_DAUER)
+    }))
+  }
+
+  // Textfelder und waagerecht scrollbare Leisten behalten ihre eigene Geste —
+  // Textauswahl und Chip-Scroll dürfen nicht als Seitenwechsel enden.
+  const wischErlaubt = (target) => {
+    if (!target?.closest) return true
+    if (target.closest('textarea, input, select, [contenteditable="true"], [data-no-swipe]')) return false
+    let el = target
+    while (el && el !== swipeBodyRef.current) {
+      if (el.scrollWidth > el.clientWidth + 2) {
+        const overflowX = window.getComputedStyle(el).overflowX
+        if (overflowX === 'auto' || overflowX === 'scroll') return false
+      }
+      el = el.parentElement
+    }
+    return true
+  }
+
+  const wischDown = (e) => {
+    if (e.button !== undefined && e.button > 0) return
+    if (!wischErlaubt(e.target)) { swipeRef.current = null; return }
+    swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, aktiv: false }
+  }
+
+  const wischMove = (e) => {
+    const start = swipeRef.current
+    if (!start || start.id !== e.pointerId) return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    if (!start.aktiv) {
+      if (Math.abs(dx) < SWIPE_START && Math.abs(dy) < SWIPE_START) return
+      // Richtungs-Lock: senkrechtes Ziehen bleibt Scrollen.
+      if (Math.abs(dx) <= Math.abs(dy)) { swipeRef.current = null; return }
+      start.aktiv = true
+      setSwipeAktiv(true)
+      setSwipeAnim(false)
+      clearTimeout(swipeEndeRef.current)
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+    // An den Enden zäher, damit die Grenze spürbar wird.
+    const amEnde = (dx > 0 && wizardStep === 0) || (dx < 0 && wizardStep === STEPS.length - 1)
+    setSwipeX(amEnde ? dx / 3 : dx)
+  }
+
+  const wischUp = (e) => {
+    const start = swipeRef.current
+    swipeRef.current = null
+    if (!start?.aktiv) return
+    e.currentTarget.releasePointerCapture?.(e.pointerId)
+    const dx = e.clientX - start.x
+    if (dx <= -SWIPE_SCHWELLE) wechsleSchritt(wizardStep + 1)
+    else if (dx >= SWIPE_SCHWELLE) wechsleSchritt(wizardStep - 1)
+    else schnappeZurueck()
+  }
+
+  const wischAbbruch = () => {
+    if (!swipeRef.current?.aktiv) { swipeRef.current = null; return }
+    swipeRef.current = null
+    schnappeZurueck()
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: '80px' }}>
@@ -1531,7 +1645,7 @@ export default function RecipeForm() {
               return (
                 <button
                   key={i}
-                  onClick={gesperrt ? undefined : () => { setWizardStep(i); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                  onClick={gesperrt ? undefined : () => wechsleSchritt(i)}
                   aria-label={`Schritt ${i + 1}: ${label}`}
                   aria-current={aktiv ? 'step' : undefined}
                   data-track-id={`recipe-form-step-${i}-click`}
@@ -1562,7 +1676,7 @@ export default function RecipeForm() {
           {STEPS.map((label, i) => {
             const stepGrayed = i === 2 && noModules
             return (
-              <button key={i} onClick={stepGrayed ? undefined : () => { setWizardStep(i); window.scrollTo({ top: 0, behavior: 'smooth' }) }} data-track-id={`recipe-form-step-${i}-click`}
+              <button key={i} onClick={stepGrayed ? undefined : () => wechsleSchritt(i)} data-track-id={`recipe-form-step-${i}-click`}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: stepGrayed ? 'default' : 'pointer', textAlign: 'left', opacity: stepGrayed ? 0.4 : 1 }}>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
                   {i < wizardStep ? '✓' : i + 1}
@@ -1573,8 +1687,23 @@ export default function RecipeForm() {
           })}
         </aside>
 
-        {/* Step content */}
-        <main style={{ flex: 1, minWidth: 0, padding: '1.5rem' }}>
+        {/* Step content — waagerecht wischbar (FR-Wizard-Swipe).
+            `touchAction: pan-y` überlässt das senkrechte Scrollen dem Browser
+            und behält die waagerechte Bewegung für uns; `overflowX: clip`
+            verhindert, dass die gleitende Seite eine Querscrollleiste zieht. */}
+        <main
+          ref={swipeBodyRef}
+          onPointerDown={wischDown}
+          onPointerMove={wischMove}
+          onPointerUp={wischUp}
+          onPointerCancel={wischAbbruch}
+          style={{ flex: 1, minWidth: 0, padding: '1.5rem', touchAction: 'pan-y', overflowX: 'clip' }}
+        >
+        <div style={swipeAktiv ? {
+          transform: `translateX(${swipeX}px)`,
+          transition: swipeAnim ? `transform ${SWIPE_DAUER}ms cubic-bezier(.4,0,.2,1)` : 'none',
+          willChange: 'transform',
+        } : undefined}>
 
           {/* Step 0: Basis */}
           {wizardStep === 0 && (
@@ -2218,6 +2347,7 @@ export default function RecipeForm() {
             </div>
           )}
 
+        </div>
         </main>
       </div>
 
@@ -2249,7 +2379,7 @@ export default function RecipeForm() {
             {wizardStep > 0 && (
               <button
                 data-track-id="recipe-form-step-back"
-                onClick={() => { setWizardStep(s => { const prev = s - 1; return prev === 2 && noModules ? 1 : prev }); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                onClick={() => wechsleSchritt(wizardStep - 1)}
                 style={{ padding: '0.625rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', background: 'none', color: 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', flexShrink: 0 }}>
                 ← Zurück
               </button>
@@ -2263,7 +2393,7 @@ export default function RecipeForm() {
               Vorschau
             </button>
             {wizardStep < STEPS.length - 1 ? (
-              <button onClick={() => { setWizardStep(s => { const next = s + 1; return next === 2 && noModules ? 3 : next }); window.scrollTo({ top: 0, behavior: 'smooth' }) }} data-track-id="recipe-form-step-next"
+              <button onClick={() => wechsleSchritt(wizardStep + 1)} data-track-id="recipe-form-step-next"
                 style={{ padding: '0.625rem 1.125rem', border: 'none', borderRadius: 'var(--radius-input)', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
                 Weiter →
               </button>
