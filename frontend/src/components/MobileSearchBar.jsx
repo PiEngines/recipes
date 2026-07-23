@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import client from '../api/client'
 import useSheetDrag from '../hooks/useSheetDrag'
 
 const HIDE_PATHS = ['/profile', '/admin', '/admin/users', '/admin/recipes']
@@ -15,6 +16,10 @@ const PFLANZEN_ZIEL = '/kraeuterschule'
 
 // Höhe der Bottom-Nav, über der die Leiste sitzt.
 const NAV_HOEHE = 78
+
+// Live-Treffer beim Tippen — kurze Vorschau im Sheet.
+const LIVE_MAX = 6
+const LIVE_DEBOUNCE = 250
 
 // Zuletzt gesucht — lokal (kein Backend).
 const HISTORY_KEY = 'recipe_search_history'
@@ -92,6 +97,10 @@ export default function MobileSearchBar() {
   // grünen Welt bleibt es aus — dort sucht die Leiste Pflanzen.
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetIn, setSheetIn] = useState(false)
+  // Live-Treffer (Ü20, Commit 2): sobald Text im Feld steht, zeigt das Sheet
+  // eine kurze Trefferliste statt „Zuletzt gesucht". Das Ergebnis trägt den
+  // Suchbegriff mit — passt er nicht zum aktuellen Feld, läuft die Suche noch.
+  const [live, setLive] = useState({ term: '', items: [] })
   // Höhe der Leiste messen, damit das Sheet exakt darüber sitzt (die Leiste
   // wächst mit den Scope-Pills).
   const [barH, setBarH] = useState(56)
@@ -117,12 +126,34 @@ export default function MobileSearchBar() {
     return () => cancelAnimationFrame(id)
   }, [sheetOpen])
 
+  // Debounced Live-Suche — nur solange das Sheet offen ist und Text im Feld
+  // steht. AbortController wie beim Fratcher (Ü16), damit kein alter Lauf den
+  // neuen überholt. Pflanzenmodus zeigt kein Sheet, greift also nicht.
+  // Kein Fetch nötig, wenn das Sheet zu ist oder das Feld leer — der Render
+  // zeigt dann ohnehin „Zuletzt gesucht".
+  const term = inputValue.trim()
+  useEffect(() => {
+    if (!sheetOpen || pflanzenModus || !term) return undefined
+    const controller = new AbortController()
+    const t = setTimeout(() => {
+      client.get('/api/recipes', { params: { search: term, page_size: LIVE_MAX }, signal: controller.signal })
+        .then(({ data }) => setLive({ term, items: data.items || [] }))
+        .catch(err => { if (err.name !== 'CanceledError') setLive({ term, items: [] }) })
+    }, LIVE_DEBOUNCE)
+    return () => { clearTimeout(t); controller.abort() }
+  }, [term, sheetOpen, pflanzenModus])
+
   const schliesseSheet = () => {
     setSheetIn(false)
     setFocused(false)
     inputRef.current?.blur()
     // Nach unten rausschieben, dann abbauen.
     setTimeout(() => setSheetOpen(false), 200)
+  }
+
+  const openRecipe = (id) => {
+    schliesseSheet()
+    navigate(`/recipes/${id}`)
   }
 
   const sheetDrag = useSheetDrag({ onClose: schliesseSheet })
@@ -235,7 +266,36 @@ export default function MobileSearchBar() {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', padding: '10px 16px 18px' }}>
-              {history.length > 0 ? (
+              {term ? (
+                // Live-Treffer beim Tippen (Commit 2). Tap → Detail; Enter bleibt
+                // „alle Treffer".
+                <>
+                  <SheetLabel>Treffer</SheetLabel>
+                  {live.term !== term ? (
+                    <p style={{ margin: '4px 2px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>Suche …</p>
+                  ) : live.items.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {live.items.map((r, i) => (
+                        <button
+                          key={r.id}
+                          onClick={() => openRecipe(r.id)}
+                          data-track-id="search-sheet-result"
+                          style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '8px 2px', background: 'none', border: 'none', borderBottom: i === live.items.length - 1 ? 'none' : '1px solid var(--hairline)', cursor: 'pointer', textAlign: 'left' }}
+                        >
+                          <div style={{
+                            width: 40, height: 40, borderRadius: 8, flexShrink: 0,
+                            background: r.primary_image ? `center/cover no-repeat url(${r.primary_image})` : 'var(--bg-alt)',
+                          }} />
+                          <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                          <i className="ti ti-chevron-right" style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: '4px 2px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>Nichts gefunden.</p>
+                  )}
+                </>
+              ) : history.length > 0 ? (
                 <>
                   <SheetLabel action={
                     <button onClick={clearHistory} data-track-id="search-sheet-history-clear"
@@ -244,15 +304,15 @@ export default function MobileSearchBar() {
                     </button>
                   }>Zuletzt gesucht</SheetLabel>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {history.map((term, i) => (
+                    {history.map((eintrag, i) => (
                       <button
-                        key={term}
-                        onClick={() => runSearch(term)}
+                        key={eintrag}
+                        onClick={() => runSearch(eintrag)}
                         data-track-id="search-sheet-history"
                         style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 2px', background: 'none', border: 'none', borderBottom: i === history.length - 1 ? 'none' : '1px solid var(--hairline)', cursor: 'pointer', textAlign: 'left' }}
                       >
                         <i className="ti ti-clock" style={{ fontSize: 15, color: 'var(--text-muted)', flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)' }}>{term}</span>
+                        <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text)' }}>{eintrag}</span>
                         <i className="ti ti-chevron-right" style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }} />
                       </button>
                     ))}
