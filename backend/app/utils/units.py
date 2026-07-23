@@ -73,6 +73,19 @@ def normalize_label(unit: str | None) -> str | None:
     return _NACH_KEY.get(_key(getrimmt), getrimmt)
 
 
+def is_known_unit(unit: str | None) -> bool:
+    """Steht die Schreibweise in der Synonymliste?
+
+    Abgrenzung zu `normalize_label`: das gibt Unbekanntes unverändert zurück
+    und lässt damit offen, ob es je eine Einheit war. Wer aus einem Freitext
+    eine Einheit *herauslösen* will, braucht aber genau diese Auskunft — sonst
+    würde jedes erste Wort zur Einheit erklärt.
+    """
+    if not unit:
+        return False
+    return _key(unit) in _NACH_KEY
+
+
 def is_convertible(unit: str | None) -> bool:
     """Lässt sich die Einheit in eine Basis-Einheit überführen?"""
     return normalize_label(unit) in _IN_BASIS
