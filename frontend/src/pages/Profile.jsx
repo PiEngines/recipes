@@ -35,6 +35,52 @@ const REZEPT_SEGMENTE = [
   { key: 'draft', label: 'ENTWÜRFE' },
 ]
 
+// Icon-Buttons statt beschrifteter Aktionen: in der Rasterzelle ist eine
+// Kachel knapp halb so breit wie der Screen — „Bearbeiten"/„Löschen"
+// nebeneinander passten dort nicht und rutschten untereinander. Icon-only
+// braucht `aria-label` (Screenreader) und `title` (Tooltip auf Desktop).
+const AKTION_BUTTON = {
+  width: 34, height: 34, flexShrink: 0, padding: 0,
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  borderRadius: 6, fontSize: '1rem', lineHeight: 1, cursor: 'pointer',
+  textDecoration: 'none', transition: 'background .15s',
+}
+
+function RezeptAktionen({ recipeId, onDelete }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <Link
+        to={`/recipes/${recipeId}/edit`}
+        aria-label="Rezept bearbeiten"
+        title="Bearbeiten"
+        data-track-id="profile-recipe-edit"
+        style={{
+          ...AKTION_BUTTON,
+          background: 'none',
+          border: '1px solid var(--border-input)',
+          color: 'var(--subtext)',
+        }}
+      >
+        <i className="ti ti-pencil" aria-hidden="true" />
+      </Link>
+      <button
+        onClick={() => onDelete(recipeId)}
+        aria-label="Rezept löschen"
+        title="Löschen"
+        data-track-id="profile-recipe-delete"
+        style={{
+          ...AKTION_BUTTON,
+          background: 'var(--danger-tint)',
+          border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)',
+          color: 'var(--danger)',
+        }}
+      >
+        <i className="ti ti-trash" aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
+
 export default function Profile() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -523,14 +569,7 @@ export default function Profile() {
                           </span>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                        <Link to={`/recipes/${r.id}/edit`} style={{ padding: '0.3rem 0.75rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: '6px', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none' }}>
-                          ✏️
-                        </Link>
-                        <button onClick={() => handleDeleteRecipe(r.id)} style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                          Löschen
-                        </button>
-                      </div>
+                      <RezeptAktionen recipeId={r.id} onDelete={handleDeleteRecipe} />
                     </div>
 
                     {/* Access row — only in edit mode */}
@@ -570,14 +609,7 @@ export default function Profile() {
               {sichtbareRezepte.map(r => (
                 <div key={r.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <RecipeCard recipe={r} onClick={() => navigate(`/recipes/${r.id}`)} />
-                  {/* Zwei Buttons in einer Rasterzelle: auf schmalen Geräten ist
-                      die Zelle knapp halb so breit wie der Screen. Statt den
-                      Beschriftungen das Umbrechen zu erlauben, rutschen die
-                      Buttons dann untereinander. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <Link to={`/recipes/${r.id}/edit`} style={{ flex: '1 1 auto', textAlign: 'center', padding: '0.35rem', background: 'color-mix(in srgb, var(--accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)', borderRadius: 6, color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>Bearbeiten</Link>
-                    <button onClick={() => handleDeleteRecipe(r.id)} style={{ flex: '1 1 auto', padding: '0.35rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: 6, color: '#c84444', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Löschen</button>
-                  </div>
+                  <RezeptAktionen recipeId={r.id} onDelete={handleDeleteRecipe} />
                 </div>
               ))}
             </div>
