@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.recipe import RecipeStatus, RecipeType
+from app.utils.ingredients import normalize_ingredient
 from app.utils.units import normalize_label
 
 
@@ -61,6 +62,15 @@ class IngredientCreate(BaseModel):
     @classmethod
     def einheit_vereinheitlichen(cls, v: str | None) -> str | None:
         return normalize_label(v)
+
+    # Läuft nach den Feld-Validatoren (`mode="after"`), sieht also die bereits
+    # kanonisierte Einheit und den getrimmten Namen. Erst hier ist entscheidbar,
+    # ob eine Einheit im Namen steckt — dafür braucht es alle drei Felder
+    # zusammen (FR-N).
+    @model_validator(mode='after')
+    def zutat_kanonisieren(self):
+        self.name, self.unit = normalize_ingredient(self.name, self.amount, self.unit)
+        return self
 
 
 class IngredientResponse(BaseModel):
@@ -160,6 +170,12 @@ class StepSuggestionAccept(BaseModel):
     @classmethod
     def einheit_vereinheitlichen(cls, v: str | None) -> str | None:
         return normalize_label(v)
+
+    # Wie in `IngredientCreate`: die Menge heißt hier nur `quantity`.
+    @model_validator(mode='after')
+    def zutat_kanonisieren(self):
+        self.name, self.unit = normalize_ingredient(self.name, self.quantity, self.unit)
+        return self
 
 
 # ── Recipe ────────────────────────────────────────────────────────────────────
