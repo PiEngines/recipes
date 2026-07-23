@@ -33,30 +33,94 @@ const MIN_SCHRITT_ZEICHEN = 30
  * welche: eine Reihenfolge gibt es nur mit Teilrezept, und die ist immer
  * gesetzt.
  *
+ * `status` ist die Ampel im Stepper (FR-Stepper-Colors):
+ *   rot     — ein Pflichtfeld dieses Schritts fehlt, blockiert das Veröffentlichen
+ *   gelb    — kein Blocker, aber Optionales offen
+ *   gruen   — vollständig, auch das Optionale
+ *   neutral — nicht zutreffend (Anordnung ohne Teilrezept)
+ *
  * Freie Navigation bleibt davon unberührt — gesperrt wird nur das
  * Veröffentlichen, nicht der Weg zwischen den Schritten.
  */
 function wizardStufen(f) {
   const zutaten = (f.ingredients || []).filter(z => z.name?.trim())
-  const substanziell = (f.steps || []).filter(s => (s.instruction || '').trim().length >= MIN_SCHRITT_ZEICHEN)
+  // Teilrezepte bringen ihre Mengen selbst mit — sie „ohne Menge" zu nennen
+  // wäre falsch, deshalb zählen für die Vollständigkeit nur echte Zutaten.
+  const echteZutaten = zutaten.filter(z => !z._module_recipe_id)
+  const ohneMenge = echteZutaten.filter(z => !z.amount?.trim() && !z.unit?.trim())
 
-  const blocker = [
-    [!f.title.trim() && 'Titel'],
-    [zutaten.length === 0 && 'mindestens eine Zutat'],
-    [],
-    [substanziell.length === 0 && `ein Zubereitungsschritt (mind. ${MIN_SCHRITT_ZEICHEN} Zeichen)`],
-    [
-      f.prepTime === '' && 'Vorbereitungszeit',
-      f.cookTime === '' && 'Zubereitungszeit',
-      f.servings === '' && 'Portionen',
-      !f.type && 'Art',
-      !f.course && 'Gang',
-      !f.difficulty && 'Schwierigkeit',
-    ],
+  const mitText = (f.steps || []).filter(s => (s.instruction || '').trim())
+  const substanziell = mitText.filter(s => s.instruction.trim().length >= MIN_SCHRITT_ZEICHEN)
+
+  const module = (f.ingredients || []).filter(z => z._module_recipe_id)
+  const fotos = (f.recipeMedia || []).length > 0
+
+  const stufen = [
+    {
+      blocker: [!f.title.trim() && 'Titel'],
+      // Die Beschreibung ist der Anreißer in Suche und Karte — ohne sie ist
+      // der Schritt nutzbar, aber nicht fertig.
+      vollstaendig: !!f.description?.trim(),
+    },
+    {
+      blocker: [zutaten.length === 0 && 'mindestens eine Zutat'],
+      vollstaendig: ohneMenge.length === 0,
+    },
+    {
+      blocker: [],
+      // Ohne Teilrezept gibt es hier nichts zu ordnen — der Punkt bleibt grau
+      // statt grün, sonst suggeriert er eine erledigte Aufgabe.
+      neutral: module.length === 0,
+      vollstaendig: f.moduleOrder?.length > 0,
+    },
+    {
+      blocker: [substanziell.length === 0 && `ein Zubereitungsschritt (mind. ${MIN_SCHRITT_ZEICHEN} Zeichen)`],
+      vollstaendig: mitText.length > 0 && mitText.length === substanziell.length,
+    },
+    {
+      blocker: [
+        f.prepTime === '' && 'Vorbereitungszeit',
+        f.cookTime === '' && 'Zubereitungszeit',
+        f.servings === '' && 'Portionen',
+        !f.type && 'Art',
+        !f.course && 'Gang',
+        !f.difficulty && 'Schwierigkeit',
+      ],
+      // Ein Saison-Raster kennt der Wizard nicht (SPEC §05 nennt es, gebaut
+      // ist es nie worden) — offen bleibt hier also nur das Foto.
+      vollstaendig: fotos,
+    },
   ]
 
-  return blocker.map(b => ({ blocker: b.filter(Boolean) }))
+  return stufen.map(s => {
+    const blocker = s.blocker.filter(Boolean)
+    const status = blocker.length > 0 ? 'rot'
+      : s.neutral ? 'neutral'
+        : s.vollstaendig ? 'gruen' : 'gelb'
+    return { blocker, status }
+  })
 }
+
+// Füllfarben der Ampel. Grün und Grau sind die Töne, die der Stepper vorher
+// schon für „erledigt" und „kommt noch" benutzt hat.
+const AMPEL_FARBE = {
+  rot: 'var(--danger)',
+  gelb: 'var(--gold)',
+  gruen: 'var(--secondary)',
+  neutral: 'var(--border-input)',
+}
+
+// Farbe allein sagt nichts vor, wer sie nicht sieht — dieselbe Aussage als
+// Tooltip und im aria-label.
+const AMPEL_TITEL = {
+  rot: 'Pflichtangabe fehlt',
+  gelb: 'vollständig genug zum Veröffentlichen, Optionales offen',
+  gruen: 'vollständig',
+  neutral: 'nicht zutreffend',
+}
+
+// Auf grauer Füllung wäre weiße Schrift unlesbar.
+const AMPEL_SCHRIFT = status => (status === 'neutral' ? 'var(--subtext)' : '#fff')
 
 // Wisch-Navigation im Wizard (FR-Wizard-Swipe).
 const SWIPE_START = 8      // ab hier gilt die Bewegung als Wisch, nicht als Tipp
@@ -1399,7 +1463,8 @@ export default function RecipeForm() {
   // Pflichtfeld-Gate fürs Veröffentlichen (§05 Feinschliff). Was fehlt, wird
   // benannt — ein bloss gesperrter Button erklärt sich nicht von selbst.
   const stufen = wizardStufen({
-    title, ingredients, steps, prepTime, cookTime, servings, type, course, difficulty,
+    title, description, ingredients, steps, prepTime, cookTime, servings,
+    type, course, difficulty, moduleOrder, recipeMedia,
   })
   const fehlendeFelder = stufen.flatMap(s => s.blocker)
   const kannVeroeffentlichen = fehlendeFelder.length === 0
@@ -1684,19 +1749,24 @@ export default function RecipeForm() {
             {STEPS.map((label, i) => {
               const gesperrt = i === 2 && noModules
               const aktiv = wizardStep === i
+              const status = stufen[i].status
               return (
                 <button
                   key={i}
                   onClick={gesperrt ? undefined : () => wechsleSchritt(i)}
-                  aria-label={`Schritt ${i + 1}: ${label}`}
+                  aria-label={`Schritt ${i + 1}: ${label} — ${AMPEL_TITEL[status]}`}
                   aria-current={aktiv ? 'step' : undefined}
+                  title={AMPEL_TITEL[status]}
                   data-track-id={`recipe-form-step-${i}-click`}
                   style={{
                     width: aktiv ? 22 : 9, height: 9, padding: 0, borderRadius: 999, border: 'none',
-                    background: aktiv ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--border-input)'),
+                    // Die Ampel steckt in der Füllung; den aktiven Punkt tragen
+                    // Breite und der Ring drumherum.
+                    background: AMPEL_FARBE[status],
+                    boxShadow: aktiv ? '0 0 0 2px var(--card), 0 0 0 3.5px var(--accent)' : 'none',
                     opacity: gesperrt ? 0.4 : 1,
                     cursor: gesperrt ? 'default' : 'pointer',
-                    transition: 'width .2s ease, background .2s ease',
+                    transition: 'width .2s ease, background .2s ease, box-shadow .2s ease',
                   }}
                 />
               )
@@ -1717,13 +1787,19 @@ export default function RecipeForm() {
         <aside className="hidden sm:flex" style={{ width: '200px', flexShrink: 0, flexDirection: 'column', padding: '1.5rem 0', borderRight: '1px solid var(--border)', background: 'var(--card)', minHeight: 'calc(100vh - 128px)' }}>
           {STEPS.map((label, i) => {
             const stepGrayed = i === 2 && noModules
+            const aktiv = wizardStep === i
+            const status = stufen[i].status
             return (
               <button key={i} onClick={stepGrayed ? undefined : () => wechsleSchritt(i)} data-track-id={`recipe-form-step-${i}-click`}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${wizardStep === i ? 'var(--accent)' : 'transparent'}`, background: wizardStep === i ? 'rgba(200,96,42,.06)' : 'none', cursor: stepGrayed ? 'default' : 'pointer', textAlign: 'left', opacity: stepGrayed ? 0.4 : 1 }}>
-                <div style={{ width: 26, height: 26, borderRadius: '50%', background: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? '#6B7C4E' : 'var(--border-input)'), color: (wizardStep === i || i < wizardStep) ? '#fff' : 'var(--subtext)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif' }}>
-                  {i < wizardStep ? '✓' : i + 1}
+                aria-current={aktiv ? 'step' : undefined}
+                title={AMPEL_TITEL[status]}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.25rem', border: 'none', borderLeft: `3px solid ${aktiv ? 'var(--accent)' : 'transparent'}`, background: aktiv ? 'rgba(200,96,42,.06)' : 'none', cursor: stepGrayed ? 'default' : 'pointer', textAlign: 'left', opacity: stepGrayed ? 0.4 : 1 }}>
+                {/* Ampel in der Füllung, aktiver Schritt zusätzlich mit Ring —
+                    die Ziffer bleibt stehen, ein ✓ neben Rot wäre widersprüchlich. */}
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: AMPEL_FARBE[status], color: AMPEL_SCHRIFT(status), boxShadow: aktiv ? '0 0 0 2px var(--card), 0 0 0 3.5px var(--accent)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, fontFamily: 'Inter, sans-serif', transition: 'background .2s ease, box-shadow .2s ease' }}>
+                  {status === 'gruen' ? '✓' : i + 1}
                 </div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: wizardStep === i ? 600 : 400, color: wizardStep === i ? 'var(--accent)' : (i < wizardStep ? 'var(--secondary)' : 'var(--text)') }}>{label}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: aktiv ? 600 : 400, color: aktiv ? 'var(--accent)' : 'var(--text)' }}>{label}</span>
               </button>
             )
           })}
