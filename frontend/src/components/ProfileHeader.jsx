@@ -103,6 +103,26 @@ export default function ProfileHeader({ profile, recipeCount, aktion = null, ove
           </p>
         )}
 
+        {/* Vorlieben (BUG-41) — nur sichtbar, wenn freigegeben: der Endpoint
+            liefert `preferences` sonst gar nicht erst (die Gate-Logik sitzt
+            serverseitig, hier steht dann schlicht nichts). */}
+        {profile?.preferences && (
+          <div style={{ marginTop: 12 }}>
+            <p style={{
+              margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontSize: 9,
+              letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(240,232,208,.45)',
+            }}>
+              Vorlieben
+            </p>
+            <p style={{
+              margin: 0, fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.5,
+              color: 'rgba(240,232,208,.78)', whiteSpace: 'pre-line',
+            }}>
+              {profile.preferences}
+            </p>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 22, marginTop: 14 }}>
           <Stat zahl={recipeCount} label="Rezepte" />
           <Stat

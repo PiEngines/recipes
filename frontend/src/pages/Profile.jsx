@@ -1,35 +1,34 @@
 // 13 · Profil (eigen) — SPEC §13, screens/profil-eigen.html
 //
-// BEWUSSTE ABWEICHUNGEN (Lead-entschieden, F3b-2a — siehe ABWEICHUNGEN.md):
+// BEWUSSTE ABWEICHUNGEN (Lead-entschieden — siehe ABWEICHUNGEN.md):
 // - Keine Social-Chips („verbundene Konten"): ohne OAuth gibt es kein
 //   Verbinden. OAuth ist als Produktentscheidung weggeschoben.
-// - Dritter Tab „Einstellungen": §13 kennt nur „Meine Rezepte" und
-//   „Gespeichert". Diese Seite trug aber schon die komplette Kontoverwaltung
-//   (Daten, Passwort, Erscheinungsbild, freigegebene Rezepte, Konto löschen).
-//   Die bleibt erhalten und zieht in einen eigenen Tab, statt ersatzlos zu
-//   verschwinden oder unter den Tabs zu hängen.
+// - Das Profil zeigt nur noch Identität + eigene Inhalte (F11, Revert von F7):
+//   die Kontoverwaltung ist in die Seite `Einstellungen` unter »Mehr« gezogen.
+//   Tabs: „Meine Rezepte" · „Merkliste" (Favoriten, Sammlungen, für mich
+//   Freigegebenes) · „Beiträge" (verlinkte TT/Insta, wie das öffentliche
+//   Profil).
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
 import { getCollections } from '../api/collections'
-import { getFavorites, getProfile, getRecipesByAuthor } from '../api/profile'
+import { getFavorites, getProfile, getRecipesByAuthor, getUserExternalPosts } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../hooks/useTheme'
 import CollectionFormModal from '../components/CollectionFormModal'
+import ExternalPostEmbed from '../components/ExternalPostEmbed'
 import ProfileHeader from '../components/ProfileHeader'
 import RecipeCard from '../components/RecipeCard'
 import Segmented from '../components/Segmented'
-import { SectionCard, Msg, PrimaryBtn, ToggleSwitch } from '../components/settingsUi'
-import { labelStyle, inputStyle } from '../components/settingsStyles'
+import { inputStyle } from '../components/settingsStyles'
 import { getRoleLabel, isKochOrAbove } from '../utils/roles'
 
 // Der `key` bleibt `gespeichert` — er steckt in der Tab-Logik und im
-// Lade-Effekt. Nur die Beschriftung wechselt: hinter dem Tab liegen Favoriten
-// *und* Sammlungen, „Gespeichert" sagte darüber nichts (BUG-38).
+// Lade-Effekt. Nur die Beschriftung wechselt: hinter dem Tab liegen Favoriten,
+// Sammlungen *und* für mich freigegebene Rezepte, „Gespeichert" sagte darüber
+// nichts (BUG-38). Der Beiträge-Tab entfällt, wenn es keine gibt (wie §15).
 const TABS = [
   { key: 'rezepte', label: 'MEINE REZEPTE' },
   { key: 'gespeichert', label: 'MERKLISTE' },
-  { key: 'einstellungen', label: 'EINSTELLUNGEN' },
 ]
 
 const REZEPT_SEGMENTE = [
@@ -84,29 +83,8 @@ function RezeptAktionen({ recipeId, onDelete }) {
 }
 
 export default function Profile() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
-  const { setTheme: applyTheme } = useTheme()
-
-  // Profile data state
-  const [name, setName] = useState(user?.name || '')
-  const [email, setEmail] = useState(user?.email || '')
-  const [bio, setBio] = useState('')
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' })
-
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordSaving, setPasswordSaving] = useState(false)
-  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' })
-
-  // Settings state
-  const [emailNotifications, setEmailNotifications] = useState(user?.email_notifications ?? true)
-  const [darkModePreference, setDarkModePreference] = useState(user?.dark_mode_preference || 'system')
-  const [settingsSaving, setSettingsSaving] = useState(false)
-  const [settingsMsg, setSettingsMsg] = useState({ type: '', text: '' })
 
   // My recipes
   const [recipes, setRecipes] = useState([])
@@ -133,6 +111,10 @@ export default function Profile() {
   const [savedLoading, setSavedLoading] = useState(false)
   const [savedError, setSavedError] = useState(false)
 
+  // Tab „Beiträge" — dieselbe Quelle wie das öffentliche Profil (F5). Bei
+  // einem Fehler bleibt die Liste leer, der Tab verschwindet dann.
+  const [posts, setPosts] = useState([])
+
   // Sharing matrix
   const [editMode, setEditMode] = useState(false)
   const [accessData, setAccessData] = useState({}) // { recipeId: { items, loading } }
@@ -156,11 +138,12 @@ export default function Profile() {
     toastTimerRef.current = setTimeout(() => setToast(''), 4000)
   }
 
-  // Delete account modal
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [recipeAction, setRecipeAction] = useState('keep')
-  const [transferUserId, setTransferUserId] = useState('')
-  const [deleting, setDeleting] = useState(false)
+  // Altlink: der Einstellungen-Tab ist eine eigene Seite geworden (F11).
+  // Bestehende `?tab=einstellungen`-Links dorthin umleiten, statt sie ins
+  // Leere (Standard-Tab) laufen zu lassen.
+  useEffect(() => {
+    if (suchParams.get('tab') === 'einstellungen') navigate('/einstellungen', { replace: true })
+  }, [suchParams, navigate])
 
   const ladeRezepte = useCallback((signal) => {
     if (!user) return Promise.resolve()
@@ -188,8 +171,19 @@ export default function Profile() {
     if (!userId) return undefined
     const controller = new AbortController()
     getProfile(userId, { signal: controller.signal })
-      .then(p => { setProfil(p); setBio(p?.bio || '') })
+      .then(p => setProfil(p))
       .catch(() => { /* Kopf fällt auf die Auth-Daten zurück */ })
+    return () => controller.abort()
+  }, [userId])
+
+  // Verlinkte Beiträge — einmal laden, der Tab entscheidet sich anhand der
+  // Zahl (leer → kein Tab), also unabhängig davon, welcher Tab offen ist.
+  useEffect(() => {
+    if (!userId) return undefined
+    const controller = new AbortController()
+    getUserExternalPosts(userId, { signal: controller.signal })
+      .then(p => setPosts(p || []))
+      .catch(() => { /* Tab bleibt aus */ })
     return () => controller.abort()
   }, [userId])
 
@@ -210,78 +204,6 @@ export default function Profile() {
     ladeGespeichert(controller.signal)
     return () => controller.abort()
   }, [tab, ladeGespeichert])
-
-  const handleProfileSave = async e => {
-    e.preventDefault()
-    setProfileSaving(true)
-    setProfileMsg({ type: '', text: '' })
-    try {
-      await client.patch('/api/users/me', { name, email, bio })
-      // Den Kopf mitziehen, damit die Bio ohne Reload dort steht.
-      setProfil(p => (p ? { ...p, bio: bio.trim() || null } : p))
-      setProfileMsg({ type: 'success', text: 'Profil gespeichert.' })
-    } catch (err) {
-      setProfileMsg({ type: 'error', text: err.response?.data?.detail || 'Fehler beim Speichern.' })
-    } finally {
-      setProfileSaving(false)
-    }
-  }
-
-  const handlePasswordSave = async e => {
-    e.preventDefault()
-    setPasswordMsg({ type: '', text: '' })
-    if (newPassword !== confirmPassword) {
-      setPasswordMsg({ type: 'error', text: 'Passwörter stimmen nicht überein' })
-      return
-    }
-    setPasswordSaving(true)
-    try {
-      await client.post('/api/auth/change-password', { current_password: currentPassword, new_password: newPassword })
-      setPasswordMsg({ type: 'success', text: 'Passwort geändert.' })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-    } catch (err) {
-      setPasswordMsg({ type: 'error', text: err.response?.data?.detail || 'Fehler beim Ändern.' })
-    } finally {
-      setPasswordSaving(false)
-    }
-  }
-
-  const handleThemeChange = async (value) => {
-    applyTheme(value) // immediate DOM update
-    setDarkModePreference(value)
-    try { await client.patch('/api/users/me', { dark_mode_preference: value }) } catch {}
-  }
-
-  const handleSettingsSave = async () => {
-    setSettingsSaving(true)
-    setSettingsMsg({ type: '', text: '' })
-    try {
-      await client.patch('/api/users/me', { email_notifications: emailNotifications, dark_mode_preference: darkModePreference })
-      setSettingsMsg({ type: 'success', text: 'Einstellungen gespeichert.' })
-    } catch (err) {
-      setSettingsMsg({ type: 'error', text: err.response?.data?.detail || 'Fehler.' })
-    } finally {
-      setSettingsSaving(false)
-    }
-  }
-
-  const handleDeleteAccount = async () => {
-    setDeleting(true)
-    const body = { recipe_action: recipeAction }
-    if (recipeAction === 'transfer' && transferUserId) {
-      body.transfer_to_user_id = parseInt(transferUserId, 10)
-    }
-    try {
-      await client.delete('/api/users/me', { data: body })
-      logout()
-      navigate('/login')
-    } catch (err) {
-      alert(err.response?.data?.detail || 'Fehler beim Löschen des Kontos.')
-      setDeleting(false)
-    }
-  }
 
   const handleDeleteRecipe = async recipeId => {
     if (!window.confirm('Rezept wirklich löschen?')) return
@@ -358,6 +280,14 @@ export default function Profile() {
   const entwuerfe = recipes.filter(r => r.status === 'draft')
   const sichtbareRezepte = segment === 'draft' ? entwuerfe : veroeffentlicht
 
+  // Beiträge-Tab nur, wenn es welche gibt (wie §15). Unbekanntes `?tab` fällt
+  // auf „rezepte" zurück — auch der eben entfallene `einstellungen`-Wert, der
+  // per Redirect ohnehin nicht mehr hier landet.
+  const tabs = posts.length > 0
+    ? [...TABS, { key: 'beitraege', label: 'BEITRÄGE', badge: posts.length }]
+    : TABS
+  const aktiverTab = tabs.some(t => t.key === tab) ? tab : 'rezepte'
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
       <ProfileHeader
@@ -369,105 +299,18 @@ export default function Profile() {
       <div style={{ maxWidth: '860px', margin: '0 auto', padding: '1.25rem 1.5rem 2rem' }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <Segmented
-            items={TABS}
-            value={tab}
+            items={tabs}
+            value={aktiverTab}
             onChange={setTab}
             ariaLabel="Profilbereiche"
             trackId="profile-tab-switch"
           />
         </div>
 
-        {tab === 'einstellungen' && (
-        <>
-        {/* Section: Meine Daten */}
-        <SectionCard title="Meine Daten">
-          <form onSubmit={handleProfileSave}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-              <div>
-                <label style={labelStyle} htmlFor="p-name">Name</label>
-                <input id="p-name" type="text" value={name} onChange={e => setName(e.target.value)} style={inputStyle} required />
-              </div>
-              <div>
-                <label style={labelStyle} htmlFor="p-email">E-Mail</label>
-                <input id="p-email" type="email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} required />
-              </div>
-              <div>
-                <label style={labelStyle}>Rolle</label>
-                <div style={{ ...inputStyle, background: 'transparent', cursor: 'default', color: 'var(--subtext)' }}>{getRoleLabel(user.role)}</div>
-              </div>
-            </div>
-            {/* Bio: wird im Profilkopf angezeigt, auch für Fremde. Leeren
-                löscht sie serverseitig (users/router.py: Leerstring → NULL). */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={labelStyle} htmlFor="p-bio">Über mich</label>
-              <textarea
-                id="p-bio"
-                value={bio}
-                onChange={e => setBio(e.target.value)}
-                maxLength={500}
-                rows={3}
-                placeholder="Ein paar Sätze über dich — erscheint auf deinem Profil."
-                data-track-id="profile-bio-input"
-                style={{ ...inputStyle, resize: 'vertical', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}
-              />
-              <div style={{ marginTop: 4, textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--subtext)' }}>
-                {bio.length}/500
-              </div>
-            </div>
-            {profileMsg.text && <Msg type={profileMsg.type}>{profileMsg.text}</Msg>}
-            <PrimaryBtn type="submit" loading={profileSaving}>Speichern</PrimaryBtn>
-          </form>
-        </SectionCard>
-
-        {/* Section: Passwort ändern */}
-        <SectionCard title="Passwort ändern">
-          <form onSubmit={handlePasswordSave}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-              <div>
-                <label style={labelStyle} htmlFor="pw-current">Aktuelles Passwort</label>
-                <input id="pw-current" type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} style={inputStyle} required autoComplete="current-password" />
-              </div>
-              <div>
-                <label style={labelStyle} htmlFor="pw-new">Neues Passwort</label>
-                <input id="pw-new" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inputStyle} required autoComplete="new-password" />
-              </div>
-              <div>
-                <label style={labelStyle} htmlFor="pw-confirm">Bestätigen</label>
-                <input id="pw-confirm" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={inputStyle} required autoComplete="new-password" />
-              </div>
-            </div>
-            {passwordMsg.text && <Msg type={passwordMsg.type}>{passwordMsg.text}</Msg>}
-            <PrimaryBtn type="submit" loading={passwordSaving}>Passwort ändern</PrimaryBtn>
-          </form>
-        </SectionCard>
-
-        {/* Section: Einstellungen */}
-        <SectionCard title="Einstellungen">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-              <div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>E-Mail-Benachrichtigungen</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Erhalte Updates zu deinen Rezepten und Reviews</div>
-              </div>
-              <ToggleSwitch checked={emailNotifications} onChange={setEmailNotifications} />
-            </div>
-            <div>
-              <label style={labelStyle} htmlFor="dark-mode">Erscheinungsbild</label>
-              <select id="dark-mode" value={darkModePreference} onChange={e => handleThemeChange(e.target.value)} style={{ ...inputStyle, maxWidth: '240px' }}>
-                <option value="system">System</option>
-                <option value="light">Hell</option>
-                <option value="dark">Dunkel</option>
-              </select>
-            </div>
-          </div>
-          {settingsMsg.text && <Msg type={settingsMsg.type}>{settingsMsg.text}</Msg>}
-          <PrimaryBtn loading={settingsSaving} onClick={handleSettingsSave}>Einstellungen speichern</PrimaryBtn>
-        </SectionCard>
-        </>
-        )}
-
-        {/* Tab: Gespeichert — Favoriten + eigene Sammlungen */}
-        {tab === 'gespeichert' && (
+        {/* Tab: Gespeichert — Favoriten, Sammlungen + für mich freigegebene
+            Rezepte (F11: die freigegebenen sind Inhalt, kein Konto-Setting). */}
+        {aktiverTab === 'gespeichert' && (
+          <>
           <Gespeichert
             favorites={favorites}
             collections={collections}
@@ -477,6 +320,82 @@ export default function Profile() {
             onRecipeClick={id => navigate(`/recipes/${id}`)}
             onNeueSammlung={() => setSammlungModal(true)}
           />
+
+          {/* Section: Für mich freigegeben — aus dem früheren Einstellungen-Tab
+              hierher gezogen (F11). */}
+          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-card)', padding: '1.5rem', marginTop: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>
+                Für mich freigegeben
+              </h2>
+              {!unfollowMode && sharedRecipes.length > 0 && (
+                <button onClick={() => setUnfollowMode(true)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  Bearbeiten
+                </button>
+              )}
+              {unfollowMode && (
+                <button onClick={() => setUnfollowMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  Fertig
+                </button>
+              )}
+            </div>
+
+            {sharedLoading && sharedRecipes.length === 0 ? (
+              <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Wird geladen …</p>
+            ) : sharedRecipes.length === 0 ? (
+              <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Keine freigegebenen Rezepte.</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {sharedRecipes.map(r => (
+                    <div key={r.access_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Link to={`/recipes/${r.id}`} style={{ color: 'var(--text)', textDecoration: 'none', fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 500 }}>
+                          {r.title}
+                        </Link>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
+                          {r.shared_by_name && `von ${r.shared_by_name} · `}
+                          {r.expires_at
+                            ? `bis ${new Date(r.expires_at).toLocaleDateString('de-DE')}`
+                            : 'Ohne Limit'}
+                        </div>
+                      </div>
+                      {unfollowMode && (
+                        <button
+                          onClick={() => setPendingDecline({ recipeId: r.id, accessId: r.access_id, title: r.title })}
+                          style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
+                        >
+                          Nicht mehr folgen
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {sharedRecipes.length < sharedTotal && (
+                  <button
+                    onClick={() => loadSharedRecipes(sharedPage + 1)}
+                    disabled={sharedLoading}
+                    style={{ marginTop: '0.875rem', padding: '0.5rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', cursor: 'pointer' }}
+                  >
+                    {sharedLoading ? 'Lädt …' : 'Mehr laden'}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+          </>
+        )}
+
+        {/* Tab: Beiträge — verlinkte Instagram-/TikTok-Beiträge (F5), dieselbe
+            Komponente wie im öffentlichen Profil. */}
+        {aktiverTab === 'beitraege' && (
+          <section id="profile-beitraege" aria-label="Verlinkte Beiträge">
+            {posts.map(post => (
+              <div key={post.id} style={{ marginBottom: 18 }}>
+                <ExternalPostEmbed post={post} />
+              </div>
+            ))}
+          </section>
         )}
 
         {sammlungModal && (
@@ -493,7 +412,7 @@ export default function Profile() {
         )}
 
         {/* Tab: Meine Rezepte */}
-        {tab === 'rezepte' && (
+        {aktiverTab === 'rezepte' && (
         <>
         <div style={{ marginBottom: '1.25rem' }}>
           <Segmented
@@ -620,88 +539,6 @@ export default function Profile() {
 
         </>
         )}
-
-        {/* Zweiter Einstellungen-Block: bleibt bewusst hier stehen, statt die
-            beiden Sektionen über 200 Zeilen nach oben zu ziehen. Im Tab landen
-            sie direkt unter den ersten dreien. */}
-        {tab === 'einstellungen' && (
-        <>
-        {/* Section: Für mich freigegeben */}
-        <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--hairline)', boxShadow: 'var(--shadow-card)', padding: '1.5rem', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-              Für mich freigegeben
-            </h2>
-            {!unfollowMode && sharedRecipes.length > 0 && (
-              <button onClick={() => setUnfollowMode(true)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Bearbeiten
-              </button>
-            )}
-            {unfollowMode && (
-              <button onClick={() => setUnfollowMode(false)} style={{ padding: '0.4rem 1rem', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 'var(--radius-input)', color: 'var(--accent)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Fertig
-              </button>
-            )}
-          </div>
-
-          {sharedLoading && sharedRecipes.length === 0 ? (
-            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Wird geladen …</p>
-          ) : sharedRecipes.length === 0 ? (
-            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem' }}>Keine freigegebenen Rezepte.</p>
-          ) : (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {sharedRecipes.map(r => (
-                  <div key={r.access_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--bg)', borderRadius: 'var(--radius-input)', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Link to={`/recipes/${r.id}`} style={{ color: 'var(--text)', textDecoration: 'none', fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 500 }}>
-                        {r.title}
-                      </Link>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
-                        {r.shared_by_name && `von ${r.shared_by_name} · `}
-                        {r.expires_at
-                          ? `bis ${new Date(r.expires_at).toLocaleDateString('de-DE')}`
-                          : 'Ohne Limit'}
-                      </div>
-                    </div>
-                    {unfollowMode && (
-                      <button
-                        onClick={() => setPendingDecline({ recipeId: r.id, accessId: r.access_id, title: r.title })}
-                        style={{ padding: '0.3rem 0.75rem', background: 'var(--danger-tint)', border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', borderRadius: '6px', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}
-                      >
-                        Nicht mehr folgen
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              {sharedRecipes.length < sharedTotal && (
-                <button
-                  onClick={() => loadSharedRecipes(sharedPage + 1)}
-                  disabled={sharedLoading}
-                  style={{ marginTop: '0.875rem', padding: '0.5rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', cursor: 'pointer' }}
-                >
-                  {sharedLoading ? 'Lädt …' : 'Mehr laden'}
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Section: Konto löschen */}
-        <SectionCard title="Konto löschen">
-          <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', lineHeight: 1.6, margin: '0 0 1rem' }}>
-            Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht. Du hast 30 Tage Zeit, den Vorgang rückgängig zu machen.
-          </p>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--danger)', borderRadius: 'var(--radius-input)', color: 'var(--danger)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}
-          >
-            Konto löschen
-          </button>
-        </SectionCard>
-        </>
-        )}
       </div>
 
       {/* Individual access modal */}
@@ -729,56 +566,6 @@ export default function Profile() {
               </button>
               <button onClick={() => handleDecline(pendingDecline.recipeId, pendingDecline.accessId)} style={{ padding: '0.6rem 1.25rem', background: 'var(--danger)', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
                 Ja, entfernen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete account modal */}
-      {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'var(--card)', borderRadius: 'var(--radius-card)', padding: '2rem', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.25rem', fontWeight: 700, color: 'var(--danger)', margin: '0 0 1rem' }}>
-              Konto wirklich löschen?
-            </h2>
-            <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.875rem', lineHeight: 1.6, margin: '0 0 1.25rem' }}>
-              Diese Aktion kann innerhalb von 30 Tagen rückgängig gemacht werden. Was soll mit deinen Rezepten passieren?
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
-              {[
-                { value: 'keep', label: 'Rezepte behalten (an System übertragen)' },
-                { value: 'delete', label: 'Rezepte löschen' },
-                { value: 'transfer', label: 'Rezepte an anderen Benutzer übertragen' },
-              ].map(opt => (
-                <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.875rem', color: 'var(--text)' }}>
-                  <input type="radio" name="recipe_action" value={opt.value} checked={recipeAction === opt.value} onChange={() => setRecipeAction(opt.value)} style={{ accentColor: 'var(--accent)' }} />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-
-            {recipeAction === 'transfer' && (
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={labelStyle} htmlFor="transfer-id">Benutzer-ID des Empfängers</label>
-                <input
-                  id="transfer-id"
-                  type="number"
-                  value={transferUserId}
-                  onChange={e => setTransferUserId(e.target.value)}
-                  placeholder="z.B. 42"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowDeleteModal(false)} style={{ padding: '0.6rem 1.25rem', background: 'none', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-input)', color: 'var(--subtext)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontSize: '0.875rem' }}>
-                Abbrechen
-              </button>
-              <button onClick={handleDeleteAccount} disabled={deleting} style={{ padding: '0.6rem 1.25rem', background: 'var(--danger)', border: 'none', borderRadius: 'var(--radius-input)', color: 'var(--on-accent)', fontFamily: 'var(--font-body)', fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer', fontSize: '0.875rem', opacity: deleting ? 0.7 : 1 }}>
-                {deleting ? 'Wird gelöscht …' : 'Konto löschen'}
               </button>
             </div>
           </div>
