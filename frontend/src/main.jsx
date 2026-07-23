@@ -25,6 +25,7 @@ import Home from './pages/Home.jsx'
 import IngredientReview from './pages/IngredientReview.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
+import Einstellungen from './pages/Einstellungen.jsx'
 import PublicProfile from './pages/PublicProfile.jsx'
 import RecipeDetail from './pages/RecipeDetail.jsx'
 import RecipeForm from './pages/RecipeForm.jsx'
@@ -138,6 +139,7 @@ const router = createBrowserRouter([
       { path: '/social', element: <ProtectedRoute><Social /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
+      { path: '/einstellungen', element: <ProtectedRoute><Einstellungen /></ProtectedRoute> },
       { path: '/admin', element: <AdminRoute><AdminDashboard /></AdminRoute> },
       { path: '/admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
       { path: '/admin/recipes', element: <AdminRoute><AdminRecipes /></AdminRoute> },

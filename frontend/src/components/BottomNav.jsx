@@ -29,7 +29,7 @@ export default function BottomNav() {
   // seit BUG-04 keinen eigenen Slot mehr, Kräuterschule und Pflanzen-Detail
   // gehören zur selben Welt. Profil, Saison und Beiträge stehen im
   // Avatar-Menü bzw. sind kein Panel-Ziel mehr.
-  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/kraeuterschule', '/garten', '/pflanzen']
+  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -55,13 +55,15 @@ export default function BottomNav() {
     color: active ? 'var(--text)' : 'var(--nav-muted)',
   })
 
-  // Genau fünf — eine gleichmäßige Reihe zu je 20%.
+  // Zu je 20% (`flexBasis`), umbrechend: die ersten fünf füllen eine Reihe,
+  // Einstellungen (BUG-41) steht darunter.
   const MEHR_ITEMS = [
     { icon: 'ti-plant-2', label: 'Kräuterschule', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
     { icon: 'ti-basket', label: 'Einkaufsliste', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
     { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
     { icon: 'ti-seeding', label: 'Garten', to: '/garten', trackId: 'bottom-mehr-garten-click' },
+    { icon: 'ti-settings', label: 'Einstellungen', to: '/einstellungen', trackId: 'bottom-mehr-einstellungen-click' },
   ]
 
   const mehrItemStyle = (dimmed) => ({
