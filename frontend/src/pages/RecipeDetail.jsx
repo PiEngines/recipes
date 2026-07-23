@@ -585,10 +585,15 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
   const [expanded, setExpanded] = useState(true)
   const items = stepIngredients || []
   const showStrip = !!activeStep && items.length > 0
-  // Runterziehen am Kopf klappt das Sheet zu — dieselbe Geste wie im
-  // Filter-Sheet (FR-Sheet-Drag). Kürzerer Weg als 90px, das Sheet ist flach.
+  // Ziehen in beide Richtungen: am Kopf runter klappt zu, am Peek hoch klappt
+  // auf (FR-Sheet-Drag, FR-Sheet-Open). Kürzere Wege als die 90px der großen
+  // Sheets — das hier ist ein flacher Streifen.
   const einklappen = useCallback(() => setExpanded(false), [])
-  const drag = useSheetDrag({ onClose: einklappen, schliessAb: 48 })
+  const ausklappen = useCallback(() => setExpanded(true), [])
+  const drag = useSheetDrag({
+    onClose: einklappen, onOpen: ausklappen, offen: expanded,
+    schliessAb: 48, oeffnenAb: 36,
+  })
 
   return (
     <div
@@ -610,12 +615,15 @@ function IngredientStrip({ activeStep, stepIngredients, scaleFactor, checkedIngr
       {!expanded ? (
         // Peek als Griff: Grabber-Balken, Label und Chevron sagen, dass sich
         // hier etwas hochziehen lässt — die Punktreihe allein tat das nicht.
+        // Der ganze Streifen ist ziehbar, nicht nur der 4px-Balken; Antippen
+        // öffnet weiterhin (der Zug startet erst nach dem Richtungs-Lock).
         <div
+          {...drag.griffProps}
           onClick={() => setExpanded(true)}
           role="button"
           aria-label="Zutaten zum Schritt anzeigen"
           data-track-id="detail-ingredient-strip-expand"
-          style={{ padding: '6px 18px 12px', cursor: 'pointer' }}
+          style={{ ...drag.griffProps.style, padding: '6px 18px 12px' }}
         >
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-input)', margin: '0 auto 8px' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -1,5 +1,6 @@
 /**
- * useSheetDrag — Bottom-Sheets per Ziehen schließen (FR-Sheet-Drag).
+ * useSheetDrag — Bottom-Sheets per Ziehen öffnen und schließen (FR-Sheet-Drag,
+ * FR-Sheet-Open).
  *
  * Vorher hatte nur das Filter-Sheet die Geste, und dort griff sie allein am
  * 36px-Balken. Der Hook gibt `griffProps` zurück, die auf den **ganzen
@@ -19,13 +20,20 @@
  * Der Aufrufer setzt den Versatz selbst (`transform: translateY(dragY)`) und
  * schaltet seine Transition anhand von `dragging` ab — so bleiben Slide-in und
  * Zieh-Versatz in einer Hand.
+ *
+ * Sheets mit eingeklapptem Peek geben `offen` und `onOpen` mit. Dann kehrt
+ * sich die Richtung um: eingeklappt zieht nur **nach oben** (auf), offen nur
+ * **nach unten** (zu). `dragY` ist im eingeklappten Zustand entsprechend
+ * negativ. Ohne `onOpen` verhält sich der Hook wie zuvor.
  */
 import { useCallback, useRef, useState } from 'react'
 
 // Ab hier gilt eine Bewegung als Zug und nicht mehr als Tipp.
 const START_SCHWELLE = 6
 
-export default function useSheetDrag({ onClose, schliessAb = 90 } = {}) {
+export default function useSheetDrag({
+  onClose, onOpen, offen = true, schliessAb = 90, oeffnenAb = 40,
+} = {}) {
   const [dragY, setDragY] = useState(0)
   const [dragging, setDragging] = useState(false)
   // Spiegel des Versatzes: `onPointerUp` muss den Wert lesen, ohne dafür in
@@ -60,9 +68,10 @@ export default function useSheetDrag({ onClose, schliessAb = 90 } = {}) {
       e.currentTarget.setPointerCapture?.(e.pointerId)
     }
 
-    // Nur nach unten — nach oben gibt es nichts aufzuziehen.
-    setzeDragY(Math.max(0, dy))
-  }, [setzeDragY])
+    // Offen gibt es nur den Weg nach unten, eingeklappt nur den nach oben —
+    // in die jeweils andere Richtung wäre nichts zu holen.
+    setzeDragY(offen ? Math.max(0, dy) : Math.min(0, dy))
+  }, [offen, setzeDragY])
 
   const onPointerUp = useCallback(e => {
     const start = startRef.current
@@ -70,9 +79,12 @@ export default function useSheetDrag({ onClose, schliessAb = 90 } = {}) {
     if (!start?.aktiv) return
     setDragging(false)
     e.currentTarget.releasePointerCapture?.(e.pointerId)
-    if (dragYRef.current > schliessAb) onClose?.()
-    else setzeDragY(0)
-  }, [onClose, schliessAb, setzeDragY])
+    if (offen && dragYRef.current > schliessAb) onClose?.()
+    else if (!offen && dragYRef.current < -oeffnenAb) onOpen?.()
+    // Immer zurück auf 0: entweder ist das Sheet jetzt weg bzw. umgeklappt,
+    // oder der Zug war zu kurz und es schnappt zurück.
+    setzeDragY(0)
+  }, [offen, onClose, onOpen, schliessAb, oeffnenAb, setzeDragY])
 
   return {
     dragY,
