@@ -1581,10 +1581,11 @@ export default function RecipeForm() {
       <header style={{ position: 'sticky', top: '64px', zIndex: 50, background: 'var(--card)', boxShadow: 'var(--shadow)' }}>
         {/* Top row */}
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.625rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {/* Label-Variante: im Wizard soll der Rücksprung benannt sein. Header ist
-              hell (var(--card)) → Variante `light` (Default). Der Header selbst ist
-              sticky, der Button schwebt also ohne eigene `floating`-Variante mit. */}
-          <BackButton label onClick={schliessen} />
+          {/* Icon-Kreis wie überall sonst — die Pillen-Variante mit Text stand
+              hier allein auf weiter Flur. Header ist hell (var(--card)) →
+              Variante `light` (Default), und weil der Header selbst sticky ist,
+              schwebt der Button ohne eigene `floating`-Variante mit. */}
+          <BackButton onClick={schliessen} />
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
             {title || (isEdit ? 'Rezept bearbeiten' : 'Neues Rezept')}
           </h1>
