@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import client from '../api/client'
+import { getProfile } from '../api/profile'
 import useSheetDrag from '../hooks/useSheetDrag'
 import { useAuth } from '../context/AuthContext'
 import { useFavorites } from '../context/FavoritesContext'
@@ -148,14 +149,64 @@ function DeletedFavoriteCard({ recipe }) {
   )
 }
 
-function AuthorFilterChip({ author, onClear }) {
+function AuthorFilterChip({ author, authorId, onClear }) {
+  // Mit `authorId` wird der Chip zum Profil-Kopf: Avatar + Name → öffentliches
+  // Profil. Avatar/Anzeigename kommen lazy aus /profile, sobald die id da ist;
+  // ohne id (nur Username-Filter) bleibt es beim reinen Text-Chip ohne Link.
+  const [geladen, setGeladen] = useState(null)
+
+  useEffect(() => {
+    if (!authorId) return undefined
+    const controller = new AbortController()
+    getProfile(authorId, { signal: controller.signal })
+      .then(p => setGeladen(p))
+      .catch(() => { /* Fallback: nur der Name aus der URL */ })
+    return () => controller.abort()
+  }, [authorId])
+
+  // Nur den Stand des aktuellen Autors nutzen — so muss die id beim Wechsel
+  // nicht synchron im Effekt zurückgesetzt werden (der alte bliebe sonst kurz
+  // stehen).
+  const profil = geladen && String(geladen.id) === String(authorId) ? geladen : null
+  const name = profil?.name || author
+  const initiale = (name || '?')[0]?.toUpperCase() ?? '?'
+
+  const clearBtn = (
+    <button onClick={onClear} title="Filter entfernen" aria-label="Filter entfernen"
+      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', lineHeight: 1, padding: '0 0.25rem', flexShrink: 0 }}>
+      ✕
+    </button>
+  )
+
+  // Ohne id kein Profil-Ziel — beim bewährten Text-Chip bleiben.
+  if (!authorId) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem 0.5rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'var(--font-body)', fontSize: '0.875rem' }}>
+        Autor: <strong>{name}</strong>
+        {clearBtn}
+      </span>
+    )
+  }
+
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem 0.5rem 1rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'var(--font-body)', fontSize: '0.875rem' }}>
-      Autor: <strong>{author}</strong>
-      <button onClick={onClear} title="Filter entfernen" aria-label="Filter entfernen"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--subtext)', fontSize: '1rem', lineHeight: 1, padding: '0 0.25rem' }}>
-        ✕
-      </button>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.5rem 0.35rem 0.4rem', border: '1.5px solid var(--border-input)', borderRadius: 'var(--radius-pill)', background: 'var(--card)', color: 'var(--text)', fontFamily: 'var(--font-body)', fontSize: '0.875rem' }}>
+      <Link
+        to={`/users/${authorId}`}
+        data-track-id="recipes-author-chip-profile"
+        aria-label={`Profil von ${name} ansehen`}
+        title="Profil ansehen"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', color: 'var(--text)' }}
+      >
+        {profil?.avatar_url ? (
+          <img src={profil.avatar_url} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: 'var(--accent)', color: 'var(--on-accent)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 700 }}>
+            {initiale}
+          </span>
+        )}
+        <strong style={{ fontWeight: 600 }}>{name}</strong>
+      </Link>
+      {clearBtn}
     </span>
   )
 }
@@ -521,6 +572,8 @@ export default function Recipes() {
   const clearAuthorFilter = () => setSearchParams(prev => {
     const next = new URLSearchParams(prev)
     next.delete('author')
+    // Der Chip kann seit Ü19 auch allein an `author_id` hängen — mit weg.
+    next.delete('author_id')
     next.delete('page')
     return next
   }, { replace: true })
@@ -706,7 +759,7 @@ export default function Recipes() {
             {/* Toolbar: favorites/author + count + sort (Filter → FAB §2.10) */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
 
-              {authorFilter && <AuthorFilterChip author={authorFilter} onClear={clearAuthorFilter} />}
+              {(authorFilter || authorIdFilter) && <AuthorFilterChip author={authorFilter} authorId={authorIdFilter} onClear={clearAuthorFilter} />}
 
               <div style={{ flex: 1 }} />
 
