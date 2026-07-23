@@ -18,6 +18,46 @@ const DESCRIPTION_MAX = 1000
 
 const STEPS = ['Titel', 'Zutaten', 'Anordnung', 'Zubereitung', 'Feinschliff']
 
+// Ab so vielen Zeichen gilt eine Anweisung als echter Zubereitungsschritt —
+// ungefähr ein Satz. Darunter sind es Platzhalter wie „xxx" oder „siehe oben".
+const MIN_SCHRITT_ZEICHEN = 30
+
+/**
+ * Zustand je Wizard-Schritt — **eine** Quelle für zwei Verbraucher: das
+ * Publish-Gate (was fehlt zum Veröffentlichen) und die Ampel im Stepper.
+ * Beide dürfen nicht auseinanderlaufen, sonst zeigt der Stepper grün, während
+ * der Knopf gesperrt bleibt.
+ *
+ * `blocker` sind die Pflichtfelder dieses Schritts, die noch fehlen — die
+ * Namen landen 1:1 in „Es fehlt noch: …". Schritt 3 (Anordnung) hat nie
+ * welche: eine Reihenfolge gibt es nur mit Teilrezept, und die ist immer
+ * gesetzt.
+ *
+ * Freie Navigation bleibt davon unberührt — gesperrt wird nur das
+ * Veröffentlichen, nicht der Weg zwischen den Schritten.
+ */
+function wizardStufen(f) {
+  const zutaten = (f.ingredients || []).filter(z => z.name?.trim())
+  const substanziell = (f.steps || []).filter(s => (s.instruction || '').trim().length >= MIN_SCHRITT_ZEICHEN)
+
+  const blocker = [
+    [!f.title.trim() && 'Titel'],
+    [zutaten.length === 0 && 'mindestens eine Zutat'],
+    [],
+    [substanziell.length === 0 && `ein Zubereitungsschritt (mind. ${MIN_SCHRITT_ZEICHEN} Zeichen)`],
+    [
+      f.prepTime === '' && 'Vorbereitungszeit',
+      f.cookTime === '' && 'Zubereitungszeit',
+      f.servings === '' && 'Portionen',
+      !f.type && 'Art',
+      !f.course && 'Gang',
+      !f.difficulty && 'Schwierigkeit',
+    ],
+  ]
+
+  return blocker.map(b => ({ blocker: b.filter(Boolean) }))
+}
+
 // Wisch-Navigation im Wizard (FR-Wizard-Swipe).
 const SWIPE_START = 8      // ab hier gilt die Bewegung als Wisch, nicht als Tipp
 const SWIPE_SCHWELLE = 60  // ab hier wechselt der Schritt statt zurückzuschnappen
@@ -665,7 +705,10 @@ export default function RecipeForm() {
   // Der leere State liess das Publish-Gate „Portionen fehlt" melden und haette
   // beim Speichern null persistiert, obwohl im Formular 4 stand.
   const [servings, setServings] = useState('4')
-  const [difficulty, setDifficulty] = useState(3)
+  // Bewusst ohne Vorbelegung: die Schwierigkeit ist seit FR-Wizard-Gates
+  // Pflicht, und eine stille 3 hätte das Gate zu einer Attrappe gemacht — der
+  // Wert wäre immer gesetzt gewesen, ohne dass jemand ihn gewählt hat.
+  const [difficulty, setDifficulty] = useState(null)
   const [source, setSource] = useState('')
   const [type, setType] = useState('kochen')
   const [course, setCourse] = useState('')
@@ -887,7 +930,9 @@ export default function RecipeForm() {
           prepTime: r.prep_time != null ? String(r.prep_time) : '',
           cookTime: r.cook_time != null ? String(r.cook_time) : '',
           servings: r.servings != null ? String(r.servings) : '',
-          difficulty: r.difficulty ?? 5,
+          // Kein Ersatzwert: ein Entwurf ohne Schwierigkeit soll auch im
+          // Formular ohne dastehen, sonst fiele das Gate darauf herein.
+          difficulty: r.difficulty ?? null,
           source: r.source || '',
           type: r.type || 'kochen',
           selectedCats: r.categories,
@@ -1353,14 +1398,10 @@ export default function RecipeForm() {
 
   // Pflichtfeld-Gate fürs Veröffentlichen (§05 Feinschliff). Was fehlt, wird
   // benannt — ein bloss gesperrter Button erklärt sich nicht von selbst.
-  const fehlendeFelder = [
-    !title.trim() && 'Titel',
-    prepTime === '' && 'Vorbereitungszeit',
-    cookTime === '' && 'Zubereitungszeit',
-    servings === '' && 'Portionen',
-    !type && 'Art',
-    !course && 'Gang',
-  ].filter(Boolean)
+  const stufen = wizardStufen({
+    title, ingredients, steps, prepTime, cookTime, servings, type, course, difficulty,
+  })
+  const fehlendeFelder = stufen.flatMap(s => s.blocker)
   const kannVeroeffentlichen = fehlendeFelder.length === 0
 
   // Autosave-Indikator (§05) — nur im Entwurf-Modus. Vier Zustände als
@@ -2258,7 +2299,9 @@ export default function RecipeForm() {
               <div style={{ marginBottom: '1.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', marginBottom: '0.625rem' }}>
                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', textTransform: 'uppercase' }}>Schwierigkeit</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: 'var(--subtext)' }}>· {['Sehr einfach', 'Einfach', 'Mittel', 'Schwer', 'Sehr schwer'][difficulty - 1]}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.72rem', color: difficulty ? 'var(--subtext)' : 'var(--accent)' }}>
+                    · {difficulty ? ['Sehr einfach', 'Einfach', 'Mittel', 'Schwer', 'Sehr schwer'][difficulty - 1] : 'noch nicht gewählt'}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', gap: '0.3rem' }}>
                   {[1, 2, 3, 4, 5].map(n => (
