@@ -40,3 +40,14 @@ class Allergen(Base):
     name = Column(String(255), nullable=False, unique=True)
 
     recipes = relationship("Recipe", secondary=recipe_allergens, back_populates="allergens")
+
+
+class Exclusion(Base):
+    """Was jemand generell nicht isst (Schweinefleisch, Alkohol …) — analog zu
+    DietLabel/Allergen, aber vorerst nur am User-Profil (Ü18). Eine Rezept-Seite
+    bekommt sie erst mit dem Folge-FR (FR-Ernährungs-Filter)."""
+
+    __tablename__ = "exclusions"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False, unique=True)

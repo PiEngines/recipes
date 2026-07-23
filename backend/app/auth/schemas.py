@@ -31,6 +31,12 @@ class TokenResponse(BaseModel):
     notifications: list[Notification] | None = None
 
 
+class TaxItem(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -48,6 +54,13 @@ class UserResponse(BaseModel):
     # sind.
     preferences: str | None = None
     preferences_public: bool = False
+    # Ernährungsprofil (Ü18) — aufgelöst und vollständig, auch das Private:
+    # das hier ist die eigene Sicht (/auth/me), keine fremde.
+    diet_labels: list[TaxItem] = []
+    allergens: list[TaxItem] = []
+    exclusions: list[TaxItem] = []
+    diet_public: bool = False
+    exclusions_public: bool = False
 
     model_config = {"from_attributes": True}
 

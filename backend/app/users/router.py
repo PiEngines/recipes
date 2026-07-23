@@ -11,6 +11,7 @@ from app.auth.password import hash_password, verify_password
 from app.database import get_db
 from app.email_service import send_verification_email, send_welcome_email
 from app.models import Recipe, User
+from app.models.category import Allergen, DietLabel, Exclusion
 from app.models.user import UserRole
 
 router = APIRouter(prefix="/api/users", tags=["users"])
@@ -35,6 +36,21 @@ def _validate_username(username: str, db: Session, exclude_user_id: int | None =
     if query.first() is not None:
         raise HTTPException(status_code=409, detail="Username bereits vergeben")
     return name
+
+
+def _aufloesen(db: Session, modell, ids: list[int], label: str) -> list:
+    """IDs zu ORM-Objekten auflösen. Unbekannte (oder doppelte, die auf
+    weniger Treffer fallen) → 422 — das Profil soll nur auf echte Taxonomie
+    zeigen."""
+    eindeutig = list(dict.fromkeys(ids))  # Reihenfolge halten, Duplikate raus
+    if not eindeutig:
+        return []
+    treffer = db.query(modell).filter(modell.id.in_(eindeutig)).all()
+    if len(treffer) != len(eindeutig):
+        gefunden = {t.id for t in treffer}
+        fehlt = [i for i in eindeutig if i not in gefunden]
+        raise HTTPException(status_code=422, detail=f"Unbekannte {label}-IDs: {fehlt}")
+    return treffer
 
 
 def _is_disposable(email: str, db: Session) -> bool:
@@ -78,6 +94,13 @@ class PatchMeBody(BaseModel):
     # schaltet die Anzeige auf dem Profil frei.
     preferences: str | None = Field(default=None, max_length=2000)
     preferences_public: bool | None = None
+    # Ernährungsprofil (Ü18): je eine vollständige ID-Liste — sie *ersetzt* die
+    # bestehende Auswahl (leere Liste = alles abwählen). `None` = unverändert.
+    diet_label_ids: list[int] | None = None
+    allergen_ids: list[int] | None = None
+    exclusion_ids: list[int] | None = None
+    diet_public: bool | None = None
+    exclusions_public: bool | None = None
 
 
 class DeleteMeBody(BaseModel):
@@ -164,6 +187,17 @@ def patch_me(
         current_user.preferences = vorlieben or None
     if body.preferences_public is not None:
         current_user.preferences_public = body.preferences_public
+    # Ernährungsprofil (Ü18): jede übergebene Liste ersetzt die Auswahl komplett.
+    if body.diet_label_ids is not None:
+        current_user.diet_labels = _aufloesen(db, DietLabel, body.diet_label_ids, "Ernährungsweise")
+    if body.allergen_ids is not None:
+        current_user.allergens = _aufloesen(db, Allergen, body.allergen_ids, "Allergie")
+    if body.exclusion_ids is not None:
+        current_user.exclusions = _aufloesen(db, Exclusion, body.exclusion_ids, "Ausschluss")
+    if body.diet_public is not None:
+        current_user.diet_public = body.diet_public
+    if body.exclusions_public is not None:
+        current_user.exclusions_public = body.exclusions_public
     db.commit()
     db.refresh(current_user)
     return current_user

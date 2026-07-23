@@ -1,6 +1,14 @@
 from app.models.access import DisposableEmailDomain, RecipeAccess
-from app.models.associations import recipe_allergens, recipe_categories, recipe_diet_labels, recipe_tags
-from app.models.category import Allergen, Category, DietLabel, Tag
+from app.models.associations import (
+    recipe_allergens,
+    recipe_categories,
+    recipe_diet_labels,
+    recipe_tags,
+    user_allergens,
+    user_diet_labels,
+    user_exclusions,
+)
+from app.models.category import Allergen, Category, DietLabel, Exclusion, Tag
 from app.models.collection import (
     Collection,
     CollectionItem,
@@ -58,6 +66,7 @@ __all__ = [
     "Tag",
     "DietLabel",
     "Allergen",
+    "Exclusion",
     "Collection",
     "CollectionRecipe",
     "CollectionItem",
@@ -68,6 +77,9 @@ __all__ = [
     "recipe_tags",
     "recipe_diet_labels",
     "recipe_allergens",
+    "user_diet_labels",
+    "user_allergens",
+    "user_exclusions",
     "Media",
     "ExternalPost",
     "ExternalPlatform",

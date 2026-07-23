@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.category import DietLabel, Allergen
+from app.models.category import DietLabel, Allergen, Exclusion
 from app.models.recipe import Recipe
 
 router = APIRouter(prefix="/api", tags=["taxonomy"])
@@ -13,6 +13,10 @@ def list_diet_labels(db: Session = Depends(get_db)):
 @router.get("/allergens")
 def list_allergens(db: Session = Depends(get_db)):
     return [{"id": a.id, "name": a.name} for a in db.query(Allergen).order_by(Allergen.name).all()]
+
+@router.get("/exclusions")
+def list_exclusions(db: Session = Depends(get_db)):
+    return [{"id": e.id, "name": e.name} for e in db.query(Exclusion).order_by(Exclusion.name).all()]
 
 @router.get("/courses")
 def list_courses(db: Session = Depends(get_db)):

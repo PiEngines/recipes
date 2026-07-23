@@ -45,7 +45,15 @@ class User(Base):
     # den Toggle bleiben sie privat und sind nur in den Einstellungen sichtbar.
     preferences = Column(String(2000), nullable=True)
     preferences_public = Column(Boolean, nullable=False, default=False)
+    # Ernährungsprofil (Ü18): Ernährungsweise und Ausschlüsse können aufs Profil
+    # geteilt werden, Allergien bewusst nie (kein Flag) — sie werden nie
+    # öffentlich gezeigt und nie als „sicher"/Garantie gelabelt.
+    diet_public = Column(Boolean, nullable=False, default=False)
+    exclusions_public = Column(Boolean, nullable=False, default=False)
 
     recipes = relationship("Recipe", back_populates="author", foreign_keys="Recipe.created_by")
     collections = relationship("Collection", back_populates="owner")
+    diet_labels = relationship("DietLabel", secondary="user_diet_labels")
+    allergens = relationship("Allergen", secondary="user_allergens")
+    exclusions = relationship("Exclusion", secondary="user_exclusions")
     cooked_logs = relationship("CookedLog", back_populates="cooked_by_user")
