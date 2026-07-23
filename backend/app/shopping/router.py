@@ -33,6 +33,7 @@ from app.shopping.schemas import (
     ShoppingSumItem,
 )
 from app.utils.scaling import scale_amount
+from app.utils.units import normalize_label
 
 router = APIRouter(prefix="/api/shopping-list", tags=["shopping-list"])
 
@@ -131,7 +132,9 @@ def add_manual_item(
         user_id=current_user.id,
         name=body.name.strip(),
         amount=(body.amount or None),
-        unit=(body.unit or None),
+        # Nur die Einheit (BUG-34): der Name bleibt so, wie er getippt wurde —
+        # die Namens-Kanonisierung ist FR-N und bewusst separat.
+        unit=(normalize_label(body.unit) or None),
         checked=False,
         sort_order=_next_sort_order(db, current_user),
     )
@@ -211,7 +214,7 @@ def patch_item(
     if "amount" in data:
         item.amount = data["amount"] or None
     if "unit" in data:
-        item.unit = data["unit"] or None
+        item.unit = normalize_label(data["unit"]) or None
     db.commit()
     db.refresh(item)
     return ShoppingItem.model_validate(item)

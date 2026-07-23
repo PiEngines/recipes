@@ -64,6 +64,71 @@ def test_leerer_name_422(ctx):
     assert c.post("/api/shopping-list/items", json={"name": ""}).status_code == 422
 
 
+# ── Einheiten kanonisch schreiben (BUG-34) ───────────────────────────────────
+#
+# Die Ansicht „Nach Rezept" gibt `item.unit` roh aus. Ohne Normalisierung beim
+# Schreiben stünde dort „Gramm" neben den kanonisierten Rezept-Einheiten.
+
+@pytest.mark.parametrize("eingabe, erwartet", [
+    ("Gramm", "g"),
+    ("gr", "g"),
+    ("esslöffel", "EL"),
+    ("Stück", "St."),
+    # Unbekanntes bleibt erhalten — eine fremde Einheit ist keine falsche.
+    ("Handvoll", "Handvoll"),
+])
+def test_post_kanonisiert_die_einheit(ctx, eingabe, erwartet):
+    c, _, _ = ctx
+    r = c.post("/api/shopping-list/items", json={"name": "Mehl", "amount": "500", "unit": eingabe})
+    assert r.status_code == 201
+    assert r.json()["unit"] == erwartet
+
+
+@pytest.mark.parametrize("eingabe", [None, ""])
+def test_post_ohne_einheit_bleibt_leer(ctx, eingabe):
+    c, _, _ = ctx
+    r = c.post("/api/shopping-list/items", json={"name": "Brot", "unit": eingabe})
+    assert r.status_code == 201
+    assert r.json()["unit"] is None
+
+
+@pytest.mark.parametrize("eingabe, erwartet", [
+    ("Gramm", "g"),
+    ("esslöffel", "EL"),
+    ("Handvoll", "Handvoll"),
+])
+def test_patch_kanonisiert_die_einheit(ctx, eingabe, erwartet):
+    c, db, _ = ctx
+    db.add(ShoppingListItem(id=90, user_id=1, name="Mehl", amount="500", unit="kg", sort_order=0))
+    db.commit()
+
+    r = c.patch("/api/shopping-list/items/90", json={"unit": eingabe})
+    assert r.status_code == 200
+    assert r.json()["unit"] == erwartet
+
+
+@pytest.mark.parametrize("eingabe", [None, ""])
+def test_patch_leert_die_einheit(ctx, eingabe):
+    c, db, _ = ctx
+    db.add(ShoppingListItem(id=91, user_id=1, name="Mehl", amount="500", unit="g", sort_order=0))
+    db.commit()
+
+    r = c.patch("/api/shopping-list/items/91", json={"unit": eingabe})
+    assert r.status_code == 200
+    assert r.json()["unit"] is None
+
+
+def test_patch_laesst_den_namen_unangetastet(ctx):
+    """Nur die Einheit — die Namens-Kanonisierung ist FR-N, bewusst separat."""
+    c, db, _ = ctx
+    db.add(ShoppingListItem(id=92, user_id=1, name="gr mehl", amount="50", unit=None, sort_order=0))
+    db.commit()
+
+    r = c.patch("/api/shopping-list/items/92", json={"unit": "Gramm"})
+    assert r.status_code == 200
+    assert r.json() == {**r.json(), "unit": "g", "name": "gr mehl"}
+
+
 # ── aus Rezept übernehmen ────────────────────────────────────────────────────
 
 def test_from_recipe_skaliert_auf_portionen(ctx):
