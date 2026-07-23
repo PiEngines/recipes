@@ -12,6 +12,7 @@ import FavoriteHeart from '../components/FavoriteHeart'
 import AuthorLink from '../components/AuthorLink'
 import RatingStars from '../components/RatingStars'
 import { isChefkochOrAbove, isKochOrAbove } from '../utils/roles'
+import { difficultyLabel } from '../utils/difficulty'
 
 // ── Constants & utilities ─────────────────────────────────────────────────────
 
@@ -94,10 +95,6 @@ function buildHighlightedHtml(text, ingredientName) {
   const pattern = new RegExp(escapeHtml(ingredientName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
   return escaped.replace(pattern, m => `<mark class="ingredient-highlight">${m}</mark>`)
 }
-
-// ── Difficulty labels ─────────────────────────────────────────────────────────
-
-const DIFF_LABELS = ['', 'Sehr leicht', 'Leicht', 'Mittel', 'Schwer', 'Sehr schwer']
 
 // ── Shared button styles ──────────────────────────────────────────────────────
 
@@ -217,7 +214,7 @@ function MetaBar({ recipe }) {
     recipe.prep_time ? { label: 'Vorber.', icon: 'ti-clock', time: recipe.prep_time } : null,
     recipe.cook_time ? { label: 'Kochen', icon: 'ti-flame', time: recipe.cook_time } : null,
     { label: 'Art', text: recipe.type === 'backen' ? 'Backen' : 'Kochen' },
-    recipe.difficulty ? { label: 'Schwierigk.', text: DIFF_LABELS[recipe.difficulty] || String(recipe.difficulty) } : null,
+    recipe.difficulty ? { label: 'Schwierigk.', text: difficultyLabel(recipe.difficulty) } : null,
   ].filter(Boolean)
 
   return (

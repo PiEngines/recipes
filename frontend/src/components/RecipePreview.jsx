@@ -11,6 +11,8 @@
  * Es gibt hier bewusst **keinen** Weg zum Veröffentlichen — nur zurück in den
  * Editor.
  */
+import { difficultyLabel } from '../utils/difficulty'
+
 const TYP_LABEL = {
   kochen: 'Kochen', backen: 'Backen', grillen: 'Grillen', braten: 'Braten',
   daempfen: 'Dämpfen', einkochen: 'Einkochen', rohkost: 'Rohkost',
@@ -99,7 +101,9 @@ export default function RecipePreview({
           <Meta label="Portionen" wert={servings !== '' ? servings : null} />
           <Meta label="Art" wert={TYP_LABEL[type] || type} />
           <Meta label="Gang" wert={GANG_LABEL[course] || course} />
-          <Meta label="Schwierigkeit" wert={difficulty ? `${difficulty}/10` : null} />
+          {/* Wort-Label statt „x/10" — die Skala hat fünf Stufen, und die
+              Detailseite benennt sie genauso (BUG-65). */}
+          <Meta label="Schwierigkeit" wert={difficultyLabel(difficulty)} />
         </div>
 
         {(categories.length > 0 || tags.length > 0) && (
