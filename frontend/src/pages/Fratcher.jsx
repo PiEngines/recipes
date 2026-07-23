@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import BackButton from '../components/BackButton'
@@ -24,15 +24,9 @@ const CATEGORIES = [
   { label: 'Frisches',        items: ['Zitrone','Ingwer','Apfel','Birne','Banane','Beeren','Knoblauchzehe'] },
 ]
 
-function matchRecipe(recipe, userIngredients, basicsSet) {
-  const ui = userIngredients.map(i => i.toLowerCase())
-  const recipeIngredients = recipe.ingredients?.map(i => i.name) || []
-  const relevant = recipeIngredients.filter(ing => !basicsSet.has(ing.toLowerCase()))
-  if (relevant.length === 0) return { missing: [], pct: 0, skip: true }
-  const missing = relevant.filter(ing => !ui.includes(ing.toLowerCase()))
-  const pct = (relevant.length - missing.length) / relevant.length
-  return { missing, pct }
-}
+// Wartezeit, bevor eine Zutaten-/Basics-Änderung den Server fragt. Wer drei
+// Zutaten hintereinander antippt, löst so einen Request aus, nicht drei.
+const ANFRAGE_VERZOEGERUNG = 250
 
 export default function Fratcher() {
   const navigate = useNavigate()
@@ -41,12 +35,12 @@ export default function Fratcher() {
   const [searchText, setSearchText] = useState('')
   const [showAutocomplete, setShowAutocomplete] = useState(false)
   const [view, setView] = useState('input')
-  const [results, setResults] = useState({ sofort: [], fast: [], inspiration: [] })
   const [loading, setLoading] = useState(false)
-  const [allRecipes, setAllRecipes] = useState([])
-  const [recipeImgs, setRecipeImgs] = useState({})
+  // Flache Trefferliste vom Server — `pct` und `missing` sind dort schon
+  // gerechnet. Die Buckets entstehen daraus weiter unten im Client, damit ein
+  // Moduswechsel keinen neuen Request braucht.
+  const [treffer, setTreffer] = useState([])
   const [activeIndex, setActiveIndex] = useState(-1)
-  const imgFetchedRef = useRef(new Set())
 
   // Nutzer-editierbare Basics (Commit 2) — Start aus DEFAULT_BASICS, persistiert in localStorage
   const [basics, setBasics] = useState(() => {
@@ -64,58 +58,42 @@ export default function Fratcher() {
     try { localStorage.setItem(BASICS_STORAGE_KEY, JSON.stringify(basics)) } catch { /* ignore */ }
   }, [basics])
 
-  // Fetch recipe list, then all individual details (needed for ingredients)
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      try {
-        const { data } = await client.get('/api/recipes', { params: { page_size: 50 } })
-        const list = data.items || []
-        const details = await Promise.all(
-          list.map(r => client.get(`/api/recipes/${r.id}`).then(res => res.data).catch(() => r))
-        )
-        setAllRecipes(details)
-      } catch {
-        // silent
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
-
-  // Recompute matches whenever ingredients, mode, or recipe data changes
+  // Ein Call statt bis zu ~75 (Liste + Detail je Rezept + Media je Treffer):
+  // Deckung, Prozente und Titelbild kommen fertig vom Server (BUG-57/58).
+  // Verglichen wird dort über Synonyme und rapidfuzz — „Tomaten" deckt jetzt
+  // „Tomate", was der alte `includes()`-Vergleich hier nicht konnte.
   useEffect(() => {
     if (ingredients.length === 0) {
-      setResults({ sofort: [], fast: [], inspiration: [] })
-      return
+      setTreffer([])
+      setLoading(false)
+      return undefined
     }
+    const controller = new AbortController()
+    setLoading(true)
+    const timer = setTimeout(() => {
+      client.post('/api/fratcher/match', { ingredients, basics }, { signal: controller.signal })
+        .then(({ data }) => setTreffer(data.matches || []))
+        .catch(err => { if (err.name !== 'CanceledError') setTreffer([]) })
+        // Nur der noch gültige Lauf darf die Ladeanzeige ausschalten — sonst
+        // nimmt ein abgebrochener Vorgänger sie dem gerade laufenden weg.
+        .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    }, ANFRAGE_VERZOEGERUNG)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [ingredients, basics])
+
+  // Buckets aus der Server-Trefferliste — bewusst hier und nicht im Endpoint:
+  // ein Moduswechsel ordnet damit nur neu und holt nichts nach.
+  const results = useMemo(() => {
     const sofort = [], fast = [], insp = []
-    const basicsSet = new Set(basics.map(b => b.toLowerCase()))
-    allRecipes.forEach(recipe => {
-      const { missing, pct, skip } = matchRecipe(recipe, ingredients, basicsSet)
-      if (skip) return
-      if (missing.length === 0) sofort.push({ ...recipe, missing, pct })
-      else if (missing.length <= 2) fast.push({ ...recipe, missing, pct })
-      else if (mode === 'inspiration' && pct >= 0.5) insp.push({ ...recipe, missing, pct })
-    })
+    for (const r of treffer) {
+      if (r.missing.length === 0) sofort.push(r)
+      else if (r.missing.length <= 2) fast.push(r)
+      else if (mode === 'inspiration' && r.pct >= 0.5) insp.push(r)
+    }
     const byIdDesc = (a, b) => b.id - a.id
     sofort.sort(byIdDesc); fast.sort(byIdDesc); insp.sort(byIdDesc)
-    setResults({ sofort, fast, inspiration: insp })
-
-    // Lazy image fetching for matched recipes (cached via ref)
-    const toFetch = [...sofort, ...fast, ...insp].slice(0, 24)
-    toFetch.forEach(r => {
-      if (imgFetchedRef.current.has(r.id)) return
-      imgFetchedRef.current.add(r.id)
-      client.get(`/api/media/entity/recipe/${r.id}`)
-        .then(({ data: media }) => {
-          const img = media.find(m => m.is_primary && m.media_type === 'image') ?? null
-          setRecipeImgs(prev => ({ ...prev, [r.id]: img?.thumbnail_url || img?.url || null }))
-        })
-        .catch(() => {})
-    })
-  }, [ingredients, mode, allRecipes, basics])
+    return { sofort, fast, inspiration: insp }
+  }, [treffer, mode])
 
   // Autocomplete: client-side from CATEGORIES only
   const allCategoryItems = CATEGORIES.flatMap(c => c.items)
@@ -182,12 +160,13 @@ export default function Fratcher() {
 
   const fmtTime = t => !t ? '–' : t < 60 ? `${t} Min.` : `${Math.floor(t / 60)} Std.`
   const missingLabel = n => n === 1 ? '1 fehlt' : `${n} fehlen`
-  const catOf = recipe => getCategoryColor(recipe.categories?.[0]?.name)
+  const catOf = recipe => getCategoryColor(recipe.category)
   const cardImgStyle = recipe => {
-    const url = recipeImgs[recipe.id]
+    // Beide Größen kommen aus der Antwort — kein Media-Call je Treffer mehr.
+    const url = recipe.media?.thumbnail_url || recipe.media?.url
     return url
       ? { backgroundImage: `url(${url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-      : { background: categoryGradient(recipe.categories?.[0]?.name) }
+      : { background: categoryGradient(recipe.category) }
   }
 
   const modeHint = mode === 'kochen'
@@ -207,7 +186,7 @@ export default function Fratcher() {
   // Kategorie·Zeit-Overline (DM Mono, Kategorie-Farbe) — SPEC §09
   const renderCardOverline = recipe => {
     const c = catOf(recipe)
-    const label = [c.label || recipe.categories?.[0]?.name, fmtTime(recipe.cook_time)].filter(Boolean).join(' · ')
+    const label = [c.label || recipe.category, fmtTime(recipe.cook_time)].filter(Boolean).join(' · ')
     if (!label) return null
     return (
       <p style={{ margin: '0 0 3px', fontFamily: 'var(--font-mono)', fontWeight: 400, fontSize: 8, letterSpacing: '.12em', textTransform: 'uppercase', color: c.base }}>

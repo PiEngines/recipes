@@ -66,9 +66,12 @@ def match(
         current_user,
         db,
     )
-    # Zutaten in derselben Runde — sonst wäre das N+1 nur vom Client hierher
-    # gewandert.
-    rezepte = q.options(selectinload(Recipe.ingredients)).all()
+    # Zutaten und Kategorien in derselben Runde — sonst wäre das N+1 nur vom
+    # Client hierher gewandert.
+    rezepte = q.options(
+        selectinload(Recipe.ingredients),
+        selectinload(Recipe.categories),
+    ).all()
 
     treffer: list[FratcherMatch] = []
     for rezept in rezepte:
@@ -87,6 +90,8 @@ def match(
             title=rezept.title,
             pct=(len(relevant) - len(fehlend)) / len(relevant),
             missing=fehlend,
+            category=rezept.categories[0].name if rezept.categories else None,
+            cook_time=rezept.cook_time,
         ))
 
     # Bilder erst für die tatsächlichen Treffer und in einer Query — dieselbe

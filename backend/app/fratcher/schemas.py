@@ -29,6 +29,11 @@ class FratcherMatch(BaseModel):
     # Namen der Zutaten, die der Nutzer nicht hat (Basics zählen nie mit).
     missing: list[str]
     media: FratcherMedia | None = None
+    # Die Karte zeigt „Kategorie · Zeit" als Overline und färbt sich nach der
+    # Kategorie — beides holte sie bisher aus dem Rezept-Detail. Nur die erste
+    # Kategorie, mehr wertet die Karte nicht aus.
+    category: str | None = None
+    cook_time: int | None = None
 
 
 class FratcherMatchResponse(BaseModel):

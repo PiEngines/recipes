@@ -12,7 +12,7 @@ from sqlalchemy import event
 from app.auth.dependencies import get_current_user
 from app.database import get_db
 from app.fratcher.router import router as fratcher_router
-from app.models import Ingredient, Recipe, User
+from app.models import Category, Ingredient, Recipe, User
 from app.models.media import Media
 from app.models.user import UserRole
 from tests.dbfixtures import make_session_factory, make_user
@@ -152,6 +152,30 @@ def test_ohne_bild_bleibt_media_leer(ctx):
     c, _, _ = ctx
     treffer = _match(c, ["Tomate"])
     assert treffer[1]["media"] is None
+
+
+# ── Felder für die Karte ─────────────────────────────────────────────────────
+
+def test_kategorie_und_zeit_kommen_mit(ctx):
+    """Die Karte zeigt „Kategorie · Zeit" — bisher aus dem Rezept-Detail."""
+    c, db, _ = ctx
+    kategorie = Category(id=1, name="Pasta", slug="pasta")
+    db.add(kategorie)
+    rezept = db.get(Recipe, 1)
+    rezept.categories.append(kategorie)
+    rezept.cook_time = 25
+    db.commit()
+
+    treffer = _match(c, ["Tomate", "Zwiebel"])
+    assert treffer[1]["category"] == "Pasta"
+    assert treffer[1]["cook_time"] == 25
+
+
+def test_ohne_kategorie_und_zeit_bleiben_die_felder_leer(ctx):
+    c, _, _ = ctx
+    treffer = _match(c, ["Tomate"])
+    assert treffer[1]["category"] is None
+    assert treffer[1]["cook_time"] is None
 
 
 # ── Sichtbarkeit ─────────────────────────────────────────────────────────────
