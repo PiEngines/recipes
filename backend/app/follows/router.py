@@ -145,6 +145,9 @@ def get_profile(
         username=user.username,
         avatar_url=user.avatar_url,
         bio=user.bio,
+        # Privat bleibt privat: die Vorlieben nur mitgeben, wenn der Nutzer sie
+        # freigegeben hat — sonst gar nicht erst über die Leitung.
+        preferences=user.preferences if user.preferences_public else None,
         follower_count=_follower_count(db, user.id),
         following_count=_following_count(db, user.id),
         # Sich selbst folgt man nie.

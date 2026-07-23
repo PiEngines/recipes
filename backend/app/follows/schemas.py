@@ -33,3 +33,6 @@ class UserProfile(BaseModel):
     follower_count: int
     following_count: int
     is_following: bool
+    # Vorlieben (BUG-41): nur gefüllt, wenn der Nutzer sie freigegeben hat —
+    # die Gate-Logik sitzt im Endpoint, hier steht dann schlicht `None`.
+    preferences: str | None = None

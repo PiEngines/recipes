@@ -43,6 +43,11 @@ class UserResponse(BaseModel):
     email_notifications: bool = True
     dark_mode_preference: str | None = None
     email_verified: bool = False
+    # Eigene Sicht (BUG-41): die Vorlieben roh, unabhängig vom Public-Toggle —
+    # der Nutzer soll sie in den Einstellungen auch dann lesen, wenn sie privat
+    # sind.
+    preferences: str | None = None
+    preferences_public: bool = False
 
     model_config = {"from_attributes": True}
 

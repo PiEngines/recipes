@@ -61,6 +61,8 @@ class UserListItem(BaseModel):
     is_active: bool
     created_at: datetime
     bio: str | None = None
+    preferences: str | None = None
+    preferences_public: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -72,6 +74,10 @@ class PatchMeBody(BaseModel):
     dark_mode_preference: str | None = None
     # Leerstring löscht die Bio (setzt sie auf NULL).
     bio: str | None = Field(default=None, max_length=500)
+    # Vorlieben (BUG-41): Leerstring löscht sie (NULL). `preferences_public`
+    # schaltet die Anzeige auf dem Profil frei.
+    preferences: str | None = Field(default=None, max_length=2000)
+    preferences_public: bool | None = None
 
 
 class DeleteMeBody(BaseModel):
@@ -153,6 +159,11 @@ def patch_me(
     if body.bio is not None:
         bio = body.bio.strip()
         current_user.bio = bio or None
+    if body.preferences is not None:
+        vorlieben = body.preferences.strip()
+        current_user.preferences = vorlieben or None
+    if body.preferences_public is not None:
+        current_user.preferences_public = body.preferences_public
     db.commit()
     db.refresh(current_user)
     return current_user

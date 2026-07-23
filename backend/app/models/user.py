@@ -40,6 +40,11 @@ class User(Base):
     dark_mode_preference = Column(String(10))
     status = Column(String(20), nullable=False, default="active")
     email_verified = Column(Boolean, nullable=False, default=False)
+    # Vorlieben (BUG-41): Freitext (MVP — strukturierte Tags wären ein eigener
+    # FR). `preferences_public` schaltet die Anzeige auf dem Profil frei; ohne
+    # den Toggle bleiben sie privat und sind nur in den Einstellungen sichtbar.
+    preferences = Column(String(2000), nullable=True)
+    preferences_public = Column(Boolean, nullable=False, default=False)
 
     recipes = relationship("Recipe", back_populates="author", foreign_keys="Recipe.created_by")
     collections = relationship("Collection", back_populates="owner")

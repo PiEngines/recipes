@@ -92,7 +92,7 @@ def test_bestandsfelder_unveraendert(ctx):
         assert feld in body
     assert set(UserListItem.model_fields) == {
         "id", "name", "email", "username", "role", "status",
-        "is_active", "created_at", "bio",
+        "is_active", "created_at", "bio", "preferences", "preferences_public",
     }
 
 
@@ -100,3 +100,55 @@ def test_bio_ist_optional_im_schema():
     """`null` bleibt erlaubt — kein Pflichtfeld."""
     schema = UserListItem.model_json_schema()
     assert "bio" not in schema.get("required", [])
+
+
+# ── Vorlieben (BUG-41) ───────────────────────────────────────────────────────
+
+def test_vorlieben_sind_initial_null_und_privat(ctx):
+    c, _, _ = ctx
+    body = c.patch("/api/users/me", json={}).json()
+    assert body["preferences"] is None
+    assert body["preferences_public"] is False
+
+
+def test_vorlieben_setzen_und_auslesen(ctx):
+    c, db, ich = ctx
+    r = c.patch("/api/users/me", json={"preferences": "Wenig Schärfe, viel Knoblauch."})
+    assert r.status_code == 200
+    assert r.json()["preferences"] == "Wenig Schärfe, viel Knoblauch."
+    db.refresh(ich)
+    assert ich.preferences == "Wenig Schärfe, viel Knoblauch."
+
+
+def test_vorlieben_werden_getrimmt(ctx):
+    c, _, _ = ctx
+    assert c.patch("/api/users/me", json={"preferences": "  mit Rand  "}).json()["preferences"] == "mit Rand"
+
+
+def test_leerstring_loescht_die_vorlieben(ctx):
+    c, db, ich = ctx
+    c.patch("/api/users/me", json={"preferences": "erst was"})
+    r = c.patch("/api/users/me", json={"preferences": ""})
+    assert r.json()["preferences"] is None
+    db.refresh(ich)
+    assert ich.preferences is None
+
+
+def test_public_toggle_umschalten(ctx):
+    c, db, ich = ctx
+    r = c.patch("/api/users/me", json={"preferences_public": True})
+    assert r.json()["preferences_public"] is True
+    db.refresh(ich)
+    assert ich.preferences_public is True
+
+    r = c.patch("/api/users/me", json={"preferences_public": False})
+    assert r.json()["preferences_public"] is False
+
+
+def test_toggle_und_text_bleiben_unabhaengig(ctx):
+    """Nur den Toggle setzen lässt den Text stehen und umgekehrt."""
+    c, _, _ = ctx
+    c.patch("/api/users/me", json={"preferences": "Text", "preferences_public": True})
+    r = c.patch("/api/users/me", json={"preferences_public": False})
+    assert r.json()["preferences"] == "Text"
+    assert r.json()["preferences_public"] is False

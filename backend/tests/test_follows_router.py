@@ -174,12 +174,25 @@ def test_profil_auf_geloeschten_user_404(ctx):
     assert c.get("/api/users/4/profile").status_code == 404
 
 
+def test_profil_zeigt_vorlieben_nur_wenn_freigegeben(ctx):
+    c, db, _, users = ctx
+    users["anna"].preferences = "Wenig Schärfe."
+    users["anna"].preferences_public = False
+    db.commit()
+    # Privat → gar nicht erst über die Leitung.
+    assert c.get("/api/users/2/profile").json()["preferences"] is None
+
+    users["anna"].preferences_public = True
+    db.commit()
+    assert c.get("/api/users/2/profile").json()["preferences"] == "Wenig Schärfe."
+
+
 def test_profil_schema_ohne_email(ctx):
     c, _, _, _ = ctx
     profil = c.get("/api/users/2/profile").json()
     assert set(profil) == {
         "id", "name", "username", "avatar_url", "bio",
-        "follower_count", "following_count", "is_following",
+        "follower_count", "following_count", "is_following", "preferences",
     }
 
 
