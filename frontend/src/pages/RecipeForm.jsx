@@ -9,7 +9,51 @@ import { isKochOrAbove } from '../utils/roles'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const UNITS = ['g', 'kg', 'ml', 'l', 'EL', 'TL', 'Stück', 'Prise', 'Bund', 'Scheibe', 'Dose', 'Packung', 'nach Geschmack']
+// Kanonisches Label → Schreibweisen, 1:1 gespiegelt aus
+// `backend/app/utils/units.py`. Der Client braucht sie, damit die Live-Vorschau
+// im Wizard schon beim Tippen richtig zerlegt — „50gr mehl" landete sonst bis
+// zum nächsten Reload als Name „gr mehl" in der Liste (FR-N).
+//
+// TECH-DEBT (FR-N Stufe 2): das ist eine **zweite** Einheitenliste. Die eine
+// Quelle für Front und Back — Client holt die Liste über einen Endpoint —
+// kommt in einer späteren Runde. Bis dahin: Änderungen hier und in `units.py`
+// gehören zusammen.
+const UNIT_SYNONYME = {
+  'g': ['gr', 'gramm'],
+  'kg': ['kilo', 'kilogramm'],
+  'ml': ['milliliter'],
+  'l': ['ltr', 'liter'],
+  'EL': ['esslöffel', 'essloeffel', 'essl'],
+  'TL': ['teelöffel', 'teeloeffel', 'teel'],
+  'Prise': ['prisen'],
+  'Msp.': ['msp', 'messerspitze'],
+  'Pkg.': ['pkg', 'pck', 'packung'],
+  'St.': ['st', 'stk', 'stück', 'stueck'],
+}
+
+// Einheiten ohne Kanon: `normalize_label` reicht sie unverändert durch, sie
+// gehören trotzdem in Vorschlagsliste und Parser.
+const FREITEXT_UNITS = ['Bund', 'Scheibe', 'Dose', 'nach Geschmack']
+
+// Vorschlagsliste der Einheiten-Combobox: nur die kanonischen Formen. Wer hier
+// „Stück" wählte, fand nach dem Speichern „St." vor — das Backend kanonisiert
+// ohnehin, also steht die Zielform gleich zur Auswahl.
+const UNITS = [...Object.keys(UNIT_SYNONYME), ...FREITEXT_UNITS]
+
+// Erkennungsliste des Freitext-Parsers: jede Schreibweise, längste zuerst,
+// damit „liter" nicht schon am „l" hängen bleibt.
+const PARSE_UNITS = [
+  ...Object.entries(UNIT_SYNONYME).flatMap(([kanon, formen]) => [kanon, ...formen]),
+  ...FREITEXT_UNITS,
+].sort((a, b) => b.length - a.length)
+
+// Schreibweise (klein) → kanonisches Label.
+const PARSE_KANON = new Map([
+  ...Object.entries(UNIT_SYNONYME).flatMap(([kanon, formen]) =>
+    [kanon, ...formen].map(form => [form.toLowerCase(), kanon]),
+  ),
+  ...FREITEXT_UNITS.map(u => [u.toLowerCase(), u]),
+])
 
 // Frei gewählt: die Spalte ist `Text` und das Schema setzt keine Grenze. 1000
 // Zeichen reichen für den Anreißer, den die Beschreibung sein soll — auf der
@@ -202,13 +246,29 @@ function parseIngText(text) {
     const am = rest.match(/^([0-9]+(?:[.,][0-9]+)?(?:\/[0-9]+)?|[¼½¾⅓⅔⅛⅜⅝⅞])\s*/)
     if (am) { amount = am[1]; rest = rest.slice(am[0].length) }
     let unit = ''
-    for (const u of UNITS) {
-      if (rest.toLowerCase().startsWith(u.toLowerCase())) {
-        const after = rest.slice(u.length)
-        if (!after || /^\s/.test(after)) { unit = u; rest = after.trimStart(); break }
+    // Nur mit Menge davor gilt das erste Wort als Einheit — derselbe
+    // Fehltreffer-Guard wie im Backend (`normalize_ingredient`). Ohne ihn
+    // würde aus „El Paso Sauce" eine „Paso Sauce" in Esslöffeln, und weil der
+    // Client die Einheit dann gesetzt hätte, könnte das Backend es nicht mehr
+    // geraderücken.
+    if (amount) {
+      for (const u of PARSE_UNITS) {
+        if (rest.toLowerCase().startsWith(u.toLowerCase())) {
+          const after = rest.slice(u.length)
+          // Wortgrenze: „Grieß" fängt mit „gr" an, ist aber keine Einheit.
+          if (after && !/^\s/.test(after)) continue
+          // Der Rest muss ein Name bleiben — „50 gr" wäre sonst namenlos.
+          if (!after.trim()) continue
+          unit = PARSE_KANON.get(u.toLowerCase()) || u
+          rest = after.trimStart()
+          break
+        }
       }
     }
-    const name = rest.trim()
+    // Erster Buchstabe groß, Mehrfach-Leerzeichen zusammen — wie `clean_name`
+    // im Backend, damit die Vorschau zeigt, was gespeichert wird.
+    const geputzt = rest.replace(/\s+/g, ' ').trim()
+    const name = geputzt ? geputzt[0].toUpperCase() + geputzt.slice(1) : ''
     if (!name) continue
     results.push({ _key: `ing_${Date.now()}_${Math.random()}`, component_label: currentLabel, name, amount, unit, is_integer: autoIsInteger(name), _auto_int: true, _module_recipe_id: null, _module_component_id: null, _servings_override: '', _scale_factor: '', _module_is_new: false })
   }
