@@ -166,7 +166,7 @@ function SammlungsSeite({ id }) {
   if (fehler || !sammlung) {
     return (
       <Rahmen>
-        <BackButton fallback="/profile" />
+        <BackButton fallback="/profile" floating />
         <p style={{ marginTop: 24, fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--subtext)' }}>
           Diese Sammlung konnte nicht geladen werden.
         </p>
@@ -180,7 +180,7 @@ function SammlungsSeite({ id }) {
 
   return (
     <Rahmen>
-      <BackButton fallback="/profile" />
+      <BackButton fallback="/profile" floating />
 
       {/* Kopf */}
       <header style={{ padding: '18px 0 22px' }}>

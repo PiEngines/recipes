@@ -133,9 +133,7 @@ export default function KraeuterAlle() {
     <div data-world="gruen" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.5rem 1.25rem 6rem' }}>
 
-        <div style={{ marginBottom: 14 }}>
-          <BackButton fallback="/kraeuterschule" />
-        </div>
+        <BackButton fallback="/kraeuterschule" floating style={{ marginBottom: 14 }} />
 
         <div style={{ marginBottom: 14 }}>
           <p style={{ margin: '0 0 2px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>

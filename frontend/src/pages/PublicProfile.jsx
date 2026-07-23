@@ -228,9 +228,7 @@ export default function PublicProfile() {
       />
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '1.25rem 1.5rem 6rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton />
-        </div>
+        <BackButton floating style={{ marginBottom: '1rem' }} />
 
         {aktionsFehler && (
           <p role="status" style={{ margin: '0 0 12px', fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--danger)' }}>

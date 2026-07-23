@@ -109,9 +109,7 @@ export default function ZurListe() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.5rem 1.25rem 7rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton fallback={`/recipes/${id}`} />
-        </div>
+        <BackButton fallback={`/recipes/${id}`} floating style={{ marginBottom: '1rem' }} />
 
         {/* Titelband */}
         <div style={{ marginBottom: 18 }}>

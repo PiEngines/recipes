@@ -11,6 +11,12 @@
  *
  * `label` schaltet auf die Pill-Form mit Text „Zurück" — gedacht für Wizard-
  * und Sheet-Header, wo der Rücksprung benannt sein soll.
+ *
+ * `floating` klebt den Button beim Scrollen oben fest (FR-Float-BackButton),
+ * mit `top` Abstand unter die 64px hohe Navbar — sonst wäre der Rücksprung
+ * auf langen Seiten nur ganz oben erreichbar. Wichtig: der Button muss dann
+ * ein direktes Kind des hohen Seiten-Containers sein. Steckt er in einem
+ * eigenen 36px-Wrapper, hat `sticky` keinen Weg zum Wandern.
  */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -46,7 +52,13 @@ const VARIANTEN = {
   },
 }
 
-export default function BackButton({ onClick, fallback = '/', variant = 'light', label = false }) {
+// 64px Navbar + 12px Luft — der Button soll nicht am Header kleben.
+const FLOAT_TOP = 76
+
+export default function BackButton({
+  onClick, fallback = '/', variant = 'light', label = false,
+  floating = false, top = FLOAT_TOP, className, style,
+}) {
   const navigate = useNavigate()
   const [hov, setHov] = useState(false)
   const v = VARIANTEN[variant] || VARIANTEN.light
@@ -58,6 +70,7 @@ export default function BackButton({ onClick, fallback = '/', variant = 'light',
   }
 
   const iconSize = label ? 15 : 17
+  const unschaerfe = v.backdropFilter || (floating ? 'blur(10px)' : undefined)
 
   return (
     <button
@@ -66,21 +79,34 @@ export default function BackButton({ onClick, fallback = '/', variant = 'light',
       onMouseLeave={() => setHov(false)}
       aria-label={de.backButton}
       data-track-id="back-button-click"
+      className={className}
       style={{
-        display: 'inline-flex',
+        // Beim Floaten block-level (`flex` + fit-content): ein Inline-Element
+        // bleibt als Sticky-Kandidat unzuverlässig.
+        display: floating ? 'flex' : 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
+        ...(floating ? {
+          position: 'sticky',
+          top,
+          zIndex: 40,
+          alignSelf: 'flex-start',
+          // Schwebend liegt der Button über Inhalt: Blur und ein feiner
+          // Schatten heben ihn ab, die Variantenfarben bleiben.
+          boxShadow: '0 2px 10px rgba(0,0,0,.10)',
+        } : null),
         cursor: 'pointer',
         transition: 'background .15s',
         background: hov ? v.hover : v.background,
         border: `1px solid ${v.borderColor}`,
-        backdropFilter: v.backdropFilter,
-        WebkitBackdropFilter: v.backdropFilter,
+        backdropFilter: unschaerfe,
+        WebkitBackdropFilter: unschaerfe,
         height: 36,
         ...(label
           ? { width: 'auto', borderRadius: 18, padding: '0 14px 0 11px', gap: 7 }
           : { width: 36, borderRadius: '50%', padding: 0 }),
+        ...style,
       }}
     >
       <svg

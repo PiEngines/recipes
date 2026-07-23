@@ -184,9 +184,7 @@ export default function Netzwerk() {
       </div>
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.25rem 1.25rem 6rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton />
-        </div>
+        <BackButton floating style={{ marginBottom: '1rem' }} />
 
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

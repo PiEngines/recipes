@@ -330,7 +330,9 @@ function IngredientSidebar({ recipe, servings, baseServings, onServingsChange, a
   return (
     <aside className="hidden md:flex" style={{
       flexDirection: 'column',
-      position: 'sticky', top: 72, maxHeight: 'calc(100vh - 88px)',
+      // 120 statt 72: darüber klebt seit FR-Float-BackButton der Zurück-Button
+      // (76 + 36 Höhe + Luft), beide auf 72 hätten sich überlagert.
+      position: 'sticky', top: 120, maxHeight: 'calc(100vh - 136px)',
       background: 'var(--card)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow)',
     }}>
       {/* Header */}
@@ -950,11 +952,16 @@ export default function RecipeDetail() {
       {/* Bodenpadding trägt den IngredientStrip, der über der 78px-BottomNav
           schwebt — sonst verdeckt er den letzten Schritt. */}
       <div className="px-0 md:px-6" style={{ maxWidth: 1200, margin: '0 auto', paddingBottom: '9rem' }}>
+        {/* Der Zurück-Button steht bewusst über der Spaltenreihe und nicht in
+            der Sidebar: `sticky` wandert nur so weit, wie das Elternelement
+            reicht — in der Sidebar-Spalte wäre das auf dem Handy genau eine
+            Buttonhöhe. `ml-4` gibt ihm auf dem Handy Rand, dort ist der
+            Container randlos (Hero läuft voll durch). */}
+        <BackButton fallback="/recipes" floating className="ml-4 md:ml-0" style={{ marginBottom: 12 }} />
         <div className="md:flex md:gap-8" style={{ alignItems: 'flex-start' }}>
 
           {/* Ingredient sidebar (desktop) */}
           <div style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <BackButton fallback="/recipes" />
             <IngredientSidebar
               recipe={recipe}
               servings={servings}

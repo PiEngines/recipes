@@ -1321,8 +1321,9 @@ export default function RecipeForm() {
     navigate(`/recipes/${data.id}`)
   }, [doSave, navigate])
 
-  // ✕ Schliessen: derselbe Weg wie der Zurueck-Button, damit im Entwurf-Modus
-  // auch hier die Frage nach dem Verbleib des Entwurfs kommt (BUG-63).
+  // Ausgang aus dem Wizard — fuehrt im Entwurf-Modus ueber die Frage nach dem
+  // Verbleib des Entwurfs (BUG-63). Seit BUG-66 der einzige Weg hinaus: das
+  // zusaetzliche ✕ daneben rief exakt dieselbe Funktion auf.
   const schliessen = useCallback(() => {
     guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')
   }, [recipeId, guardedNavigate])
@@ -1367,7 +1368,8 @@ export default function RecipeForm() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', color: 'var(--subtext)' }}>
         <p>{loadError}</p>
-        <button onClick={() => navigate('/recipes')} style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.9rem' }}>← Zurück zur Übersicht</button>
+        {/* Zentraler BackButton statt eigener Textzeile (BUG-66). */}
+        <BackButton label fallback="/recipes" onClick={() => navigate('/recipes')} />
       </div>
     )
   }
@@ -1466,8 +1468,9 @@ export default function RecipeForm() {
         {/* Top row */}
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.625rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Label-Variante: im Wizard soll der Rücksprung benannt sein. Header ist
-              hell (var(--card)) → Variante `light` (Default). */}
-          <BackButton label onClick={() => guardedNavigate(recipeId ? `/recipes/${recipeId}` : '/')} />
+              hell (var(--card)) → Variante `light` (Default). Der Header selbst ist
+              sticky, der Button schwebt also ohne eigene `floating`-Variante mit. */}
+          <BackButton label onClick={schliessen} />
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
             {title || (isEdit ? 'Rezept bearbeiten' : 'Neues Rezept')}
           </h1>
@@ -1512,18 +1515,8 @@ export default function RecipeForm() {
               Verwerfen
             </button>
           )}
-          {/* ✕ Schliessen (§05) — der Entwurf ist bereits gespeichert; gefragt
-              wird nur, wenn gerade noch etwas offen ist. */}
-          {entwurfModus && (
-            <button
-              onClick={schliessen}
-              aria-label="Editor schliessen"
-              data-track-id="recipe-form-close"
-              style={{ padding: '0.35rem 0.55rem', border: 'none', background: 'none', color: 'var(--subtext)', cursor: 'pointer', fontSize: '1.15rem', lineHeight: 1, flexShrink: 0 }}
-            >
-              ✕
-            </button>
-          )}
+          {/* Das ✕ daneben ist entfallen (BUG-66): es rief `schliessen` auf,
+              also genau das, was der Zurück-Button links schon tut. */}
         </div>
 
         {/* Mobile-Stepper: die Sidebar unten ist `hidden sm:flex`, auf dem

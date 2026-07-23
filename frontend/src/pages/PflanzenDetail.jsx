@@ -493,9 +493,7 @@ export default function PflanzenDetail() {
   return (
     <div data-world="gruen" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '1.5rem 1.25rem 6rem' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <BackButton fallback="/kraeuterschule" />
-        </div>
+        <BackButton fallback="/kraeuterschule" floating style={{ marginBottom: '1rem' }} />
 
         <PlantHero plant={plant} />
 
