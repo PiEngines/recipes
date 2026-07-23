@@ -25,6 +25,10 @@ const SEGMENTS = [
 const RICHTUNGS_SCHWELLE = 10
 // Ab hier löst das Loslassen das Löschen aus, darunter schnappt die Zeile zurück.
 const LOESCH_SCHWELLE = 110
+// Wie lange die Zeile nach dem Loslassen hinausgleitet, bevor sie wirklich
+// verschwindet. Bewusst gemächlich: vorher war die Pflanze weg, ehe man sah,
+// welche es traf. Das Zurückschnappen bei zu kurzem Wisch bleibt bei .18s.
+const AUSFAHR_MS = 420
 
 function BeetRow({ entry, task, onDelete }) {
   const badge = phaseBadge(entry.phase_badge)
@@ -34,9 +38,14 @@ function BeetRow({ entry, task, onDelete }) {
   const [dx, setDx] = useState(0)
   const [ziehend, setZiehend] = useState(false)
   const [hover, setHover] = useState(false)
+  // Richtung, in die die Zeile gerade hinausgleitet: 0 = bleibt, -1/+1 = weg.
+  const [weg, setWeg] = useState(0)
   // Kein State: der Pointer-Handler muss den Stand im selben Tick sehen.
   const gesteRef = useRef(null)   // { startX, startY, achse: null|'x'|'y' }
   const gewischtRef = useRef(false)
+  const ausfahrRef = useRef(null)
+
+  useEffect(() => () => clearTimeout(ausfahrRef.current), [])
 
   const ausschlag = Math.min(Math.abs(dx) / LOESCH_SCHWELLE, 1)
   const ueberSchwelle = Math.abs(dx) >= LOESCH_SCHWELLE
@@ -44,6 +53,8 @@ function BeetRow({ entry, task, onDelete }) {
   const down = (e) => {
     // Nur der primäre Zeiger; Maus-Rechtsklick und Multitouch bleiben außen vor.
     if (e.button != null && e.button !== 0) return
+    // Während des Hinausgleitens ist die Zeile nicht mehr zu greifen.
+    if (weg) return
     gesteRef.current = { startX: e.clientX, startY: e.clientY, achse: null }
     gewischtRef.current = false
   }
@@ -75,7 +86,13 @@ function BeetRow({ entry, task, onDelete }) {
     gesteRef.current = null
     setZiehend(false)
     if (!g || g.achse !== 'x') return
-    if (Math.abs(dx) >= LOESCH_SCHWELLE) onDelete(entry)
+    if (Math.abs(dx) >= LOESCH_SCHWELLE) {
+      // Erst hinausgleiten lassen, dann löschen — `onDelete` nimmt die Zeile
+      // aus dem Baum, ein sofortiger Aufruf schnitte die Animation ab.
+      setWeg(dx > 0 ? 1 : -1)
+      ausfahrRef.current = setTimeout(() => onDelete(entry), AUSFAHR_MS)
+      return
+    }
     setDx(0)
   }
 
@@ -101,7 +118,7 @@ function BeetRow({ entry, task, onDelete }) {
         }}
       >
         <i className="ti ti-trash" style={{ fontSize: 17 }} />
-        {ueberSchwelle ? 'LOSLASSEN' : 'LÖSCHEN'}
+        {weg ? 'ENTFERNT' : ueberSchwelle ? 'LOSLASSEN' : 'LÖSCHEN'}
       </div>
 
       <Link
@@ -119,8 +136,16 @@ function BeetRow({ entry, task, onDelete }) {
           background: 'var(--surface)', borderRadius: 'var(--radius-card)',
           boxShadow: '0 1px 0 var(--wood-shadow), 0 1px 3px rgba(0,0,0,.06)',
           textDecoration: 'none', color: 'inherit',
-          transform: `translateX(${dx}px)`,
-          transition: ziehend ? 'none' : 'transform .18s ease',
+          // 105% statt einer Pixelbreite: die Zeile ist dann garantiert ganz
+          // draußen, egal wie breit die Liste gerade ist.
+          transform: weg ? `translateX(${weg * 105}%)` : `translateX(${dx}px)`,
+          opacity: weg ? 0 : 1,
+          transition: ziehend
+            ? 'none'
+            : weg
+              ? `transform ${AUSFAHR_MS}ms cubic-bezier(.22,.61,.36,1), opacity ${AUSFAHR_MS}ms ease-out`
+              : 'transform .18s ease',
+          pointerEvents: weg ? 'none' : 'auto',
           // Vertikales Scrollen bleibt dem Browser, horizontales nehmen wir.
           touchAction: 'pan-y',
         }}
