@@ -9,7 +9,7 @@
 // in die Merkliste — es ist Inhalt, kein Konto-Setting. Die Freigaben *eigener*
 // Rezepte bleiben in der Rezept-Liste (Bearbeiten-Modus), wo sie je Rezept
 // stehen.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -18,6 +18,41 @@ import BackButton from '../components/BackButton'
 import { SectionCard, Msg, PrimaryBtn, ToggleSwitch } from '../components/settingsUi'
 import { labelStyle, inputStyle } from '../components/settingsStyles'
 import { getRoleLabel } from '../utils/roles'
+
+const idSet = list => new Set((list || []).map(x => x.id))
+
+// Chip-Mehrfachauswahl aus einer Taxonomie — an/abwählbar, Auswahl als Set.
+function ChipMulti({ label, hint, options, selected, onToggle }) {
+  return (
+    <div style={{ marginBottom: '1rem' }}>
+      <label style={labelStyle}>{label}</label>
+      {hint && (
+        <div style={{ fontSize: '0.78rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)', margin: '-0.125rem 0 0.5rem' }}>{hint}</div>
+      )}
+      {options.length === 0 ? (
+        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>—</div>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {options.map(o => {
+            const aktiv = selected.has(o.id)
+            return (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => onToggle(o.id)}
+                aria-pressed={aktiv}
+                data-track-id="settings-diet-chip"
+                style={{ padding: '0.4rem 0.9rem', border: `1.5px solid ${aktiv ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: aktiv ? 'var(--accent)' : 'none', color: aktiv ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: '0.85rem', fontWeight: aktiv ? 600 : 400 }}
+              >
+                {o.name}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Einstellungen() {
   const { user, setUser, logout } = useAuth()
@@ -28,12 +63,43 @@ export default function Einstellungen() {
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
   const [bio, setBio] = useState(user?.bio || '')
-  // Vorlieben (BUG-41): Freitext + Sichtbarkeits-Toggle. Startwerte aus dem
-  // Auth-User — der liefert sie seit Commit 3 auch im privaten Zustand.
+  // „Über deine Küche" (BUG-41): Freitext + Sichtbarkeits-Toggle. Startwerte aus
+  // dem Auth-User — der liefert sie seit Commit 3 auch im privaten Zustand.
   const [preferences, setPreferences] = useState(user?.preferences || '')
   const [preferencesPublic, setPreferencesPublic] = useState(user?.preferences_public ?? false)
+
+  // Ernährungsprofil (Ü18): Auswahlwerte aus den Taxonomien, Auswahl als Sets
+  // aus dem Auth-User. Speichern läuft über denselben „Über deine Küche"-Button.
+  const [dietOpts, setDietOpts] = useState([])
+  const [exclusionOpts, setExclusionOpts] = useState([])
+  const [allergenOpts, setAllergenOpts] = useState([])
+  const [dietSel, setDietSel] = useState(() => idSet(user?.diet_labels))
+  const [exclusionSel, setExclusionSel] = useState(() => idSet(user?.exclusions))
+  const [allergenSel, setAllergenSel] = useState(() => idSet(user?.allergens))
+  const [dietPublic, setDietPublic] = useState(user?.diet_public ?? false)
+  const [exclusionsPublic, setExclusionsPublic] = useState(user?.exclusions_public ?? false)
+
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' })
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const opts = { signal: controller.signal }
+    Promise.all([
+      client.get('/api/diet-labels', opts),
+      client.get('/api/exclusions', opts),
+      client.get('/api/allergens', opts),
+    ])
+      .then(([d, e, a]) => { setDietOpts(d.data); setExclusionOpts(e.data); setAllergenOpts(a.data) })
+      .catch(() => { /* Blöcke bleiben leer */ })
+    return () => controller.abort()
+  }, [])
+
+  const toggleIn = (setter) => (id) => setter(prev => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    return next
+  })
 
   // Passwort
   const [currentPassword, setCurrentPassword] = useState('')
@@ -61,13 +127,20 @@ export default function Einstellungen() {
     setProfileSaving(true)
     setProfileMsg({ type: '', text: '' })
     try {
-      const { data } = await client.patch('/api/users/me', {
+      await client.patch('/api/users/me', {
         name, email, bio,
         preferences,
         preferences_public: preferencesPublic,
+        diet_label_ids: [...dietSel],
+        allergen_ids: [...allergenSel],
+        exclusion_ids: [...exclusionSel],
+        diet_public: dietPublic,
+        exclusions_public: exclusionsPublic,
       })
-      // Auth-User mitziehen, damit Kopf und Formular ohne Reload stimmen.
-      setUser(u => (u ? { ...u, ...data } : u))
+      // Frisch aus /auth/me: die PATCH-Antwort (UserListItem) trägt das
+      // aufgelöste Ernährungsprofil nicht — der Auth-User schon.
+      const me = await client.get('/api/auth/me')
+      setUser(me.data)
       setProfileMsg({ type: 'success', text: 'Profil gespeichert.' })
     } catch (err) {
       setProfileMsg({ type: 'error', text: err.response?.data?.detail || 'Fehler beim Speichern.' })
@@ -195,13 +268,46 @@ export default function Einstellungen() {
                 {preferences.length}/2000
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
               <div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--text)', fontFamily: 'var(--font-body)' }}>Auf Profil teilen</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Sonst sehen nur die Einstellungen sie.</div>
               </div>
               <ToggleSwitch checked={preferencesPublic} onChange={setPreferencesPublic} />
             </div>
+
+            {/* Ernährungsprofil (Ü18) — Erfassen. Aktives Filtern folgt separat. */}
+            <ChipMulti
+              label="Ernährungsweise"
+              options={dietOpts}
+              selected={dietSel}
+              onToggle={toggleIn(setDietSel)}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Ernährungsweise auf Profil teilen</div>
+              <ToggleSwitch checked={dietPublic} onChange={setDietPublic} />
+            </div>
+
+            <ChipMulti
+              label="Ausschlüsse"
+              hint="Was du generell nicht isst."
+              options={exclusionOpts}
+              selected={exclusionSel}
+              onToggle={toggleIn(setExclusionSel)}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--subtext)', fontFamily: 'var(--font-body)' }}>Ausschlüsse auf Profil teilen</div>
+              <ToggleSwitch checked={exclusionsPublic} onChange={setExclusionsPublic} />
+            </div>
+
+            <ChipMulti
+              label="Allergien"
+              hint="Bleibt privat — Allergien werden nie auf dem Profil geteilt und nie als „sicher“ gekennzeichnet."
+              options={allergenOpts}
+              selected={allergenSel}
+              onToggle={toggleIn(setAllergenSel)}
+            />
+
             {profileMsg.text && <Msg type={profileMsg.type}>{profileMsg.text}</Msg>}
             <PrimaryBtn type="submit" loading={profileSaving}>Speichern</PrimaryBtn>
           </form>

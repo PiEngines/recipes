@@ -43,6 +43,32 @@ function Stat({ zahl, label, to, trackId }) {
   )
 }
 
+// Freigegebene Ernährungs-Blöcke als Chip-Reihe im Kopf.
+function TaxRow({ label, items }) {
+  if (!items || items.length === 0) return null
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p style={{
+        margin: '0 0 5px', fontFamily: 'var(--font-mono)', fontSize: 9,
+        letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(240,232,208,.45)',
+      }}>
+        {label}
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {items.map(t => (
+          <span key={t.id} style={{
+            padding: '3px 10px', borderRadius: 999,
+            background: 'rgba(240,232,208,.10)', border: '1px solid rgba(240,232,208,.18)',
+            fontFamily: 'var(--font-body)', fontSize: 12, color: 'rgba(240,232,208,.85)',
+          }}>
+            {t.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function ProfileHeader({ profile, recipeCount, aktion = null, overline = 'Profil' }) {
   const name = profile?.name || 'Profil'
   const initialen = name[0]?.toUpperCase() ?? '?'
@@ -122,6 +148,11 @@ export default function ProfileHeader({ profile, recipeCount, aktion = null, ove
             </p>
           </div>
         )}
+
+        {/* Ernährungsprofil (Ü18) — nur die freigegebenen Blöcke; der Endpoint
+            liefert sie sonst leer. Allergien tauchen hier nie auf. */}
+        <TaxRow label="Ernährungsweise" items={profile?.diet_labels} />
+        <TaxRow label="Ausschlüsse" items={profile?.exclusions} />
 
         <div style={{ display: 'flex', gap: 22, marginTop: 14 }}>
           <Stat zahl={recipeCount} label="Rezepte" />

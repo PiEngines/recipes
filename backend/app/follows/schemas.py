@@ -18,6 +18,12 @@ class FollowUserPage(BaseModel):
     page_size: int
 
 
+class TaxItem(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
 class UserProfile(BaseModel):
     """Öffentliche Profilsicht auf einen User.
 
@@ -36,3 +42,8 @@ class UserProfile(BaseModel):
     # Vorlieben (BUG-41): nur gefüllt, wenn der Nutzer sie freigegeben hat —
     # die Gate-Logik sitzt im Endpoint, hier steht dann schlicht `None`.
     preferences: str | None = None
+    # Ernährungsprofil (Ü18): Ernährungsweise und Ausschlüsse, jeweils nur wenn
+    # freigegeben (Gate im Endpoint, sonst leer). **Allergien nie** — sie
+    # tauchen in dieser öffentlichen Sicht bewusst gar nicht auf.
+    diet_labels: list[TaxItem] = []
+    exclusions: list[TaxItem] = []

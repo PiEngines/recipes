@@ -148,6 +148,10 @@ def get_profile(
         # Privat bleibt privat: die Vorlieben nur mitgeben, wenn der Nutzer sie
         # freigegeben hat — sonst gar nicht erst über die Leitung.
         preferences=user.preferences if user.preferences_public else None,
+        # Ernährungsprofil (Ü18), jeweils hinter dem eigenen Toggle. Allergien
+        # fehlen hier bewusst ganz — sie werden nie öffentlich.
+        diet_labels=user.diet_labels if user.diet_public else [],
+        exclusions=user.exclusions if user.exclusions_public else [],
         follower_count=_follower_count(db, user.id),
         following_count=_following_count(db, user.id),
         # Sich selbst folgt man nie.

@@ -187,12 +187,41 @@ def test_profil_zeigt_vorlieben_nur_wenn_freigegeben(ctx):
     assert c.get("/api/users/2/profile").json()["preferences"] == "Wenig Schärfe."
 
 
+def test_profil_zeigt_ernaehrungsprofil_nur_wenn_freigegeben(ctx):
+    from app.models.category import Allergen, DietLabel, Exclusion
+
+    c, db, _, users = ctx
+    db.add_all([DietLabel(id=1, name="Vegan"), Exclusion(id=1, name="Alkohol"), Allergen(id=1, name="Gluten")])
+    db.flush()
+    anna = users["anna"]
+    anna.diet_labels.append(db.get(DietLabel, 1))
+    anna.exclusions.append(db.get(Exclusion, 1))
+    anna.allergens.append(db.get(Allergen, 1))
+    db.commit()
+
+    # Beide privat → leer, Allergien tauchen ohnehin nie auf.
+    profil = c.get("/api/users/2/profile").json()
+    assert profil["diet_labels"] == []
+    assert profil["exclusions"] == []
+    assert "allergens" not in profil
+
+    anna.diet_public = True
+    anna.exclusions_public = True
+    db.commit()
+    profil = c.get("/api/users/2/profile").json()
+    assert [d["name"] for d in profil["diet_labels"]] == ["Vegan"]
+    assert [e["name"] for e in profil["exclusions"]] == ["Alkohol"]
+    # Auch freigegeben bleiben Allergien aus der öffentlichen Sicht.
+    assert "allergens" not in profil
+
+
 def test_profil_schema_ohne_email(ctx):
     c, _, _, _ = ctx
     profil = c.get("/api/users/2/profile").json()
     assert set(profil) == {
         "id", "name", "username", "avatar_url", "bio",
         "follower_count", "following_count", "is_following", "preferences",
+        "diet_labels", "exclusions",
     }
 
 
