@@ -33,6 +33,12 @@ class AllergenResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ExclusionResponse(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
+
 class AuthorResponse(BaseModel):
     id: int
     name: str
@@ -202,6 +208,9 @@ class RecipeCreate(BaseModel):
     source: str | None = None
     category_ids: list[int] = []
     tag_ids: list[int] = []
+    diet_label_ids: list[int] = []
+    allergen_ids: list[int] = []
+    exclusion_ids: list[int] = []
     ingredients: list[IngredientCreate] = []
     steps: list[RecipeStepCreate] = []
 
@@ -219,6 +228,9 @@ class RecipeUpdate(BaseModel):
     source: str | None = None
     category_ids: list[int] | None = None
     tag_ids: list[int] | None = None
+    diet_label_ids: list[int] | None = None
+    allergen_ids: list[int] | None = None
+    exclusion_ids: list[int] | None = None
     ingredients: list[IngredientCreate] | None = None
     steps: list[RecipeStepCreate] | None = None
 
@@ -277,6 +289,7 @@ class RecipeResponse(BaseModel):
     tags: list[TagResponse]
     diet_labels: list[DietLabelResponse]
     allergens: list[AllergenResponse]
+    exclusions: list[ExclusionResponse] = []
     is_pending_review: bool = False
     rating_avg: float | None = None
     rating_count: int = 0

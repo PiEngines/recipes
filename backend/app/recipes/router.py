@@ -15,7 +15,7 @@ from app.auth.dependencies import (
 )
 from app.database import get_db
 from app.matching import step_scanner
-from app.models import Allergen, Category, DietLabel, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
+from app.models import Allergen, Category, DietLabel, Exclusion, Ingredient, Recipe, RecipeComponent, RecipeServeWith, RecipeStep, RecipeVersion, Tag, User, UserRole
 from app.models.recipe import RecipeStatus, RecipeType
 from app.utils.scaling import scale_amount
 from app.models.step_suggestion import StepUnmatchedSuggestion
@@ -66,6 +66,7 @@ def _load_full(recipe_id: int, db: Session) -> Recipe:
             joinedload(Recipe.tags),
             joinedload(Recipe.diet_labels),
             joinedload(Recipe.allergens),
+            joinedload(Recipe.exclusions),
         )
         .filter(Recipe.id == recipe_id)
         .first()
@@ -82,6 +83,24 @@ def _resolve_tags(ids: list[int], db: Session) -> list[Tag]:
     if not ids:
         return []
     return db.query(Tag).filter(Tag.id.in_(ids)).all()
+
+
+def _resolve_diet_labels(ids: list[int], db: Session) -> list[DietLabel]:
+    if not ids:
+        return []
+    return db.query(DietLabel).filter(DietLabel.id.in_(ids)).all()
+
+
+def _resolve_allergens(ids: list[int], db: Session) -> list[Allergen]:
+    if not ids:
+        return []
+    return db.query(Allergen).filter(Allergen.id.in_(ids)).all()
+
+
+def _resolve_exclusions(ids: list[int], db: Session) -> list[Exclusion]:
+    if not ids:
+        return []
+    return db.query(Exclusion).filter(Exclusion.id.in_(ids)).all()
 
 
 # TODO: deprecated, replaced by matching.py
@@ -1034,6 +1053,9 @@ def create_recipe(
 
     recipe.categories = _resolve_categories(body.category_ids, db)
     recipe.tags = _resolve_tags(body.tag_ids, db)
+    recipe.diet_labels = _resolve_diet_labels(body.diet_label_ids, db)
+    recipe.allergens = _resolve_allergens(body.allergen_ids, db)
+    recipe.exclusions = _resolve_exclusions(body.exclusion_ids, db)
 
     db.commit()
     background_tasks.add_task(step_scanner.trigger_step_scan, recipe.id)
@@ -1078,6 +1100,15 @@ def update_recipe(
 
     if body.tag_ids is not None:
         recipe.tags = _resolve_tags(body.tag_ids, db)
+
+    if body.diet_label_ids is not None:
+        recipe.diet_labels = _resolve_diet_labels(body.diet_label_ids, db)
+
+    if body.allergen_ids is not None:
+        recipe.allergens = _resolve_allergens(body.allergen_ids, db)
+
+    if body.exclusion_ids is not None:
+        recipe.exclusions = _resolve_exclusions(body.exclusion_ids, db)
 
     ingredients_changed = body.ingredients is not None
     if body.ingredients is not None:
