@@ -840,6 +840,14 @@ export default function RecipeForm() {
   const [savingForFotos, setSavingForFotos] = useState(false)
   const [selectedCats, setSelectedCats] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
+  // Ernährungs-Tagging (Ü25): Auswahl + verfügbare Taxonomie. Muster wie
+  // selectedCats/selectedTags — Auswahl hält {id,name}-Objekte.
+  const [selectedDiet, setSelectedDiet] = useState([])
+  const [selectedAllergens, setSelectedAllergens] = useState([])
+  const [selectedExclusions, setSelectedExclusions] = useState([])
+  const [dietOptions, setDietOptions] = useState([])
+  const [allergenOptions, setAllergenOptions] = useState([])
+  const [exclusionOptions, setExclusionOptions] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
   const [steps, setSteps] = useState([mkStep()])
   const [moduleSearch, setModuleSearch] = useState({})
@@ -923,6 +931,7 @@ export default function RecipeForm() {
       title, description, prepTime, cookTime, servings,
       difficulty, source, type, course,
       selectedCats, selectedTags,
+      selectedDiet, selectedAllergens, selectedExclusions,
       ingredients, steps,
       recipeId,
       serveWith,
@@ -934,6 +943,23 @@ export default function RecipeForm() {
   const markDirty = useCallback(() => {
     setIsDirty(true)
     setChangeTick(t => t + 1)
+  }, [])
+
+  // Ernährungs-Taxonomie einmalig laden (unauth lesbar). Abbruch bei Unmount.
+  useEffect(() => {
+    const controller = new AbortController()
+    Promise.all([
+      client.get('/api/diet-labels', { signal: controller.signal }),
+      client.get('/api/allergens', { signal: controller.signal }),
+      client.get('/api/exclusions', { signal: controller.signal }),
+    ])
+      .then(([d, a, e]) => {
+        setDietOptions(d.data)
+        setAllergenOptions(a.data)
+        setExclusionOptions(e.data)
+      })
+      .catch(() => { /* Taxonomie optional — Picker bleibt dann leer */ })
+    return () => controller.abort()
   }, [])
 
   useEffect(() => {
@@ -1031,6 +1057,9 @@ export default function RecipeForm() {
     setType(snap.type)
     setSelectedCats(snap.selectedCats)
     setSelectedTags(snap.selectedTags)
+    setSelectedDiet(snap.selectedDiet || [])
+    setSelectedAllergens(snap.selectedAllergens || [])
+    setSelectedExclusions(snap.selectedExclusions || [])
     setIngredients(snap.ingredients)
     setSteps(snap.steps)
     setIsDirty(false)
@@ -1061,6 +1090,9 @@ export default function RecipeForm() {
           type: r.type || 'kochen',
           selectedCats: r.categories,
           selectedTags: r.tags,
+          selectedDiet: r.diet_labels || [],
+          selectedAllergens: r.allergens || [],
+          selectedExclusions: r.exclusions || [],
           ingredients: (() => {
             if (!ings.length) return [mkIng()]
             const compByTitle = {}
@@ -1169,6 +1201,9 @@ export default function RecipeForm() {
       source: s.source || null,
       category_ids: s.selectedCats.map(c => c.id),
       tag_ids: s.selectedTags.map(t => t.id),
+      diet_label_ids: s.selectedDiet.map(x => x.id),
+      allergen_ids: s.selectedAllergens.map(x => x.id),
+      exclusion_ids: s.selectedExclusions.map(x => x.id),
       ingredients: s.ingredients
           .filter(i => i.name.trim() && !i._module_recipe_id)
           .map((i, idx) => ({ component_label: i.component_label || null, name: i.name.trim(), amount: i.amount || null, unit: i.unit || null, sort_order: idx, is_integer: i.is_integer ?? false })),
@@ -1184,6 +1219,32 @@ export default function RecipeForm() {
         })),
     }
   }, [])
+
+  // Mehrfachauswahl-Picker (Ernährungs-Tagging, Ü25). Pill-Optik wie „Art"/
+  // „Gang"; Auswahl hält {id,name}-Objekte, umgeschaltet über die id.
+  const renderTaxPicker = (labelText, options, selected, setSelected, trackKey, hint) => (
+    <div style={{ marginBottom: '1.75rem' }}>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', textTransform: 'uppercase' }}>{labelText}</div>
+      {hint && (
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: 'var(--subtext)', marginBottom: '0.625rem', marginTop: '0.125rem', lineHeight: 1.45 }}>{hint}</div>
+      )}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: hint ? 0 : '0.625rem' }}>
+        {options.length === 0 && (
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.82rem', color: 'var(--text-muted)' }}>—</span>
+        )}
+        {options.map(o => {
+          const active = selected.some(x => x.id === o.id)
+          return (
+            <button key={o.id} data-track-id={`recipe-form-${trackKey}-${o.id}`}
+              onClick={() => { setSelected(prev => active ? prev.filter(x => x.id !== o.id) : [...prev, { id: o.id, name: o.name }]); markDirty() }}
+              style={{ padding: '0.4rem 1rem', border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border-input)'}`, borderRadius: 'var(--radius-pill)', background: active ? 'var(--accent)' : 'none', color: active ? '#fff' : 'var(--text)', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: '0.875rem', fontWeight: active ? 600 : 400 }}>
+              {o.name}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 
   // Core save
   const doSave = useCallback(async (targetStatus, skipVersion = false) => {
@@ -2480,7 +2541,13 @@ export default function RecipeForm() {
                 </div>
               </div>
 
-              {/* 5. Passt dazu */}
+              {/* 5. Ernährungs-Tagging (Ü25) — optional, kein Pflicht-Gate */}
+              {renderTaxPicker('Diät', dietOptions, selectedDiet, setSelectedDiet, 'diet')}
+              {renderTaxPicker('Allergene', allergenOptions, selectedAllergens, setSelectedAllergens, 'allergen')}
+              {renderTaxPicker('Enthält (Ausschlüsse)', exclusionOptions, selectedExclusions, setSelectedExclusions, 'exclusion',
+                'Welche dieser Zutaten enthält das Rezept? Nutzer mit passendem Profil sehen es dann nicht.')}
+
+              {/* 6. Passt dazu */}
               <div>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--subtext)', textTransform: 'uppercase' }}>Passt dazu</div>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.78rem', color: 'var(--subtext)', marginBottom: '0.625rem', marginTop: '0.125rem' }}>Vorspeise, Beilage oder Dessert ergänzen</div>
