@@ -25,6 +25,11 @@ function formatTime(recipe) {
   return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
 }
 
+// Dev-Schalter: Rollo-Offen-Zustand pro Session merken (Ü24-Verhalten)?
+// false = Rollo bei jedem Home-Aufruf wieder geschlossen (Öffnen-Ritual live
+// sichtbar). true = wie Ü24: einmal je Session geöffnet, bleibt offen.
+const ROLLADEN_PERSIST_SESSION = false
+
 function ZettelCard({ recipe, label, color, onClick, trackId, variant = 'stempel' }) {
   const category = recipe?.categories?.[0]?.name || null
   const catColor = color || getCategoryColor(category).base
@@ -39,6 +44,7 @@ function ZettelCard({ recipe, label, color, onClick, trackId, variant = 'stempel
   // Neuer Tab/neue Session → wieder geschlossen (Rolladen-Ritual einmal je Session).
   const storageKey = `home-rolladen-${(trackId || label || '').replace(/-click$/, '')}`
   const [open, setOpen] = useState(() => {
+    if (!ROLLADEN_PERSIST_SESSION) return false
     try {
       return typeof window !== 'undefined' && window.sessionStorage?.getItem(storageKey) === '1'
     } catch {
@@ -54,6 +60,7 @@ function ZettelCard({ recipe, label, color, onClick, trackId, variant = 'stempel
   const openShutter = e => {
     e.stopPropagation()
     setOpen(true)
+    if (!ROLLADEN_PERSIST_SESSION) return
     try { window.sessionStorage?.setItem(storageKey, '1') } catch { /* privater Modus o.Ä. */ }
   }
 
