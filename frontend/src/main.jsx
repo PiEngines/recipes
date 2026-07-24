@@ -15,6 +15,9 @@ import '@fontsource/dm-sans/600.css'
 import '@fontsource/dm-sans/700.css'
 import '@fontsource/dm-mono/400.css'
 import '@fontsource/dm-mono/500.css'
+// Tabler-Icons self-hosted (Consent-Cleanup): Version gepinnt, Vite bundelt
+// Font + CSS lokal → kein jsdelivr-Request. Alle `ti ti-*`-Klassen unverändert.
+import '@tabler/icons-webfont/dist/tabler-icons.min.css'
 import './index.css'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { BeetProvider } from './context/BeetContext.jsx'
