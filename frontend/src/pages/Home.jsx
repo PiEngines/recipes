@@ -32,17 +32,30 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
   const time = formatTime(recipe)
   const meta = [author, time].filter(Boolean).join(' · ')
 
-  // Rolladen: jede Kachel startet verdeckt (in-memory, pro Home-Mount neu —
-  // kein localStorage, Projektregel). Erst Tap auf den Rolladen deckt die
-  // Kachel auf; danach navigiert sie wie gewohnt.
-  const [open, setOpen] = useState(false)
+  // Rolladen: pro Slot einmal je Session öffnen. Offen-Zustand liegt in
+  // sessionStorage (Präzedenz: „Zuletzt gesucht") — der useState-Initializer
+  // liest synchron, damit ein bereits geöffneter Slot beim Zurückkommen auf Home
+  // sofort offen rendert (kein Rolladen, kein Animations-Replay, kein Flash).
+  // Neuer Tab/neue Session → wieder geschlossen (Rolladen-Ritual einmal je Session).
+  const storageKey = `home-rolladen-${(trackId || label || '').replace(/-click$/, '')}`
+  const [open, setOpen] = useState(() => {
+    try {
+      return typeof window !== 'undefined' && window.sessionStorage?.getItem(storageKey) === '1'
+    } catch {
+      return false
+    }
+  })
   const reduceMotion = useState(() =>
     typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   )[0]
   const openTrackId = trackId ? trackId.replace(/-click$/, '-rolladen-open') : undefined
 
-  const openShutter = e => { e.stopPropagation(); setOpen(true) }
+  const openShutter = e => {
+    e.stopPropagation()
+    setOpen(true)
+    try { window.sessionStorage?.setItem(storageKey, '1') } catch { /* privater Modus o.Ä. */ }
+  }
 
   return (
     <div
