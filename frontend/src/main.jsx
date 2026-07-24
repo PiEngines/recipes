@@ -40,6 +40,7 @@ import PflanzenDetail from './pages/PflanzenDetail.jsx'
 import Netzwerk from './pages/Netzwerk.jsx'
 import ShoppingList from './pages/ShoppingList.jsx'
 import Social from './pages/Social.jsx'
+import SocialNew from './pages/SocialNew.jsx'
 import ZurListe from './pages/ZurListe.jsx'
 import Seasonal from './pages/Seasonal.jsx'
 import VerifyEmail from './pages/VerifyEmail.jsx'
@@ -140,6 +141,7 @@ const router = createBrowserRouter([
       { path: '/pflanzen/:slug', element: <ProtectedRoute><PflanzenDetail /></ProtectedRoute> },
       { path: '/einkaufsliste', element: <ProtectedRoute><ShoppingList /></ProtectedRoute> },
       { path: '/social', element: <ProtectedRoute><Social /></ProtectedRoute> },
+      { path: '/social/new', element: <ProtectedRoute><SocialNew /></ProtectedRoute> },
       { path: '/seasonal', element: <ProtectedRoute><Seasonal /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
       { path: '/einstellungen', element: <ProtectedRoute><Einstellungen /></ProtectedRoute> },

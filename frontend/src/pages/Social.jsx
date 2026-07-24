@@ -68,8 +68,11 @@ function Hinweis({ ton = 'neutral', children }) {
 
 // ── Beitrag hinzufügen ───────────────────────────────────────────────────────
 
-function AddPostForm({ onSaved }) {
-  const [open, setOpen] = useState(false)
+// `startOpen` + `onCancel` machen die Komponente auf dem reinen Erstellen-Screen
+// (/social/new) wiederverwendbar: dort startet sie direkt ausgeklappt, und
+// „Abbrechen" navigiert zurück statt zur eingebetteten Sammelform zu kollabieren.
+export function AddPostForm({ onSaved, startOpen = false, onCancel }) {
+  const [open, setOpen] = useState(startOpen)
   const [url, setUrl] = useState('')
   const [vorschau, setVorschau] = useState(null)
   const [status, setStatus] = useState('leer')  // leer | laedt | bereit | fehler
@@ -214,7 +217,7 @@ function AddPostForm({ onSaved }) {
           </button>
         )}
         <button
-          onClick={() => { zuruecksetzen(); setOpen(false) }}
+          onClick={() => { zuruecksetzen(); onCancel ? onCancel() : setOpen(false) }}
           data-track-id="social-add-cancel"
           style={{
             padding: '10px 16px', borderRadius: 'var(--radius-input)',

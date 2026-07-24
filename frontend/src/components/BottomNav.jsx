@@ -23,7 +23,7 @@ export default function BottomNav() {
   // das „+" nie mehr komplett deaktiviert — jeder kann wenigstens Beiträge anlegen.
   const NEU_ITEMS = [
     ...(canCreate ? [{ icon: 'ti-chef-hat', label: 'Rezept erstellen', to: '/recipes/new', trackId: 'bottom-neu-rezept-click' }] : []),
-    { icon: 'ti-link', label: 'Beitrag erstellen', to: '/social', trackId: 'bottom-neu-beitrag-click' },
+    { icon: 'ti-link', label: 'Beitrag erstellen', to: '/social/new', trackId: 'bottom-neu-beitrag-click' },
   ]
 
   // Esc schließt das offene Panel (Mehr oder Neu) — wie ein Backdrop-Tap.
@@ -38,7 +38,7 @@ export default function BottomNav() {
   // hineingesprungene Unterseiten (fremdes Profil) → Footer neutral;
   // Mehr-Panel-Ziele → »Mehr« aktiv.
   const startsWith = (p) => pathname === p || pathname.startsWith(p + '/')
-  const isNeu = pathname === '/recipes/new' || neuOpen
+  const isNeu = pathname === '/recipes/new' || pathname === '/social/new' || neuOpen
   const isHome = pathname === '/'
   const isRezepte = startsWith('/recipes') && !isNeu
   const isFavoriten = startsWith('/favorites')
