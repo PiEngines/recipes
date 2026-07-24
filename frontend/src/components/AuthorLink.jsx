@@ -10,9 +10,9 @@ export default function AuthorLink({ author, style = {} }) {
       role="link"
       tabIndex={0}
       title={`Rezepte von ${author.username} anzeigen`}
-      style={{ cursor: 'pointer', color: 'var(--accent)', fontWeight: 500, ...style }}
-      onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
-      onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
+      style={{ cursor: 'pointer', color: 'var(--accent)', fontWeight: 500, textDecoration: 'underline', textDecorationThickness: '1px', textUnderlineOffset: '2px', textDecorationColor: 'color-mix(in srgb, var(--accent) 45%, transparent)', ...style }}
+      onMouseEnter={e => { e.currentTarget.style.textDecorationColor = 'var(--accent)' }}
+      onMouseLeave={e => { e.currentTarget.style.textDecorationColor = 'color-mix(in srgb, var(--accent) 45%, transparent)' }}
     >
       {author.username}
     </span>
