@@ -4,9 +4,16 @@ export default function AuthorLink({ author, style = {} }) {
   const navigate = useNavigate()
   if (!author?.username) return null
 
+  const goToAuthor = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigate(`/recipes?author_id=${author.id}&author=${encodeURIComponent(author.username)}`)
+  }
+
   return (
     <span
-      onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(`/recipes?author_id=${author.id}&author=${encodeURIComponent(author.username)}`) }}
+      onClick={goToAuthor}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') goToAuthor(e) }}
       role="link"
       tabIndex={0}
       title={`Rezepte von ${author.username} anzeigen`}
