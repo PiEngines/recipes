@@ -342,6 +342,9 @@ class PaginatedRecipes(BaseModel):
     # Faceted counts: je Facette wird der eigene Filter weggelassen, alle
     # anderen aktiven Facetten angewandt. Keys sind JSON-Strings (id/value/level).
     facets: dict[str, dict[str, int]] = {}
+    # Wie viele Treffer der persönliche Ernährungs-Filter ausgeblendet hat (Ü26).
+    # 0 = nichts ausgeblendet (kein Profil o. Ä.).
+    personal_hidden: int = 0
 
 
 # ── Serve With ────────────────────────────────────────────────────────────────

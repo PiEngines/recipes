@@ -103,6 +103,62 @@ def _resolve_exclusions(ids: list[int], db: Session) -> list[Exclusion]:
     return db.query(Exclusion).filter(Exclusion.id.in_(ids)).all()
 
 
+# ── Persönlicher Ernährungs-Filter (Ü26) ──────────────────────────────────────
+# Rein negativ: blende aus, was explizit getaggt ist — ungetaggte Rezepte bleiben
+# sichtbar. Die Diät-Wahl erweitert nur die Ausschluss-/Allergen-Menge. Namen
+# exakt aus Seed 0046 (Auflösung per Name → IDs, einmal pro Request).
+_FLEISCH_AUSSCHLUESSE = {"Schweinefleisch", "Rindfleisch", "Geflügel", "Lamm", "Wild"}
+_DIET_MAPPING = {
+    # name -> (ausschluss_namen, allergen_namen)
+    "Vegetarisch":  (_FLEISCH_AUSSCHLUESSE, {"Fisch"}),
+    "Pescetarisch": (_FLEISCH_AUSSCHLUESSE, set()),
+    "Vegan":        (_FLEISCH_AUSSCHLUESSE, {"Fisch", "Eier", "Milch/Laktose"}),
+    "Flexitarisch": (set(), set()),
+}
+
+
+def persoenliche_ausschluesse(current_user: User | None, db: Session) -> tuple[set[int], set[int]]:
+    """(allergen_ids, exclusion_ids) für den persönlichen Negativ-Filter.
+
+    Basis sind die am Profil gewählten Allergene/Ausschlüsse; jede gewählte Diät
+    erweitert die Mengen um die gemappten Namen (per Name aufgelöst). Kein Profil
+    oder nichts gewählt → leere Mengen (kein Filter).
+    """
+    if current_user is None:
+        return set(), set()
+
+    allergen_ids = {a.id for a in current_user.allergens}
+    exclusion_ids = {e.id for e in current_user.exclusions}
+
+    ausschluss_namen: set[str] = set()
+    allergen_namen: set[str] = set()
+    for label in current_user.diet_labels:
+        excl, allerg = _DIET_MAPPING.get(label.name, (set(), set()))
+        ausschluss_namen |= excl
+        allergen_namen |= allerg
+
+    if allergen_namen:
+        allergen_ids |= {
+            r.id for r in db.query(Allergen.id).filter(Allergen.name.in_(allergen_namen)).all()
+        }
+    if ausschluss_namen:
+        exclusion_ids |= {
+            r.id for r in db.query(Exclusion.id).filter(Exclusion.name.in_(ausschluss_namen)).all()
+        }
+    return allergen_ids, exclusion_ids
+
+
+def filter_persoenlich(q, allergen_ids: set[int], exclusion_ids: set[int]):
+    """Negativ-Filter anhängen: Rezepte, die ein Allergen/einen Ausschluss aus den
+    Mengen tragen, fallen raus. Leere Menge → keine Einschränkung dieser Dimension.
+    """
+    if allergen_ids:
+        q = q.filter(~Recipe.allergens.any(Allergen.id.in_(allergen_ids)))
+    if exclusion_ids:
+        q = q.filter(~Recipe.exclusions.any(Exclusion.id.in_(exclusion_ids)))
+    return q
+
+
 # TODO: deprecated, replaced by matching.py
 def _word_tokens(text: str) -> set[str]:
     return set(re.findall(r"\b\w+\b", text.lower()))
@@ -258,6 +314,7 @@ def list_recipes(
     type: str | None = Query(None),
     sort: str = Query("newest"),
     as_module: bool = Query(False),
+    personal_off: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -419,9 +476,21 @@ def list_recipes(
     else:
         _order = sort_columns[sort]
 
-    total = q.count()
+    # Persönlicher Negativ-Filter (Ü26): `personal_hidden` = Differenz zwischen
+    # ungefiltert und gefiltert — immer berechnet, auch bei `personal_off`, damit
+    # der „Einblenden"-Toggle im Frontend den Zähler kennt. Items kommen gefiltert,
+    # außer `personal_off=True` (Nutzer hat bewusst eingeblendet).
+    allergen_ids, exclusion_ids = persoenliche_ausschluesse(current_user, db)
+    q_person = filter_persoenlich(q, allergen_ids, exclusion_ids)
+
+    total_ohne = q.count()
+    total_mit = q_person.count()
+    personal_hidden = total_ohne - total_mit
+
+    q_items = q if personal_off else q_person
+    total = total_ohne if personal_off else total_mit
     items = (
-        q.options(
+        q_items.options(
             subqueryload(Recipe.categories),
             subqueryload(Recipe.tags),
             joinedload(Recipe.author),
@@ -464,6 +533,7 @@ def list_recipes(
         page_size=page_size,
         pages=max(1, (total + page_size - 1) // page_size),
         facets=facets,
+        personal_hidden=personal_hidden,
     )
 
 
@@ -477,6 +547,8 @@ def get_random_recipes(
 ):
     q = db.query(Recipe).filter(Recipe.deleted_at.is_(None))
     q = _apply_visibility_filter(q, current_user, db)
+    # Home zeigt nie Ausgeblendetes — persönlicher Negativ-Filter ohne Bypass.
+    q = filter_persoenlich(q, *persoenliche_ausschluesse(current_user, db))
 
     items = (
         q.options(

@@ -28,7 +28,12 @@ from app.fratcher.schemas import (
 )
 from app.models import Recipe, User
 from app.recipes.matching import name_matches
-from app.recipes.router import _apply_visibility_filter, primary_media_by_recipe
+from app.recipes.router import (
+    _apply_visibility_filter,
+    filter_persoenlich,
+    persoenliche_ausschluesse,
+    primary_media_by_recipe,
+)
 from app.storage import storage
 
 router = APIRouter(prefix="/api/fratcher", tags=["fratcher"])
@@ -66,6 +71,8 @@ def match(
         current_user,
         db,
     )
+    # Ausschlüsse gelten auch beim Kühlschrank-Matching (Ü26).
+    q = filter_persoenlich(q, *persoenliche_ausschluesse(current_user, db))
     # Zutaten und Kategorien in derselben Runde — sonst wäre das N+1 nur vom
     # Client hierher gewandert.
     rezepte = q.options(
