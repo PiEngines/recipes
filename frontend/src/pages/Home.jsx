@@ -25,7 +25,7 @@ function formatTime(recipe) {
   return t >= 60 ? `${Math.floor(t / 60)} Std.` : `${t} Min.`
 }
 
-function ZettelCard({ recipe, label, color, onClick, trackId }) {
+function ZettelCard({ recipe, label, color, onClick, trackId, variant = 'stempel' }) {
   const category = recipe?.categories?.[0]?.name || null
   const catColor = color || getCategoryColor(category).base
   const author = recipe?.author?.name || recipe?.author?.username || null
@@ -55,6 +55,38 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
     e.stopPropagation()
     setOpen(true)
     try { window.sessionStorage?.setItem(storageKey, '1') } catch { /* privater Modus o.Ä. */ }
+  }
+
+  // Drei Label-Optiken je Rail (Werte pixelgenau aus rollo_label_vorschau.html).
+  // catColor (Rail-Farbe aus dem color-Prop) speist Tinte bzw. Schild-Grund.
+  const rolloLabel = () => {
+    if (variant === 'sticker') {
+      // Aufkleber: Permanent Marker, leicht schräg, halbtransparentes Papier
+      // (Lamellen scheinen durch), Klebeband oben, Eselsohr unten rechts.
+      return (
+        <span style={{ position: 'relative', display: 'inline-block', transform: 'rotate(-3.5deg)', background: 'rgba(255,254,248,.70)', padding: '5px 12px', borderRadius: 2, boxShadow: '0 2px 5px rgba(0,0,0,.20)', fontFamily: 'var(--font-sticker)', fontSize: 13, lineHeight: 1, color: `color-mix(in srgb, ${catColor} 62%, #000)` }}>
+          <span aria-hidden="true" style={{ position: 'absolute', top: -6, left: '50%', width: 30, height: 12, transform: 'translateX(-50%) rotate(2deg)', background: 'rgba(210,190,150,.5)' }} />
+          <span aria-hidden="true" style={{ position: 'absolute', right: 0, bottom: 0, width: 0, height: 0, borderLeft: '8px solid transparent', borderBottom: '8px solid rgba(0,0,0,.12)' }} />
+          {label}
+        </span>
+      )
+    }
+    if (variant === 'emaille') {
+      // Emailleschild: Alfa Slab One auf Rail-Grund, Glanz oben, Prägerand,
+      // feine aufgesetzte Lamellen-Textur, cremeweißer Text.
+      return (
+        <span style={{ position: 'relative', display: 'inline-block', overflow: 'hidden', background: catColor, borderRadius: 5, padding: '5px 13px', boxShadow: 'inset 0 0 0 2px rgba(255,255,255,.45)', fontFamily: 'var(--font-emaille)', fontSize: 13, lineHeight: 1.1, color: '#fdf6e8', textShadow: '0 1px 0 rgba(0,0,0,.25)' }}>
+          <span aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0) 55%)', pointerEvents: 'none' }} />
+          <span aria-hidden="true" style={{ position: 'absolute', inset: 0, opacity: 0.10, background: 'repeating-linear-gradient(180deg, rgba(0,0,0,.6) 0, rgba(0,0,0,.6) 1px, transparent 1px, transparent 4px)', pointerEvents: 'none' }} />
+          <span style={{ position: 'relative' }}>{label}</span>
+        </span>
+      )
+    }
+    // stempel: Stardos Stencil, multiply (Rillen laufen durch die Schrift),
+    // dunkle Tinte aus der Rail-Farbe, gesperrt + Versalien.
+    return (
+      <span style={{ fontFamily: 'var(--font-stempel)', fontWeight: 700, fontSize: 12, letterSpacing: '.12em', textTransform: 'uppercase', lineHeight: 1, mixBlendMode: 'multiply', color: `color-mix(in srgb, ${catColor} 60%, #000)` }}>{label}</span>
+    )
   }
 
   return (
@@ -120,10 +152,10 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
         {/* Kategorie-Akzent am Kasten (oberer Rand) — deckend + kräftiger */}
         <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: catColor }} />
 
-        {/* Kompakter Label-Chip zentriert — auto-breit, verdeckt die getönte
-            Fläche nicht mehr. Affordance trägt die Griff-Kerbe unten + aria-label. */}
-        <span style={{ position: 'absolute', top: 4, left: 0, right: 0, bottom: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 999, background: 'color-mix(in srgb, var(--surface) 82%, transparent)', boxShadow: '0 1px 3px rgba(0,0,0,.12)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600, whiteSpace: 'nowrap' }}>{label}</span>
+        {/* Label-Optik je Rail (variant) + kleiner Öffnen-Hinweis darunter. */}
+        <span style={{ position: 'absolute', top: 4, left: 0, right: 0, bottom: 15, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '0 8px' }}>
+          {rolloLabel()}
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '.02em', color: 'rgba(42,34,24,.5)', whiteSpace: 'nowrap' }}>tippen zum Öffnen</span>
         </span>
 
         {/* Endleiste (Zugleiste): dickere, dunklere Abschluss-Latte + Griff-Kerbe */}
@@ -328,11 +360,11 @@ export default function Home() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
           {/* Eigene Akzentfarbe je Rail (unabhängig von der Kategorisierung) —
               Saisonal grün, Neu terrakotta, Beliebt gold. Speist Tönung + Tinte. */}
-          <ZettelCard recipe={seasonal} label="Saisonal" color="var(--accent-dot)"
+          <ZettelCard recipe={seasonal} label="Saisonal" color="var(--accent-dot)" variant="sticker"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <ZettelCard recipe={newest} label="Neu" color="var(--accent)"
+          <ZettelCard recipe={newest} label="Neu" color="var(--accent)" variant="emaille"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
-          <ZettelCard recipe={beliebt} label="Beliebt" color="var(--gold)"
+          <ZettelCard recipe={beliebt} label="Beliebt" color="var(--gold)" variant="stempel"
             onClick={() => beliebt && navigate(`/recipes/${beliebt.id}`)} trackId="home-carousel-beliebt-click" />
         </div>
       </section>
