@@ -46,7 +46,7 @@ export default function BottomNav() {
   // seit BUG-04 keinen eigenen Slot mehr, Kräuterschule und Pflanzen-Detail
   // gehören zur selben Welt. Profil, Saison und Beiträge stehen im
   // Avatar-Menü bzw. sind kein Panel-Ziel mehr.
-  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
+  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/garten-kraeuter', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -72,14 +72,15 @@ export default function BottomNav() {
     color: active ? 'var(--text)' : 'var(--nav-muted)',
   })
 
-  // Genau fünf — eine gleichmäßige Reihe zu je 20%. Einstellungen sind seit
-  // Ü19 nur noch übers Avatar-Menü erreichbar (raus aus dem Panel).
+  // Eine gleichmäßige Reihe — Breite je Eintrag ergibt sich aus der Anzahl
+  // (100/n %), damit die Reihe bei weniger Einträgen mittig bleibt und nicht
+  // links klumpt. Einstellungen sind seit Ü19 nur noch übers Avatar-Menü
+  // erreichbar (raus aus dem Panel).
   const MEHR_ITEMS = [
-    { icon: 'ti-plant-2', label: 'Kräuter', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
+    { icon: 'ti-plant-2', label: 'Garten & Kräuter', to: '/garten-kraeuter', trackId: 'bottom-mehr-garten-kraeuter-click' },
     { icon: 'ti-basket', label: 'Einkaufen', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
     { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
-    { icon: 'ti-seeding', label: 'Garten', to: '/garten', trackId: 'bottom-mehr-garten-click' },
   ]
 
   const mehrItemStyle = (dimmed) => ({
@@ -145,7 +146,7 @@ export default function BottomNav() {
                 to={to}
                 onClick={() => setMoreOpen(false)}
                 data-track-id={trackId}
-                style={{ ...mehrItemStyle(false), flexBasis: '20%' }}
+                style={{ ...mehrItemStyle(false), flexBasis: `${100 / MEHR_ITEMS.length}%` }}
               >
                 {inner}
               </Link>
@@ -154,7 +155,7 @@ export default function BottomNav() {
                 key={label}
                 data-track-id={trackId}
                 aria-disabled="true"
-                style={{ ...mehrItemStyle(true), flexBasis: '20%' }}
+                style={{ ...mehrItemStyle(true), flexBasis: `${100 / MEHR_ITEMS.length}%` }}
               >
                 {inner}
               </span>

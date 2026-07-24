@@ -34,6 +34,7 @@ import Register from './pages/Register.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import Fratcher from './pages/Fratcher.jsx'
 import Garten from './pages/Garten.jsx'
+import GartenKraeuter from './pages/GartenKraeuter.jsx'
 import KraeuterAlle from './pages/KraeuterAlle.jsx'
 import Kraeuterschule from './pages/Kraeuterschule.jsx'
 import PflanzenDetail from './pages/PflanzenDetail.jsx'
@@ -131,6 +132,7 @@ const router = createBrowserRouter([
       { path: '/favorites', element: <ProtectedRoute><Favorites /></ProtectedRoute> },
       { path: '/collections/:id', element: <ProtectedRoute><CollectionDetail /></ProtectedRoute> },
       { path: '/fratcher', element: <ProtectedRoute><Fratcher /></ProtectedRoute> },
+      { path: '/garten-kraeuter', element: <ProtectedRoute><GartenKraeuter /></ProtectedRoute> },
       { path: '/garten', element: <ProtectedRoute><Garten /></ProtectedRoute> },
       { path: '/kraeuterschule', element: <ProtectedRoute><Kraeuterschule /></ProtectedRoute> },
       { path: '/kraeuterschule/alle', element: <ProtectedRoute><KraeuterAlle /></ProtectedRoute> },
