@@ -58,8 +58,8 @@ export default function BottomNav() {
   // Genau fünf — eine gleichmäßige Reihe zu je 20%. Einstellungen sind seit
   // Ü19 nur noch übers Avatar-Menü erreichbar (raus aus dem Panel).
   const MEHR_ITEMS = [
-    { icon: 'ti-plant-2', label: 'Kräuterschule', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
-    { icon: 'ti-basket', label: 'Einkaufsliste', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
+    { icon: 'ti-plant-2', label: 'Kräuter', to: '/kraeuterschule', trackId: 'bottom-mehr-kraeuterschule-click' },
+    { icon: 'ti-basket', label: 'Einkaufen', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
     { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
     { icon: 'ti-seeding', label: 'Garten', to: '/garten', trackId: 'bottom-mehr-garten-click' },
