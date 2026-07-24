@@ -106,7 +106,8 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
             'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.06) 50%, rgba(255,255,255,0) 100%)',
             // Lamellen: pro ~12px-Latte Licht-Rand → Mittelton → Schatten → Rille
             'repeating-linear-gradient(180deg, rgba(255,255,255,.13) 0px, rgba(255,255,255,.05) 1px, rgba(0,0,0,0) 3px, rgba(0,0,0,.05) 9px, rgba(0,0,0,.11) 11px, rgba(0,0,0,.19) 12px)',
-            'var(--bg-alt)',
+            // Grund kategorie­getönt (color-mix über Theme-Var → dark-mode-fest)
+            `color-mix(in srgb, ${catColor} 20%, var(--bg-alt))`,
           ].join(', '),
           // Kasten-Andeutung: der Rollo fährt oben in den Kasten ein
           boxShadow: 'inset 0 7px 9px -5px rgba(0,0,0,.4)',
@@ -116,15 +117,13 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
           pointerEvents: open ? 'none' : 'auto',
         }}
       >
-        {/* Kategorie-Akzent am Kasten (oberer Rand) */}
-        <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: catColor, opacity: 0.9 }} />
+        {/* Kategorie-Akzent am Kasten (oberer Rand) — deckend + kräftiger */}
+        <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: catColor }} />
 
-        {/* Teaser zentriert, mit dezentem Plättchen für Kontrast auf den Latten */}
-        <span style={{ position: 'absolute', top: 3, left: 0, right: 0, bottom: 15, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
-          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '5px 9px', borderRadius: 6, background: 'color-mix(in srgb, var(--surface) 80%, transparent)', boxShadow: '0 1px 3px rgba(0,0,0,.12)' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600 }}>{label}</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)' }}>Tippen zum Öffnen</span>
-          </span>
+        {/* Kompakter Label-Chip zentriert — auto-breit, verdeckt die getönte
+            Fläche nicht mehr. Affordance trägt die Griff-Kerbe unten + aria-label. */}
+        <span style={{ position: 'absolute', top: 4, left: 0, right: 0, bottom: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 999, background: 'color-mix(in srgb, var(--surface) 82%, transparent)', boxShadow: '0 1px 3px rgba(0,0,0,.12)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600, whiteSpace: 'nowrap' }}>{label}</span>
         </span>
 
         {/* Endleiste (Zugleiste): dickere, dunklere Abschluss-Latte + Griff-Kerbe */}
