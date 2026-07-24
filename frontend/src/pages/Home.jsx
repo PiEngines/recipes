@@ -70,7 +70,10 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
       </div>
 
       {/* Rolladen-Overlay — bleibt gemountet, damit die Aufroll-Animation läuft;
-          nach dem Öffnen pointerEvents:none → Klicks erreichen die Kachel. */}
+          nach dem Öffnen pointerEvents:none → Klicks erreichen die Kachel.
+          Optik: Lamellen mit Licht-/Schattenkante + Rille (Tiefe), Kasten-
+          Schatten oben, Endleiste mit Griff-Kerbe unten, dezenter Schimmer.
+          Farben = var(--bg-alt) + neutrale rgba-Overlays → theme-/dark-mode-fest. */}
       <button
         type="button"
         onClick={openShutter}
@@ -82,26 +85,38 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
           inset: 0,
           border: 'none',
           margin: 0,
-          padding: '10px 11px 12px',
-          textAlign: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          padding: 0,
           cursor: 'pointer',
           font: 'inherit',
-          background: 'repeating-linear-gradient(180deg, rgba(0,0,0,.055) 0, rgba(0,0,0,.055) 6px, rgba(0,0,0,.015) 6px, rgba(0,0,0,.015) 12px), var(--bg-alt)',
+          background: [
+            // Vertikal-Schimmer (Mitte minimal heller → gewölbte Anmutung)
+            'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.06) 50%, rgba(255,255,255,0) 100%)',
+            // Lamellen: pro ~12px-Latte Licht-Rand → Mittelton → Schatten → Rille
+            'repeating-linear-gradient(180deg, rgba(255,255,255,.13) 0px, rgba(255,255,255,.05) 1px, rgba(0,0,0,0) 3px, rgba(0,0,0,.05) 9px, rgba(0,0,0,.11) 11px, rgba(0,0,0,.19) 12px)',
+            'var(--bg-alt)',
+          ].join(', '),
+          // Kasten-Andeutung: der Rollo fährt oben in den Kasten ein
+          boxShadow: 'inset 0 7px 9px -5px rgba(0,0,0,.4)',
           transform: open ? 'translateY(-100%)' : 'translateY(0)',
           transformOrigin: 'top',
           transition: reduceMotion ? 'none' : 'transform .35s ease',
           pointerEvents: open ? 'none' : 'auto',
         }}
       >
-        <span style={{ width: '100%', height: 3, background: catColor, borderRadius: 2 }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600 }}>{label}</span>
-        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 26, height: 4, borderRadius: 2, background: 'rgba(0,0,0,.18)' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)' }}>Tippen zum Öffnen</span>
+        {/* Kategorie-Akzent am Kasten (oberer Rand) */}
+        <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: catColor, opacity: 0.9 }} />
+
+        {/* Teaser zentriert, mit dezentem Plättchen für Kontrast auf den Latten */}
+        <span style={{ position: 'absolute', top: 3, left: 0, right: 0, bottom: 15, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '5px 9px', borderRadius: 6, background: 'color-mix(in srgb, var(--surface) 80%, transparent)', boxShadow: '0 1px 3px rgba(0,0,0,.12)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600 }}>{label}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)' }}>Tippen zum Öffnen</span>
+          </span>
+        </span>
+
+        {/* Endleiste (Zugleiste): dickere, dunklere Abschluss-Latte + Griff-Kerbe */}
+        <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 15, background: 'linear-gradient(180deg, rgba(0,0,0,.13), rgba(0,0,0,.27)), var(--bg-alt)', borderTop: '1px solid rgba(0,0,0,.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ width: 28, height: 5, borderRadius: 3, background: 'rgba(0,0,0,.26)', boxShadow: 'inset 0 1px 1px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.14)' }} />
         </span>
       </button>
     </div>
