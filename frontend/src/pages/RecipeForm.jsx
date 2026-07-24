@@ -848,6 +848,10 @@ export default function RecipeForm() {
   const [dietOptions, setDietOptions] = useState([])
   const [allergenOptions, setAllergenOptions] = useState([])
   const [exclusionOptions, setExclusionOptions] = useState([])
+  // Kategorie-/Tag-Taxonomie (Muster wie dietOptions) — {id,name,slug} von
+  // /api/categories bzw. /api/tags, kompatibel mit renderTaxPicker.
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const [tagOptions, setTagOptions] = useState([])
   const [ingredients, setIngredients] = useState([mkIng()])
   const [steps, setSteps] = useState([mkStep()])
   const [moduleSearch, setModuleSearch] = useState({})
@@ -952,11 +956,15 @@ export default function RecipeForm() {
       client.get('/api/diet-labels', { signal: controller.signal }),
       client.get('/api/allergens', { signal: controller.signal }),
       client.get('/api/exclusions', { signal: controller.signal }),
+      client.get('/api/categories', { signal: controller.signal }),
+      client.get('/api/tags', { signal: controller.signal }),
     ])
-      .then(([d, a, e]) => {
+      .then(([d, a, e, c, t]) => {
         setDietOptions(d.data)
         setAllergenOptions(a.data)
         setExclusionOptions(e.data)
+        setCategoryOptions(c.data)
+        setTagOptions(t.data)
       })
       .catch(() => { /* Taxonomie optional — Picker bleibt dann leer */ })
     return () => controller.abort()
@@ -2540,6 +2548,11 @@ export default function RecipeForm() {
                   )}
                 </div>
               </div>
+
+              {/* 5a. Einordnung (IA-Umbau) — Kategorie ist jetzt die Facette,
+                  über die auf /recipes gefiltert wird; Tags ergänzen frei. */}
+              {renderTaxPicker('Kategorie', categoryOptions, selectedCats, setSelectedCats, 'category')}
+              {renderTaxPicker('Tags', tagOptions, selectedTags, setSelectedTags, 'tag')}
 
               {/* 5. Ernährungs-Tagging (Ü25) — optional, kein Pflicht-Gate */}
               {renderTaxPicker('Diät', dietOptions, selectedDiet, setSelectedDiet, 'diet')}
