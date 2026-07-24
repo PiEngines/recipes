@@ -14,6 +14,7 @@ import client from '../api/client'
 import { getCollections } from '../api/collections'
 import { getFavorites, getProfile, getRecipesByAuthor, getUserExternalPosts } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
+import { useFavorites } from '../context/FavoritesContext'
 import AccordionSection from '../components/AccordionSection'
 import CollectionFormModal from '../components/CollectionFormModal'
 import ExternalPostEmbed from '../components/ExternalPostEmbed'
@@ -111,6 +112,13 @@ export default function Profile() {
   // Tab „Gespeichert"
   const [favorites, setFavorites] = useState([])
   const [collections, setCollections] = useState([])
+  // Entfernen-Geste (Ü27) für permanent-gelöschte Favoriten: über den
+  // Context-Un-Favorite (hält favoriteIds app-weit synchron) plus lokale Liste.
+  const { removeFavorite } = useFavorites()
+  const entferneFavorit = (id) => {
+    removeFavorite(id)
+    setFavorites(prev => prev.filter(r => r.id !== id))
+  }
   const [savedLoading, setSavedLoading] = useState(false)
   const [savedError, setSavedError] = useState(false)
 
@@ -335,6 +343,7 @@ export default function Profile() {
             error={savedError}
             onRetry={() => ladeGespeichert()}
             onRecipeClick={id => navigate(`/recipes/${id}`)}
+            onFavoriteRemove={entferneFavorit}
             onNeueSammlung={() => setSammlungModal(true)}
           />
 
@@ -603,7 +612,7 @@ export default function Profile() {
 // `SammlungAccordion` (eine Sammlungs-Zeile) und `AccordionSection` (generischer
 // Reveal-Block) liegen jetzt in components/ — geteilt mit der Favoriten-Seite.
 
-function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipeClick, onNeueSammlung }) {
+function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipeClick, onFavoriteRemove, onNeueSammlung }) {
   // Ein Post-Overlay für die abspielbaren Beiträge in allen Accordion-Zeilen.
   const [offenerPost, setOffenerPost] = useState(null)
 
@@ -678,7 +687,7 @@ function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipe
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16, alignItems: 'stretch' }}>
             {favorites.map(r => (
-              <RecipeCard key={r.id} recipe={r} onClick={() => onRecipeClick(r.id)} {...(deletedCardProps(r) || {})} />
+              <RecipeCard key={r.id} recipe={r} onClick={() => onRecipeClick(r.id)} {...(deletedCardProps(r) || {})} onRemove={r.purge_after ? () => onFavoriteRemove(r.id) : undefined} />
             ))}
           </div>
         )}

@@ -7,7 +7,8 @@ import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 // Prop-Vertrag stabil: { recipe, onClick, dimmed }. Optional (abwärtskompatibel):
 //   variant='default'|'featured' (16:9) · image (aufgelöste Bild-URL, überschreibt
 //   recipe.primary_image) · blockClick · statusBadge (Overlay-Label, z.B. Ü23-
-//   Löschzustände).
+//   Löschzustände) · onRemove (Entfernen-Geste, Ü27: Papierkorb-Button oben rechts
+//   mit pointerEvents:auto — liegt über der blockClick-Fläche).
 
 // Merkliste-Löschzustände (Ü23): leitet die Karten-Props aus deleted_at/
 // purge_after ab. `deleted_at` ohne `purge_after` = Papierkorb (Thumbnail bleibt,
@@ -33,7 +34,7 @@ function formatRating(avg) {
   return Number(avg).toFixed(1).replace('.', ',') // deutsche Kommaschreibweise
 }
 
-export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 'default', image, blockClick = false, statusBadge = null }) {
+export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 'default', image, blockClick = false, statusBadge = null, onRemove = null }) {
   if (!recipe) return null
 
   const featured = variant === 'featured'
@@ -116,6 +117,22 @@ export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 
         outline={false}
         style={{ position: 'absolute', top: heartInset, right: heartInset, width: heartSize, height: heartSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.4)', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', zIndex: 3, padding: 0 }}
       />
+
+      {/* Entfernen-Geste (Ü27): nur auf permanent-gelöschten Merkliste-Karten.
+          Liegt mit pointerEvents:auto über der blockClick-Fläche und deckt das
+          (inaktive) Herz an derselben Stelle ab. */}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={e => { e.preventDefault(); e.stopPropagation(); onRemove() }}
+          data-track-id="recipe-card-remove"
+          aria-label="Aus Merkliste entfernen"
+          title="Aus Merkliste entfernen"
+          style={{ position: 'absolute', top: heartInset, right: heartInset, width: heartSize, height: heartSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.55)', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', zIndex: 4, padding: 0, pointerEvents: 'auto' }}
+        >
+          <i className="ti ti-trash" style={{ fontSize: featured ? 16 : 14, color: 'var(--on-accent)' }} />
+        </button>
+      )}
 
       {/* Status-Overlay (Ü23): mittig, z.B. „gelöscht" / „zurzeit nicht verfügbar".
           Der Titel unten bleibt sichtbar (Wiedererkennbarkeit). */}

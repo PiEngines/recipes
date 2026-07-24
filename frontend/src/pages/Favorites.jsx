@@ -28,13 +28,20 @@ function EmptyFavoritesState() {
 
 export default function Favorites() {
   const navigate = useNavigate()
-  const { favorites, favoriteIds, loading } = useFavorites()
+  const { favorites, favoriteIds, loading, removeFavorite } = useFavorites()
 
   // Sammlungen wie im Profil-„Gespeichert"-Tab: einmal laden, je Sammlung ein
   // einklappbarer Block. Ein Post-Overlay für die abspielbaren Beiträge.
   const [collections, setCollections] = useState([])
   const [collectionsLoading, setCollectionsLoading] = useState(true)
   const [offenerPost, setOffenerPost] = useState(null)
+  // Entfernen-Geste (Ü27): removeFavorite räumt nur favoriteIds, nicht die
+  // favorites-Liste — deshalb die entfernte Karte hier lokal ausblenden.
+  const [removedIds, setRemovedIds] = useState(() => new Set())
+  const entferneFavorit = (id) => {
+    removeFavorite(id)
+    setRemovedIds(prev => new Set(prev).add(id))
+  }
 
   useEffect(() => {
     document.title = 'Meine Favoriten – PiEngines Recipes'
@@ -62,27 +69,32 @@ export default function Favorites() {
           <EmptyFavoritesState />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {(() => {
+              const sichtbareFavoriten = favorites.filter(r => !removedIds.has(r.id))
+              return (
             <AccordionSection
               id="favorites-block"
               ariaLabel="Meine Favoriten"
               title="Favoriten"
-              count={favorites.length}
+              count={sichtbareFavoriten.length}
               trackId="favorites-block-toggle"
             >
-              {favorites.length === 0 ? (
+              {sichtbareFavoriten.length === 0 ? (
                 <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: 0 }}>
                   Noch nichts favorisiert. Tippe auf das Herz eines Rezepts.
                 </p>
               ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-                  {favorites.map(r => (
+                  {sichtbareFavoriten.map(r => (
                     <div key={r.id} data-track-id="favorites-recipe-card-click">
-                      <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} {...(deletedCardProps(r) || {})} />
+                      <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} {...(deletedCardProps(r) || {})} onRemove={r.purge_after ? () => entferneFavorit(r.id) : undefined} />
                     </div>
                   ))}
                 </div>
               )}
             </AccordionSection>
+              )
+            })()}
 
             {collections.map(c => (
               <SammlungAccordion
