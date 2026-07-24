@@ -1,8 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getCollections } from '../api/collections'
 import { useFavorites } from '../context/FavoritesContext'
 import { SkeletonCard } from './Recipes.jsx'
+import AccordionSection from '../components/AccordionSection'
+import PostOverlay from '../components/PostOverlay'
 import RecipeCard from '../components/RecipeCard'
+import SammlungAccordion from '../components/SammlungAccordion'
 
 function EmptyFavoritesState() {
   return (
@@ -26,27 +30,73 @@ export default function Favorites() {
   const navigate = useNavigate()
   const { favorites, favoriteIds, loading } = useFavorites()
 
+  // Sammlungen wie im Profil-„Gespeichert"-Tab: einmal laden, je Sammlung ein
+  // einklappbarer Block. Ein Post-Overlay für die abspielbaren Beiträge.
+  const [collections, setCollections] = useState([])
+  const [collectionsLoading, setCollectionsLoading] = useState(true)
+  const [offenerPost, setOffenerPost] = useState(null)
+
   useEffect(() => {
     document.title = 'Meine Favoriten – PiEngines Recipes'
   }, [])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    getCollections({ signal: controller.signal })
+      .then(daten => setCollections(daten || []))
+      .catch(() => {})
+      .finally(() => setCollectionsLoading(false))
+    return () => controller.abort()
+  }, [])
+
+  const busy = loading || collectionsLoading
+
   return (
     <div data-track-id="favorites-page" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        {loading ? (
+        {busy ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
           </div>
-        ) : favorites.length === 0 ? (
+        ) : favorites.length === 0 && collections.length === 0 ? (
           <EmptyFavoritesState />
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
-            {favorites.map(r => (
-              <div key={r.id} data-track-id="favorites-recipe-card-click">
-                <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} />
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <AccordionSection
+              id="favorites-block"
+              ariaLabel="Meine Favoriten"
+              title="Favoriten"
+              count={favorites.length}
+              trackId="favorites-block-toggle"
+            >
+              {favorites.length === 0 ? (
+                <p style={{ color: 'var(--subtext)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', margin: 0 }}>
+                  Noch nichts favorisiert. Tippe auf das Herz eines Rezepts.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
+                  {favorites.map(r => (
+                    <div key={r.id} data-track-id="favorites-recipe-card-click">
+                      <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </AccordionSection>
+
+            {collections.map(c => (
+              <SammlungAccordion
+                key={c.id}
+                collection={c}
+                onRecipeClick={id => navigate(`/recipes/${id}`)}
+                onPostOpen={setOffenerPost}
+              />
             ))}
           </div>
+        )}
+
+        {offenerPost && (
+          <PostOverlay post={offenerPost} onClose={() => setOffenerPost(null)} />
         )}
       </main>
     </div>
