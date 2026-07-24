@@ -30,6 +30,16 @@ recipe_allergens = Table(
     Column("allergen_id", Integer, ForeignKey("allergens.id", ondelete="CASCADE"), primary_key=True),
 )
 
+# Ausschlüsse am Rezept (Ü25): „Enthält Schweinefleisch/Rindfleisch/…". Nutzer
+# mit passendem Ausschluss im Profil filtern solche Rezepte weg (negativer
+# Filter, Folge-Block). Analog zu recipe_allergens.
+recipe_exclusions = Table(
+    "recipe_exclusions",
+    Base.metadata,
+    Column("recipe_id", Integer, ForeignKey("recipes.id", ondelete="CASCADE"), primary_key=True),
+    Column("exclusion_id", Integer, ForeignKey("exclusions.id", ondelete="CASCADE"), primary_key=True),
+)
+
 # Ernährungsprofil des Nutzers (BUG-41 / Ü18). Das ist das *Erfassen* — die
 # Rezept-Seite bleibt unangetastet, das aktive Filtern ist ein Folge-FR.
 user_diet_labels = Table(

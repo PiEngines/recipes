@@ -10,6 +10,7 @@ from app.models.associations import (
     recipe_allergens,
     recipe_categories,
     recipe_diet_labels,
+    recipe_exclusions,
     recipe_tags,
 )
 
@@ -82,6 +83,7 @@ class Recipe(Base):
     tags = relationship("Tag", secondary=recipe_tags, back_populates="recipes")
     diet_labels = relationship("DietLabel", secondary=recipe_diet_labels, back_populates="recipes")
     allergens = relationship("Allergen", secondary=recipe_allergens, back_populates="recipes")
+    exclusions = relationship("Exclusion", secondary=recipe_exclusions, back_populates="recipes")
 
     # This recipe acts as parent (contains other recipes as components)
     child_components = relationship(

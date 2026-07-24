@@ -2,7 +2,13 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-from app.models.associations import recipe_allergens, recipe_categories, recipe_diet_labels, recipe_tags
+from app.models.associations import (
+    recipe_allergens,
+    recipe_categories,
+    recipe_diet_labels,
+    recipe_exclusions,
+    recipe_tags,
+)
 
 
 class Category(Base):
@@ -51,3 +57,5 @@ class Exclusion(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
+
+    recipes = relationship("Recipe", secondary=recipe_exclusions, back_populates="exclusions")
