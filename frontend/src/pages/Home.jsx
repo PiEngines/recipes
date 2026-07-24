@@ -356,7 +356,7 @@ export default function Home() {
       {/* Kategorien-Einstieg */}
       <div style={{ paddingBottom: 32 }}>
         <div
-          onClick={() => navigate('/categories')}
+          onClick={() => navigate('/recipes')}
           data-track-id="home-categories-teaser-click"
           style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius-card)', padding: '15px 16px', cursor: 'pointer', boxShadow: 'var(--shadow-card)' }}
         >

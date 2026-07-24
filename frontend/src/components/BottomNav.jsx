@@ -46,7 +46,7 @@ export default function BottomNav() {
   // seit BUG-04 keinen eigenen Slot mehr, Kräuterschule und Pflanzen-Detail
   // gehören zur selben Welt. Profil, Saison und Beiträge stehen im
   // Avatar-Menü bzw. sind kein Panel-Ziel mehr.
-  const MEHR_PATHS = ['/categories', '/fratcher', '/einkaufsliste', '/garten-kraeuter', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
+  const MEHR_PATHS = ['/fratcher', '/einkaufsliste', '/garten-kraeuter', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -79,7 +79,6 @@ export default function BottomNav() {
   const MEHR_ITEMS = [
     { icon: 'ti-plant-2', label: 'Garten & Kräuter', to: '/garten-kraeuter', trackId: 'bottom-mehr-garten-kraeuter-click' },
     { icon: 'ti-basket', label: 'Einkaufen', to: '/einkaufsliste', trackId: 'bottom-mehr-einkaufsliste-click' },
-    { icon: 'ti-category', label: 'Kategorien', to: '/categories', trackId: 'bottom-mehr-kategorien-click' },
     { icon: 'ti-fridge', label: 'Kühlschrank', to: '/fratcher', trackId: 'bottom-mehr-fratcher-click' },
   ]
 

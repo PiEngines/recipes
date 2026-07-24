@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useLayoutEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet, Navigate } from 'react-router-dom'
 import './index.css'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { BeetProvider } from './context/BeetContext.jsx'
@@ -19,7 +19,6 @@ import AdminRecipes from './pages/AdminRecipes.jsx'
 import AdminUsers from './pages/AdminUsers.jsx'
 import Favorites from './pages/Favorites.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
-import Categories from './pages/Categories.jsx'
 import CollectionDetail from './pages/CollectionDetail.jsx'
 import Home from './pages/Home.jsx'
 import IngredientReview from './pages/IngredientReview.jsx'
@@ -122,7 +121,9 @@ const router = createBrowserRouter([
       { path: '/reset-password', element: <PublicOnlyRoute><ResetPassword /></PublicOnlyRoute> },
       { path: '/verify-email', element: <PublicOnlyRoute><VerifyEmail /></PublicOnlyRoute> },
       { path: '/recipes', element: <ProtectedRoute><Recipes /></ProtectedRoute> },
-      { path: '/categories', element: <ProtectedRoute><Categories /></ProtectedRoute> },
+      // Dedizierte Kategorie-Seite entfernt (IA-Umbau) — Kategorie lebt jetzt
+      // als Filter-Facette auf /recipes. Redirect sichert Altlinks.
+      { path: '/categories', element: <Navigate to="/recipes" replace /> },
       { path: '/', element: <ProtectedRoute><Home /></ProtectedRoute> },
       { path: '/recipes/new', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
       { path: '/recipes/:id/edit', element: <ProtectedRoute><RecipeForm /></ProtectedRoute> },
