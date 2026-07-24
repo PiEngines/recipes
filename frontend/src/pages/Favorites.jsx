@@ -5,7 +5,7 @@ import { useFavorites } from '../context/FavoritesContext'
 import { SkeletonCard } from './Recipes.jsx'
 import AccordionSection from '../components/AccordionSection'
 import PostOverlay from '../components/PostOverlay'
-import RecipeCard from '../components/RecipeCard'
+import RecipeCard, { deletedCardProps } from '../components/RecipeCard'
 import SammlungAccordion from '../components/SammlungAccordion'
 
 function EmptyFavoritesState() {
@@ -77,7 +77,7 @@ export default function Favorites() {
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-6" style={{ alignItems: 'stretch' }}>
                   {favorites.map(r => (
                     <div key={r.id} data-track-id="favorites-recipe-card-click">
-                      <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} />
+                      <RecipeCard recipe={r} dimmed={!favoriteIds.has(r.id)} onClick={() => navigate(`/recipes/${r.id}`)} {...(deletedCardProps(r) || {})} />
                     </div>
                   ))}
                 </div>

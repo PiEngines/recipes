@@ -6,7 +6,21 @@ import { getCategoryColor, categoryGradient } from '../theme/categoryColors'
 // Kachel mit Kategorie-Farbblock + Glyph (Layout bleibt stabil).
 // Prop-Vertrag stabil: { recipe, onClick, dimmed }. Optional (abwärtskompatibel):
 //   variant='default'|'featured' (16:9) · image (aufgelöste Bild-URL, überschreibt
-//   recipe.primary_image) · blockClick.
+//   recipe.primary_image) · blockClick · statusBadge (Overlay-Label, z.B. Ü23-
+//   Löschzustände).
+
+// Merkliste-Löschzustände (Ü23): leitet die Karten-Props aus deleted_at/
+// purge_after ab. `deleted_at` ohne `purge_after` = Papierkorb (Thumbnail bleibt,
+// „zurzeit nicht verfügbar"); `purge_after` gesetzt = endgültig gelöscht (Media
+// weg → kein Bild, nur Titel, „gelöscht"). null = aktive Karte, keine Extra-Props.
+export function deletedCardProps(recipe) {
+  if (!recipe?.deleted_at) return null
+  return {
+    dimmed: true,
+    blockClick: true,
+    statusBadge: recipe.purge_after ? 'gelöscht' : 'zurzeit nicht verfügbar',
+  }
+}
 
 function formatTime(recipe) {
   const t = (recipe?.prep_time || 0) + (recipe?.cook_time || 0)
@@ -19,7 +33,7 @@ function formatRating(avg) {
   return Number(avg).toFixed(1).replace('.', ',') // deutsche Kommaschreibweise
 }
 
-export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 'default', image, blockClick = false }) {
+export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 'default', image, blockClick = false, statusBadge = null }) {
   if (!recipe) return null
 
   const featured = variant === 'featured'
@@ -102,6 +116,14 @@ export default function RecipeCard({ recipe, onClick, dimmed = false, variant = 
         outline={false}
         style={{ position: 'absolute', top: heartInset, right: heartInset, width: heartSize, height: heartSize, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.4)', border: 'none', borderRadius: 'var(--radius-pill)', cursor: 'pointer', zIndex: 3, padding: 0 }}
       />
+
+      {/* Status-Overlay (Ü23): mittig, z.B. „gelöscht" / „zurzeit nicht verfügbar".
+          Der Titel unten bleibt sichtbar (Wiedererkennbarkeit). */}
+      {statusBadge && (
+        <span style={{ position: 'absolute', top: '46%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 3, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: featured ? 9 : 8, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--on-accent)', background: 'rgba(0,0,0,.6)', borderRadius: 'var(--radius-tag)', padding: '5px 10px', whiteSpace: 'nowrap' }}>
+          {statusBadge}
+        </span>
+      )}
 
       {/* unten: Titel (Lora italic auf Bild) + Autor · ★ */}
       <div style={{ position: 'absolute', left: pad, right: pad, bottom: pad, zIndex: 2 }}>

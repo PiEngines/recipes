@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCollection } from '../api/collections'
 import PostKachel from './PostKachel'
-import RecipeCard from './RecipeCard'
+import RecipeCard, { deletedCardProps } from './RecipeCard'
 
 const SICHTBARKEIT_LABEL = {
   private: 'Privat',
@@ -87,7 +87,7 @@ export default function SammlungAccordion({ collection, onRecipeClick, onPostOpe
               {(items || []).map(item => (
                 <div key={`${item.item_type}-${item.item_id}`}>
                   {item.item_type === 'recipe' && item.recipe && (
-                    <RecipeCard recipe={item.recipe} onClick={() => onRecipeClick(item.recipe.id)} />
+                    <RecipeCard recipe={item.recipe} onClick={() => onRecipeClick(item.recipe.id)} {...(deletedCardProps(item.recipe) || {})} />
                   )}
                   {item.item_type === 'external_post' && item.external_post && (
                     <PostKachel post={item.external_post} onClick={() => onPostOpen(item.external_post)} />

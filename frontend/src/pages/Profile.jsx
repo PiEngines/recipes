@@ -19,7 +19,7 @@ import CollectionFormModal from '../components/CollectionFormModal'
 import ExternalPostEmbed from '../components/ExternalPostEmbed'
 import PostOverlay from '../components/PostOverlay'
 import ProfileHeader from '../components/ProfileHeader'
-import RecipeCard from '../components/RecipeCard'
+import RecipeCard, { deletedCardProps } from '../components/RecipeCard'
 import SammlungAccordion from '../components/SammlungAccordion'
 import Segmented from '../components/Segmented'
 import { inputStyle, labelStyle } from '../components/settingsStyles'
@@ -678,7 +678,7 @@ function Gespeichert({ favorites, collections, loading, error, onRetry, onRecipe
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3" style={{ gap: 16, alignItems: 'stretch' }}>
             {favorites.map(r => (
-              <RecipeCard key={r.id} recipe={r} onClick={() => onRecipeClick(r.id)} />
+              <RecipeCard key={r.id} recipe={r} onClick={() => onRecipeClick(r.id)} {...(deletedCardProps(r) || {})} />
             ))}
           </div>
         )}
