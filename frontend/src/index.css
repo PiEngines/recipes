@@ -28,6 +28,12 @@
   --font-display: 'Lora', Georgia, 'Times New Roman', serif;
   --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono:    'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Rollo-Label-Schriften (drei Stile je Rail auf Home) — self-hosted, OFL.
+     sticker=Aufkleber, emaille=Emailleschild, stempel=Stempeldruck. */
+  --font-sticker: 'Permanent Marker', 'Comic Sans MS', cursive;
+  --font-emaille: 'Alfa Slab One', Georgia, serif;
+  --font-stempel: 'Stardos Stencil', 'Courier New', monospace;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
