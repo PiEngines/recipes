@@ -1,6 +1,20 @@
 import { StrictMode, useEffect, useLayoutEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, ScrollRestoration, useLocation, Outlet, Navigate } from 'react-router-dom'
+// Schriften self-hosted (Consent-Cleanup): kein googleapis/gstatic-Request mehr.
+// Nur die genutzten Schnitte; @fontsource setzt font-display:swap und lädt per
+// unicode-range nur das benötigte Subset. Family-Namen bleiben Lora/DM Sans/DM
+// Mono → die CSS-Vars in index.css sind unverändert.
+import '@fontsource/lora/500.css'
+import '@fontsource/lora/700.css'
+import '@fontsource/lora/500-italic.css'
+import '@fontsource/lora/700-italic.css'
+import '@fontsource/dm-sans/400.css'
+import '@fontsource/dm-sans/500.css'
+import '@fontsource/dm-sans/600.css'
+import '@fontsource/dm-sans/700.css'
+import '@fontsource/dm-mono/400.css'
+import '@fontsource/dm-mono/500.css'
 import './index.css'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { BeetProvider } from './context/BeetContext.jsx'
