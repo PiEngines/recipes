@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
@@ -16,12 +16,29 @@ export default function BottomNav() {
   const { user } = useAuth()
   const canCreate = isKochOrAbove(user)
   const [moreOpen, setMoreOpen] = useState(false)
+  // „+"-Auswahl (Ü27): Rezept (nur Koch+) oder Beitrag (alle eingeloggten User).
+  const [neuOpen, setNeuOpen] = useState(false)
+
+  // „Rezept erstellen" nur für Koch+, „Beitrag erstellen" für alle. Dadurch ist
+  // das „+" nie mehr komplett deaktiviert — jeder kann wenigstens Beiträge anlegen.
+  const NEU_ITEMS = [
+    ...(canCreate ? [{ icon: 'ti-chef-hat', label: 'Rezept erstellen', to: '/recipes/new', trackId: 'bottom-neu-rezept-click' }] : []),
+    { icon: 'ti-link', label: 'Beitrag erstellen', to: '/social', trackId: 'bottom-neu-beitrag-click' },
+  ]
+
+  // Esc schließt das offene Panel (Mehr oder Neu) — wie ein Backdrop-Tap.
+  useEffect(() => {
+    if (!moreOpen && !neuOpen) return undefined
+    const onKey = (e) => { if (e.key === 'Escape') { setMoreOpen(false); setNeuOpen(false) } }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [moreOpen, neuOpen])
 
   // Aktiver-Tab-Logik (SPEC §2.7): eigener Bereich → Slot aktiv;
   // hineingesprungene Unterseiten (fremdes Profil) → Footer neutral;
   // Mehr-Panel-Ziele → »Mehr« aktiv.
   const startsWith = (p) => pathname === p || pathname.startsWith(p + '/')
-  const isNeu = pathname === '/recipes/new'
+  const isNeu = pathname === '/recipes/new' || neuOpen
   const isHome = pathname === '/'
   const isRezepte = startsWith('/recipes') && !isNeu
   const isFavoriten = startsWith('/favorites')
@@ -146,6 +163,44 @@ export default function BottomNav() {
         </div>
       </div>
 
+      {/* Backdrop zum Schließen der »Neu«-Auswahl (wie beim Mehr-Panel). */}
+      {neuOpen && (
+        <div onClick={() => setNeuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 102 }} />
+      )}
+
+      {/* »Neu«-Slide-up-Auswahl: Rezept (Koch+) / Beitrag (alle). Gleiches
+          Muster wie das Mehr-Panel (transform, Backdrop, Esc). */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 78,
+          left: 0,
+          right: 0,
+          zIndex: 103,
+          background: 'var(--surface)',
+          borderTop: '2px solid var(--nav-top)',
+          padding: '6px 0 10px',
+          transform: neuOpen ? 'translateY(0)' : 'translateY(110%)',
+          transition: 'transform .22s ease',
+          boxShadow: '0 -4px 20px rgba(0,0,0,.10)',
+        }}
+      >
+        <div style={{ display: 'flex', width: '100%', maxWidth: 480, margin: '0 auto' }}>
+          {NEU_ITEMS.map(({ icon, label, to, trackId }) => (
+            <Link
+              key={label}
+              to={to}
+              onClick={() => setNeuOpen(false)}
+              data-track-id={trackId}
+              style={{ ...mehrItemStyle(false), flexBasis: `${100 / NEU_ITEMS.length}%` }}
+            >
+              <i className={`ti ${icon}`} style={{ fontSize: 20 }} />
+              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.02em' }}>{label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Haupt-Leiste */}
       <nav
         className="bottom-nav"
@@ -176,29 +231,27 @@ export default function BottomNav() {
             <span style={labelStyle(isRezepte)}>Rezepte</span>
           </Link>
 
-          {/* Neu — zentraler erhöhter + (44×44, dunkel, −16px) */}
-          {canCreate ? (
-            <Link to="/recipes/new" data-track-id="bottom-nav-neu-click" style={{ ...slotStyle(isNeu), gap: 2 }}>
-              <span style={{ width: 44, height: 44, borderRadius: 6, marginTop: -16, background: 'var(--ink-braun)', boxShadow: 'var(--nav-fab-shadow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="ti ti-plus" style={{ fontSize: 24, color: 'var(--on-accent)' }} />
-              </span>
-              <span style={labelStyle(isNeu)}>Neu</span>
-            </Link>
-          ) : (
-            <span data-track-id="bottom-nav-neu-click" style={{ ...slotStyle(false), gap: 2, opacity: 0.4, cursor: 'default' }}>
-              <span style={{ width: 44, height: 44, borderRadius: 6, marginTop: -16, background: 'var(--ink-braun)', boxShadow: 'var(--nav-fab-shadow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className="ti ti-plus" style={{ fontSize: 24, color: 'var(--on-accent)' }} />
-              </span>
-              <span style={labelStyle(false)}>Neu</span>
+          {/* Neu — zentraler erhöhter + (44×44, dunkel, −16px). Öffnet die
+              Auswahl Rezept/Beitrag statt direkt zu /recipes/new zu springen. */}
+          <button
+            onClick={() => { setMoreOpen(false); setNeuOpen(o => !o) }}
+            data-track-id="bottom-nav-neu-click"
+            aria-haspopup="true"
+            aria-expanded={neuOpen}
+            style={{ ...slotStyle(isNeu), gap: 2 }}
+          >
+            <span style={{ width: 44, height: 44, borderRadius: 6, marginTop: -16, background: 'var(--ink-braun)', boxShadow: 'var(--nav-fab-shadow)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ti ti-plus" style={{ fontSize: 24, color: 'var(--on-accent)', transform: neuOpen ? 'rotate(45deg)' : 'none', transition: 'transform .2s ease' }} />
             </span>
-          )}
+            <span style={labelStyle(isNeu)}>Neu</span>
+          </button>
 
           <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
             <i className="ti ti-heart" style={{ fontSize: ICON }} />
             <span style={labelStyle(isFavoriten)}>Favoriten</span>
           </Link>
 
-          <button onClick={() => setMoreOpen(m => !m)} data-track-id="bottom-nav-mehr-click" style={slotStyle(isMehr)}>
+          <button onClick={() => { setNeuOpen(false); setMoreOpen(m => !m) }} data-track-id="bottom-nav-mehr-click" style={slotStyle(isMehr)}>
             <i className="ti ti-dots" style={{ fontSize: ICON }} />
             <span style={labelStyle(isMehr)}>Mehr</span>
           </button>
