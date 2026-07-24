@@ -139,6 +139,33 @@ def test_geloeschte_rezepte_tauchen_nicht_auf(ctx):
     assert _titel(c.get("/api/feed").json()["items"]) == ["Sichtbar"]
 
 
+def test_fremdes_nicht_freigegebenes_rezept_bleibt_verborgen(ctx):
+    """Datenschutz: Koch/Küchenhilfe sieht published Fremdrezepte nur nach
+    Freigabe. Ohne den Sichtbarkeits-Filter im Feed leakte jedes published
+    Rezept in den globalen Stream (Gegenprobe: nach `free_for_all` erscheint es).
+    """
+    from app.models.access import RecipeAccess
+
+    c, db = ctx
+    _rezept(db, "Eigenes", 10)  # created_by=1 == angemeldete Köchin
+    fremd = _rezept(db, "Fremd", 20)
+    fremd.created_by = 99
+    fremd.author_id = 99
+    db.commit()
+
+    # Ohne Freigabe: nur das eigene Rezept.
+    assert _titel(c.get("/api/feed").json()["items"]) == ["Eigenes"]
+
+    # Nach free_for_all-Freigabe taucht das fremde Rezept auf.
+    db.add(RecipeAccess(
+        recipe_id=fremd.id,
+        access_type="free_for_all",
+        created_by=99,
+    ))
+    db.commit()
+    assert _titel(c.get("/api/feed").json()["items"]) == ["Fremd", "Eigenes"]
+
+
 # ── Antwortform ──────────────────────────────────────────────────────────────
 
 def test_post_traegt_oembed_html(ctx):

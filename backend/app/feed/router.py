@@ -33,7 +33,11 @@ from app.plants.spotlight import resolve_spotlight
 # Dieselben Batch-Helfer wie die Rezeptliste (Thumbnail und Bewertung ohne
 # N+1). Bewusst wiederverwendet statt nachgebaut: eine Rezeptkachel im Feed
 # soll exakt so aussehen wie eine in der Liste.
-from app.recipes.router import _attach_primary_images, _attach_ratings
+from app.recipes.router import (
+    _apply_visibility_filter,
+    _attach_primary_images,
+    _attach_ratings,
+)
 from app.recipes.schemas import RecipeListItem
 
 router = APIRouter(prefix="/api/feed", tags=["feed"])
@@ -135,6 +139,10 @@ def get_feed(
         Recipe.deleted_at.is_(None),
         Recipe.status == RecipeStatus.published,
     )
+    # Sichtbarkeit je Rolle — sonst sähen Koch/Küchenhilfe jedes published
+    # Rezept, auch nicht freigegebene fremde (Datenschutz-Leak). Der Filter
+    # ist derselbe wie in `/recipes`; der Basis-Filter oben bleibt zusätzlich.
+    rezept_q = _apply_visibility_filter(rezept_q, current_user, db)
     bedingung = _nach_cursor(Recipe.created_at, Recipe.id, "recipe", cursor)
     if bedingung is not None:
         rezept_q = rezept_q.filter(bedingung)
