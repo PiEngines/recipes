@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext'
 import { isKochOrAbove } from '../utils/roles'
 
 // Bottom-Nav Wahl 2.0 (SPEC §2.7): 5 Slots — Home · Rezepte · Neu (zentraler
-// erhöhter +) · Favoriten · Mehr. Höhe 78px, Creme-Fläche mit Holz-Oberkante.
+// erhöhter +) · Mein Kochbuch · Mehr. Höhe 78px, Creme-Fläche mit Holz-Oberkante.
 // Aktiv = dunkles Ink-Icon+Label (var(--text)), inaktiv = var(--nav-muted).
 // (Prototyp screens/*.html rendern den aktiven Slot bewusst dunkel, nicht Terrakotta.)
-// Profil liegt unter »Mehr« — KEIN eigener Slot.
+// „Mein Kochbuch" (Profil-Hub) hat seit dem IA-Umbau einen eigenen Slot; das
+// Avatar-Menü ist reines Konto (Einstellungen/Beiträge/Logout).
 
 const ICON = 22
 
@@ -41,12 +42,15 @@ export default function BottomNav() {
   const isNeu = pathname === '/recipes/new' || pathname === '/social/new' || neuOpen
   const isHome = pathname === '/'
   const isRezepte = startsWith('/recipes') && !isNeu
-  const isFavoriten = startsWith('/favorites')
+  // „Mein Kochbuch" = der Profil-Hub (eigene Rezepte, Merkliste, Beiträge).
+  // /favorites lebt als Merkliste-Tab im Hub weiter und hält den Slot mit aktiv.
+  const isKochbuch = startsWith('/profile') || startsWith('/favorites')
   // Alles, was im Mehr-Panel hängt, hält den Mehr-Slot aktiv — Garten hat
   // seit BUG-04 keinen eigenen Slot mehr, Kräuterschule und Pflanzen-Detail
   // gehören zur selben Welt. Profil, Saison und Beiträge stehen im
   // Avatar-Menü bzw. sind kein Panel-Ziel mehr.
-  const MEHR_PATHS = ['/fratcher', '/einkaufsliste', '/garten-kraeuter', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen', '/profile']
+  // /profile gehört jetzt dem „Mein Kochbuch"-Slot, nicht mehr dem Mehr-Panel.
+  const MEHR_PATHS = ['/fratcher', '/einkaufsliste', '/garten-kraeuter', '/kraeuterschule', '/garten', '/pflanzen', '/einstellungen']
   const isMehr = moreOpen || MEHR_PATHS.some(startsWith)
 
   const slotStyle = (active) => ({
@@ -246,9 +250,9 @@ export default function BottomNav() {
             <span style={labelStyle(isNeu)}>Neu</span>
           </button>
 
-          <Link to="/favorites" data-track-id="bottom-nav-favoriten-click" style={slotStyle(isFavoriten)}>
-            <i className="ti ti-heart" style={{ fontSize: ICON }} />
-            <span style={labelStyle(isFavoriten)}>Favoriten</span>
+          <Link to="/profile" data-track-id="bottom-nav-kochbuch-click" style={slotStyle(isKochbuch)}>
+            <i className="ti ti-notebook" style={{ fontSize: ICON }} />
+            <span style={labelStyle(isKochbuch)}>Kochbuch</span>
           </Link>
 
           <button onClick={() => { setNeuOpen(false); setMoreOpen(m => !m) }} data-track-id="bottom-nav-mehr-click" style={slotStyle(isMehr)}>
