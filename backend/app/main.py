@@ -176,7 +176,7 @@ async def _seed_disposable_domains() -> None:
             "https://raw.githubusercontent.com/disposable-email-domains/"
             "disposable-email-domains/master/disposable_email_blocklist.conf"
         )
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=8) as client:
             resp = await client.get(url)
         domains = [
             line.strip()
@@ -195,7 +195,7 @@ async def _seed_disposable_domains() -> None:
         db.close()
 
 
-async def _run_seasonal_matching() -> None:
+def _seasonal_matching_blocking() -> None:
     from app.database import SessionLocal
 
     db = SessionLocal()
@@ -207,6 +207,14 @@ async def _run_seasonal_matching() -> None:
         db.close()
 
 
+async def _run_seasonal_matching() -> None:
+    # Der eigentliche Lauf ist synchron (ein Anthropic-Call je Rezept) und würde
+    # auf dem Event-Loop minutenlang alle Requests (u.a. Login) blockieren. Über
+    # to_thread läuft er in einem Worker-Thread, der Loop bleibt frei. Gilt für
+    # den Startup-Task genauso wie für den 3-Tage-Scheduler-Job.
+    await asyncio.to_thread(_seasonal_matching_blocking)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_admin()
@@ -214,6 +222,7 @@ async def lifespan(app: FastAPI):
 
     from app.database import SessionLocal
     from app.models import Plant
+    from app.models.plant_ingredient_map import PlantIngredientMap
 
     db = SessionLocal()
     try:
@@ -223,11 +232,23 @@ async def lifespan(app: FastAPI):
     if plants_table_empty:
         seed_plant_data()
 
-    # Kräuterschule Phase 4: Brücke Pflanze<->Zutat (Full-Reload, idempotent).
-    # Läuft nach dem Plant-Seed und unabhängig davon, ob Pflanzen neu geseedet wurden.
-    seed_plant_ingredient_map()
+    # Kräuterschule Phase 4: Brücke Pflanze<->Zutat (Full-Reload = delete + Neuaufbau
+    # über 279 Pflanzen). Der lief bislang bei JEDEM Start synchron und blockierte
+    # den Boot — jetzt nur noch, wenn nötig (Map leer oder Pflanzen frisch geseedet),
+    # und dann off-loop, damit die API sofort ansprechbar bleibt.
+    map_needed = plants_table_empty
+    if not map_needed:
+        db = SessionLocal()
+        try:
+            map_needed = db.query(PlantIngredientMap).first() is None
+        finally:
+            db.close()
+    if map_needed:
+        asyncio.create_task(asyncio.to_thread(seed_plant_ingredient_map))
 
-    await _seed_disposable_domains()
+    # Disposable-Domains-Seed holt eine Blockliste per HTTP (GitHub). Nicht mehr
+    # vor dem Start awaiten — der Fetch (Timeout 8s) darf den Boot nicht aufhalten.
+    asyncio.create_task(_seed_disposable_domains())
 
     scheduler = AsyncIOScheduler()
     # Daily cleanup of permanently expired (30-day) deleted users
@@ -245,8 +266,11 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
+        # Nur noch auf `is None` prüfen (nicht `len == 0`): eine leere Tag-Liste
+        # heißt „bereits versucht" (siehe matcher.py) und darf den Voll-Re-Run
+        # nicht bei jedem Start erneut auslösen.
         needs_tagging = any(
-            recipe.seasonal_tags is None or len(recipe.seasonal_tags) == 0
+            recipe.seasonal_tags is None
             for recipe in db.query(Recipe).all()
         )
     finally:
