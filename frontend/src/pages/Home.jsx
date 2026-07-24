@@ -31,18 +31,32 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
   const author = recipe?.author?.name || recipe?.author?.username || null
   const time = formatTime(recipe)
   const meta = [author, time].filter(Boolean).join(' · ')
+
+  // Rolladen: jede Kachel startet verdeckt (in-memory, pro Home-Mount neu —
+  // kein localStorage, Projektregel). Erst Tap auf den Rolladen deckt die
+  // Kachel auf; danach navigiert sie wie gewohnt.
+  const [open, setOpen] = useState(false)
+  const reduceMotion = useState(() =>
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  )[0]
+  const openTrackId = trackId ? trackId.replace(/-click$/, '-rolladen-open') : undefined
+
+  const openShutter = e => { e.stopPropagation(); setOpen(true) }
+
   return (
     <div
-      onClick={onClick}
+      onClick={open ? onClick : undefined}
       data-track-id={trackId}
       style={{
+        position: 'relative',
         flex: '1 1 0',
         minWidth: 0,
         background: 'var(--surface)',
         borderRadius: 4,
         overflow: 'hidden',
         boxShadow: '2px 3px 0 rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.08)',
-        cursor: recipe ? 'pointer' : 'default',
+        cursor: open && recipe ? 'pointer' : 'default',
         userSelect: 'none',
       }}
     >
@@ -54,6 +68,42 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
         </p>
         <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{meta || '—'}</p>
       </div>
+
+      {/* Rolladen-Overlay — bleibt gemountet, damit die Aufroll-Animation läuft;
+          nach dem Öffnen pointerEvents:none → Klicks erreichen die Kachel. */}
+      <button
+        type="button"
+        onClick={openShutter}
+        data-track-id={openTrackId}
+        aria-label={`${label} aufdecken — Tippen zum Öffnen`}
+        aria-expanded={open}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          border: 'none',
+          margin: 0,
+          padding: '10px 11px 12px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          font: 'inherit',
+          background: 'repeating-linear-gradient(180deg, rgba(0,0,0,.055) 0, rgba(0,0,0,.055) 6px, rgba(0,0,0,.015) 6px, rgba(0,0,0,.015) 12px), var(--bg-alt)',
+          transform: open ? 'translateY(-100%)' : 'translateY(0)',
+          transformOrigin: 'top',
+          transition: reduceMotion ? 'none' : 'transform .35s ease',
+          pointerEvents: open ? 'none' : 'auto',
+        }}
+      >
+        <span style={{ width: '100%', height: 3, background: catColor, borderRadius: 2 }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: catColor, fontWeight: 600 }}>{label}</span>
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 26, height: 4, borderRadius: 2, background: 'rgba(0,0,0,.18)' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)' }}>Tippen zum Öffnen</span>
+        </span>
+      </button>
     </div>
   )
 }
