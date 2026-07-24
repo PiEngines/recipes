@@ -22,6 +22,39 @@ def load_seasonal_ids() -> list[str]:
     return ids
 
 
+def _parse_tag_response(text: str):
+    """JSON-Array aus einer (ggf. in Markdown gefencten) Modellantwort ziehen.
+
+    Rückgabe: die Liste (evtl. leer) — oder ``None``, wenn nichts Parsebares
+    drinsteht. Robust gegen ```json…```-Fences und Vor-/Nachtext, indem vom
+    ersten ``[`` bis zum letzten ``]`` geschnitten und erst dann geparst wird.
+    """
+    t = (text or "").strip()
+    if not t:
+        return []
+
+    # Markdown-Fences entfernen: ```json … ``` oder ``` … ```.
+    if t.startswith("```"):
+        t = t[3:]
+        if t[:4].lower() == "json":
+            t = t[4:]
+        if t.endswith("```"):
+            t = t[:-3]
+        t = t.strip()
+
+    start = t.find("[")
+    end = t.rfind("]")
+    if start == -1 or end == -1 or end < start:
+        return None
+    try:
+        parsed = json.loads(t[start:end + 1])
+    except (json.JSONDecodeError, ValueError):
+        return None
+    if not isinstance(parsed, list):
+        return None
+    return [str(x) for x in parsed]
+
+
 def tag_recipe(recipe, seasonal_ids: list[str], client: anthropic.Anthropic) -> list[str]:
     ingredient_names = ", ".join(i.name for i in recipe.ingredients)
     prompt = f"""Du bekommst einen Rezepttitel und eine Zutatenliste.
@@ -39,11 +72,21 @@ Verfügbare IDs: {", ".join(seasonal_ids)}"""
             max_tokens=500,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = response.content[0].text
-        return json.loads(text)
     except Exception:
-        logger.exception("Seasonal tagging failed for recipe %d", recipe.id)
+        logger.warning("Seasonal tagging: API-Call für Rezept %d fehlgeschlagen", recipe.id)
         return []
+
+    text = (response.content[0].text if response.content else "") or ""
+    text = text.strip()
+    if not text:
+        return []
+
+    parsed = _parse_tag_response(text)
+    if parsed is None:
+        # Kein Exception-Spam: eine leere/gefencte/kaputte Antwort ist erwartbar.
+        logger.warning("Seasonal tagging: Antwort für Rezept %d nicht parsebar: %r", recipe.id, text[:120])
+        return []
+    return parsed
 
 
 def run_seasonal_matching(db) -> None:
