@@ -48,6 +48,13 @@ def list_favorites(
     current_user: User = Depends(require_koch_or_above),
     db: Session = Depends(get_db),
 ):
+    # Lazy-Purge: fällige Tombstones hier mit wegräumen (pragmatischer Ersatz für
+    # einen Cron — die Merkliste wird ohnehin regelmäßig geladen). Das entfernt
+    # abgelaufene Zeilen inkl. der zugehörigen Favoriten-Einträge (CASCADE),
+    # bevor wir die Liste des Users zusammenstellen.
+    from app.recipes.router import purge_expired
+    purge_expired(db)
+
     favorites = (
         db.query(UserFavorite)
         .filter(UserFavorite.user_id == current_user.id)

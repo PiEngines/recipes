@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel
@@ -1138,6 +1138,34 @@ def delete_recipe(
 
 # ── Restore / Permanent delete ────────────────────────────────────────────────
 
+# Tage, die ein „endgültig gelöschtes" Rezept als Titel-Tombstone stehen bleibt,
+# bevor der Lazy-Purge die Zeile hart entfernt. In dieser Frist zeigt die
+# Merkliste die graue „gelöscht"-Karte (nur Titel, kein Bild).
+PURGE_TOMBSTONE_DAYS = 30
+
+
+def purge_expired(db: Session) -> int:
+    """Hard-delete aller fälligen Tombstones (`purge_after < jetzt`).
+
+    Bewusst als Lazy-Purge statt Cron: wir haben keinen Scheduler im Stack, und
+    ein pragmatischer Aufruf an den wenigen Stellen, die Löschzustände ohnehin
+    anfassen (permanentes Löschen, Favoritenliste), reicht für die Retention
+    völlig. Der CASCADE der FKs räumt `user_favorites`/`collection_items` mit.
+    Gibt die Anzahl entfernter Zeilen zurück.
+    """
+    now = datetime.now(timezone.utc)
+    faellig = (
+        db.query(Recipe)
+        .filter(Recipe.purge_after.isnot(None), Recipe.purge_after < now)
+        .all()
+    )
+    for recipe in faellig:
+        db.delete(recipe)
+    if faellig:
+        db.commit()
+    return len(faellig)
+
+
 @router.post("/{recipe_id}/restore")
 def restore_recipe(
     recipe_id: int,
@@ -1163,6 +1191,9 @@ def delete_recipe_permanent(
     from app.models.media import Media
     from app.storage import storage
 
+    # Fällige Tombstones bei der Gelegenheit hart wegräumen (Lazy-Purge).
+    purge_expired(db)
+
     recipe = (
         db.query(Recipe)
         .options(
@@ -1181,6 +1212,8 @@ def delete_recipe_permanent(
         conditions.append((Media.entity_type == "step") & Media.entity_id.in_(step_ids))
     media_records = db.query(Media).filter(or_(*conditions)).all()
 
+    # Medien/Storage sofort freigeben — der Speicher wird nicht 30 Tage blockiert.
+    # Die Tombstone-Karte hat dadurch bewusst kein Bild mehr.
     for m in media_records:
         if m.storage_path:
             storage.delete_file(m.storage_path)
@@ -1191,8 +1224,11 @@ def delete_recipe_permanent(
     for vid in recipe.videos:
         if vid.file_path:
             storage.delete_file(vid.file_path)
+    recipe.videos.clear()
 
-    db.delete(recipe)
+    # Zeile bleibt als Titel-Tombstone: statt db.delete(recipe) nur purge_after
+    # setzen. deleted_at bleibt gesetzt. Nach der Frist entfernt purge_expired().
+    recipe.purge_after = datetime.now(timezone.utc) + timedelta(days=PURGE_TOMBSTONE_DAYS)
     db.commit()
     return {"detail": "Rezept endgültig gelöscht"}
 

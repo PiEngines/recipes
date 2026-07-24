@@ -49,6 +49,11 @@ class Recipe(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+    # Endgültige Löschung mit Aufschub: gesetzt beim „permanenten" Löschen auf
+    # jetzt + 30 Tage. Bis dahin bleibt nur die Zeile als Titel-Tombstone (Medien
+    # sind sofort weg); danach räumt der Lazy-Purge sie hart weg. NULL = kein
+    # Purge geplant (aktiv oder nur Papierkorb).
+    purge_after = Column(DateTime(timezone=True), nullable=True)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     pending_version_id = Column(Integer, ForeignKey("recipe_versions.id"), nullable=True)
     review_status = Column(String(20), nullable=False, default="none")

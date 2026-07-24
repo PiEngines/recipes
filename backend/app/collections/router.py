@@ -127,9 +127,14 @@ def _resolve_items(db: Session, collection_id: int):
 
     rezepte = {}
     if rezept_ids:
+        # Kein deleted_at-Filter: soft-deleted Rezepte sollen grau erscheinen
+        # (Konsistenz mit der Favoritenliste), statt aus der Sammlung zu
+        # verschwinden. deleted_at/purge_after reisen über RecipeListItem mit;
+        # nur physisch fehlende (bereits gepurgte) Zeilen überspringt die
+        # `if r is None`-Schleife unten.
         rows = (
             db.query(Recipe)
-            .filter(Recipe.id.in_(rezept_ids), Recipe.deleted_at.is_(None))
+            .filter(Recipe.id.in_(rezept_ids))
             .options(
                 subqueryload(Recipe.categories),
                 subqueryload(Recipe.tags),
