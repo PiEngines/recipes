@@ -107,7 +107,7 @@ function ZettelCard({ recipe, label, color, onClick, trackId }) {
             // Lamellen: pro ~12px-Latte Licht-Rand → Mittelton → Schatten → Rille
             'repeating-linear-gradient(180deg, rgba(255,255,255,.13) 0px, rgba(255,255,255,.05) 1px, rgba(0,0,0,0) 3px, rgba(0,0,0,.05) 9px, rgba(0,0,0,.11) 11px, rgba(0,0,0,.19) 12px)',
             // Grund kategorie­getönt (color-mix über Theme-Var → dark-mode-fest)
-            `color-mix(in srgb, ${catColor} 20%, var(--bg-alt))`,
+            `color-mix(in srgb, ${catColor} 28%, var(--bg-alt))`,
           ].join(', '),
           // Kasten-Andeutung: der Rollo fährt oben in den Kasten ein
           boxShadow: 'inset 0 7px 9px -5px rgba(0,0,0,.4)',
@@ -326,9 +326,11 @@ export default function Home() {
           <div style={{ flex: 1, height: 1, background: 'var(--hairline)' }} />
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
-          <ZettelCard recipe={seasonal} label="Saisonal"
+          {/* Eigene Akzentfarbe je Rail (unabhängig von der Kategorisierung) —
+              Saisonal grün, Neu terrakotta, Beliebt gold. Speist Tönung + Tinte. */}
+          <ZettelCard recipe={seasonal} label="Saisonal" color="var(--accent-dot)"
             onClick={() => seasonal && navigate(`/recipes/${seasonal.id}`)} trackId="home-carousel-seasonal-click" />
-          <ZettelCard recipe={newest} label="Neu"
+          <ZettelCard recipe={newest} label="Neu" color="var(--accent)"
             onClick={() => newest && navigate(`/recipes/${newest.id}`)} trackId="home-carousel-newest-click" />
           <ZettelCard recipe={beliebt} label="Beliebt" color="var(--gold)"
             onClick={() => beliebt && navigate(`/recipes/${beliebt.id}`)} trackId="home-carousel-beliebt-click" />
