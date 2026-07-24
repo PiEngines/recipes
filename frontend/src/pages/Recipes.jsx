@@ -317,6 +317,7 @@ export default function Recipes() {
     if (ca.size) p.category = [...ca]
     if (mt) p.max_time = mt
     if (SERVER_SORTS.has(sort)) p.sort = sort
+    if (persoenlichAus) p.personal_off = true
     return p
   }
 
@@ -341,6 +342,11 @@ export default function Recipes() {
   const [sortOpen, setSortOpen] = useState(false)
   const [diagnosis, setDiagnosis] = useState([])
   const [reloadNonce, setReloadNonce] = useState(0)
+  // Persönlicher Ernährungs-Filter (Ü26): wie viele Treffer er ausblendet, und
+  // ob der Nutzer sie für diese Suche eingeblendet hat. `persoenlichAus` gilt nur
+  // pro Suche/Session (kein Persist) — bei neuer Suche/Filteränderung wieder an.
+  const [personalHidden, setPersonalHidden] = useState(0)
+  const [persoenlichAus, setPersoenlichAus] = useState(false)
 
   // Option-Listen (einmalig)
   useEffect(() => {
@@ -419,6 +425,7 @@ export default function Recipes() {
       setRecipes(sichtbar)
       setTotal(list.length)
       setFacets({}) // Favoriten sind client-seitig → keine Server-Facetten
+      setPersonalHidden(0) // Favoriten laufen nicht über den Server-Filter
       fertig()
       return
     }
@@ -437,6 +444,7 @@ export default function Recipes() {
         setRecipes(prev => (pg === 1 ? items : [...prev, ...items]))
         setTotal(res.data.total)
         setFacets(res.data.facets || {})
+        setPersonalHidden(res.data.personal_hidden ?? 0)
       })
       .catch(() => {
         // Pausieren statt weiterprobieren: der Sentinel steht am Listenende und
@@ -550,7 +558,13 @@ export default function Recipes() {
     const restore = ladenRef.current.leseRestore()
     if (restore) ladenRef.current.ladeWiederher(restore)
     else ladenRef.current.ladeSeite(1)
-  }, [search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce])
+  }, [search, scopeDesc, scopeIng, scopeAuthor, showFavorites, authorFilter, authorIdFilter, effectiveAuthor, typeKey, dietKey, courseKey, difficultyKey, categoryKey, maxTimeFilter, sort, reloadNonce, persoenlichAus])
+
+  // „Einblenden" gilt nur für die aktuelle Suche/Filterkombination — bei jeder
+  // Änderung zurück auf den Standard (Filter an). Läuft getrennt vom Fetch-
+  // Effekt, damit das Umschalten von `persoenlichAus` sich nicht selbst
+  // zurücksetzt.
+  useEffect(() => { setPersoenlichAus(false) }, [queryKey])
 
   useEffect(() => {
     const el = sentinelRef.current
@@ -801,6 +815,28 @@ export default function Recipes() {
                 <span>Rezepte konnten nicht geladen werden.</span>
                 <button onClick={() => setReloadNonce(n => n + 1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline', padding: 0, fontFamily: 'var(--font-body)', fontSize: 14 }}>
                   Erneut versuchen
+                </button>
+              </div>
+            )}
+
+            {/* Persönlicher Ernährungs-Filter (Ü26): Hinweis + Ein-/Ausblenden.
+                Nur bei tatsächlich ausgeblendeten Treffern; Favoriten laufen
+                nicht über den Server-Filter. */}
+            {!loading && !showFavorites && personalHidden > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, background: 'var(--bg-alt)', border: '1px solid var(--hairline)', borderRadius: 'var(--radius-card)', padding: '10px 14px', marginBottom: 20 }}>
+                <i className={`ti ${persoenlichAus ? 'ti-eye' : 'ti-eye-off'}`} aria-hidden="true" style={{ fontSize: 16, color: 'var(--text-muted)', flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.4, color: 'var(--text-muted)' }}>
+                  {persoenlichAus ? (
+                    <>{personalHidden} sonst ausgeblendete {personalHidden === 1 ? 'Rezept wird' : 'Rezepte werden'} angezeigt</>
+                  ) : (
+                    <><strong style={{ color: 'var(--text)', fontWeight: 600 }}>{personalHidden} {personalHidden === 1 ? 'Rezept' : 'Rezepte'}</strong> durch deine persönlichen Filter ausgeblendet</>
+                  )}
+                </span>
+                <button
+                  onClick={() => setPersoenlichAus(v => !v)}
+                  data-track-id="recipes-personal-filter-toggle"
+                  style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--font-body)', fontSize: 13, textDecoration: 'underline', padding: 0 }}>
+                  {persoenlichAus ? 'Wieder ausblenden' : 'Einblenden'}
                 </button>
               </div>
             )}
